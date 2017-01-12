@@ -329,8 +329,10 @@
                         <var name="fVertex" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="ter" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="landmask" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
-                        <var name="ivgtyp" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="mminlu" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="isice_lu" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="iswater_lu" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="ivgtyp" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="isltyp" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="soilcat_bot" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="snoalb" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
@@ -423,8 +425,10 @@
                         <var name="fVertex"/>
                         <var name="ter"/>
                         <var name="landmask"/>
-                        <var name="ivgtyp"/>
                         <var name="mminlu"/>
+                        <var name="isice_lu"/>
+                        <var name="iswater_lu"/>
+                        <var name="ivgtyp"/>
                         <var name="isltyp"/>
                         <var name="soilcat_bot"/>
                         <var name="snoalb"/>
@@ -594,10 +598,18 @@
                 <var name="cf3"                          type="real"     dimensions=""/>
 
                 <!-- static terrestrial fields -->
+                <var name="mminlu" type="text" dimensions="" units="unitless" default_value="'USGS'"
+                     description="Land use classification"/>
+
+                <var name="isice_lu" type="integer" dimensions="" units="unitless" default_value="24"
+                     description="Index category for snow/ice"/>
+
+                <var name="iswater_lu" type="integer" dimensions="" units="unitless" default_value="16"
+                     description="Index category for water"/>
+
                 <var name="ter"                                  type="real"     dimensions="nCells"/>
                 <var name="landmask"                             type="integer"  dimensions="nCells"/>
                 <var name="ivgtyp"   name_in_code="lu_index"     type="integer"  dimensions="nCells"/>
-                <var name="mminlu"                               type="text"     dimensions=""/>
                 <var name="isltyp"   name_in_code="soilcat_top"  type="integer"  dimensions="nCells"/>
                 <var name="soilcat_bot"                          type="integer"  dimensions="nCells"/>
                 <var name="snoalb"                               type="real"     dimensions="nCells"/>
