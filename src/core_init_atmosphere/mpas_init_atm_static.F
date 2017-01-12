@@ -68,7 +68,7 @@
  real(kind=RKIND),dimension(:,:),allocatable  :: maxsnowalb
  real(kind=RKIND),dimension(:,:,:),allocatable:: vegfra
 
- integer, pointer :: isice_lu, iswater_lu
+ integer, pointer :: isice_lu,iswater_lu
  integer, pointer :: nCells, nEdges, nVertices, maxEdges
  logical, pointer :: on_a_sphere
  real (kind=RKIND), pointer :: sphere_radius
