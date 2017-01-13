@@ -94,6 +94,7 @@
 !   scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2017-02-19.
 
+
 !
 ! DOCUMENTATION:
 ! ./physics_wrf/module_sf_noahdrv.F: main driver for the "NOAH" land-surface parameterization.
@@ -802,6 +803,7 @@
 
 !copy MPAS arrays to local arrays:
  call lsm_from_MPAS(configs,mesh,diag_physics,sfc_input,its,ite)
+!write(0,*) '--- end lsm_from_MPAS'
 
 !call to land-surface scheme:
  lsm_select: select case (trim(lsm_scheme))
