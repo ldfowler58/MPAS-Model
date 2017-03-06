@@ -50,6 +50,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2016-04-11.
 ! * in subroutine physics_get_tend_work, added the option cu_ntiedtke in the calculation of rucuten_Edge.
 !   Laura D. Fowler (laura@ucar.edu) / 2016-10-28.
+! * in subroutine physics_get_tend_work, added the option bl_mynn_wrf390 for the calculation of the PBL
+!   tendencies when using the PBL parameterization from WRF 3.9.0.
+!   Laura D. Fowler (laura@ucar.edu) / 2017-03-06.
 
 
  contains
@@ -522,7 +525,7 @@
 
        pbl_select: select case (trim(config_pbl_scheme))
 
-          case("bl_mynn")
+          case('bl_mynn','bl_mynn_wrf390')
 
              do i = 1, nCellsSolve
              do k = 1, nVertLevels
@@ -706,7 +709,7 @@
 
        pbl_select: select case (trim(config_pbl_scheme))
 
-          case("bl_mynn")
+          case('bl_mynn','bl_mynn_wrf390')
 
              do i = 1, nCellsSolve
              do k = 1, nVertLevels
