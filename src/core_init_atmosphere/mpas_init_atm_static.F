@@ -962,10 +962,18 @@ if (rarray(i,j,1) == 0) cycle
     !... uniform 10242 mesh:
     if(mindcEdge .ge. 200000._RKIND .and. maxdcEdge .lt. 260000._RKIND) then
        dir_gwdo = 'orogwd_2deg'
+    !... uniform 40962 mesh:
     elseif(mindcEdge .ge. 90000._RKIND .and. maxdcEdge .lt. 150000_RKIND) then
        dir_gwdo = 'orogwd_1deg'
+    !... uniform 163842 mesh:
     elseif(mindcEdge .ge. 40000._RKIND .and. maxdcEdge .lt. 70000._RKIND) then
        dir_gwdo = 'orogwd_30m'
+    !... uniform 655362 mesh:
+    elseif(mindcEdge .ge. 20000._RKIND .and. maxdcEdge .lt. 40000._RKIND) then
+       dir_gwdo = 'orogwd_20m'
+    !... uniform 2621442 mesh:
+    elseif(mindcEdge .ge. 10000._RKIND .and. maxdcEdge .lt. 20000._RKIND) then
+       dir_gwdo = 'orogwd_10m'
     else
        call mpas_log_write('')
        call mpas_log_write('GWDO: Interpolation not available. Set config_gwdo_scheme = .false.', messageType=MPAS_LOG_WARN)
