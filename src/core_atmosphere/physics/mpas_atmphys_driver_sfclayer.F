@@ -192,7 +192,6 @@
        endif
 
     case("sf_mynn","sf_mynn_wrf390")
-       write(0,*) '--- allocate_sfclayer: sf_mynn_wrf390:'
        if(.not.allocated(snowh_p)) allocate(snowh_p(ims:ime,jms:jme))
        if(.not.allocated(ch_p)   ) allocate(ch_p(ims:ime,jms:jme)   )
        if(.not.allocated(qcg_p)  ) allocate(qcg_p(ims:ime,jms:jme)  )
@@ -207,7 +206,6 @@
        if(.not.allocated(elpbl_p)   ) allocate(elpbl_p(ims:ime,kms:kme,jms:jme)   )
        if(.not.allocated(qcbl_p)    ) allocate(qcbl_p(ims:ime,kms:kme,jms:jme)    )
        if(.not.allocated(cldfrabl_p)) allocate(cldfrabl_p(ims:ime,kms:kme,jms:jme))
-       write(0,*) '--- end allocate_sfclayer: sf_mynn_wrf390.'
 
     case default
 
@@ -310,7 +308,6 @@
        endif
 
     case("sf_mynn","sf_mynn_wrf390")
-       write(0,*) '--- deallocate_sfclayer: sf_mynn_wrf390:'
        if(allocated(snowh_p)) deallocate(snowh_p)
        if(allocated(ch_p)   ) deallocate(ch_p   )
        if(allocated(qcg_p)  ) deallocate(qcg_p  )
@@ -325,7 +322,6 @@
        if(allocated(elpbl_p)   ) deallocate(elpbl_p   )
        if(allocated(qcbl_p)    ) deallocate(qcbl_p    )
        if(allocated(cldfrabl_p)) deallocate(cldfrabl_p)
-       write(0,*) '--- end deallocate_sfclayer: sf_mynn_wrf390.'
 
     case default
 
@@ -537,7 +533,6 @@
        enddo
 
     case("sf_mynn","sf_mynn_wrf390")
-       write(0,*) '--- subroutine sfclayer_from_MPAS: sf_mynn_wrf390:'
        !input variables:
        call mpas_pool_get_array(diag_physics,'qcg'       ,qcg       )
        call mpas_pool_get_array(sfc_input   ,'snowh'     ,snowh     )
@@ -578,7 +573,6 @@
        enddo
        enddo
        enddo
-       write(0,*) '--- end subroutine sfclayer_from_MPAS: sf_mynn_wrf390.'
 
     case default
 
@@ -767,7 +761,6 @@
        endif
 
     case("sf_mynn","sf_mynn_wrf390")
-       write(0,*) '--- subroutine sfclayer_to_MPAS: sf_mynn_wrf390:'
        call mpas_pool_get_array(diag_physics,'ch',ch)
 
        do j = jts,jte
@@ -785,7 +778,6 @@
           enddo
           enddo
        endif
-       write(0,*) '--- end subroutine sfclayer_to_MPAS: sf_mynn_wrf390:'
 
     case default
 
@@ -817,10 +809,7 @@
        call mynn_sf_init_driver(allowed_to_read)
 
     case("sf_mynn_wrf38")
-       write(0,*)
-       write(0,*) '--- enter subroutine mynn_sf_init_driver_wrf390:'
        call mynn_sf_init_driver_wrf390(allowed_to_read)
-       write(0,*) '--- end subroutine mynn_sf_init_driver_wrf390'
 
     case default
 
@@ -1001,7 +990,6 @@
        endif
 
     case("sf_mynn_wrf390")
-       write(0,*) '--- enter subroutine sf_mynn_wrf390:'
        call sfclay_mynn_wrf390( &
                    p3d       = pres_hyd_p , pi3d      = pi_p       , psfcpa    = psfc_p     , &
                    th3d      = th_p       , t3d       = t_p        , u3d       = u_p        , &
@@ -1033,7 +1021,6 @@
                    ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme    , &
                    its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte      &
                               )
-       write(0,*) '--- end sfclay_mynn_wrf390.'
 
        if(config_frac_seaice) then
           call sfclay_mynn_wrf390( &
@@ -1067,7 +1054,6 @@
                       ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme    , &
                       its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte      &
                                  )
-          write(0,*) '--- end sfclay_mynn_wrf390 over seaice.'
 
        endif
 
