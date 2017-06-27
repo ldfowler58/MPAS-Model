@@ -1037,6 +1037,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
@@ -1140,6 +1154,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
@@ -1242,6 +1270,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
@@ -1345,6 +1387,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
@@ -1448,6 +1504,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
@@ -1551,6 +1621,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
@@ -1654,6 +1738,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
@@ -1757,6 +1855,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
@@ -1860,6 +1972,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
@@ -1963,6 +2089,20 @@ if (rarray(i,j,1) == 0) cycle
        known_y = 1.0
        known_lat = -89.75
        known_lon = 0.25
+    case("orogwd_20m")
+       nx = 1080
+       ny = 540
+       nz = 1
+       isigned     = 0
+       endian      = 0
+       wordsize    = 2
+       scalefactor = 0.025
+       dx = 0.33333333
+       dy = 0.33333333
+       known_x = 1.0
+       known_y = 1.0
+       known_lat = -89.833333
+       known_lon = 0.1666667
     case("orogwd_10m")
        nx = 2160
        ny = 1080
