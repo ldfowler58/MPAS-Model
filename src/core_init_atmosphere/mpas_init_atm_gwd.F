@@ -143,7 +143,7 @@ module mpas_init_atm_gwd
 
       iErr = read_global_30s_landuse(config_geog_data_path)
       if (iErr /= 0) then
-         write(stderrUnit,*) 'Error reading global 30-arc-sec landuse for GWD statistics'
+         call mpas_log_write('Error reading global 30-arc-sec landuse for GWD statistics', messageType=MPAS_LOG_ERR)
          return
       end if
 write(0,*) 'min/max landuse = ', minval(landuse), maxval(landuse)
@@ -367,7 +367,7 @@ write(0,*) 'min/max landuse = ', minval(landuse), maxval(landuse)
          call read_geogrid(filename, len_trim(filename), tile, nx, ny, nz, isigned, endian, &
                            scalefactor, wordsize, istatus)
          if (istatus /= 0) then
-            write(stderrUnit,*) 'Error reading landuse tile '//trim(filename)
+            call mpas_log_write('Error reading landuse tile '//trim(filename), messageType=MPAS_LOG_ERR)
             iErr = 1
             return
          end if
