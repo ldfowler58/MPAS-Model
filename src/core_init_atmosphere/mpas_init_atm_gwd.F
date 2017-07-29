@@ -36,6 +36,7 @@ module mpas_init_atm_gwd
    real (kind=RKIND), dimension(:,:), pointer :: dxm   ! Size (meters) in zonal direction of a grid cell
    real (kind=RKIND) :: box_mean                       ! Mean value of topography in box
    integer :: nx, ny                                   ! Dimensions of box covering grid cell
+   integer :: min_landuse, max_landuse
    integer (kind=I1KIND), dimension(:,:), pointer :: landuse         ! Global 30-arc-second landuse
    integer (kind=I1KIND), dimension(:,:), pointer :: box_landuse     ! Subset of landuse covering a grid cell
 
@@ -146,7 +147,9 @@ module mpas_init_atm_gwd
          call mpas_log_write('Error reading global 30-arc-sec landuse for GWD statistics', messageType=MPAS_LOG_ERR)
          return
       end if
-write(0,*) 'min/max landuse = ', minval(landuse), maxval(landuse)
+      min_landuse = minval(landuse)
+      max_landuse = maxval(landuse)
+      call mpas_log_write('min/max landuse = $i $i', intArgs=(/min_landuse,max_landuse/))
 
       !
       ! It is possible that this code is called before the mesh fields have been scaled
@@ -233,13 +236,13 @@ write(0,*) 'min/max landuse = ', minval(landuse), maxval(landuse)
              sum_landuse = sum_landuse + hlanduse(cellsOnCell(i,iCell)) 
              sum_var     = sum_var     + var2d(cellsOnCell(i,iCell))
          end do
-         if (iCell.eq.10000) write(0,*) 'sum_landuse, sum_var = ', sum_landuse, sum_var 
+         if (iCell.eq.10000) call mpas_log_write('sum_landuse, sum_var = $r $r', realArgs=(/sum_landuse,sum_var/))
 
          if (sum_landuse .eq. nEdgesOnCell(iCell) .and. hlanduse(iCell).eq.0.0) then
-             write(0,*) 'smoothing out a water point, iCell = ', iCell
+             call mpas_log_write('smoothing out a water point, iCell = $i', intArgs=(/iCell/))
              var2d(iCell) = sum_var/nEdgesOnCell(iCell)
          elseif (sum_landuse .eq. 0.0 .and. hlanduse(iCell).eq.1.0) then
-             write(0,*) 'smoothing out a land point, iCell = ', iCell
+             call mpas_log_write('smoothing out a land point, iCell = $i', intArgs=(/iCell/))
              var2d(iCell) = sum_var/nEdgesOnCell(iCell) 
          end if
       end do
