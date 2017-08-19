@@ -291,7 +291,7 @@
  end subroutine microphysics_init
 
 !=================================================================================================================
- subroutine driver_microphysics(configs,mesh,state,time_lev,diag,diag_physics,tend,itimestep,its,ite)
+ subroutine driver_microphysics(configs,mesh,state,time_lev,diag,diag_physics,tend_physics,tend,itimestep,its,ite)
 !=================================================================================================================
 
 !input arguments:
@@ -306,6 +306,7 @@
  type(mpas_pool_type),intent(inout):: state
  type(mpas_pool_type),intent(inout):: diag
  type(mpas_pool_type),intent(inout):: diag_physics
+ type(mpas_pool_type),intent(inout):: tend_physics
  type(mpas_pool_type),intent(inout):: tend
 
 !local pointers:
@@ -331,7 +332,7 @@
  call precip_from_MPAS(configs,diag_physics,its,ite)
 
 !... initialization of soundings for non-hydrostatic dynamical cores.
- call microphysics_from_MPAS(configs,mesh,state,time_lev,diag,diag_physics,its,ite)
+ call microphysics_from_MPAS(configs,mesh,state,time_lev,diag,diag_physics,tend_physics,its,ite)
 
 !... call to different cloud microphysics schemes:
  microp_select: select case(microp_scheme)
@@ -422,7 +423,7 @@
 
 !... copy updated cloud microphysics variables from the wrf-physics grid back to the geodesic-
 !    dynamics grid:
- call microphysics_to_MPAS(configs,mesh,state,time_lev,diag,diag_physics,tend,itimestep,its,ite)
+ call microphysics_to_MPAS(configs,mesh,state,time_lev,diag,diag_physics,tend_physics,tend,itimestep,its,ite)
 
 !... deallocation of all microphysics arrays:
 !$OMP BARRIER
