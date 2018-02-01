@@ -25,7 +25,6 @@ OBJS = \
 	module_mp_thompson.o             \
 	module_mp_thompson_cldfra3.o     \
 	module_mp_wsm6.o                 \
-	module_ra_cam.o                  \
 	module_ra_cam_support.o          \
 	module_ra_rrtmg_lw.o             \
 	module_ra_rrtmg_sw.o             \
@@ -63,10 +62,6 @@ module_cu_gf.mpas.wrf-3.9.0.o:  \
 
 module_mp_thompson.o: \
 	module_mp_radar.o
-
-module_ra_cam.o: \
-	module_cam_support.o \
-	module_ra_cam_support.o
 
 module_ra_rrtmg_lw.o: \
 	module_ra_rrtmg_vinterp.o
