@@ -18,8 +18,9 @@
  use module_cu_gf
  use module_cu_gf_wrf390
  use module_cu_kfeta
- use module_cu_tiedtke
+ use module_cu_mskf
  use module_cu_ntiedtke
+ use module_cu_tiedtke
 
  implicit none
  private
@@ -110,6 +111,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2017-09-11.
 ! * updated the Kain-Fritsch convection scheme to that in WRF version 3.9.1.
 !   Laura D. Fowler (laura@ucar.edu) / 2018-02-05.
+! * added the option cu_kain_fritsch_sca to run the Kain-Fritsch scale-aware parameterization of convection.
+!   Laura D. Fowler (laura@ucar.edu) / 2018-02-06.
 ! * in subroutine convection_from_MPAS, rewrote the initialization of variables needed to run the Tiedtke and
 !   nTiedtke convection scheme. now use "association" so that the schemes can be run without full physics for
 !   testing purposes.
@@ -240,7 +243,7 @@
        enddo
        enddo
 
-    case ("cu_kain_fritsch")
+    case ("cu_kain_fritsch","cu_kain_fritsch_sca")
        if(.not.allocated(dx_p)           ) allocate(dx_p(ims:ime,jms:jme)                   )
        if(.not.allocated(area_p)         ) allocate(area_p(ims:ime,jms:jme)                 )
        if(.not.allocated(nca_p)          ) allocate(nca_p(ims:ime,jms:jme)                  )
@@ -258,6 +261,18 @@
        if(.not.allocated(ddr_kf_p)       ) allocate(ddr_kf_p(ims:ime,kms:kme,jms:jme)       )
        if(.not.allocated(uer_kf_p)       ) allocate(uer_kf_p(ims:ime,kms:kme,jms:jme)       )
        if(.not.allocated(der_kf_p)       ) allocate(der_kf_p(ims:ime,kms:kme,jms:jme)       )
+
+       cu_kf_select: select case(convection_scheme)
+          case ("cu_kain_fritsch_sca")
+             if(.not.allocated(hpbl_p) ) allocate(hpbl_p(ims:ime,jms:jme) )
+             if(.not.allocated(ust_p)  ) allocate(ust_p(ims:ime,jms:jme)  )
+             if(.not.allocated(wstar_p)) allocate(wstar_p(ims:ime,jms:jme))
+             if(.not.allocated(zol_p)  ) allocate(zol_p(ims:ime,jms:jme)  )
+             if(.not.allocated(timec_p)) allocate(timec_p(ims:ime,jms:jme))
+
+             if(.not.allocated(w_deepc_p)) allocate(w_deepc_p(ims:ime,kms:kme,jms:jme))
+          case default
+       end select cu_kf_select
 
        do i = its,ite
        do j = jts,jte
@@ -398,7 +413,7 @@
        if(allocated(raincvs_p)      ) deallocate(raincvs_p      )
        if(allocated(weights_clos_p) ) deallocate(weights_clos_p )
 
-    case ("cu_kain_fritsch")
+    case ("cu_kain_fritsch","cu_kain_fritsch_sca")
        if(allocated(dx_p)           ) deallocate(dx_p           )
        if(allocated(area_p)         ) deallocate(area_p         )
        if(allocated(nca_p)          ) deallocate(nca_p          )
@@ -416,6 +431,17 @@
        if(allocated(ddr_kf_p)       ) deallocate(ddr_kf_p       )
        if(allocated(uer_kf_p)       ) deallocate(uer_kf_p       )
        if(allocated(der_kf_p)       ) deallocate(der_kf_p       )
+
+       cu_kf_select: select case(convection_scheme)
+          case ("cu_kain_fritsch_sca")
+             if(allocated(hpbl_p)   ) deallocate(hpbl_p   )
+             if(allocated(ust_p)    ) deallocate(ust_p    )
+             if(allocated(wstar_p)  ) deallocate(wstar_p  )
+             if(allocated(zol_p)    ) deallocate(zol_p    )
+             if(allocated(timec_p)  ) deallocate(timec_p  )
+             if(allocated(w_deepc_p)) deallocate(w_deepc_p)
+          case default
+       end select cu_kf_select
 
     case ("cu_tiedtke","cu_ntiedtke")
        if(allocated(hfx_p)  ) deallocate(hfx_p  )
@@ -470,7 +496,6 @@
  call mpas_pool_get_config(configs,'config_convection_scheme',convection_scheme)
 
  convection_select: select case(convection_scheme)
-
     case ("cu_kain_fritsch")
        call mpas_pool_get_array(diag_physics,'nca',nca)
        if(.not. config_do_restart) then
@@ -480,8 +505,16 @@
        endif
        call kf_lutab(svp1,svp2,svp3,svpt0)
 
-    case default
+    case ("cu_kain_fritsch_sca")
+       call mpas_pool_get_array(diag_physics,'nca',nca)
+       if(.not. config_do_restart) then
+          do iCell = 1, nCells
+             nca(iCell) = -100._RKIND
+          enddo
+       endif
+       call mskf_lutab(svp1,svp2,svp3,svpt0)
 
+    case default
  end select convection_select
 
  end subroutine init_convection
@@ -701,6 +734,51 @@
              its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte   &
                         )
 
+    case ("cu_kain_fritsch_sca")
+       if(itimestep == 1) then
+          ktau = itimestep
+       else
+          ktau = itimestep + 1
+       endif
+
+       call mskf_cps( &
+             pcps            = pres_hyd_p      , t               = t_p             , &
+             dt              = dt_dyn          , ktau            = ktau            , &
+             dxCell          = dx_p            , areaCell        = area_p          , &
+             cudt            = cudt            , adapt_step_flag = adapt_step_flag , &
+             rho             = rho_p           , raincv          = raincv_p        , &
+             pratec          = pratec_p        , nca             = nca_p           , &
+             u               = u_p             , v               = v_p             , &
+             th              = th_p            , pi              = pi_p            , &
+             w               = w_p             , dz8w            = dz_p            , &
+             w0avg           = w0avg_p         , xlv0            = xlv0            , &
+             xlv1            = xlv1            , xls0            = xls0            , &
+             xls1            = xls1            , cp              = cp              , &
+             r               = r_d             , g               = gravity         , &
+             ep1             = ep_1            , ep2             = ep_2            , &
+             svp1            = svp1            , svp2            = svp2            , &
+             svp3            = svp3            , svpt0           = svpt0           , &
+             stepcu          = n_cu            , cu_act_flag     = cu_act_flag     , &
+             warm_rain       = warm_rain       , cutop           = cutop_p         , &
+             cubot           = cubot_p         , qv              = qv_p            , &
+             f_qv            = f_qv            , f_qc            = f_qc            , &
+             f_qr            = f_qr            , f_qi            = f_qi            , &
+             f_qs            = f_qs            , kf_edrates      = kf_edrates      , &
+             w_up            = w_deepc_p       , timec_kf        = timec_p         , &
+             zol             = zol_p           , wstar           = wstar_p         , &
+             ust             = ust_p           , pblh            = hpbl_p          , &
+             cldfra_dp_kf    = cldfrac_deepc_p , cldfra_sh_kf    = cldfrac_shalc_p , &
+             qc_kf           = qccu_p          , qi_kf           = qicu_p          , &
+             udr_kf          = udr_kf_p        , ddr_kf          = ddr_kf_p        , &
+             uer_kf          = uer_kf_p        , der_kf          = der_kf_p        , &
+             rthcuten        = rthcuten_p      , rqvcuten        = rqvcuten_p      , &
+             rqccuten        = rqccuten_p      , rqrcuten        = rqrcuten_p      , &
+             rqicuten        = rqicuten_p      , rqscuten        = rqscuten_p      , &
+             ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde , &
+             ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme , &
+             its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte   &
+                    )
+
     case("cu_tiedtke")
        call cu_tiedtke( &
              pcps        = pres_hyd_p    , p8w       = pres2_hyd_p   ,               &
@@ -785,14 +863,14 @@
  integer,dimension(:),pointer:: ktop_deepc,ktop_midlc,ktop_shalc
  real(kind=RKIND),dimension(:),pointer  :: areaCell,meshDensity
  real(kind=RKIND),dimension(:),pointer  :: nca,timec,cubot,cutop,cuprec,raincv
- real(kind=RKIND),dimension(:),pointer  :: gsw,hfx,qfx,xland
+ real(kind=RKIND),dimension(:),pointer  :: hpbl,ust,wstar,zol,gsw,hfx,qfx,xland
  real(kind=RKIND),dimension(:),pointer  :: xmb_deepc
  real(kind=RKIND),dimension(:,:),pointer:: zgrid
  real(kind=RKIND),dimension(:,:),pointer:: qc_cu,qi_cu
  real(kind=RKIND),dimension(:,:),pointer:: cldfrac_deepc,cldfrac_shalc
  real(kind=RKIND),dimension(:,:),pointer:: zu_deepc,zd_deepc,zu_midlc,zd_midlc,zu_shalc
  real(kind=RKIND),dimension(:,:),pointer:: udr_kf,uer_kf,ddr_kf,der_kf
- real(kind=RKIND),dimension(:,:),pointer:: w0avg
+ real(kind=RKIND),dimension(:,:),pointer:: w0avg,w_deepc
  real(kind=RKIND),dimension(:,:),pointer:: rthcuten,rqvcuten,rqccuten,rqicuten,rqrcuten,rqscuten 
  real(kind=RKIND),dimension(:,:),pointer:: rthblten,rthdynten,rthratenlw,rthratensw
  real(kind=RKIND),dimension(:,:),pointer:: rqvblten,rqvdynten,rucuten,rvcuten
@@ -964,7 +1042,7 @@
        enddo
        enddo
 
-    case ("cu_kain_fritsch")
+    case ("cu_kain_fritsch","cu_kain_fritsch_sca")
        call mpas_pool_get_config(configs,'config_len_disp',len_disp)
 
        call mpas_pool_get_array(mesh,'areaCell',areaCell)
@@ -1019,6 +1097,51 @@
           enddo
        enddo
        enddo
+
+       cu_kf_select: select case(convection_scheme)
+          case ("cu_kain_fritsch_sca")
+             nullify(hpbl)
+             nullify(ust)
+             nullify(wstar)
+             nullify(zol)
+             call mpas_pool_get_array(diag_physics,'hpbl'   ,hpbl   )
+             call mpas_pool_get_array(diag_physics,'ust'    ,ust    )
+             call mpas_pool_get_array(diag_physics,'wstar'  ,wstar  )
+             call mpas_pool_get_array(diag_physics,'zol'    ,zol    )
+             call mpas_pool_get_array(diag_physics,'w_deepc',w_deepc)
+
+             !we only require to check if hpbl is associated since the YSU and MYNN PBL schemes
+             !need all four arrays hpbl, ust, wstar, and zol in their argument list.
+             if(associated(hpbl)) then
+                do j = jts,jte
+                do i = its,ite
+                   hpbl_p(i,j)  = hpbl(i)
+                   ust_p(i,j)   = ust(i)
+                   wstar_p(i,j) = wstar(i)
+                   zol_p(i,j)   = zol(i)
+                enddo
+                enddo
+             else
+                do j = jts,jte
+                do i = its,ite
+                   hpbl_p(i,j)  = 0._RKIND
+                   ust_p(i,j)   = 0._RKIND
+                   wstar_p(i,j) = 0._RKIND
+                   zol_p(i,j)   = 0._RKIND
+                enddo
+                enddo
+             endif
+
+             do j = jts,jte
+             do i = its,ite
+                do k = kts,kte
+                   w_deepc_p(i,k,j) = w_deepc(k,i)
+                enddo
+             enddo
+             enddo
+
+          case default
+       end select cu_kf_select
 
     case ("cu_tiedtke","cu_ntiedtke")
        nullify(hfx)
@@ -1125,7 +1248,7 @@
  real(kind=RKIND),dimension(:,:),pointer:: cldfrac_deepc,cldfrac_shalc
  real(kind=RKIND),dimension(:,:),pointer:: zu_deepc,zd_deepc,zu_midlc,zd_midlc,zu_shalc
  real(kind=RKIND),dimension(:,:),pointer:: udr_kf,uer_kf,ddr_kf,der_kf
- real(kind=RKIND),dimension(:,:),pointer:: w0avg
+ real(kind=RKIND),dimension(:,:),pointer:: w0avg,w_deepc
  real(kind=RKIND),dimension(:,:),pointer:: rthcuten,rqvcuten,rqccuten,rqicuten,rqrcuten,rqscuten
  real(kind=RKIND),dimension(:,:),pointer:: rucuten,rvcuten
  real(kind=RKIND),dimension(:,:),pointer:: rthcuten_deepc,rqvcuten_deepc,rqccuten_deepc,rqicuten_deepc
@@ -1269,7 +1392,7 @@
        enddo
        enddo
 
-    case ("cu_kain_fritsch")
+    case ("cu_kain_fritsch","cu_kain_fritsch_sca")
        call mpas_pool_get_array(diag_physics,'cubot',cubot)
        call mpas_pool_get_array(diag_physics,'cutop',cutop)
        call mpas_pool_get_array(diag_physics,'nca'  ,nca  )
@@ -1283,7 +1406,6 @@
        call mpas_pool_get_array(diag_physics,'qi_cu' ,qi_cu )
        call mpas_pool_get_array(diag_physics,'cldfrac_deepc',cldfrac_deepc)
        call mpas_pool_get_array(diag_physics,'cldfrac_shalc',cldfrac_shalc)
-
 
        call mpas_pool_get_array(tend_physics,'rqrcuten',rqrcuten)
        call mpas_pool_get_array(tend_physics,'rqscuten',rqscuten)
@@ -1309,6 +1431,21 @@
           enddo                          
        enddo
        enddo
+
+       cu_kf_select: select case(convection_scheme)
+          case ("cu_kain_fritsch_sca")
+             call mpas_pool_get_array(diag_physics,'w_deepc',w_deepc)
+
+             do j = jts,jte
+             do i = its,ite
+                do k = kts,kte
+                   w_deepc(k,i) = w_deepc_p(i,k,j)
+                enddo
+             enddo
+             enddo
+
+          case default
+       end select cu_kf_select
 
     case ("cu_tiedtke","cu_ntiedtke")
        call mpas_pool_get_array(tend_physics,'rucuten',rucuten)
@@ -1355,7 +1492,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_kain_fritsch")
+    case ("cu_kain_fritsch","cu_kain_fritsch_sca")
       call mpas_pool_get_array(diag_physics,'nca'   ,nca   )
       call mpas_pool_get_array(diag_physics,'cubot' ,cubot )
       call mpas_pool_get_array(diag_physics,'cutop' ,cutop )

@@ -91,6 +91,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2018-02-01.
 ! * added the option mp_thompson_aerosols.
 !   Laura D. Fowler (laura@ucar.edu) / 2018-01-31.
+! * added the option cu_kain_fritsch_sca to run the Kain-Fritsch scale-aware parameterization of convection.
+!   Laura D. Fowler (laura@ucar.edu) / 2018-02-06.
 
 
  contains
@@ -204,6 +206,7 @@
            config_convection_scheme .eq. 'cu_grell_freitas'        .or. &
            config_convection_scheme .eq. 'cu_grell_freitas_wrf390' .or. &
            config_convection_scheme .eq. 'cu_kain_fritsch'         .or. &
+           config_convection_scheme .eq. 'cu_kain_fritsch_sca'     .or. &
            config_convection_scheme .eq. 'cu_tiedtke'              .or. &
            config_convection_scheme .eq. 'cu_ntiedtke')) then
 
