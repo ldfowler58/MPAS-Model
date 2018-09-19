@@ -69,7 +69,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2017-03-06.
 ! * removed the option bl_mynn_wrf390.  The option bl_mynn now points to the PBL scheme from WRF version 3.9.0
 !   instead of version 3.6.1.
-!   Laura D. Fowler (laura@ucar.edu) / 20180-01-24.
+!   Laura D. Fowler (laura@ucar.edu) / 2018-01-24.
+! * added the TKE closure level (bl_mynn_closure) to the argument list in the call to mynn_bl_driver.
+!   Laura D. Fowler (laura@ucar.edu) / 2018-09-19.
 
 
  contains
@@ -644,7 +646,7 @@
 !local pointers:
  logical,pointer:: config_do_restart
  character(len=StrKIND),pointer:: pbl_scheme
- integer,pointer:: bl_mynn_cloudpdf,bl_mynn_edmf
+ integer,pointer:: bl_mynn_cloudpdf,bl_mynn_edmf,bl_mynn_closure
 
 !local variables:
  integer:: initflag
@@ -656,8 +658,6 @@
 
  call mpas_pool_get_config(configs,'config_do_restart'   ,config_do_restart)
  call mpas_pool_get_config(configs,'config_pbl_scheme'   ,pbl_scheme       )
- call mpas_pool_get_config(configs,'config_mynn_cloudpdf',bl_mynn_cloudpdf )
- call mpas_pool_get_config(configs,'config_mynn_edmf'    ,bl_mynn_edmf     )
 
 !copy MPAS arrays to local arrays:
  call pbl_from_MPAS(configs,mesh,sfc_input,diag_physics,tend_physics,its,ite)
@@ -695,7 +695,17 @@
                 )
 
    case("bl_mynn")
-       call  mynn_bl_driver ( &
+      call mpas_pool_get_config(configs,'config_mynn_cloudpdf',bl_mynn_cloudpdf )
+      call mpas_pool_get_config(configs,'config_mynn_edmf'    ,bl_mynn_edmf     )
+      call mpas_pool_get_config(configs,'config_mynn_closure' ,bl_mynn_closure  )
+
+      call mpas_log_write(' ')
+      call mpas_log_write('--- enter subroutine mynn_bl_driver:')
+      call mpas_log_write('--- config_mynn_cloudpdf = $i',intArgs=(/bl_mynn_cloudpdf/))
+      call mpas_log_write('--- config_mynn_edmf     = $i',intArgs=(/bl_mynn_edmf/))
+      call mpas_log_write('--- config_mynn_closure  = $i',intArgs=(/bl_mynn_closure/))
+
+      call  mynn_bl_driver ( &
                  p         = pres_hyd_p  , exner     = pi_p        , ps        = psfc_p     , &
                  th        = th_p        , t3d       = t_p         , dz        = dz_p       , &
                  dxCell    = dx_p        , u         = u_p         , v         = v_p        , &
@@ -721,6 +731,7 @@
                  edmf_qt   = edmfqt_p    , edmf_thl  = edmfthl_p   , edmf_ent  = edmfent_p  , &
                  edmf_qc   = edmfqc_p    , initflag  = initflag    ,                          &
                  grav_settling     = grav_settling     ,                                      &
+                 bl_mynn_closure   = bl_mynn_closure   ,                                      &
                  bl_mynn_cloudpdf  = bl_mynn_cloudpdf  ,                                      &
                  bl_mynn_cloudmix  = bl_mynn_cloudmix  ,                                      &
                  bl_mynn_mixlength = bl_mynn_mixlength ,                                      &
