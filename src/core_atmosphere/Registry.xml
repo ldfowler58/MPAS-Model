@@ -1439,6 +1439,9 @@
                 <var name="theta" type="real" dimensions="nVertLevels nCells Time" units="K"
                      description="Potential temperature"/>
 
+                <var name="temperature" type="real" dimensions="nVertLevels nCells Time" units="K"
+                     description="temperature"/>
+
                 <var name="relhum" type="real" dimensions="nVertLevels nCells Time" units="percent"
                      description="Relative humidity"/>
 
