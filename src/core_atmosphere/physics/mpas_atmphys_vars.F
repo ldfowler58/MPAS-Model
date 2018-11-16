@@ -139,7 +139,12 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2018-02-05.
 ! * removed the variables rqvdynblten and rthdynblten since they actually are the same variables as rqvblten and
 !   rthblten.
-!   Laura D. Fowler (laura@ucar.edu) /2018-02-26.
+!   Laura D. Fowler (laura@ucar.edu) / 2018-02-26.
+! * added the variables rinc_p and rincs_p (incidence of deep and shallow convection). also added the variables
+!   qccu_shalc_p,and qicu_shalc_p (in-cloud mixing ratios for shallow and deep convection).
+!   Laura D. Fowler (laura@ucar.edu) / 2018-09-17.
+! * added the variables rqrcuten_shalc and rqscuten_shalc (tendencies of rain and snow due to shallow convection.)
+!   Laura D. Fowler (laura@ucar.edu) / 2018-10-20.
 
 
 !=================================================================================================================
@@ -317,6 +322,11 @@
 
  logical,dimension(:,:),allocatable:: &
     cu_act_flag
+
+ real(kind=RKIND),dimension(:,:),allocatable::   &
+    rinc_p,           &!incidence of deep convection [-].
+    rincs_p            !incidence of shallow convection [-].
+
  real(kind=RKIND),dimension(:,:),allocatable::   &
     rainc_p,          &!
     raincv_p,         &!
@@ -396,6 +406,8 @@
     rthdynten_p,      &!
     qccu_p,           &!
     qicu_p,           &!
+    qccu_shalc_p,     &!
+    qicu_shalc_p,     &!
     zu_deepc_p,       &!
     zd_deepc_p,       &!
     zu_midlc_p,       &!
@@ -414,7 +426,9 @@
     rqccuten_shalc_p, &!
     rqicuten_deepc_p, &!
     rqicuten_midlc_p, &!
-    rqicuten_shalc_p
+    rqicuten_shalc_p, &!
+    rqrcuten_shalc_p, &!
+    rqscuten_shalc_p   !
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     rthraten_p         !
