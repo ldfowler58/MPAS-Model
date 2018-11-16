@@ -17,6 +17,15 @@
  use mpas_atmphys_constants,only: R_v,R_d
  use mpas_atmphys_functions,only: rsif,rslf
 
+ use mpas_atmphys_compute_diagnostics_bl, only: need_atmphys_diagnostics_bl,    &
+                                                atmphys_compute_diagnostics_bl
+
+ use mpas_atmphys_compute_diagnostics_cu, only: need_atmphys_diagnostics_cu,    &
+                                                need_atmphys_tendencies_cu,     &
+                                                atmphys_compute_diagnostics_cu, &
+                                                atmphys_compute_tendencies_cu,  &
+                                                interp_tofixed_pressure
+
  implicit none
  private
  public:: atmphys_compute_diagnostics_setup, &
@@ -31,9 +40,12 @@
  type(mpas_pool_type),pointer:: diag_physics
  type(mpas_pool_type),pointer:: diag_physics_vavg
  type(mpas_pool_type),pointer:: diag_physics_interp
+ type(mpas_pool_type),pointer:: diag_physics_bl
+ type(mpas_pool_type),pointer:: diag_physics_cu
  type(mpas_pool_type),pointer:: tend_physics
  type(mpas_pool_type),pointer:: tend_physics_vavg
  type(mpas_pool_type),pointer:: tend_physics_interp
+ type(mpas_pool_type),pointer:: tend_physics_cu
 
  logical:: need_qv_vavg,need_qc_vavg,need_qr_vavg,need_qi_vavg,need_qs_vavg,need_qg_vavg
  logical:: need_qcf_vavg,need_qrf_vavg,need_qif_vavg,need_qsf_vavg,need_qgf_vavg
@@ -90,10 +102,13 @@
  call mpas_pool_get_subpool(all_pools,'diag_physics',diag_physics)
  call mpas_pool_get_subpool(all_pools,'diag_physics_vavg'  ,diag_physics_vavg  )
  call mpas_pool_get_subpool(all_pools,'diag_physics_interp',diag_physics_interp)
+ call mpas_pool_get_subpool(all_pools,'diag_physics_bl'    ,diag_physics_bl    )
+ call mpas_pool_get_subpool(all_pools,'diag_physics_cu'    ,diag_physics_cu    )
 
  call mpas_pool_get_subpool(all_pools,'tend_physics',tend_physics)
  call mpas_pool_get_subpool(all_pools,'tend_physics_vavg'  ,tend_physics_vavg  )
  call mpas_pool_get_subpool(all_pools,'tend_physics_interp',tend_physics_interp)
+ call mpas_pool_get_subpool(all_pools,'tend_physics_cu'    ,tend_physics_cu    )
 
  call mpas_log_write('--- exit subroutine atmphys_compute_diagnostics_setup:')
 
@@ -111,11 +126,20 @@
  if(need_atmphys_diagnostics_interp()) &
     call atmphys_diagnostics_interp(mesh,state,1,fg,diag,diag_physics,diag_physics_interp)
 
+ if(need_atmphys_diagnostics_bl()) &
+    call atmphys_compute_diagnostics_bl(mesh,state,1,diag,diag_physics,diag_physics_bl)
+
+ if(need_atmphys_diagnostics_cu()) &
+    call atmphys_compute_diagnostics_cu(mesh,state,1,diag,diag_physics,diag_physics_bl,diag_physics_cu)
+
  if(need_atmphys_tendencies_vavg()) &
     call atmphys_compute_tendencies_vavg(mesh,state,1,diag,tend_physics,tend_physics_vavg)
 
  if(need_atmphys_tendencies_interp()) &
     call atmphys_tendencies_interp(mesh,fg,diag,tend_physics,tend_physics_interp)
+
+ if(need_atmphys_tendencies_cu()) &
+    call atmphys_compute_tendencies_cu(mesh,fg,state,1,diag,tend_physics,tend_physics_cu)
 
  call mpas_log_write(' ')
  call mpas_log_write('--- exit subroutine atmphys_diagnostics_compute:')
@@ -140,7 +164,7 @@
  integer,pointer:: nCellsSolve,nVertLevels
  integer,pointer:: index_qv,index_qc,index_qr,index_qi,index_qs,index_qg
 
- real:: dz,rhoa
+ real(kind=RKIND):: dz,rhoa
  real(kind=RKIND),dimension(:),pointer    :: qv_vavg,qc_vavg,qr_vavg,qi_vavg,qs_vavg,qg_vavg
  real(kind=RKIND),dimension(:),pointer    :: qcf_vavg,qrf_vavg,qif_vavg,qsf_vavg,qgf_vavg
  real(kind=RKIND),dimension(:),pointer    :: cld_max
@@ -613,7 +637,7 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: tend_physics_vavg
 
-!local variabl_interpes, arrays, and pointers:
+!local variables, arrays, and pointers:
  integer:: iCell,k
  integer,pointer:: nCellsSolve,nVertLevels
  integer,pointer:: index_qv
@@ -1646,25 +1670,25 @@
  end function need_atmphys_tendencies_interp
 
 !=================================================================================================================
- subroutine interp_tofixed_pressure(ncol,nlev_in,nlev_out,pres_in,field_in,pres_out,field_out)
+!subroutine interp_tofixed_pressure(ncol,nlev_in,nlev_out,pres_in,field_in,pres_out,field_out)
 !=================================================================================================================
 
 !input arguments:
- integer,intent(in):: ncol,nlev_in,nlev_out
+!integer,intent(in):: ncol,nlev_in,nlev_out
 
- real(kind=RKIND),intent(in),dimension(ncol,nlev_in) :: pres_in,field_in
- real(kind=RKIND),intent(in),dimension(ncol,nlev_out):: pres_out
+!real(kind=RKIND),intent(in),dimension(ncol,nlev_in) :: pres_in,field_in
+!real(kind=RKIND),intent(in),dimension(ncol,nlev_out):: pres_out
 
 !output arguments:
- real(kind=RKIND),intent(out),dimension(ncol,nlev_out):: field_out
+!real(kind=RKIND),intent(out),dimension(ncol,nlev_out):: field_out
 
 !local variabl_interpes:
 ! integer:: i1,i2,icol,k,kk
- integer:: icol,k,kk
- integer:: kkstart,kount
- integer,dimension(ncol):: kupper
+!integer:: icol,k,kk
+!integer:: kkstart,kount
+!integer,dimension(ncol):: kupper
 
- real(kind=RKIND):: dpl,dpu
+!real(kind=RKIND):: dpl,dpu
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -1679,55 +1703,55 @@
 !enddo
 !write(0,*)
 
- do icol = 1, ncol
-    kupper(icol) = 1
- enddo
+!do icol = 1, ncol
+!   kupper(icol) = 1
+!enddo
 
- do k = 1, nlev_out
+!do k = 1, nlev_out
 
-    kkstart = nlev_in
-    do icol = 1, ncol
-       kkstart = min0(kkstart,kupper(icol))
-    enddo
-    kount = 0
+!   kkstart = nlev_in
+!   do icol = 1, ncol
+!      kkstart = min0(kkstart,kupper(icol))
+!   enddo
+!   kount = 0
 
-    do kk = kkstart, nlev_in-1
-       do icol = 1, ncol
-          if(pres_out(icol,k).gt.pres_in(icol,kk).and.pres_out(icol,k).le.pres_in(icol,kk+1)) then
-             kupper(icol) = kk
-             kount = kount + 1
+!   do kk = kkstart, nlev_in-1
+!      do icol = 1, ncol
+!         if(pres_out(icol,k).gt.pres_in(icol,kk).and.pres_out(icol,k).le.pres_in(icol,kk+1)) then
+!            kupper(icol) = kk
+!            kount = kount + 1
 !            write(0,201) kupper(icol),pres_out(icol,k),pres_in(icol,kk),pres_in(icol,kk+1)
-          endif
-       enddo
+!         endif
+!      enddo
 
-       if(kount.eq.ncol) then
-          do icol = 1, ncol
-             dpu = pres_out(icol,k) - pres_in(icol,kupper(icol))
-             dpl = pres_in(icol,kupper(icol)+1) - pres_out(icol,k)
-             field_out(icol,k) = (field_in(icol,kupper(icol))*dpl &
-                               + field_in(icol,kupper(icol)+1)*dpu)/(dpl + dpu)
-          end do
-          goto 35
-        end if
-    enddo
+!      if(kount.eq.ncol) then
+!         do icol = 1, ncol
+!            dpu = pres_out(icol,k) - pres_in(icol,kupper(icol))
+!            dpl = pres_in(icol,kupper(icol)+1) - pres_out(icol,k)
+!            field_out(icol,k) = (field_in(icol,kupper(icol))*dpl &
+!                              + field_in(icol,kupper(icol)+1)*dpu)/(dpl + dpu)
+!         end do
+!         goto 35
+!       end if
+!   enddo
 
-    do icol = 1, ncol
-       if(pres_out(icol,k) .lt. pres_in(icol,1)) then
-          field_out(icol,k) = field_in(icol,1)*pres_out(icol,k)/pres_in(icol,1)
-       elseif(pres_out(icol,k) .gt. pres_in(icol,nlev_in)) then
-          field_out(icol,k) = field_in(icol,nlev_in)
-       else
-          dpu = pres_out(icol,k) - pres_in(icol,kupper(icol))
-          dpl = pres_in(icol,kupper(icol)+1) - pres_out(icol,k)
-          field_out(icol,k) = (field_in(icol,kupper(icol))*dpl &
-                            + field_in(icol,kupper(icol)+1)*dpu)/(dpl + dpu)
-       endif
-    enddo
+!   do icol = 1, ncol
+!      if(pres_out(icol,k) .lt. pres_in(icol,1)) then
+!         field_out(icol,k) = field_in(icol,1)*pres_out(icol,k)/pres_in(icol,1)
+!      elseif(pres_out(icol,k) .gt. pres_in(icol,nlev_in)) then
+!         field_out(icol,k) = field_in(icol,nlev_in)
+!      else
+!         dpu = pres_out(icol,k) - pres_in(icol,kupper(icol))
+!         dpl = pres_in(icol,kupper(icol)+1) - pres_out(icol,k)
+!         field_out(icol,k) = (field_in(icol,kupper(icol))*dpl &
+!                           + field_in(icol,kupper(icol)+1)*dpu)/(dpl + dpu)
+!      endif
+!   enddo
 
- 35 continue
- enddo
+!35 continue
+!enddo
 
- end subroutine interp_tofixed_pressure
+!end subroutine interp_tofixed_pressure
 
 !=================================================================================================================
  subroutine compute_rh(nCells,nCellsSolve,nVertLevels,pressure_b,pressure_p,exner,theta_m,qv,rh)
