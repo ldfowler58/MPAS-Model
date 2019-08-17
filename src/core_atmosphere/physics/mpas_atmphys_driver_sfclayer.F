@@ -811,7 +811,7 @@
  sfclayer_select: select case (trim(sfclayer_scheme))
 
     case("sf_monin_obukhov")
-       call sfclayinit
+       call sfclayinit(allowed_to_read)
 
     case("sf_mynn")
        call mynn_sf_init_driver(allowed_to_read)
