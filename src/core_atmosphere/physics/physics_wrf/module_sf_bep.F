@@ -3249,13 +3249,6 @@ use module_wrf_error
         endif
       enddo
       enddo
-      do id=1,ndu
-      do iw=1,ng_u
-          if(tg(id,iw).lt.100.) then
-            write(*,*)'in upward_rad ',id,iw,tg(id,iw) 
-            iwrong=0
-          endif
-      enddo   
       enddo
       do id=1,ndu
       do iw=1,ng_u

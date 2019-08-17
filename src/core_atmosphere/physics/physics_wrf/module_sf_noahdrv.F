@@ -1,17 +1,3 @@
-!=================================================================================================================
-!module_sf_noahdrv was originally copied from ./phys/module_sf_noahdrv.F from WRF version 3.9.0.
-!Laura D. Fowler (laura@ucar.edu) / 2017-01-27.
-
-!modifications to sourcecode for MPAS:
-! * added the definition of FATAL_ERROR to use physics_error_fatal. use mpas_atmphys_date_time instead of
-!   module_model_ra_gfdleta.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-01-27.
-! * changed the intent of some variables from intent(out) to intent(inout). This was also done in our original
-!   implementation of the land surface scheme.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-01-30.
-
-
-!=================================================================================================================
 MODULE module_sf_noahdrv
 
 !-------------------------------
@@ -1311,14 +1297,14 @@ CONTAINS
 !
 !
 !      Limits to avoid dividing by small number
-            if (CHS(I,J) < 1.0E-04) then
-               CHS(I,J)  = 1.0E-04
+            if (CHS(I,J) < 1.0E-02) then
+               CHS(I,J)  = 1.0E-02
             endif
-            if (CHS2(I,J) < 1.0E-04) then
-               CHS2(I,J)  = 1.0E-04
+            if (CHS2(I,J) < 1.0E-02) then
+               CHS2(I,J)  = 1.0E-02
             endif
-            if (CQS2(I,J) < 1.0E-04) then
-               CQS2(I,J)  = 1.0E-04
+            if (CQS2(I,J) < 1.0E-02) then
+               CQS2(I,J)  = 1.0E-02
             endif
 !
             CHS_URB  = CHS(I,J)

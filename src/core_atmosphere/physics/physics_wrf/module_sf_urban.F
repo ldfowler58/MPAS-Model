@@ -1138,6 +1138,7 @@ use module_wrf_error
        YY  = TA + (RGRR / RCH - BETGR * EPGR * ELL/ RCH) / RR2  
        ZZ1 = DF1 / (-0.5 * ZSOILR (KZ) * RCH * RR2 ) + 1.0
 
+
        HGR=RHO*CP*CHGR*UA*(TGRP-TA)*100.     
        RUNOFF3 = RUNOFF3/ DELT
        RUNOFF2 = RUNOFF2+ RUNOFF3      
