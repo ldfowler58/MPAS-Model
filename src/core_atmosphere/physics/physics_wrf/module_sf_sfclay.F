@@ -1,11 +1,3 @@
-!=================================================================================================================
-!module_sf_sfclay.F was copied from WRF version 4.1.1. It is the same as module_sf_sfclayrev.F.
-
-!modifications for MPAS:
-! * added dimensional dependence of dx.
-!   Laura D. Fowler (laura@ucar.edu) / 2019-07-01.
-
-!=================================================================================================================
 !WRF:MODEL_LAYER:PHYSICS
 !
 MODULE module_sf_sfclay
@@ -32,7 +24,8 @@ CONTAINS
                      ids,ide, jds,jde, kds,kde,                    &
                      ims,ime, jms,jme, kms,kme,                    &
                      its,ite, jts,jte, kts,kte,                    &
-                     ustm,ck,cka,cd,cda,isftcflx,iz0tlnd,scm_force_flux           )
+                     ustm,ck,cka,cd,cda,                           &
+                     isftcflx,iz0tlnd,scm_force_flux)
 !-------------------------------------------------------------------
       IMPLICIT NONE
 !-------------------------------------------------------------------
@@ -187,7 +180,6 @@ CONTAINS
       REAL,     DIMENSION( ims:ime, jms:jme )                    , &
                 INTENT(INOUT)   ::                                 &
                                                               QGH
-                                    
       REAL,     INTENT(IN   )               ::   CP,G,ROVCP,R,XLV
 
       REAL,     DIMENSION( ims:ime, jms:jme )                    , &
@@ -201,6 +193,17 @@ CONTAINS
 
       INTEGER,  OPTIONAL,  INTENT(IN )   ::     ISFTCFLX, IZ0TLND
       INTEGER,  OPTIONAL,  INTENT(IN )   ::     SCM_FORCE_FLUX
+
+      REAL,     DIMENSION( ims:ime, jms:jme )                    , &
+                INTENT(INOUT  )             ::               QSFC
+
+      REAL,     DIMENSION( ims:ime, jms:jme )                    , &
+                INTENT(OUT  )               ::                U10, &
+                                                              V10, &
+                                                              TH2, &
+                                                               T2, &
+                                                               Q2
+
 ! LOCAL VARS
 
       REAL,     DIMENSION( its:ite ) ::                       U1D, &
@@ -216,6 +219,11 @@ CONTAINS
       INTEGER ::  I,J
 
       DO J=jts,jte
+
+        DO i=its,ite
+           DX2D(i)=DX(i,j)
+        ENDDO
+
         DO i=its,ite
           dz8w1d(I) = dz8w(i,1,j)
         ENDDO
@@ -247,8 +255,8 @@ CONTAINS
                 ids,ide, jds,jde, kds,kde,                         &
                 ims,ime, jms,jme, kms,kme,                         &
                 its,ite, jts,jte, kts,kte                          &
-#if ( EM_CORE == 1 )
-                ,isftcflx,iz0tlnd,scm_force_flux,                               &
+#if ( ( EM_CORE == 1 ) || ( defined(mpas) ) )
+                ,isftcflx,iz0tlnd,scm_force_flux,                  &
                 USTM(ims,j),CK(ims,j),CKA(ims,j),                  &
                 CD(ims,j),CDA(ims,j)                               &
 #endif
@@ -272,7 +280,7 @@ CONTAINS
                      ids,ide, jds,jde, kds,kde,                    &
                      ims,ime, jms,jme, kms,kme,                    &
                      its,ite, jts,jte, kts,kte,                    &
-                     isftcflx, iz0tlnd,scm_force_flux,                            &
+                     isftcflx, iz0tlnd, scm_force_flux,            &
                      ustm,ck,cka,cd,cda                            )
 !-------------------------------------------------------------------
       IMPLICIT NONE
@@ -902,43 +910,13 @@ CONTAINS
               IF ( IZ0TLND.EQ.1 ) THEN
                  CZIL = 10.0 ** ( -0.40 * ( ZL / 0.07 ) )
               ELSE IF ( IZ0TLND.EQ.2 ) THEN
-                 CZIL = 0.1 
+                 CZIL = 0.1
               END IF
-!
-! ... paj: compute phish for z0t over land
-!
-              z0t=znt(I)/exp(CZIL*KARMAN*SQRT(RESTAR))
-!
-           zolzz=zol(I)*(za(I)+z0t)/za(I)    ! (z+z0t)/L
-           zol10=zol(I)*(10.+z0t)/za(I)   ! (10+z0t)/L
-           zol2=zol(I)*(2.+z0t)/za(I)     ! (2+z0t)/L
-           zol0=zol(I)*z0t/za(I)          ! z0t/L
-!
-              if (zol(I).gt.0.) then
-              psih(I)=psih_stable(zolzz)-psih_stable(zol0)
-              psih10(I)=psih_stable(zol10)-psih_stable(zol0)
-              psih2(I)=psih_stable(zol2)-psih_stable(zol0)
-              else
-                if (zol(I).eq.0) then
-                psih(I)=0.
-                psih10(I)=0.
-                psih2(I)=0.
-                else
-                psih(I)=psih_unstable(zolzz)-psih_unstable(zol0)
-                psih10(I)=psih_unstable(zol10)-psih_unstable(zol0)
-                psih2(I)=psih_unstable(zol2)-psih_unstable(zol0)
-                endif
-              endif
-!
-              PSIQ=ALOG((ZA(I)+z0t)/Z0t)-PSIH(I)
-              PSIQ2=ALOG((2.+z0t)/Z0t)-PSIH2(I)
-              PSIT=PSIQ
-              PSIT2=PSIQ2
-!
-!              PSIT=GZ1OZ0(I)-PSIH(I)+CZIL*KARMAN*SQRT(RESTAR)
-!              PSIQ=GZ1OZ0(I)-PSIH(I)+CZIL*KARMAN*SQRT(RESTAR)
-!              PSIT2=GZ2OZ0(I)-PSIH2(I)+CZIL*KARMAN*SQRT(RESTAR)
-!              PSIQ2=GZ2OZ0(I)-PSIH2(I)+CZIL*KARMAN*SQRT(RESTAR)
+
+              PSIT=GZ1OZ0(I)-PSIH(I)+CZIL*KARMAN*SQRT(RESTAR)
+              PSIQ=GZ1OZ0(I)-PSIH(I)+CZIL*KARMAN*SQRT(RESTAR)
+              PSIT2=GZ2OZ0(I)-PSIH2(I)+CZIL*KARMAN*SQRT(RESTAR)
+              PSIQ2=GZ2OZ0(I)-PSIH2(I)+CZIL*KARMAN*SQRT(RESTAR)
 
            ENDIF
         ENDIF

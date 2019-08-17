@@ -272,7 +272,7 @@
        tsk(iCell)    = sst(iCell)
        do iSoil = 1, nSoilLevels
           tslb(iSoil,iCell) = 273.16
-       enddo
+       enddo 
     endif
  enddo
 !call mpas_log_write('')

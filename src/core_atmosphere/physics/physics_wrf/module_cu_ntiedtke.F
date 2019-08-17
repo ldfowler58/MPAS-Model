@@ -1,12 +1,3 @@
-!=================================================================================================================
-! copied for implementation in MPAS from WRF version 3.9.0:
-
-! modifications made to sourcecode:
-! * used preprocessing option to replace module_model_constants with mpas_atmphys_constants; replaced the variable
-!   dx with the array dx which takes into account the actual size of individual grid-boxes.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-06-02.
-
-!=================================================================================================================
 !-----------------------------------------------------------------------
 !
 !wrf:model_layer:physics
@@ -57,14 +48,14 @@ module module_cu_ntiedtke
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #if defined(mpas)
      use mpas_atmphys_constants, only: rd=>R_d, rv=>R_v, &
-   &       cpd=>cp, alv=>xlv, als=>xls, alf=>xlf, t13=>prandtl, g=>gravity
+   &       cpd=>cp, alv=>xlv, als=>xls, alf=>xlf, g=>gravity
 #else
      use module_model_constants, only:rd=>r_d, rv=>r_v, &
-   &       cpd=>cp, alv=>xlv, als=>xls, alf=>xlf, t13=>Prandtl, g              
+   &       cpd=>cp, alv=>xlv, als=>xls, alf=>xlf, g
 #endif
 
      implicit none
-     real,private :: rcpd,vtmpc1,tmelt,                &
+     real,private :: t13,rcpd,vtmpc1,tmelt,            &
              c1es,c2es,c3les,c3ies,c4les,c4ies,c5les,c5ies,zrg
 
      real,private :: r5alvcp,r5alscp,ralvdcp,ralsdcp,ralfdcp,rtwat,rtber,rtice 
@@ -72,6 +63,7 @@ module module_cu_ntiedtke
      integer,private :: momtrans
 
      parameter(         &
+      t13=1.0/3.0,      &
       rcpd=1.0/cpd,     &
       tmelt=273.16,     &
       zrg=1.0/g,        &
@@ -230,7 +222,6 @@ contains
       real,    dimension(ims:ime, jms:jme), intent(in) ::               &
                                         dx
 
-
       real,    dimension(ims:ime, jms:jme), intent(in) ::               &
                                         xland
 
@@ -294,7 +285,9 @@ contains
                                         rcs,                            &
                                         rn,                             &
                                         evap,                           &
-                                        heatflux
+                                        heatflux,                       &
+                                        dx2d
+
       integer  , dimension(its:ite) ::  slimsk
 
 
@@ -381,6 +374,10 @@ contains
         slimsk(i)=int(abs(xland(i,j)-2.))
       enddo
 
+      do i=its,ite
+         dx2d(i) = dx(i,j)
+      enddo
+
       do k=kts,kte
         kp=k+1
         do i=its,ite
@@ -429,7 +426,7 @@ contains
 !
 !########################################################################
       call tiecnvn(u1,v1,t1,q1,q2,q3,q1b,t1b,ghtl,ghti,omg,prsl,prsi,evap,heatflux,  &
-                  rn,slimsk,im,kx,kx1,delt,dx)
+                  rn,slimsk,im,kx,kx1,delt,dx2d)
 
       do i=its,ite
          raincv(i,j)=rn(i)/stepcu
@@ -696,7 +693,7 @@ contains
      &     pssfc,    ldcum,                              &
      &     ktype,    kcbot,    kctop,    ptu,      pqu,&
      &     plu,      plude,    pmfu,     pmfd,     prain,&
-     &     pcte,     phhfl,    lndj,     zgeoh,   dx)
+     &     pcte,     phhfl,    lndj,     zgeoh,    dx)
       implicit none
 !
 !***cumastrn*  master routine for cumulus massflux-scheme

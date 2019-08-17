@@ -1,13 +1,3 @@
-!=================================================================================================================
-!module_sf_urban was originally copied from ./phys/module_sf_urban.F from WRF version 3.9.0.
-!Laura D. Fowler (laura@ucar.edu) / 2017-01-27.
-
-!modifications to sourcecode for MPAS:
-! * changed the definition of FATAL_ERROR to use physics_error_fatal. added the definition of WRITE_MESSAGE to
-!   use physics_message.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-01-27.
-
-!=================================================================================================================
 MODULE module_sf_urban
 #if defined(mpas)
 use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
@@ -1147,14 +1137,11 @@ use module_wrf_error
        end if 
        YY  = TA + (RGRR / RCH - BETGR * EPGR * ELL/ RCH) / RR2  
        ZZ1 = DF1 / (-0.5 * ZSOILR (KZ) * RCH * RR2 ) + 1.0
-       ! Update temperature in soil layer
-       CALL SHFLX (SSOILR,TGRL,SMR,SMCMAX,NGR,TGRP,DELT,YY,ZZ1,ZSOILR,       &
-                  TRLEND,ZBOT,SMCWLT,DF1,QUARTZ,CSOIL,CAPR) 
 
        HGR=RHO*CP*CHGR*UA*(TGRP-TA)*100.     
        RUNOFF3 = RUNOFF3/ DELT
        RUNOFF2 = RUNOFF2+ RUNOFF3      
-       G0GR    = SSOILR / 697.7 / 60
+       G0GR    = DF1*(TGRP-TGRL(1))/(DZGR(1)/2.)/697.7/60
 
        FV = SGR + RGR - HGR - ELEGR - G0GR
        DRRDTGR   = (-4.*EPSV*SIG*TGRP**3.)/60.
@@ -1170,7 +1157,9 @@ use module_wrf_error
        EXIT
        ENDIF
      END DO
-    
+       ! Update temperature in soil layer
+       CALL SHFLX (SSOILR,TGRL,SMR,SMCMAX,NGR,TGRP,DELT,YY,ZZ1,ZSOILR,       &
+                   TRLEND,ZBOT,SMCWLT,DF1,QUARTZ,CSOIL,CAPR)
    FLXTHGR=HGR/RHO/CP/100.
    FLXHUMGR=ELEGR/RHO/EL/100.
 ELSE

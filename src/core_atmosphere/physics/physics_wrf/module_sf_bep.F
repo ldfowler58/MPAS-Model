@@ -1,12 +1,3 @@
-!=================================================================================================================
-!module_sf_bep was originally copied from ./phys/module_sf_bem.F from WRF version 3.9.0.
-!Laura D. Fowler (laura@ucar.edu) / 2017-01-27.
-
-!modifications to sourcecode for MPAS:
-! * changed the definition of FATAL_ERROR to use physics_error_fatal.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-01-27.
-
-!=================================================================================================================
 MODULE module_sf_bep
 #if defined(mpas)
 use mpas_atmphys_utilities, only: physics_error_fatal
@@ -3258,6 +3249,13 @@ use module_wrf_error
         endif
       enddo
       enddo
+      do id=1,ndu
+      do iw=1,ng_u
+          if(tg(id,iw).lt.100.) then
+            write(*,*)'in upward_rad ',id,iw,tg(id,iw) 
+            iwrong=0
+          endif
+      enddo   
       enddo
       do id=1,ndu
       do iw=1,ng_u

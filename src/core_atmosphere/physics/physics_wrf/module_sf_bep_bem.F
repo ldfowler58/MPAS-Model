@@ -1,12 +1,3 @@
-!=================================================================================================================
-!module_sf_bep_bem was originally copied from ./phys/module_sf_bep_bem.F from WRF version 3.9.0.
-!Laura D. Fowler (laura@ucar.edu) / 2017-01-27.
-
-!modifications to sourcecode for MPAS:
-! * changed the definition of FATAL_ERROR to use physics_error_fatal.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-01-27.
-
-!=================================================================================================================
 MODULE module_sf_bep_bem
 #if defined(mpas)
 use mpas_atmphys_utilities, only: physics_error_fatal
