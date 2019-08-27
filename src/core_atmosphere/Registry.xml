@@ -1432,11 +1432,13 @@
 
                 <var_array name="scalars" type="real" dimensions="nVertLevels nCells Time">
                         <var name="qv" array_group="moist" units="kg kg^{-1}"
-                             description="Water vapor mixing ratio"/>
+                             description="Water vapor mixing ratio"
+                             cpf_std_name="water_vapor_mixing_ratio"/>
 
                         <var name="qc" array_group="moist" units="kg kg^{-1}"
                              description="Cloud water mixing ratio"
-                             packages="bl_mynn_in;bl_ysu_in;cu_tiedtke_in;mp_kessler_in;mp_thompson_in;mp_wsm6_in"/>
+                             packages="bl_mynn_in;bl_ysu_in;cu_tiedtke_in;mp_kessler_in;mp_thompson_in;mp_wsm6_in"
+                             cpf_std_name="cloud_condensed_water_mixing_ratio"/>
 
                         <var name="qr" array_group="moist" units="kg kg^{-1}"
                              description="Rain water mixing ratio"
@@ -1444,7 +1446,8 @@
 
                         <var name="qi" array_group="moist" units="kg kg^{-1}"
                              description="Ice mixing ratio"
-                             packages="bl_mynn_in;bl_ysu_in;cu_tiedtke_in;mp_thompson_in;mp_wsm6_in"/>
+                             packages="bl_mynn_in;bl_ysu_in;cu_tiedtke_in;mp_thompson_in;mp_wsm6_in"
+                             cpf_std_name="ice_water_mixing_ratio"/>
 
                         <var name="qs" array_group="moist" units="kg kg^{-1}"
                              description="Snow mixing ratio"
@@ -1547,7 +1550,8 @@
 
                 <var name="temperature" type="real" dimensions="nVertLevels nCells Time" units="K"
                      description="temperature"
-                     packages="jedi_da"/>
+                     packages="jedi_da"
+                     cpf_std_name="air_temperature"/>
 
                 <var name="relhum" type="real" dimensions="nVertLevels nCells Time" units="percent"
                      description="Relative humidity"/>
@@ -1591,10 +1595,12 @@
                      description="Cartesian z-component of reconstructed horizontal velocity at cell centers"/>
 
                 <var name="uReconstructZonal" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
-                     description="Zonal component of reconstructed horizontal velocity at cell centers"/>
+                     description="Zonal component of reconstructed horizontal velocity at cell centers"
+                     cpf_std_name="x_wind"/>
 
                 <var name="uReconstructMeridional" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
-                     description="Meridional component of reconstructed horizontal velocity at cell centers"/>
+                     description="Meridional component of reconstructed horizontal velocity at cell centers"
+                     cpf_std_name="y_wind"/>
 
                 <!-- Other diagnostic variables -->
 
@@ -1614,7 +1620,8 @@
                      description="???"/>
 
                 <var name="exner" type="real" dimensions="nVertLevels nCells Time" units="unitless"
-                     description="Exner function"/>
+                     description="Exner function"
+                     cpf_std_name="dimensionless_exner_function"/>
 
                 <var name="exner_base" type="real" dimensions="nVertLevels nCells Time" units="unitless"
                      description="Base-state Exner function"/>
@@ -1623,7 +1630,8 @@
                      description="reference state rho*theta/zz"/>
 
                 <var name="pressure" type="real" dimensions="nVertLevels nCells Time" units="Pa"
-                     description="Pressure"/>
+                     description="Pressure"
+                     cpf_std_name="air_pressure"/>
 
                 <var name="pressure_base" type="real" dimensions="nVertLevels nCells Time" units="Pa"
                      description="Base state pressure"/>
@@ -1702,7 +1710,8 @@
                      description="flux divergence for rho*theta_m/zz, used in the Tiedtke convective parameterization"/>
 
                 <var name="surface_pressure" type="real" dimensions="nCells Time" units="Pa"
-                     description="Diagnosed surface pressure"/>
+                     description="Diagnosed surface pressure"
+                     cpf_std_name="surface_air_pressure/>
 
         </var_struct>
 
@@ -2250,19 +2259,23 @@
 
                 <var name="kpbl" type="integer" dimensions="nCells Time" units="unitless"
                      description="index level of PBL top"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="vertical_index_at_top_of_atmosphere_boundary_layer"/>
 
                 <var name="hpbl" type="real" dimensions="nCells Time" units="m"
                      description="Planetary Boundary Layer (PBL) height"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="atmosphere_boundary_layer_thickness"/>
 
                 <var name="delta" type="real" dimensions="nCells Time" units="m"
                      description="entrainment layer depth from PBL scheme"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="entrainment_layer_depth"/>
 
                 <var name="wstar" type="real" dimensions="nCells Time" units="m s^{-1}"
                      description="mixed velocity scale from PBL scheme"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="surface_wind_enhancement_due_to_convection"/>
 
 		<var name="kzh" type="real" dimensions="nVertLevels nCells Time" units="m^{2} s^{-1}"
                      description="vertical diffusion coefficient of potential temperature"
@@ -2339,7 +2352,8 @@
 
                 <var name="hfx" type="real" dimensions="nCells Time" units="W m^{-2}"
                      description="upward heat flux at the surface"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="kinematic_surface_upward_sensible_heat_flux"/>
 
                 <var name="mavail" type="real" dimensions="nCells Time" units="unitless"
                      description="surface moisture availability (between 0 and 1)"
@@ -2351,7 +2365,8 @@
 
                 <var name="qfx" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
                      description="upward moisture flux at the surface"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="kinematic_surface_upward_latent_heat_flux"/>
 
                 <var name="qsfc" type="real"  dimensions="nCells Time" units="kg kg^{-1}"
                      description="specific humidity at lower boundary"
@@ -2359,7 +2374,8 @@
 
                 <var name="ust" type="real" dimensions="nCells Time" units="m s^{-1}"
                      description="U* in similarity theory"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name=susrface_friction_velocity/>
 
                 <var name="ustm" type="real" dimensions="nCells Time" units="m s^{-1}"
                      description="U* in similarity theory without vconv"
@@ -2371,7 +2387,8 @@
 
                 <var name="br" type="real" dimensions="nCells Time" units="unitless"
                      description="Richardson number"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="bulk_richardson_number_at_lowest_model_level"/>
 
                 <var name="cd" type="real" dimensions="nCells Time" units="unitless"
                      description="drag coefficient at 10-meter"
@@ -2423,11 +2440,13 @@
 
                 <var name="psim" type="real" dimensions="nCells Time" units="unitless"
                      description="similarity stability function for momentum"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="Monin_Obukhov_similarity_function_for_momentum"/>
 
                 <var name="psih" type="real" dimensions="nCells Time" units="unitless"
                      description="similarity stability function for heat"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="Monin_Obukhov_similarity_function_for_heat"/>
 
                 <var name="qgh" type="real" dimensions="nCells Time" units="kg kg^{-1}"
                      description="lowest level saturation mixing ratio"
@@ -2443,7 +2462,8 @@
 
                 <var name="wspd" type="real" dimensions="nCells Time" units="m s^{-1}"
                      description="wind speed at lowest model level"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="wind_speed_at_lowest_model_layer"/>
 
 
                 <!-- ... MONIN-OBUKHOV (SFCLAY): -->
@@ -2472,10 +2492,12 @@
 
                 <!-- DIAGNOSTICS: -->
                 <var name="u10" type="real" dimensions="nCells Time" packages="bl_mynn_in;bl_ysu_in" units="m s^{-1}"
-                     description="10-meter zonal wind"/>
+                     description="10-meter zonal wind"
+                     cpf_std_name="x_wind_at_10m"/>
 
                 <var name="v10" type="real" dimensions="nCells Time" packages="bl_mynn_in;bl_ysu_in" units="m s^{-1}"
-                     description="10-meter meridional wind"/>
+                     description="10-meter meridional wind"
+                     cpf_std_name="y_wind_at_10m"/>
 
                 <var name="q2" type="real" dimensions="nCells Time" packages="bl_mynn_in;bl_ysu_in" units="kg kg^{-1}"
                      description="2-meter specific humidity"/>
@@ -2824,7 +2846,8 @@
                      description="sea-ice flag from previsous time-step"/>
 
                 <var name="z0" type="real" dimensions="nCells Time" units="m"
-                     description="roughness height"/>
+                     description="roughness height"
+                     cpf_std_name="surface_roughness_length"/>
 
                 <var name="znt" type="real" dimensions="nCells Time" units="m"
                      description="roughness length"/>
@@ -2918,27 +2941,33 @@
 
                 <var name="rublten" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1} s^{-1}"
                      description="tendency of zonal wind due to pbl processes"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="tendency_of_x_wind_due_to_boundary_layer"/>
 
                 <var name="rvblten" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1} s^{-1}"
                      description="tendency of meridional wind due to pbl processes"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="tendency_of_y_wind_due_to_boundary_layer"/>
 
                 <var name="rthblten" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
                      description="tendency of potential temperature due to pbl processes"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="tendency_of_potential_temperature_due_to_boundary_layer"/>
 
                 <var name="rqvblten" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
                      description="tendency of water vapor mixing ratio due to pbl processes"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="tendency_of_water_vapor_mixing_ratio_due_to_boundary_layer"/>
 
                 <var name="rqcblten" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
                      description="tendency of cloud water mixing ratio due to pbl processes"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="tendency_of_cloud_water_mixing_ratio_due_to_boundary_layer"/>
 
                 <var name="rqiblten" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
                      description="tendency of cloud ice mixing ratio due to pbl processes"
-                     packages="bl_mynn_in;bl_ysu_in"/>
+                     packages="bl_mynn_in;bl_ysu_in"
+                     cpf_std_name="tendency_of_ice_water_mixing_ratio_due_to_boundary_layer"/>
 
                 <var name="rniblten" type="real" dimensions="nVertLevels nCells Time" units="nb kg^{-1} s^{-1}"
                      description="tendency of cloud ice number concentration due to pbl processes"
@@ -2955,10 +2984,12 @@
                 <!--  rthratenlw:uncoupled theta tendency due to longwave radiation                             [K s-1] -->
 
                 <var name="rthratensw" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
-                     description="tendency of potential temperature due to short wave radiation"/>
+                     description="tendency of potential temperature due to short wave radiation"
+                     cpf_std_name="tendency_of_potential_temperature_from_radiation_shortwave"/>
 
                 <var name="rthratenlw" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
-                     description="tendency of potential temperature due to short wave radiation"/>
+                     description="tendency of potential temperature due to short wave radiation"
+                     cpf_std_name"tendency_of_potential_temperature_from_radiation_longwave/>
         </var_struct>
 
 
@@ -3048,7 +3079,8 @@
                      description="fractional area coverage of sea-ice"/>
 
                 <var name="xland" type="real" dimensions="nCells Time" units="unitless"
-                     description="land-ocean mask (1=land including sea-ice ; 2=ocean)"/>
+                     description="land-ocean mask (1=land including sea-ice ; 2=ocean)"
+                     name="sea_land_ice_mask"/>
 
                 <var name="smcrel" type="real" dimensions="nSoilLevels nCells Time" units="m3 m^{-3}"
                      description="soil moisture threshold below which transpiration begins to stress"/>
