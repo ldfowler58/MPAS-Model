@@ -43,8 +43,8 @@ module bl_ysu
   PUBLIC :: bl_ysu_init
   PUBLIC :: bl_ysu_run
   PUBLIC :: bl_ysu_finalize
+  PUBLIC  :: ysu
 
-  PRIVATE :: ysu
   PRIVATE :: tridi1n
   PRIVATE :: tridin_ysu
   PRIVATE :: get_pblh
