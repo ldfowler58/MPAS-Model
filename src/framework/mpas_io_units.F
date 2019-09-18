@@ -27,10 +27,13 @@ module mpas_io_units
 
    integer, parameter :: maxUnits = 200
    logical, dimension(0:maxUnits), save :: unitsInUse
+
+   ! Units reserved for unformatted I/O
    integer, parameter :: unformatted_min = 101
    integer, parameter :: unformatted_max = maxUnits
 
-   public :: mpas_new_unit, mpas_release_unit
+   public :: mpas_new_unit, &
+             mpas_release_unit
 
    contains
 
@@ -47,25 +50,26 @@ module mpas_io_units
 !
 !-----------------------------------------------------------------------
     subroutine mpas_new_unit(newUnit, unformatted)!{{{
+
         integer, intent(inout) :: newUnit
         logical, optional, intent(in) :: unformatted
 
-        integer :: i, minsearch, maxsearch, limit_type
+        integer :: i, minsearch, maxsearch
 
         logical :: opened
 
         newUnit = -1
 
-        limit_type = 1
+        !
+        ! Determine the range over which to search for an unused unit
+        !
+        minsearch = 1
+        maxsearch = unformatted_min - 1
         if ( present(unformatted) ) then
-           if ( unformatted ) limit_type = 2
-        end if
-        if ( limit_type == 2 ) then
-           minsearch = unformatted_min
-           maxsearch = unformatted_max
-        else
-           minsearch = 1
-           maxsearch = unformatted_min - 1
+           if ( unformatted ) then
+              minsearch = unformatted_min
+              maxsearch = unformatted_max
+           end if
         end if
 
         do i = minsearch, maxsearch
@@ -95,10 +99,12 @@ module mpas_io_units
 !
 !-----------------------------------------------------------------------
     subroutine mpas_release_unit(releasedUnit)!{{{
+
         integer, intent(in) :: releasedUnit
 
-        if ( 0 <= releasedUnit .and. releasedUnit <= maxUnits) &
+        if (0 <= releasedUnit .and. releasedUnit <= maxUnits) then
            unitsInUse(releasedUnit) = .false.
+        end if
 
     end subroutine mpas_release_unit!}}}
 
