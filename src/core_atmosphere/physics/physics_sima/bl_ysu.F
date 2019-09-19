@@ -428,12 +428,6 @@ contains
          delta(i,j) = delta_hv(i)
       end do
 !
-     do k = kts,kte
-       do i = its,ite
-         rthblten(i,k,j) = rthblten(i,k,j)/pi3d(i,k,j)
-       enddo
-     enddo
-!
 !  call mpas_log_write(' ')
 !  call mpas_log_write('--- end subroutine bl_ysu_run:')
 !  do i = its,ite
@@ -1386,9 +1380,9 @@ contains
 !
    do k = kte,kts,-1
      do i = its,ite
-       ttend = (f1(i,k)-thx(i,k)+300.)*rdt*pi2d(i,k)
+       ttend = (f1(i,k)-thx(i,k)+300.)*rdt
        ttnp(i,k) = ttend
-       dtsfc(i) = dtsfc(i)+ttend*cont*del(i,k)/pi2d(i,k)
+       dtsfc(i) = dtsfc(i)+ttend*cont*del(i,k)
      enddo
    enddo
 !
