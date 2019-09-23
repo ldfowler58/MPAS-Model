@@ -116,6 +116,8 @@
 ! * in subroutines physics_run_init and physics_timetracker, removed all sourcecode associated with initializing
 !   and running the CAM longwave and shortwave radiation codes.
 !   Laura D. Fowler (laura@ucar.edu) / 2018-02-01.
+! * renamed "noah" to "sf_noah" in all instances of noah.
+!   Laura D. Fowler (laura@ucar.edu) / 2019-09-23.
 
 
  contains
@@ -608,7 +610,7 @@
  num_months = nMonths
  num_soils  = nSoilLevels
 
- if(trim(config_lsm_scheme) .eq. "noah") sf_surface_physics = 2 
+ if(trim(config_lsm_scheme) .eq. "sf_noah") sf_surface_physics = 2
 
 !initialization of local physics time-steps:
 !... dynamics:

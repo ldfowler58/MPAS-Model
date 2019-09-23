@@ -93,6 +93,8 @@
 ! * added call to seaice_noah to include the parameterization of seaice for the updated Noah land surface
 !   scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2017-02-19.
+! * renamed "noah" to "sf_noah" in all instances of noah.
+!   Laura D. Fowler (laura@ucar.edu) / 2019-09-23.
 
 !
 ! DOCUMENTATION:
@@ -760,7 +762,7 @@
 
  lsm_select: select case (trim(lsm_scheme))
 
-    case ("noah")
+    case ("sf_noah")
        call noah_init_forMPAS(dminfo,mesh,configs,diag_physics,sfc_input)
     
     case default
@@ -807,7 +809,7 @@
 !call to land-surface scheme:
  lsm_select: select case (trim(lsm_scheme))
 
-    case("noah")
+    case("sf_noah")
        call mpas_timer_start('sf_noah')
        call lsm( &
                 dz8w        = dz_p        , p8w3d       = pres2_hyd_p  , t3d       = t_p          , &
