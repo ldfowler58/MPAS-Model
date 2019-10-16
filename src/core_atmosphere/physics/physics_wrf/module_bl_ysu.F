@@ -1,5 +1,12 @@
 !=================================================================================================================
 !module_bl_ysu.F was modified to accomodate both the WRF and MPAS models / 2018-12-7 
+
+!modifications to sourcecode for future implementation using the CPF:
+! * in subroutine bl_ysu_run, modified the call to subroutine get_pblh. on cheyenne with the -g option, intel
+!   compilers create temporary arrays that lead MPAS to run extremely slow. This is remedied by first copying
+!   a few of the targeted arrays to dummy kts:kte arrays prior to the call to get_pblh.
+!   Laura D. Fowler (laura@ucar.edu) / 2019-08-03.
+
 !=================================================================================================================
 !WRF:model_layer:physics
 !
@@ -537,6 +544,9 @@ contains
                                                                      buoy_ysu
    real,    dimension( ims:ime )             ::                       pblh_ysu,&
                                                                       vconvfx
+
+   real,     dimension( kts:kte )   :: dummy1,dummy2,dummy4
+   real,     dimension( kms:kme )   :: dummy3
 !
 !-------------------------------------------------------------------------------
 !
@@ -1326,8 +1336,16 @@ contains
       enddo
  !Hybrid pblh of MYNN
  !tke is q2
-      CALL GET_PBLH(KTS,KTE,pblh_ysu(i),thvx(i,kts:kte),&
-      &    tke_ysu(i,kts:kte),zq(i,kts:kte+1),dzq(i,kts:kte),xland(i))
+!     CALL GET_PBLH(KTS,KTE,pblh_ysu(i),thvx(i,kts:kte),&
+!     &    tke_ysu(i,kts:kte),zq(i,kts:kte+1),dzq(i,kts:kte),xland(i))
+      do k = kts,kte
+         dummy1(k) = thvx(i,k)
+         dummy2(k) = tke_ysu(i,k)
+         dummy3(k) = zq(i,k)
+         dummy4(k) = dzq(i,k)
+      enddo
+      dummy3(kte+1) = zq(i,kte+1)
+      call get_pblh(kts,kte,pblh_ysu(i),dummy1,dummy2,dummy3,dummy4,xland(i))
 
 !--- end of paj tke
 ! compute vconv
