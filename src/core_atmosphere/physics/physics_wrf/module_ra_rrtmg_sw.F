@@ -9947,6 +9947,8 @@ CONTAINS
                        swupt,swuptc,swdnt,swdntc,                      &
                        swupb,swupbc,swdnb,swdnbc,                      &
                        swupflx,swupflxc,swdnflx,swdnflxc,              &
+                       swuptcln,swdntcln,swupbcln,swdnbcln,            & !--- begin CPF development.
+                       swddir,swddni,swddif,swddirc,swddnic,swdownc,   &
                        ids,ide, jds,jde, kds,kde,                      & 
                        ims,ime, jms,jme, kms,kme,                      &
                        its,ite, jts,jte, kts,kte                       &
@@ -9999,7 +10001,6 @@ CONTAINS
  integer:: pcols,pver
  integer:: idx_rei
  integer:: i,j,k,n
- integer:: calc_clean_atm_diag
 
  real:: coszrs,xt24,tloctm,hrang,xxlat,adjes,scon
  real:: ro,dz
@@ -10073,6 +10074,12 @@ CONTAINS
   data amdo /  0.603461 /
   data amdo2 / 0.905190 /
 
+!--- CPF development:
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swddir,swddni,swddif,swddirc,swddnic,swdownc
+
+ integer:: calc_clean_atm_diag
+
 !-----------------------------------------------------------------------------------------------------------------
 
 !--- all fields are ordered vertically from bottom to top (pressures are in mb):
@@ -10084,8 +10091,10 @@ CONTAINS
  iceflgsw = 3
  liqflgsw = 1
 
-!--- initialize calc_clean_atm_diag:
+!--- CPF development - initialize calc_clean_atm_diag:
  calc_clean_atm_diag = 0
+ if(present(swuptcln) .and. present(swdntcln) .and. present(swupbcln) .and. present(swdnbcln)) &
+    calc_clean_atm_diag = 1
 
 !--- latitude loop:
  j_loop: do j = jts,jte
@@ -10492,6 +10501,23 @@ CONTAINS
              swupbc(i,j) = swuflxc(1,1)
              swdnb(i,j)  = swdflx(1,1)
              swdnbc(i,j) = swdflxc(1,1)
+
+             !CPF development:
+             if(calc_clean_atm_diag .gt. 0)then
+                swuptcln(i,j) = swuflxcln(1,kte+2)
+                swdntcln(i,j) = swdflxcln(1,kte+2)
+                swupbcln(i,j) = swuflxcln(1,1)
+                swdnbcln(i,j) = swdflxcln(1,1)
+             endif
+          endif
+          if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
+             present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
+             swddir(i,j)   = swdkdir(1,1)          ! jararias 2013/08/10
+             swddni(i,j)   = swddir(i,j) / coszrs  ! jararias 2013/08/10
+             swddif(i,j)   = swdkdif(1,1)          ! jararias 2013/08/10
+             swdownc(i, j) = swdflxc(1,1)          ! PAJ: clear-sky GHI
+             swddirc(i,j)  = swdkdirc(1,1)         ! PAJ: clear-sky direct normal irradiance
+             swddnic(i,j)  = swddirc(i,j) / coszrs ! PAJ: clear-sky direct normal irradiance
           endif
 
           if(present(swupflx)) then
