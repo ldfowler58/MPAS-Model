@@ -9959,7 +9959,7 @@ CONTAINS
 !=================================================================================================================
  subroutine rrtmg_swrad( &
                        p3d,p8w,pi3d,t3d,t8w,dz8w,qv3d,qc3d,qr3d,       &
-                       qi3d,qs3d,qg3d,cldfra3d,o33d,tsk,albedo,        &
+                       qi3d,qs3d,cldfra3d,o33d,tsk,albedo,             &
                        xland,xice,snow,coszr,xtime,gmt,julday,radt,    &
                        degrad,declin,solcon,xlat,xlong,icloud,o3input, &
                        noznlevels,pin,o3clim,gsw,swcf,rthratensw,      &
@@ -9995,7 +9995,7 @@ CONTAINS
 
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: re_cloud,re_ice,re_snow
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-    cldfra3d,qv3d,qc3d,qr3d,qi3d,qs3d,qg3d,o33d
+    cldfra3d,qv3d,qc3d,qr3d,qi3d,qs3d,o33d
 
 !--- additional input arguments to use the CAM ozone climatology:
  integer,intent(in):: noznlevels
@@ -10032,7 +10032,7 @@ CONTAINS
  real,dimension(1):: asdir,asdif,aldir,aldif,coszen
  real,dimension(1,1:kte-kts+1):: pdel,cicewp,cliqwp,csnowp,reliq,reice,resnow
  real,dimension(kts:kte):: &
-    tten1d,cldfra1d,dz1d,p1d,t1d,qv1d,qc1d,qr1d,qi1d,qs1d,qg1d,o31d
+    tten1d,cldfra1d,dz1d,p1d,t1d,qv1d,qc1d,qr1d,qi1d,qs1d,o31d
  real,dimension(kts:kte+1):: pw1d,tw1d
  real,dimension(kts:kte+1):: o3mmr
 
@@ -10158,7 +10158,6 @@ CONTAINS
              qr1d(k)     = 0.
              qi1d(k)     = 0.
              qs1d(k)     = 0.
-             qg1d(k)     = 0.
              cldfra1d(k) = 0.
              if(present(o33d)) o31d(k) = o33d(i,k,j)
           enddo
