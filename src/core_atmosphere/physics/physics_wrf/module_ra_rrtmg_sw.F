@@ -9970,6 +9970,7 @@ CONTAINS
                        swupflx,swupflxc,swdnflx,swdnflxc,              &
                        swuptcln,swdntcln,swupbcln,swdnbcln,            & !--- begin CPF development.
                        swddir,swddni,swddif,swddirc,swddnic,swdownc,   &
+                       f_qc,f_qr,f_qi,f_qs,                            & !--- end CPF development.
                        ids,ide, jds,jde, kds,kde,                      & 
                        ims,ime, jms,jme, kms,kme,                      &
                        its,ite, jts,jte, kts,kte                       &
@@ -9990,12 +9991,12 @@ CONTAINS
  real,intent(in):: radt,degrad,xtime,declin,solcon,gmt
  real,intent(in),dimension(ims:ime,jms:jme):: xlat,xlong
  real,intent(in),dimension(ims:ime,jms:jme):: albedo,tsk,snow,xice,xland
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: t3d,p3d,pi3d
+ real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: t3d,p3d,pi3d,qv3d
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: dz8w,p8w,t8w
 
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: re_cloud,re_ice,re_snow
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-    cldfra3d,qv3d,qc3d,qr3d,qi3d,qs3d,o33d
+    cldfra3d,qc3d,qr3d,qi3d,qs3d,o33d
 
 !--- additional input arguments to use the CAM ozone climatology:
  integer,intent(in):: noznlevels
@@ -10096,9 +10097,10 @@ CONTAINS
   data amdo2 / 0.905190 /
 
 !--- CPF development:
+ logical,intent(in),optional:: f_qc,f_qr,f_qi,f_qs
+
  real,intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
  real,intent(out),dimension(ims:ime,jms:jme),optional:: swddir,swddni,swddif,swddirc,swddnic,swdownc
-
 
  integer:: calc_clean_atm_diag
  real:: dzsum
@@ -10164,14 +10166,32 @@ CONTAINS
 
           !--- initialize the local arrays containing the different cloud water and ice condenstates:
           if(icloud .gt. 0) then
-             do k = kts,kte
-                if(present(qc3d)) qc1d(k) = amax1(qc3d(i,k,j),0.)
-                if(present(qr3d)) qr1d(k) = amax1(qr3d(i,k,j),0.)
-                if(present(qi3d)) qi1d(k) = amax1(qi3d(i,k,j),0.)
-                if(present(qs3d)) qs1d(k) = amax1(qs3d(i,k,j),0.)
-                if((present(qc3d) .or. present(qi3d) .or. present(qs3d)) .and. present(cldfra3d)) &
+             if(present(f_qc) .and. present(qc3d)) then
+                do k = kts, kte
+                   qc1d(k) = amax1(qc3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qr) .and. present(qr3d)) then
+                do k = kts, kte
+                   qr1d(k) = amax1(qr3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qi) .and. present(qi3d)) then
+                do k = kts, kte
+                   qi1d(k) = amax1(qi3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qs) .and. present(qs3d)) then
+                do k = kts, kte
+                   qs1d(k) = amax1(qs3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qc).and.present(qc3d) .and. present(f_qi).and.present(qi3d)  .and. &
+                present(f_qs).and.present(qs3d) .and. present(cldfra3d)) then
+                do k = kts, kte
                    cldfra1d(k) = cldfra3d(i,k,j)
-             enddo
+                enddo
+             endif
           endif
 
           !--- initialize the local radiative heating rate:
