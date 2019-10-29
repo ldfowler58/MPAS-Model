@@ -9968,9 +9968,11 @@ CONTAINS
                        swupt,swuptc,swdnt,swdntc,                      &
                        swupb,swupbc,swdnb,swdnbc,                      &
                        swupflx,swupflxc,swdnflx,swdnflxc,              &
-                       swuptcln,swdntcln,swupbcln,swdnbcln,            & !--- begin CPF development.
+                       swuptcln,swdntcln,swupbcln,swdnbcln,            & !--- CPF development.
                        swddir,swddni,swddif,swddirc,swddnic,swdownc,   &
-                       f_qc,f_qr,f_qi,f_qs,                            & !--- end CPF development.
+                       f_qc,f_qr,f_qi,f_qs,                            &
+                       alswvisdir,alswvisdif,alswnirdir,alswnirdif,    &
+                       swvisdir,swvisdif,swnirdir,swnirdif,            & !--- CPF development end.
                        ids,ide, jds,jde, kds,kde,                      & 
                        ims,ime, jms,jme, kms,kme,                      &
                        its,ite, jts,jte, kts,kte                       &
@@ -10098,11 +10100,14 @@ CONTAINS
 
 !--- CPF development:
  logical,intent(in),optional:: f_qc,f_qr,f_qi,f_qs
+ real,intent(in),dimension(ims:ime,jms:jme),optional:: alswvisdir,alswvisdif,alswnirdir,alswnirdif
 
  real,intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
  real,intent(out),dimension(ims:ime,jms:jme),optional:: swddir,swddni,swddif,swddirc,swddnic,swdownc
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swvisdir,swvisdif,swnirdir,swnirdif
 
  integer:: calc_clean_atm_diag
+ integer:: sf_surface_physics
  real:: dzsum
  real,dimension(1,kts:kte+1):: hgt
 
@@ -10117,10 +10122,16 @@ CONTAINS
  iceflgsw = 3
  liqflgsw = 1
 
-!--- CPF development - initialize calc_clean_atm_diag:
+!--- CPF development:
+!--- initialize calc_clean_atm_diag:
  calc_clean_atm_diag = 0
  if(present(swuptcln) .and. present(swdntcln) .and. present(swupbcln) .and. present(swdnbcln)) &
     calc_clean_atm_diag = 1
+
+ sf_surface_physics = 0
+ if(present(alswvisdir) .and. present(alswvisdif) .and. present(alswnirdir) .and. present(alswnirdif)) &
+    sf_surface_physics = 8
+!--- CPF development end.
 
 !--- latitude loop:
  j_loop: do j = jts,jte
@@ -10324,10 +10335,19 @@ CONTAINS
           endif
 
           !--- initialize the surface albedo:
-          asdir(ncol) = albedo(i,j)
-          asdif(ncol) = albedo(i,j)
-          aldir(ncol) = albedo(i,j)
-          aldif(ncol) = albedo(i,j)
+          !CPF development:
+          if(sf_surface_physics.eq.8 .and. xland(i,j).lt.1.5) then
+             asdir(ncol) = alswvisdir(i,j)
+             asdif(ncol) = alswvisdif(i,j)
+             aldir(ncol) = alswnirdir(i,j)
+             aldif(ncol) = alswnirdif(i,j)
+          else
+             asdir(ncol) = albedo(i,j)
+             asdif(ncol) = albedo(i,j)
+             aldir(ncol) = albedo(i,j)
+             aldif(ncol) = albedo(i,j)
+          endif
+          !CPF development end.
 
           !--- set solar constant:
           scon = solcon
@@ -10561,7 +10581,16 @@ CONTAINS
                 swupbcln(i,j) = swuflxcln(1,1)
                 swdnbcln(i,j) = swdflxcln(1,1)
              endif
+             !added by Zhenxin for 4 components of swdown radiation:
+             if(sf_surface_physics .eq. 8) then
+                swvisdir(i,j)  = sibvisdir(1,1)
+                swvisdif(i,j)  = sibvisdif(1,1)
+                swnirdir(i,j)  = sibnirdir(1,1)
+                swnirdif(i,j)  = sibnirdif(1,1)
+             endif
+             !CPF development end.
           endif
+          !CPF development:
           if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
              present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
              swddir(i,j)   = swdkdir(1,1)          ! jararias 2013/08/10
@@ -10571,6 +10600,7 @@ CONTAINS
              swddirc(i,j)  = swdkdirc(1,1)         ! PAJ: clear-sky direct normal irradiance
              swddnic(i,j)  = swddirc(i,j) / coszrs ! PAJ: clear-sky direct normal irradiance
           endif
+          !CPF development end.
 
           if(present(swupflx)) then
              do k = kts, kte+2
