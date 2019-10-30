@@ -1971,10 +1971,10 @@
 
 #if defined(mpas)
  use mpas_atmphys_utilities,only: physics_error_fatal
-#define FATAL_ERROR(M) call physics_error_fatal( M )
+#define FATAL_ERROR(M) call physics_error_fatal(M)
 #else
 use module_wrf_error
-#define FATAL_ERROR(M) call wrf_error_fatal( M )
+#define FATAL_ERROR(M) call wrf_error_fatal(M)
 #endif
 
 !  --------------------------------------------------------------------------
@@ -9912,31 +9912,14 @@ MODULE module_ra_rrtmg_sw
 !MPAS specific (Laura D. Fowler):
 use mpas_atmphys_constants,only : cp,g=>gravity
 use module_ra_rrtmg_vinterp,only: vinterp_ozn
-
-!> add-ons and modifications to sourcecode:
-!> ----------------------------------------
-!>   * updated the sourcecode to WRF revision 3.5, except for the implementation
-!>     of time-varying trace gases: added option to use the ozone climatology
-!>     from the CAM radiation codes.
-!>     Laura D. Fowler (birch.mmm.ucar.edu) / 2013-07-08.
-!>   * cleaned-up the subroutine rrtmg_swrad in preparation for the implementation of the calculation of the
-!>     cloud optical properties when the effective radii for cloud water, cloud ice, and snow are provided by
-!>     the cloud microphysics schemes (note that for now, only the Thompson cloud microphysics scheme has the
-!>     option to calculate cloud radii). With the -g option, results are exactly the same as the original
-!>     subroutine.
-!>     Laura D. Fowler (laura@ucar.edu) / 2016-07-05.
-!>   * updated module_ra_rrtmg_sw.F using module_ra_rrtmg_sw.F from WRF version 3.8, namely to update the
-!>     calculation of the cloud optical properties to include the radiative effect of snow.
-!>     Laura D. Fowler (laura@ucar.edu / 2016-07-05).
-!>   * added the effective radii for cloud water, cloud ice, and snow calculated in the Thompson cloud
-!>     microphysics scheme as inputs to the subroutine rrtmg_swrad. revised the initialization of arrays rel,
-!>     rei, and res, accordingly.
-!>     Laura D. Fowler (laura@ucar.edu) / 2016-07-07.
-!MPAS specfic end.
-
+use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
+#define FATAL_ERROR(M) call physics_error_fatal(M)
+#define WRITE_MESSAGE(M) call physics_message(M)
 #else
 use module_model_constants,only : cp
 USE module_wrf_error
+#define FATAL_ERROR(M) call wrf_error_fatal(M)
+#define WRITE_MESSAGE(M) call wrf_message(M)
 #if (HWRF == 1)
 USE module_state_description, ONLY : FER_MP_HIRES, FER_MP_HIRES_ADVECT, ETAMP_HWRF 
 #else
@@ -9972,7 +9955,10 @@ CONTAINS
                        swddir,swddni,swddif,swddirc,swddnic,swdownc,   &
                        f_qc,f_qr,f_qi,f_qs,                            &
                        alswvisdir,alswvisdif,alswnirdir,alswnirdif,    &
-                       swvisdir,swvisdif,swnirdir,swnirdif,            & !--- CPF development end.
+                       swvisdir,swvisdif,swnirdir,swnirdif,            &
+                       tauaer300,tauaer400,tauaer600,tauaer999,        &
+                       gaer300,gaer400,gaer600,gaer999,                &
+                       waer300,waer400,waer600,waer999,                & !--- CPF development end.
                        ids,ide, jds,jde, kds,kde,                      & 
                        ims,ime, jms,jme, kms,kme,                      &
                        its,ite, jts,jte, kts,kte                       &
@@ -10101,6 +10087,9 @@ CONTAINS
 !--- CPF development:
  logical,intent(in),optional:: f_qc,f_qr,f_qi,f_qs
  real,intent(in),dimension(ims:ime,jms:jme),optional:: alswvisdir,alswvisdif,alswnirdir,alswnirdif
+ real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+    tauaer300,tauaer400,tauaer600,tauaer999,gaer300,gaer400,gaer600,gaer999, &
+    waer300,waer400,waer600,waer999
 
  real,intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
  real,intent(out),dimension(ims:ime,jms:jme),optional:: swddir,swddni,swddif,swddirc,swddnic,swdownc
@@ -10108,8 +10097,18 @@ CONTAINS
 
  integer:: calc_clean_atm_diag
  integer:: sf_surface_physics
+ integer:: aer_ra_feedback
  real:: dzsum
  real,dimension(1,kts:kte+1):: hgt
+
+ character(len=200):: msg
+ real,parameter:: thresh=1.e-9
+ real:: ang,slope
+ real,dimension(nbndsw),save :: wavemin ! minimum wavelength (um) of 14 intervals.
+ real,dimension(nbndsw),save :: wavemax ! maximum wavelength (um) of 14 intervals.
+ real,dimension(nbndsw):: wavemid
+ data wavemin /3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,0.200,3.846/
+ data wavemax /3.846,3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,12.195/
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -10128,9 +10127,18 @@ CONTAINS
  if(present(swuptcln) .and. present(swdntcln) .and. present(swupbcln) .and. present(swdnbcln)) &
     calc_clean_atm_diag = 1
 
+!--- initialize sf_surface_physics:
  sf_surface_physics = 0
  if(present(alswvisdir) .and. present(alswvisdif) .and. present(alswnirdir) .and. present(alswnirdif)) &
     sf_surface_physics = 8
+
+!--- initialize aer_ra_feedback:
+ aer_ra_feedback = 0
+ if(present(tauaer300) .and. present(gaer300) .and. present(waer300) .and. &
+    present(tauaer400) .and. present(gaer400) .and. present(waer400) .and. &
+    present(tauaer600) .and. present(gaer600) .and. present(waer600) .and. &
+    present(tauaer999) .and. present(gaer999) .and. present(waer999)) &
+    aer_ra_feedback = 1
 !--- CPF development end.
 
 !--- latitude loop:
@@ -10540,6 +10548,75 @@ CONTAINS
                 ecaer(ncol,k,na) = 0.
              enddo
           enddo
+
+          !CPF development:
+          if(aer_ra_feedback .eq. 1) then
+             do nb = 1, nbndsw
+                wavemid(nb)=0.5*(wavemin(nb)+wavemax(nb)) ! um
+
+                !convert optical properties at 300,400,600,and 999 to conform to band-wavelengths:
+                !tauaer - use angstrom exponent.
+                !ssaer - linear interpolation/extrapolation.
+                !g - linear interpolation/extrapolation.
+                do k = kts, kte
+                   if(tauaer300(i,k,j).gt.thresh .and. tauaer999(i,k,j).gt.thresh) then
+                      ang = alog(tauaer300(i,k,j)/tauaer999(i,k,j))/alog(999./300.)
+                      tauaer(ncol,k,nb)=tauaer400(i,k,j)*(0.4/wavemid(nb))**ang
+
+                      slope = (waer600(i,k,j)-waer400(i,k,j))/.2
+                      ssaaer(ncol,k,nb) = slope*(wavemid(nb)-.6)+waer600(i,k,j)
+                      if(ssaaer(ncol,k,nb).lt.0.4) ssaaer(ncol,k,nb) = 0.4
+                      if(ssaaer(ncol,k,nb).ge.1.0) ssaaer(ncol,k,nb) = 1.0
+
+                      slope=(gaer600(i,k,j)-gaer400(i,k,j))/.2
+                      asmaer(ncol,k,nb) = slope*(wavemid(nb)-.6)+gaer600(i,k,j)
+                      if(asmaer(ncol,k,nb).lt.0.5) asmaer(ncol,k,nb) = 0.5
+                      if(asmaer(ncol,k,nb).ge.1.0) asmaer(ncol,k,nb) = 1.0
+                   endif
+                enddo
+             enddo
+
+             do nb = 1, nbndsw
+                slope = 0.  !use slope as a sum holder
+                do k = kts, kte
+                   slope = slope + tauaer(ncol,k,nb)
+                enddo
+                if(slope < 0.) then
+                   write(msg,'("ERROR: negative total optical depth of ",f8.2," at point i,j,nb=",3i5)') slope,i,j,nb
+                   FATAL_ERROR(msg)
+                elseif(slope > 6.) then
+                   WRITE_MESSAGE("-------------------------")
+                   write(msg,'("WARNING: Large total sw optical depth of ",f8.2," at point i,j,nb=",3i5)') slope,i,j,nb
+                   WRITE_MESSAGE(msg)
+                   WRITE_MESSAGE("Diagnostics 1: k,tauaer300,tauaer400,tauaer600,tauaer999,tauaer")
+                   do k = kts, kte
+                      write(msg,'(i4,5f8.2)') k,tauaer300(i,k,j),tauaer400(i,k,j), &
+                            tauaer600(i,k,j),tauaer999(i,k,j),tauaer(ncol,k,nb)
+                      WRITE_MESSAGE(msg)
+                      tauaer(ncol,k,nb)=tauaer(ncol,k,nb)*6.0/slope ! up-limit to avoid segmentation fault from AOD (czhao).
+                   enddo
+                   WRITE_MESSAGE("Diagnostics 2: k,gaer300,gaer400,gaer600,gaer999")
+                   do k = kts, kte
+                      write(msg,'(i4,4f8.2)') k,gaer300(i,k,j),gaer400(i,k,j), &
+                            gaer600(i,k,j),gaer999(i,k,j)
+                      WRITE_MESSAGE(msg)
+                   enddo
+                   WRITE_MESSAGE("Diagnostics 3: k,waer300,waer400,waer600,waer999")
+                   do k = kts, kte
+                      write(msg,'(i4,4f8.2)') k,waer300(i,k,j),waer400(i,k,j), &
+                            waer600(i,k,j),waer999(i,k,j)
+                      WRITE_MESSAGE(msg)
+                   enddo
+                   WRITE_MESSAGE("Diagnostics 4: k,ssaal,asyal,taual")
+                   do k = kts-1, kte
+                      write(msg,'(i4,3f8.2)') k, ssaaer(i,k,nb),asmaer(i,k,nb),tauaer(i,k,nb)
+                      WRITE_MESSAGE(msg)
+                   enddo
+                   WRITE_MESSAGE("-------------------------")
+                endif
+             enddo
+          endif
+          !CPF development end.
 
 
 
