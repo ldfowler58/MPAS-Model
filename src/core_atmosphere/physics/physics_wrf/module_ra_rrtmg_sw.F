@@ -10707,7 +10707,34 @@ CONTAINS
              swupbc(i,j)    = 0.
              swdnb(i,j)     = 0.
              swdnbc(i,j)    = 0.
+
+             !CPF development:
+             if(calc_clean_atm_diag .gt. 0)then
+                swuptcln(i,j) = 0.
+                swdntcln(i,j) = 0.
+                swupbcln(i,j) = 0.
+                swdnbcln(i,j) = 0.
+             endif
+             !added by Zhenxin for 4 components of swdown radiation:
+             if(sf_surface_physics .eq. 8) then
+                swvisdir(i,j)  = 0.
+                swvisdif(i,j)  = 0.
+                swnirdir(i,j)  = 0.
+                swnirdif(i,j)  = 0.
+             endif
+             !CPF development end.
           endif
+          !CPF development:
+          if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
+             present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
+             swddir(i,j)   = 0. ! jararias 2013/08/10
+             swddni(i,j)   = 0. ! jararias 2013/08/10
+             swddif(i,j)   = 0. ! jararias 2013/08/10
+             swdownc(i, j) = 0. ! PAJ: clear-sky GHI
+             swddirc(i,j)  = 0. ! PAJ: clear-sky direct normal irradiance
+             swddnic(i,j)  = 0. ! PAJ: clear-sky direct normal irradiance
+          endif
+          !CPF development end.
 
        endif
 
