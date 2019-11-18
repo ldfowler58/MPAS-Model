@@ -9958,7 +9958,8 @@ CONTAINS
                        swvisdir,swvisdif,swnirdir,swnirdif,            &
                        tauaer300,tauaer400,tauaer600,tauaer999,        &
                        gaer300,gaer400,gaer600,gaer999,                &
-                       waer300,waer400,waer600,waer999,                & !--- CPF development end.
+                       waer300,waer400,waer600,waer999,                &
+                       cldovrlp,                                       & !--- CPF development end.
                        ids,ide, jds,jde, kds,kde,                      & 
                        ims,ime, jms,jme, kms,kme,                      &
                        its,ite, jts,jte, kts,kte                       &
@@ -10110,13 +10111,15 @@ CONTAINS
  data wavemin /3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,0.200,3.846/
  data wavemax /3.846,3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,12.195/
 
+ integer:: cldovrlp
+
 !-----------------------------------------------------------------------------------------------------------------
 
 !--- all fields are ordered vertically from bottom to top (pressures are in mb):
  ncol = 1
 
 !--- initialize option for the calculation of the cloud optical properties:
- icld     = 2 ! with clouds using maximum/random cloud overlap in subroutine mcica_subcol_lw. 
+ icld     = cldovrlp
  inflgsw  = 2
  iceflgsw = 3
  liqflgsw = 1

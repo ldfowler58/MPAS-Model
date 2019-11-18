@@ -697,6 +697,7 @@
 
 !local pointers:
  logical,pointer:: config_o3climatology
+ integer,pointer:: cldoverlap
  character(len=StrKIND),pointer:: radt_sw_scheme
 
 !local variables:
@@ -706,8 +707,10 @@
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' --- enter subroutine driver_radiation_sw: $i',intArgs=(/itimestep/))
 
- call mpas_pool_get_config(configs,'config_o3climatology' ,config_o3climatology)
- call mpas_pool_get_config(configs,'config_radt_sw_scheme',radt_sw_scheme      )
+ call mpas_pool_get_config(configs,'config_o3climatology'  ,config_o3climatology)
+ call mpas_pool_get_config(configs,'config_radt_sw_scheme' ,radt_sw_scheme      )
+ call mpas_pool_get_config(configs,'config_radt_sw_scheme' ,radt_sw_scheme      )
+ call mpas_pool_get_config(configs,'config_radt_cldoverlap',cldoverlap          )
 
  xtime_m = xtime_s/60.
 
@@ -756,10 +759,10 @@
               pin      = pin_p      , o3clim     = o3clim_p     , gsw        = gsw_p         , &
               swcf     = swcf_p     , rthratensw = rthratensw_p , has_reqc   = has_reqc      , &
               has_reqi = has_reqi   , has_reqs   = has_reqs     , re_cloud   = recloud_p     , &
-              re_ice   = reice_p    , re_snow    = resnow_p     , swupt      = swupt_p       , &
-              swuptc   = swuptc_p   , swdnt      = swdnt_p      , swdntc     = swdntc_p      , &
-              swupb    = swupb_p    , swupbc     = swupbc_p     , swdnb      = swdnb_p       , &
-              swdnbc   = swdnbc_p   ,                                                          &
+              re_ice   = reice_p    , re_snow    = resnow_p     , cldovrlp   = cldoverlap    , &
+              swupt    = swupt_p    , swuptc     = swuptc_p     , swdnt      = swdnt_p       , &
+              swdntc   = swdntc_p   , swupb      = swupb_p      , swupbc     = swupbc_p      , &
+              swdnb    = swdnb_p    , swdnbc     = swdnbc_p     ,                              &
               ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde ,          &
               ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,          &
               its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte            &
