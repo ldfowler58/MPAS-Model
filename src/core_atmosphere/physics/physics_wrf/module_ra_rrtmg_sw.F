@@ -1397,7 +1397,8 @@
 ! Public subroutines
 !------------------------------------------------------------------
 
-      subroutine mcica_subcol_sw(iplon, ncol, nlay, icld, permuteseed, irng, play, &
+! mji - Add height needed for exponential-ranom cloud overlap method (icld=4)
+      subroutine mcica_subcol_sw(iplon, ncol, nlay, icld, permuteseed, irng, play, hgt, &
                        cldfrac, ciwp, clwp, cswp, rei, rel, res, tauc, ssac, asmc, fsfc, &
                        cldfmcl, ciwpmcl, clwpmcl, cswpmcl, reicmcl, relqmcl, resnmcl, &
                        taucmcl, ssacmcl, asmcmcl, fsfcmcl)
@@ -1419,7 +1420,9 @@
 ! Atmosphere
       real(kind=rb), intent(in) :: play(:,:)          ! layer pressures (mb) 
                                                       !    Dimensions: (ncol,nlay)
-
+! mji - Add height
+      real(kind=rb), intent(in) :: hgt(:,:)           ! layer height (m)
+                                                      !    Dimensions: (ncol,nlay)
 ! Atmosphere/clouds - cldprop
       real(kind=rb), intent(in) :: cldfrac(:,:)       ! layer cloud fraction
                                                       !    Dimensions: (ncol,nlay)
@@ -1481,11 +1484,8 @@
 !      real(kind=rb) :: ql(ncol,nlay)                 ! liq water (specific humidity)
 
 
-! Return if clear sky; or stop if icld out of range
+! Return if clear sky
       if (icld.eq.0) return
-      if (icld.lt.0.or.icld.gt.3) then 
-         stop 'MCICA_SUBCOL: INVALID ICLD'
-      endif 
 
 ! NOTE: For GCM mode, permuteseed must be offset between LW and SW by at least number of subcolumns
 
@@ -1514,7 +1514,7 @@
 !      enddo
 
 !  Generate the stochastic subcolumns of cloud optical properties for the shortwave;
-      call generate_stochastic_clouds_sw (ncol, nlay, nsubcsw, icld, irng, pmid, cldfrac, clwp, ciwp, cswp, &
+      call generate_stochastic_clouds_sw (ncol, nlay, nsubcsw, icld, irng, pmid, hgt, cldfrac, clwp, ciwp, cswp, &
                                tauc, ssac, asmc, fsfc, cldfmcl, clwpmcl, ciwpmcl, cswpmcl, &
                                taucmcl, ssacmcl, asmcmcl, fsfcmcl, permuteseed)
 
@@ -1522,7 +1522,7 @@
 
 
 !-------------------------------------------------------------------------------------------------
-      subroutine generate_stochastic_clouds_sw(ncol, nlay, nsubcol, icld, irng, pmid, cld, clwp, ciwp, cswp, &
+      subroutine generate_stochastic_clouds_sw(ncol, nlay, nsubcol, icld, irng, pmid, hgt, cld, clwp, ciwp, cswp, &
                                tauc, ssac, asmc, fsfc, cld_stoch, clwp_stoch, ciwp_stoch, cswp_stoch,        &
                                tauc_stoch, ssac_stoch, asmc_stoch, fsfc_stoch, changeSeed) 
 !-------------------------------------------------------------------------------------------------
@@ -1602,6 +1602,8 @@
 ! Column state (cloud fraction, cloud water, cloud ice) + variables needed to read physics state 
       real(kind=rb), intent(in) :: pmid(:,:)          ! layer pressure (Pa)
                                                       !    Dimensions: (ncol,nlay)
+      real(kind=rb), intent(in) :: hgt(:,:)           ! layer height (m)
+                                                      !    Dimensions: (ncol,nlay)
       real(kind=rb), intent(in) :: cld(:,:)           ! cloud fraction 
                                                       !    Dimensions: (ncol,nlay)
       real(kind=rb), intent(in) :: clwp(:,:)          ! in-cloud liquid water path (g/m2)
@@ -1650,11 +1652,11 @@
 !      real(kind=rb) :: mean_fsfc_stoch(ncol,nlay)    ! cloud forward scattering fraction
 
 ! Set overlap
-      integer(kind=im) :: overlap                     ! 1 = random overlap, 2 = maximum/random,
-                                                      ! 3 = maximum overlap, 
-!      real(kind=rb), parameter  :: Zo = 2500._rb        ! length scale (m) 
-!      real(kind=rb) :: zm(ncon,nlay)                    ! Height of midpoints (above surface)
-!      real(kind=rb), dimension(nlay) :: alpha=0.0_rb    ! overlap parameter  
+      integer(kind=im) :: overlap                     ! 1 = random overlap, 2 = maximum-random,
+                                                      ! 3 = maximum overlap, 4 = exponential,
+                                                      ! 5 = exponential-random
+      real(kind=rb), parameter  :: Zo = 2500._rb      ! length scale (m) 
+      real(kind=rb), dimension(ncol,nlay) :: alpha    ! overlap parameter
 
 ! Constants (min value for cloud fraction and cloud water and ice)
       real(kind=rb), parameter :: cldmin = 1.0e-20_rb ! min cloud fraction
@@ -1801,39 +1803,58 @@
              enddo
          endif
 
-!    case(4)  - inactive
-!       ! Exponential overlap: weighting between maximum and random overlap increases with the distance. 
-!       ! The random numbers for exponential overlap verify:
-!       ! j=1   RAN(j)=RND1
-!       ! j>1   if RND1 < alpha(j,j-1) => RAN(j) = RAN(j-1)
-!       !                                 RAN(j) = RND2
-!       ! alpha is obtained from the equation
-!       ! alpha = exp(- (Zi-Zj-1)/Zo) where Zo is a characteristic length scale    
+! mji - Activate exponential cloud overlap option
+         case(4)
+            ! Exponential overlap: weighting between maximum and random overlap increases with the distance.
+            ! The random numbers for exponential overlap verify:
+            ! j=1   RAN(j)=RND1
+            ! j>1   if RND1 < alpha(j,j-1) => RAN(j) = RAN(j-1)
+            !                                 RAN(j) = RND2
+            ! alpha is obtained from the equation
+            ! alpha = exp(-(Z(j)-Z(j-1))/Zo) where Zo is a characteristic length scale
 
+            ! compute alpha
+            do i = 1, ncol
+               alpha(i, 1) = 0._rb
+               do ilev = 2,nlay
+                  alpha(i, ilev) = exp( -( hgt (i, ilev) -  hgt (i, ilev-1)) / Zo)
+               enddo
+            enddo
 
-!       ! compute alpha
-!       zm    = state%zm     
-!       alpha(:, 1) = 0._rb
-!       do ilev = 2,nlay
-!          alpha(:, ilev) = exp( -( zm (:, ilev-1) -  zm (:, ilev)) / Zo)
-!       end do
-       
-!       ! generate 2 streams of random numbers
-!       do isubcol = 1,nsubcol
-!          do ilev = 1,nlay
-!             call kissvec(seed1, seed2, seed3, seed4, rand_num)
-!             CDF(isubcol, :, ilev) = rand_num
-!             call kissvec(seed1, seed2, seed3, seed4, rand_num)
-!             CDF2(isubcol, :, ilev) = rand_num
-!          end do
-!       end do
+            ! generate 2 streams of random numbers
+            if (irng.eq.0) then
+               do isubcol = 1,nsubcol
+                  do ilev = 1,nlay
+                     call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                     CDF(isubcol, :, ilev) = rand_num
+                     call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                     CDF2(isubcol, :, ilev) = rand_num
+                  enddo
+               enddo
+            elseif (irng.eq.1) then
+            do isubcol = 1, nsubcol
+               do i = 1, ncol
+                  do ilev = 1, nlay
+                     rand_num_mt = getRandomReal(randomNumbers)
+                     CDF(isubcol,i,ilev) = rand_num_mt
+                     rand_num_mt = getRandomReal(randomNumbers)
+                     CDF2(isubcol,i,ilev) = rand_num_mt
+                  enddo
+               enddo
+            enddo
+         endif
 
-!       ! generate random numbers
-!       do ilev = 2,nlay
-!          where (CDF2(:, :, ilev) < spread(alpha (:,ilev), dim=1, nCopies=nsubcol) )
-!             CDF(:,:,ilev) = CDF(:,:,ilev-1) 
-!          end where
-!       end do
+         ! generate random numbers
+         do ilev = 2,nlay
+            where (CDF2(:, :, ilev) < spread(alpha (:,ilev), dim=1, nCopies=nsubcol) )
+               CDF(:,:,ilev) = CDF(:,:,ilev-1)
+            end where
+         end do
+
+! mji - Exponential-random cloud overlap option
+         case(5)
+            ! Exponential-random overlap:
+            call wrf_error_fatal("Cloud Overlap case 5: ER has not yet been implemented. Stopping...")
 
       end select
 
@@ -1950,10 +1971,10 @@
 
 #if defined(mpas)
  use mpas_atmphys_utilities,only: physics_error_fatal
-#define FATAL_ERROR(M) call physics_error_fatal( M )
+#define FATAL_ERROR(M) call physics_error_fatal(M)
 #else
 use module_wrf_error
-#define FATAL_ERROR(M) call wrf_error_fatal( M )
+#define FATAL_ERROR(M) call wrf_error_fatal(M)
 #endif
 
 !  --------------------------------------------------------------------------
@@ -8752,12 +8773,14 @@ use module_wrf_error
              taucmcl ,ssacmcl ,asmcmcl ,fsfcmcl , &
              ciwpmcl ,clwpmcl ,cswpmcl ,reicmcl ,relqmcl ,resnmcl, &
              tauaer  ,ssaaer  ,asmaer  ,ecaer   , &
-             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc, aer_opt,  &
+             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc, swuflxcln ,swdflxcln , aer_opt,  &
 ! --------- Add the following four compenants for ssib shortwave down radiation ---!
 ! -------------------      by Zhenxin 2011-06-20      --------------------------------!
              sibvisdir, sibvisdif, sibnirdir, sibnirdif,         &
 ! ----------------------  End,  Zhenxin 2011-06-20    --------------------------------!
-             swdkdir,swdkdif                                & ! jararias, 2013/08/10
+             swdkdir,swdkdif,                               & ! jararias, 2013/08/10
+             swdkdirc                                       & ! PAJ
+             ,calc_clean_atm_diag                          &
                                                                 )
 
 
@@ -8868,7 +8891,8 @@ use module_wrf_error
                                                       !    1: Random
                                                       !    2: Maximum/random
                                                       !    3: Maximum
-
+                                                      !    4: Exponential
+                                                      !    5: Exponential/random
       real(kind=rb), intent(in) :: play(:,:)          ! Layer pressures (hPa, mb)
                                                       !    Dimensions: (ncol,nlay)
       real(kind=rb), intent(in) :: plev(:,:)          ! Interface pressures (hPa, mb)
@@ -8955,6 +8979,7 @@ use module_wrf_error
       real(kind=rb), intent(in) :: ecaer(:,:,:)       ! Aerosol optical depth at 0.55 micron (iaer=6 only)
                                                       !    Dimensions: (ncol,nlay,naerec)
                                                       ! (non-delta scaled)      
+      integer, intent(in)       :: calc_clean_atm_diag! Control for clean air diagnositic calls for WRF-Chem
 
 ! ----- Output -----
 
@@ -8978,11 +9003,16 @@ use module_wrf_error
                                                       !    Dimensions: (ncol,nlay+1)
       real(kind=rb), intent(out) :: swhrc(:,:)        ! Clear sky shortwave radiative heating rate (K/d)
                                                       !    Dimensions: (ncol,nlay)
+      real(kind=rb), intent(out) :: swuflxcln(:,:)    ! Clean sky shortwave upward flux (W/m2)
+                                                      !    Dimensions: (ncol,nlay+1)
+      real(kind=rb), intent(out) :: swdflxcln(:,:)    ! Clean sky shortwave downward flux (W/m2)
+                                                      !    Dimensions: (ncol,nlay+1)
 
       integer, intent(in)        :: aer_opt
       real(kind=rb), intent(out) :: &
         swdkdir(:,:), & ! Total shortwave downward direct flux (W/m2),  Dimensions: (ncol,nlay) jararias, 2013/08/10
-        swdkdif(:,:)    ! Total shortwave downward diffuse flux (W/m2), Dimensions: (ncol,nlay) jararias, 2013/08/10
+        swdkdif(:,:), & ! Total shortwave downward diffuse flux (W/m2), Dimensions: (ncol,nlay) jararias, 2013/08/10
+        swdkdirc(:,:)   ! Total shortwave downward direct flux clear sky (W/m2),  Dimensions: (ncol,nlay)
 
 
 
@@ -9102,6 +9132,7 @@ use module_wrf_error
                                                 !  (first moment of phase function)
       real(kind=rb) :: zomgc(nlay+1,nbndsw)     ! cloud single scattering albedo
       real(kind=rb) :: ztaua(nlay+1,nbndsw)     ! total aerosol optical depth
+      real(kind=rb) :: ztauacln(nlay+1,nbndsw)  ! dummy total aerosol optical depth for clean case (=zero)
       real(kind=rb) :: zasya(nlay+1,nbndsw)     ! total aerosol asymmetry parameter 
       real(kind=rb) :: zomga(nlay+1,nbndsw)     ! total aerosol single scattering albedo
 
@@ -9125,6 +9156,13 @@ use module_wrf_error
       real(kind=rb) :: znicd(nlay+2)          ! temporary clear sky near-IR downward shortwave flux (w/m2)
       real(kind=rb) :: znifddir(nlay+2)       ! temporary near-IR downward direct shortwave flux (w/m2)
       real(kind=rb) :: znicddir(nlay+2)       ! temporary clear sky near-IR downward direct shortwave flux (w/m2)
+      real(kind=rb) :: zbbclnu(nlay+2)        ! temporary clean sky upward shortwave flux (w/m2)
+      real(kind=rb) :: zbbclnd(nlay+2)        ! temporary clean sky downward shortwave flux (w/m2)
+      real(kind=rb) :: zbbclnddir(nlay+2)     ! temporary clean sky downward direct shortwave flux (w/m2)
+      real(kind=rb) :: zuvclnd(nlay+2)        ! temporary clean sky UV downward shortwave flux (w/m2)
+      real(kind=rb) :: zuvclnddir(nlay+2)     ! temporary clean sky UV downward direct shortwave flux (w/m2)
+      real(kind=rb) :: zniclnd(nlay+2)        ! temporary clean sky near-IR downward shortwave flux (w/m2)
+      real(kind=rb) :: zniclnddir(nlay+2)     ! temporary clean sky near-IR downward direct shortwave flux (w/m2)
 
 ! Optional output fields 
       real(kind=rb) :: swnflx(nlay+2)         ! Total sky shortwave net flux (W/m2)
@@ -9181,7 +9219,8 @@ use module_wrf_error
 ! icld = 1, with clouds using random cloud overlap (McICA only)
 ! icld = 2, with clouds using maximum/random cloud overlap (McICA only)
 ! icld = 3, with clouds using maximum cloud overlap (McICA only)
-      if (icld.lt.0.or.icld.gt.3) icld = 2
+! icld = 4, with clouds using exponential cloud overlap (McICA only)
+! icld = 5, with clouds using exponential/random cloud overlap (McICA only)
 
 ! Set iaer to select aerosol option
 ! iaer = 0, no aerosols
@@ -9336,6 +9375,7 @@ use module_wrf_error
             do i = 1 ,nlayers
                do ib = 1 ,nbndsw
                   ztaua(i,ib) = taua(i,ib)
+                  ztauacln(i,ib) = 0.0
                   zasya(i,ib) = asma(i,ib)
                   zomga(i,ib) = ssaa(i,ib)
                enddo
@@ -9391,6 +9431,7 @@ use module_wrf_error
             difdflux(i) = swdflx(iplon,i) - dirdflux(i)
             swdkdir(iplon,i) = dirdflux(i) ! all-sky direct flux   jararias, 2013/08/10
             swdkdif(iplon,i) = difdflux(i) ! all-sky diffuse flux  jararias, 2013/08/10
+            swdkdirc(iplon,i) = zbbcddir(i) ! PAJ: clear-sky direct flux
 
 !  UV/visible direct/diffuse fluxes
             dirdnuv(i) = zuvfddir(i)
@@ -9423,6 +9464,57 @@ use module_wrf_error
          swhrc(iplon,nlayers) = 0._rb
          swhr(iplon,nlayers) = 0._rb
 
+#if (WRF_CHEM == 1)
+         !  Repeat call to 2-stream radiation model using "clean sky"
+         !  variables and aerosol tau set to 0
+         if(calc_clean_atm_diag .gt. 0)then
+            do i=1,nlayers+1
+                zbbcu(i) = 0._rb
+                zbbcd(i) = 0._rb
+                zbbclnu(i) = 0._rb
+                zbbclnd(i) = 0._rb
+                zbbcddir(i) = 0._rb
+                zbbclnddir(i) = 0._rb
+                zuvcd(i) = 0._rb
+                zuvclnd(i) = 0._rb
+                zuvcddir(i) = 0._rb
+                zuvclnddir(i) = 0._rb
+                znicd(i) = 0._rb
+                zniclnd(i) = 0._rb
+                znicddir(i) = 0._rb
+                zniclnddir(i) = 0._rb
+             enddo
+
+             call spcvmc_sw &
+                 (nlayers, istart, iend, icpr, iout, &
+                  pavel, tavel, pz, tz, tbound, albdif, albdir, &
+                  zcldfmc, ztaucmc, zasycmc, zomgcmc, ztaormc, &
+                  ztauacln, zasya, zomga, cossza, coldry, wkl, adjflux, &
+                  laytrop, layswtch, laylow, jp, jt, jt1, &
+                  co2mult, colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
+                  fac00, fac01, fac10, fac11, &
+                  selffac, selffrac, indself, forfac, forfrac, indfor, &
+                  zbbclnd, zbbclnu, zbbcd, zbbcu, zuvclnd, zuvcd, zniclnd, znicd, &
+                  zbbclnddir, zbbcddir, zuvclnddir, zuvcddir, zniclnddir, znicddir)
+
+            do i = 1, nlayers+1
+               swuflxcln(iplon,i) = zbbclnu(i)
+               swdflxcln(iplon,i) = zbbclnd(i)
+            enddo
+         else
+            do i = 1, nlayers+1
+               swuflxcln(iplon,i) = 0.0
+               swdflxcln(iplon,i) = 0.0
+            enddo
+         end if
+
+#else
+         do i = 1, nlayers+1
+            swuflxcln(iplon,i) = 0.0
+            swdflxcln(iplon,i) = 0.0
+         enddo
+
+#endif
 ! End longitude loop
       enddo
 
@@ -9820,31 +9912,14 @@ MODULE module_ra_rrtmg_sw
 !MPAS specific (Laura D. Fowler):
 use mpas_atmphys_constants,only : cp,g=>gravity
 use module_ra_rrtmg_vinterp,only: vinterp_ozn
-
-!> add-ons and modifications to sourcecode:
-!> ----------------------------------------
-!>   * updated the sourcecode to WRF revision 3.5, except for the implementation
-!>     of time-varying trace gases: added option to use the ozone climatology
-!>     from the CAM radiation codes.
-!>     Laura D. Fowler (birch.mmm.ucar.edu) / 2013-07-08.
-!>   * cleaned-up the subroutine rrtmg_swrad in preparation for the implementation of the calculation of the
-!>     cloud optical properties when the effective radii for cloud water, cloud ice, and snow are provided by
-!>     the cloud microphysics schemes (note that for now, only the Thompson cloud microphysics scheme has the
-!>     option to calculate cloud radii). With the -g option, results are exactly the same as the original
-!>     subroutine.
-!>     Laura D. Fowler (laura@ucar.edu) / 2016-07-05.
-!>   * updated module_ra_rrtmg_sw.F using module_ra_rrtmg_sw.F from WRF version 3.8, namely to update the
-!>     calculation of the cloud optical properties to include the radiative effect of snow.
-!>     Laura D. Fowler (laura@ucar.edu / 2016-07-05).
-!>   * added the effective radii for cloud water, cloud ice, and snow calculated in the Thompson cloud
-!>     microphysics scheme as inputs to the subroutine rrtmg_swrad. revised the initialization of arrays rel,
-!>     rei, and res, accordingly.
-!>     Laura D. Fowler (laura@ucar.edu) / 2016-07-07.
-!MPAS specfic end.
-
+use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
+#define FATAL_ERROR(M) call physics_error_fatal(M)
+#define WRITE_MESSAGE(M) call physics_message(M)
 #else
 use module_model_constants,only : cp
 USE module_wrf_error
+#define FATAL_ERROR(M) call wrf_error_fatal(M)
+#define WRITE_MESSAGE(M) call wrf_message(M)
 #if (HWRF == 1)
 USE module_state_description, ONLY : FER_MP_HIRES, FER_MP_HIRES_ADVECT, ETAMP_HWRF 
 #else
@@ -9867,15 +9942,24 @@ CONTAINS
 !=================================================================================================================
  subroutine rrtmg_swrad( &
                        p3d,p8w,pi3d,t3d,t8w,dz8w,qv3d,qc3d,qr3d,       &
-                       qi3d,qs3d,qg3d,cldfra3d,o33d,tsk,albedo,        &
+                       qi3d,qs3d,cldfra3d,o33d,tsk,albedo,             &
                        xland,xice,snow,coszr,xtime,gmt,julday,radt,    &
                        degrad,declin,solcon,xlat,xlong,icloud,o3input, &
                        noznlevels,pin,o3clim,gsw,swcf,rthratensw,      &
                        has_reqc,has_reqi,has_reqs,re_cloud,            &
                        re_ice,re_snow,                                 &
-                       swupt, swuptc, swdnt, swdntc,                   &
-                       swupb, swupbc, swdnb, swdnbc,                   &
-                       swupflx, swupflxc, swdnflx, swdnflxc,           &
+                       swupt,swuptc,swdnt,swdntc,                      &
+                       swupb,swupbc,swdnb,swdnbc,                      &
+                       swupflx,swupflxc,swdnflx,swdnflxc,              &
+                       swuptcln,swdntcln,swupbcln,swdnbcln,            & !--- CPF development.
+                       swddir,swddni,swddif,swddirc,swddnic,swdownc,   &
+                       f_qc,f_qr,f_qi,f_qs,                            &
+                       alswvisdir,alswvisdif,alswnirdir,alswnirdif,    &
+                       swvisdir,swvisdif,swnirdir,swnirdif,            &
+                       tauaer300,tauaer400,tauaer600,tauaer999,        &
+                       gaer300,gaer400,gaer600,gaer999,                &
+                       waer300,waer400,waer600,waer999,                &
+                       cldovrlp,                                       & !--- CPF development end.
                        ids,ide, jds,jde, kds,kde,                      & 
                        ims,ime, jms,jme, kms,kme,                      &
                        its,ite, jts,jte, kts,kte                       &
@@ -9896,12 +9980,12 @@ CONTAINS
  real,intent(in):: radt,degrad,xtime,declin,solcon,gmt
  real,intent(in),dimension(ims:ime,jms:jme):: xlat,xlong
  real,intent(in),dimension(ims:ime,jms:jme):: albedo,tsk,snow,xice,xland
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: t3d,p3d,pi3d
+ real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: t3d,p3d,pi3d,qv3d
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: dz8w,p8w,t8w
 
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: re_cloud,re_ice,re_snow
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-    cldfra3d,qv3d,qc3d,qr3d,qi3d,qs3d,qg3d,o33d
+    cldfra3d,qc3d,qr3d,qi3d,qs3d,o33d
 
 !--- additional input arguments to use the CAM ozone climatology:
  integer,intent(in):: noznlevels
@@ -9938,7 +10022,7 @@ CONTAINS
  real,dimension(1):: asdir,asdif,aldir,aldif,coszen
  real,dimension(1,1:kte-kts+1):: pdel,cicewp,cliqwp,csnowp,reliq,reice,resnow
  real,dimension(kts:kte):: &
-    tten1d,cldfra1d,dz1d,p1d,t1d,qv1d,qc1d,qr1d,qi1d,qs1d,qg1d,o31d
+    tten1d,cldfra1d,dz1d,p1d,t1d,qv1d,qc1d,qr1d,qi1d,qs1d,o31d
  real,dimension(kts:kte+1):: pw1d,tw1d
  real,dimension(kts:kte+1):: o3mmr
 
@@ -9950,8 +10034,9 @@ CONTAINS
 
  real,dimension(1,kts:kte+2):: plev,tlev
  real,dimension(1,kts:kte+2):: swuflx,swdflx,swuflxc,swdflxc
+ real,dimension(1,kts:kte+2):: swuflxcln,swdflxcln
  real,dimension(1,kts:kte+2):: sibvisdir,sibvisdif,sibnirdir,sibnirdif
- real,dimension(1,kts:kte+2):: swdkdir,swdkdif
+ real,dimension(1,kts:kte+2):: swdkdir,swdkdif,swdkdirc
 
  real,dimension(1,kts:kte+1,nbndsw):: tauaer,ssaaer,asmaer
 
@@ -10000,16 +10085,64 @@ CONTAINS
   data amdo /  0.603461 /
   data amdo2 / 0.905190 /
 
+!--- CPF development:
+ logical,intent(in),optional:: f_qc,f_qr,f_qi,f_qs
+ real,intent(in),dimension(ims:ime,jms:jme),optional:: alswvisdir,alswvisdif,alswnirdir,alswnirdif
+ real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+    tauaer300,tauaer400,tauaer600,tauaer999,gaer300,gaer400,gaer600,gaer999, &
+    waer300,waer400,waer600,waer999
+
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swddir,swddni,swddif,swddirc,swddnic,swdownc
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swvisdir,swvisdif,swnirdir,swnirdif
+
+ integer:: calc_clean_atm_diag
+ integer:: sf_surface_physics
+ integer:: aer_ra_feedback
+ real:: dzsum
+ real,dimension(1,kts:kte+1):: hgt
+
+ character(len=200):: msg
+ real,parameter:: thresh=1.e-9
+ real:: ang,slope
+ real,dimension(nbndsw),save :: wavemin ! minimum wavelength (um) of 14 intervals.
+ real,dimension(nbndsw),save :: wavemax ! maximum wavelength (um) of 14 intervals.
+ real,dimension(nbndsw):: wavemid
+ data wavemin /3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,0.200,3.846/
+ data wavemax /3.846,3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,12.195/
+
+ integer:: cldovrlp
+
 !-----------------------------------------------------------------------------------------------------------------
 
 !--- all fields are ordered vertically from bottom to top (pressures are in mb):
  ncol = 1
 
 !--- initialize option for the calculation of the cloud optical properties:
- icld     = 2 ! with clouds using maximum/random cloud overlap in subroutine mcica_subcol_lw. 
+ icld     = cldovrlp
  inflgsw  = 2
  iceflgsw = 3
  liqflgsw = 1
+
+!--- CPF development:
+!--- initialize calc_clean_atm_diag:
+ calc_clean_atm_diag = 0
+ if(present(swuptcln) .and. present(swdntcln) .and. present(swupbcln) .and. present(swdnbcln)) &
+    calc_clean_atm_diag = 1
+
+!--- initialize sf_surface_physics:
+ sf_surface_physics = 0
+ if(present(alswvisdir) .and. present(alswvisdif) .and. present(alswnirdir) .and. present(alswnirdif)) &
+    sf_surface_physics = 8
+
+!--- initialize aer_ra_feedback:
+ aer_ra_feedback = 0
+ if(present(tauaer300) .and. present(gaer300) .and. present(waer300) .and. &
+    present(tauaer400) .and. present(gaer400) .and. present(waer400) .and. &
+    present(tauaer600) .and. present(gaer600) .and. present(waer600) .and. &
+    present(tauaer999) .and. present(gaer999) .and. present(waer999)) &
+    aer_ra_feedback = 1
+!--- CPF development end.
 
 !--- latitude loop:
  j_loop: do j = jts,jte
@@ -10049,21 +10182,38 @@ CONTAINS
              qr1d(k)     = 0.
              qi1d(k)     = 0.
              qs1d(k)     = 0.
-             qg1d(k)     = 0.
              cldfra1d(k) = 0.
              if(present(o33d)) o31d(k) = o33d(i,k,j)
           enddo
 
           !--- initialize the local arrays containing the different cloud water and ice condenstates:
           if(icloud .gt. 0) then
-             do k = kts,kte
-                if(present(qc3d)) qc1d(k) = amax1(qc3d(i,k,j),0.)
-                if(present(qr3d)) qr1d(k) = amax1(qr3d(i,k,j),0.)
-                if(present(qi3d)) qi1d(k) = amax1(qi3d(i,k,j),0.)
-                if(present(qs3d)) qs1d(k) = amax1(qs3d(i,k,j),0.)
-                if((present(qc3d) .or. present(qi3d) .or. present(qs3d)) .and. present(cldfra3d)) &
+             if(present(f_qc) .and. present(qc3d)) then
+                do k = kts, kte
+                   qc1d(k) = amax1(qc3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qr) .and. present(qr3d)) then
+                do k = kts, kte
+                   qr1d(k) = amax1(qr3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qi) .and. present(qi3d)) then
+                do k = kts, kte
+                   qi1d(k) = amax1(qi3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qs) .and. present(qs3d)) then
+                do k = kts, kte
+                   qs1d(k) = amax1(qs3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qc).and.present(qc3d) .and. present(f_qi).and.present(qi3d)  .and. &
+                present(f_qs).and.present(qs3d) .and. present(cldfra3d)) then
+                do k = kts, kte
                    cldfra1d(k) = cldfra3d(i,k,j)
-             enddo
+                enddo
+             endif
           endif
 
           !--- initialize the local radiative heating rate:
@@ -10087,22 +10237,24 @@ CONTAINS
              enddo
 
              do k = 1, nlay
-                clwpth(n,k)  = 0.
-                ciwpth(n,k)  = 0.
-                cswpth(n,k)  = 0.
-                rel(n,k)     = 0.
-                rei(n,k)     = 0.
-                res(n,k)     = 0.
-                cldfrac(n,k) = 0.
-                relqmcl(n,k) = 0.
-                reicmcl(n,k) = 0.
-                resnmcl(n,k) = 0.
-                swuflx(n,k)  = 0.
-                swuflxc(n,k) = 0.
-                swdflx(n,k)  = 0.
-                swdflxc(n,k) = 0.
-                swhr(n,k)    = 0.
-                swhrc(n,k)   = 0.
+                clwpth(n,k)    = 0.
+                ciwpth(n,k)    = 0.
+                cswpth(n,k)    = 0.
+                rel(n,k)       = 0.
+                rei(n,k)       = 0.
+                res(n,k)       = 0.
+                cldfrac(n,k)   = 0.
+                relqmcl(n,k)   = 0.
+                reicmcl(n,k)   = 0.
+                resnmcl(n,k)   = 0.
+                swuflx(n,k)    = 0.
+                swuflxc(n,k)   = 0.
+                swdflx(n,k)    = 0.
+                swdflxc(n,k)   = 0.
+                swhr(n,k)      = 0.
+                swhrc(n,k)     = 0.
+                swuflxcln(n,k) = 0.
+                swdflxcln(n,k) = 0.
                 taucld(1:nbndsw,n,k)  = 0.
                 tauaer(n,k,1:nbndsw)  = 0.
                 ssaaer(n,k,1:nbndsw)  = 0.
@@ -10113,18 +10265,22 @@ CONTAINS
                 cswpmcl(1:ngptsw,n,k) = 0.
                 taucmcl(1:ngptsw,n,k) = 0.
              enddo
+             swuflx(n,nlay+1)    = 0.
+             swuflxc(n,nlay+1)   = 0.
+             swdflx(n,nlay+1)    = 0.
+             swdflxc(n,nlay+1)   = 0.
+             swuflxcln(n,nlay+1) = 0.
+             swdflxcln(n,nlay+1) = 0.
+
              do k = 1, nlay + 1
                 sibvisdir(ncol,k) = 0.
                 sibvisdif(ncol,k) = 0.                
                 sibnirdir(ncol,k) = 0.
                 sibnirdif(ncol,k) = 0.                
                 swdkdir(n,k)      = 0.
+                swdkdirc(n,k)     = 0.
                 swdkdif(n,k)      = 0.
              enddo
-             swuflx(n,nlay+1)  = 0.
-             swuflxc(n,nlay+1) = 0.
-             swdflx(n,nlay+1)  = 0.
-             swdflxc(n,nlay+1) = 0.
           enddo
 
           !--- initialization of aerosol optical properties:
@@ -10164,6 +10320,15 @@ CONTAINS
           ch4vmr(ncol,kte+1) = ch4vmr(ncol,kte) 
           n2ovmr(ncol,kte+1) = n2ovmr(ncol,kte) 
 
+          !---  mji - derive height of each layer mid-point from layer thickness. needed for exponential
+          !     (icld=4) and exponential-random overlap option (icld=5) only.
+          dzsum = 0.0
+          do k = kts, kte
+             dz = dz1d(k)
+             hgt(ncol,k) = dzsum + 0.5*dz
+             dzsum = dzsum + dz
+          enddo
+
           !--- initialize the ozone voume mixing ratio:
           call inirad(o3mmr,plev,kts,kte)
           if(o3input .eq. 2) then
@@ -10181,10 +10346,19 @@ CONTAINS
           endif
 
           !--- initialize the surface albedo:
-          asdir(ncol) = albedo(i,j)
-          asdif(ncol) = albedo(i,j)
-          aldir(ncol) = albedo(i,j)
-          aldif(ncol) = albedo(i,j)
+          !CPF development:
+          if(sf_surface_physics.eq.8 .and. xland(i,j).lt.1.5) then
+             asdir(ncol) = alswvisdir(i,j)
+             asdif(ncol) = alswvisdif(i,j)
+             aldir(ncol) = alswnirdir(i,j)
+             aldif(ncol) = alswnirdif(i,j)
+          else
+             asdir(ncol) = albedo(i,j)
+             asdif(ncol) = albedo(i,j)
+             aldir(ncol) = albedo(i,j)
+             aldif(ncol) = albedo(i,j)
+          endif
+          !CPF development end.
 
           !--- set solar constant:
           scon = solcon
@@ -10358,10 +10532,10 @@ CONTAINS
 
           call mcica_subcol_sw &
                      (iplon   , ncol    , nlay    , icld    , permuteseed , irng    , play    , &
-                      cldfrac , ciwpth  , clwpth  , cswpth  , rei         , rel     , res     , &
-                      taucld  , ssacld  , asmcld  , fsfcld  , cldfmcl     , ciwpmcl , clwpmcl , &
-                      cswpmcl , reicmcl , relqmcl , resnmcl , taucmcl     , ssacmcl , asmcmcl , &
-                      fsfcmcl)
+                      hgt     , cldfrac , ciwpth  , clwpth  , cswpth      , rei     , rel     , &
+                      res     , taucld  , ssacld  , asmcld  , fsfcld      , cldfmcl , ciwpmcl , &
+                      clwpmcl , cswpmcl , reicmcl , relqmcl , resnmcl     , taucmcl , ssacmcl , &
+                      asmcmcl , fsfcmcl)
 
           !--- initialization of aerosol optical properties:
           do nb = 1, nbndsw
@@ -10378,21 +10552,91 @@ CONTAINS
              enddo
           enddo
 
+          !CPF development:
+          if(aer_ra_feedback .eq. 1) then
+             do nb = 1, nbndsw
+                wavemid(nb)=0.5*(wavemin(nb)+wavemax(nb)) ! um
+
+                !convert optical properties at 300,400,600,and 999 to conform to band-wavelengths:
+                !tauaer - use angstrom exponent.
+                !ssaer - linear interpolation/extrapolation.
+                !g - linear interpolation/extrapolation.
+                do k = kts, kte
+                   if(tauaer300(i,k,j).gt.thresh .and. tauaer999(i,k,j).gt.thresh) then
+                      ang = alog(tauaer300(i,k,j)/tauaer999(i,k,j))/alog(999./300.)
+                      tauaer(ncol,k,nb)=tauaer400(i,k,j)*(0.4/wavemid(nb))**ang
+
+                      slope = (waer600(i,k,j)-waer400(i,k,j))/.2
+                      ssaaer(ncol,k,nb) = slope*(wavemid(nb)-.6)+waer600(i,k,j)
+                      if(ssaaer(ncol,k,nb).lt.0.4) ssaaer(ncol,k,nb) = 0.4
+                      if(ssaaer(ncol,k,nb).ge.1.0) ssaaer(ncol,k,nb) = 1.0
+
+                      slope=(gaer600(i,k,j)-gaer400(i,k,j))/.2
+                      asmaer(ncol,k,nb) = slope*(wavemid(nb)-.6)+gaer600(i,k,j)
+                      if(asmaer(ncol,k,nb).lt.0.5) asmaer(ncol,k,nb) = 0.5
+                      if(asmaer(ncol,k,nb).ge.1.0) asmaer(ncol,k,nb) = 1.0
+                   endif
+                enddo
+             enddo
+
+             do nb = 1, nbndsw
+                slope = 0.  !use slope as a sum holder
+                do k = kts, kte
+                   slope = slope + tauaer(ncol,k,nb)
+                enddo
+                if(slope < 0.) then
+                   write(msg,'("ERROR: negative total optical depth of ",f8.2," at point i,j,nb=",3i5)') slope,i,j,nb
+                   FATAL_ERROR(msg)
+                elseif(slope > 6.) then
+                   WRITE_MESSAGE("-------------------------")
+                   write(msg,'("WARNING: Large total sw optical depth of ",f8.2," at point i,j,nb=",3i5)') slope,i,j,nb
+                   WRITE_MESSAGE(msg)
+                   WRITE_MESSAGE("Diagnostics 1: k,tauaer300,tauaer400,tauaer600,tauaer999,tauaer")
+                   do k = kts, kte
+                      write(msg,'(i4,5f8.2)') k,tauaer300(i,k,j),tauaer400(i,k,j), &
+                            tauaer600(i,k,j),tauaer999(i,k,j),tauaer(ncol,k,nb)
+                      WRITE_MESSAGE(msg)
+                      tauaer(ncol,k,nb)=tauaer(ncol,k,nb)*6.0/slope ! up-limit to avoid segmentation fault from AOD (czhao).
+                   enddo
+                   WRITE_MESSAGE("Diagnostics 2: k,gaer300,gaer400,gaer600,gaer999")
+                   do k = kts, kte
+                      write(msg,'(i4,4f8.2)') k,gaer300(i,k,j),gaer400(i,k,j), &
+                            gaer600(i,k,j),gaer999(i,k,j)
+                      WRITE_MESSAGE(msg)
+                   enddo
+                   WRITE_MESSAGE("Diagnostics 3: k,waer300,waer400,waer600,waer999")
+                   do k = kts, kte
+                      write(msg,'(i4,4f8.2)') k,waer300(i,k,j),waer400(i,k,j), &
+                            waer600(i,k,j),waer999(i,k,j)
+                      WRITE_MESSAGE(msg)
+                   enddo
+                   WRITE_MESSAGE("Diagnostics 4: k,ssaal,asyal,taual")
+                   do k = kts-1, kte
+                      write(msg,'(i4,3f8.2)') k, ssaaer(i,k,nb),asmaer(i,k,nb),tauaer(i,k,nb)
+                      WRITE_MESSAGE(msg)
+                   enddo
+                   WRITE_MESSAGE("-------------------------")
+                endif
+             enddo
+          endif
+          !CPF development end.
+
 
 
           !--- CALL TO THE RRTMG SHORT WAVE RADIATION MODEL:
           call rrtmg_sw &
-                     (ncol      , nlay      , icld      , play      , plev    , tlay     , &
-                      tlev      , tsfc      , h2ovmr    , o3vmr     , co2vmr  , ch4vmr   , &
-                      n2ovmr    , o2vmr     , asdir     , asdif     , aldir   , aldif    , &
-                      coszen    , adjes     , dyofyr    , scon      , inflgsw , iceflgsw , &
-                      liqflgsw  , cldfmcl   , taucmcl   , ssacmcl   , asmcmcl , fsfcmcl  , &
-                      ciwpmcl   , clwpmcl   , cswpmcl   , reicmcl   , relqmcl , resnmcl  , &
-                      tauaer    , ssaaer    , asmaer    , ecaer     , swuflx  , swdflx   , &
-                      swhr      , swuflxc   , swdflxc   , swhrc     ,                      &
-                      aer_opt   ,                                                          &
-                      sibvisdir , sibvisdif , sibnirdir , sibnirdif , & !added for ssib coupling.
-                      swdkdir   , swdkdif)
+                     (ncol      , nlay      , icld      , play      , plev      , tlay      , &
+                      tlev      , tsfc      , h2ovmr    , o3vmr     , co2vmr    , ch4vmr    , &
+                      n2ovmr    , o2vmr     , asdir     , asdif     , aldir     , aldif     , &
+                      coszen    , adjes     , dyofyr    , scon      , inflgsw   , iceflgsw  , &
+                      liqflgsw  , cldfmcl   , taucmcl   , ssacmcl   , asmcmcl   , fsfcmcl   , &
+                      ciwpmcl   , clwpmcl   , cswpmcl   , reicmcl   , relqmcl   , resnmcl   , &
+                      tauaer    , ssaaer    , asmaer    , ecaer     , swuflx    , swdflx    , &
+                      swhr      , swuflxc   , swdflxc   , swhrc     , swuflxcln , swdflxcln , &
+                      aer_opt   , sibvisdir , sibvisdif , sibnirdir , sibnirdif , swdkdir   , &
+                      swdkdif   , swdkdirc  , calc_clean_atm_diag)
+
+
 
           !--- OUTPUTS:
           gsw(i,j)  = swdflx(1,1) - swuflx(1,1)
@@ -10409,9 +10653,36 @@ CONTAINS
              swupbc(i,j) = swuflxc(1,1)
              swdnb(i,j)  = swdflx(1,1)
              swdnbc(i,j) = swdflxc(1,1)
-          endif
 
-          if(present (swupflx)) then
+             !CPF development:
+             if(calc_clean_atm_diag .gt. 0)then
+                swuptcln(i,j) = swuflxcln(1,kte+2)
+                swdntcln(i,j) = swdflxcln(1,kte+2)
+                swupbcln(i,j) = swuflxcln(1,1)
+                swdnbcln(i,j) = swdflxcln(1,1)
+             endif
+             !added by Zhenxin for 4 components of swdown radiation:
+             if(sf_surface_physics .eq. 8) then
+                swvisdir(i,j)  = sibvisdir(1,1)
+                swvisdif(i,j)  = sibvisdif(1,1)
+                swnirdir(i,j)  = sibnirdir(1,1)
+                swnirdif(i,j)  = sibnirdif(1,1)
+             endif
+             !CPF development end.
+          endif
+          !CPF development:
+          if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
+             present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
+             swddir(i,j)   = swdkdir(1,1)          ! jararias 2013/08/10
+             swddni(i,j)   = swddir(i,j) / coszrs  ! jararias 2013/08/10
+             swddif(i,j)   = swdkdif(1,1)          ! jararias 2013/08/10
+             swdownc(i, j) = swdflxc(1,1)          ! PAJ: clear-sky GHI
+             swddirc(i,j)  = swdkdirc(1,1)         ! PAJ: clear-sky direct normal irradiance
+             swddnic(i,j)  = swddirc(i,j) / coszrs ! PAJ: clear-sky direct normal irradiance
+          endif
+          !CPF development end.
+
+          if(present(swupflx)) then
              do k = kts, kte+2
                 swupflx(i,k,j)  = swuflx(1,k)
                 swupflxc(i,k,j) = swuflxc(1,k)
@@ -10439,7 +10710,34 @@ CONTAINS
              swupbc(i,j)    = 0.
              swdnb(i,j)     = 0.
              swdnbc(i,j)    = 0.
+
+             !CPF development:
+             if(calc_clean_atm_diag .gt. 0)then
+                swuptcln(i,j) = 0.
+                swdntcln(i,j) = 0.
+                swupbcln(i,j) = 0.
+                swdnbcln(i,j) = 0.
+             endif
+             !added by Zhenxin for 4 components of swdown radiation:
+             if(sf_surface_physics .eq. 8) then
+                swvisdir(i,j)  = 0.
+                swvisdif(i,j)  = 0.
+                swnirdir(i,j)  = 0.
+                swnirdif(i,j)  = 0.
+             endif
+             !CPF development end.
           endif
+          !CPF development:
+          if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
+             present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
+             swddir(i,j)   = 0. ! jararias 2013/08/10
+             swddni(i,j)   = 0. ! jararias 2013/08/10
+             swddif(i,j)   = 0. ! jararias 2013/08/10
+             swdownc(i, j) = 0. ! PAJ: clear-sky GHI
+             swddirc(i,j)  = 0. ! PAJ: clear-sky direct normal irradiance
+             swddnic(i,j)  = 0. ! PAJ: clear-sky direct normal irradiance
+          endif
+          !CPF development end.
 
        endif
 

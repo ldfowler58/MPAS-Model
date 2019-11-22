@@ -1923,6 +1923,11 @@
                      description="logical for calculation of the effective radii for cloud water, cloud ice, and snow"
                      possible_values=".true. for calculating effective radii; .false. for using defaults in RRTMG radiation"/>
 
+                <nml_option name="config_radt_cldoverlap" type="integer" default_value="2" in_defaults="false"
+                     units="-"
+                     description="integer that defines the kind of cloud overlap for the RRTMG long- and short-wave radiation"
+                     possible_values="0-clear; 1-random; 2-maximum/random; 3-maximum; 4-exponential; 5-exponential/random"/>
+
                 <nml_option name="config_ysu_pblmix" type="logical" default_value="false" in_defaults="false"
                      units="-"
                      description="logical for turning on/off top-down, radiation_driven mixing"
@@ -2958,7 +2963,7 @@
                      description="tendency of potential temperature due to short wave radiation"/>
 
                 <var name="rthratenlw" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
-                     description="tendency of potential temperature due to short wave radiation"/>
+                     description="tendency of potential temperature due to long wave radiation"/>
         </var_struct>
 
 
