@@ -94,7 +94,7 @@ CONTAINS
     !can be found in module_sf_sfclay.F. This subroutine returns
     !the forms from Dyer and Hicks (1974).
        
-    CALL sfclayinit(allowed_to_read)
+    CALL sfclayinit
 
   END SUBROUTINE mynn_sf_init_driver
 
