@@ -6,12 +6,20 @@ dummy:
 	echo "****** compiling physics_sima ******"
 
 OBJS = \
-	bl_ysu.o
+	bl_ysu.o             \
+	module_ra_rrtmg_lw.o \
+	module_ra_rrtmg_sw.o
 
 physics_sima: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
 
 # DEPENDENCIES:
+module_ra_rrtmg_lw.o: \
+	../physics_wrf/module_ra_rrtmg_vinterp.o
+
+module_ra_rrtmg_sw.o: \
+	module_ra_rrtmg_lw.o \
+	../physics_wrf/module_ra_rrtmg_vinterp.o
 
 clean:
 	$(RM) *.f90 *.o *.mod
@@ -22,7 +30,7 @@ clean:
 .F.o:
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../physics_wrf  -I../../../framework -I../../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../physics_wrf -I../../../framework -I../../../external/esmf_time_f90
 endif

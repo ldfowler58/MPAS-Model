@@ -23,8 +23,6 @@ OBJS = \
 	module_mp_wsm6.o               \
 	module_ra_cam.o                \
 	module_ra_cam_support.o        \
-	module_ra_rrtmg_lw.o           \
-	module_ra_rrtmg_sw.o           \
 	module_ra_rrtmg_vinterp.o      \
 	module_sf_bem.o                \
 	module_sf_bep.o                \
@@ -59,13 +57,6 @@ module_mp_wsm6.o: \
 module_ra_cam.o: \
 	module_cam_support.o \
 	module_ra_cam_support.o
-
-module_ra_rrtmg_lw.o: \
-	module_ra_rrtmg_vinterp.o
-
-module_ra_rrtmg_sw.o: \
-	module_ra_rrtmg_lw.o \
-	module_ra_rrtmg_vinterp.o
 
 module_sf_bep.o: \
 	module_sf_urban.o
