@@ -19,7 +19,7 @@
  use mpas_log, only : mpas_log_write
 
 !wrf physics
- use module_ra_rrtmg_sw
+ use rrtmg_sw_init
 
  implicit none
  private

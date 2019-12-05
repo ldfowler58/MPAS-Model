@@ -8,7 +8,8 @@ dummy:
 OBJS = \
 	bl_ysu.o             \
 	module_ra_rrtmg_lw.o \
-	module_ra_rrtmg_sw.o
+	module_ra_rrtmg_sw.o \
+	ra_rrtmg_sw.o
 
 physics_sima: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
@@ -19,6 +20,7 @@ module_ra_rrtmg_lw.o: \
 
 module_ra_rrtmg_sw.o: \
 	module_ra_rrtmg_lw.o \
+	ra_rrtmg_sw.o \
 	../physics_wrf/module_ra_rrtmg_vinterp.o
 
 clean:
