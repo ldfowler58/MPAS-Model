@@ -1,6 +1,7 @@
 !=================================================================================================================
  module module_ra_rrtmg_sw
 
+ use mpas_log
  use mpas_atmphys_constants,only : cp,g=>gravity
  use module_ra_rrtmg_vinterp,only: vinterp_ozn
  use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
@@ -100,8 +101,7 @@
  real,dimension(1):: asdir,asdif,aldir,aldif,coszen
  real,dimension(1,1:kte-kts+1):: pdel,cicewp,cliqwp,csnowp,reliq,reice,resnow
  real,dimension(kts:kte):: &
-    tten1d,cldfra1d,dz1d,p1d,t1d,qv1d,qc1d,qr1d,qi1d,qs1d,o31d
- real,dimension(kts:kte+1):: pw1d,tw1d
+    tten1d,cldfra1d,qc1d,qr1d,qi1d,qs1d,o31d
  real,dimension(kts:kte+1):: o3mmr
 
 !--- additional local variables and arrays needed to include additional layers between the model top
@@ -192,9 +192,12 @@
  integer:: cldovrlp
 
 !-----------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine rrtmg_swrad:')
 
 !--- all fields are ordered vertically from bottom to top (pressures are in mb):
  ncol = 1
+ nlay = (kte-kts+1) + 1
 
 !--- initialize option for the calculation of the cloud optical properties:
  icld     = cldovrlp
@@ -245,16 +248,7 @@
 
           !--- INITIALIZE COLUMN SOUNDING (the call to the short wave radiation code is done one column
           !     at a time):
-          do k = kts, kte+1
-             pw1d(k) = p8w(i,k,j) / 100.
-             tw1d(k) = t8w(i,k,j)
-          enddo
-
           do k = kts, kte
-             p1d(k)      = p3d(i,k,j) / 100.
-             dz1d(k)     = dz8w(i,k,j)
-             t1d(k)      = t3d(i,k,j)
-             qv1d(k)     = amax1(qv3d(i,k,j),1.e-12)
              o31d(k)     = 0.
              qc1d(k)     = 0.
              qr1d(k)     = 0.
@@ -299,19 +293,16 @@
              tten1d(k) = 0.
           enddo
 
-          !--- add extra layer to include absorption between the top of the model and the top of the atmosphere:
-          nlay = (kte-kts+1) + 1
-
           !--- initialize local arrays called in the calculation of the cloud optical properties and radiative
           !    fluxes:
           do n = 1, ncol
              do k = kts, kte
-                reliq(ncol,k)  = 10.
-                reice(ncol,k)  = 10.
-                resnow(ncol,k) = 10.
-                cliqwp(ncol,k) = 0.
-                cicewp(ncol,k) = 0.
-                csnowp(ncol,k) = 0.
+                reliq(n,k)  = 10.
+                reice(n,k)  = 10.
+                resnow(n,k) = 10.
+                cliqwp(n,k) = 0.
+                cicewp(n,k) = 0.
+                csnowp(n,k) = 0.
              enddo
 
              do k = 1, nlay
@@ -351,13 +342,13 @@
              swdflxcln(n,nlay+1) = 0.
 
              do k = 1, nlay + 1
-                sibvisdir(ncol,k) = 0.
-                sibvisdif(ncol,k) = 0.                
-                sibnirdir(ncol,k) = 0.
-                sibnirdif(ncol,k) = 0.                
-                swdkdir(n,k)      = 0.
-                swdkdirc(n,k)     = 0.
-                swdkdif(n,k)      = 0.
+                sibvisdir(n,k) = 0.
+                sibvisdif(n,k) = 0.
+                sibnirdir(n,k) = 0.
+                sibnirdif(n,k) = 0.
+                swdkdir(n,k)   = 0.
+                swdkdirc(n,k)  = 0.
+                swdkdif(n,k)   = 0.
              enddo
           enddo
 
@@ -373,38 +364,44 @@
 
           !--- fill local arrays with input sounding. convert water vapor mass mixing ratio to
           !    volume mixing ratio:
-          plev(ncol,1) = pw1d(1)
-          tlev(ncol,1) = tw1d(1)
-          tsfc(ncol)   = tsk(i,j)
-          do k = kts, kte
-             plev(ncol,k+1)   = pw1d(k+1)
-             tlev(ncol,k+1)   = tw1d(k+1)
-             play(ncol,k)     = p1d(k)
-             pdel(ncol,k)     = plev(ncol,k) - plev(ncol,k+1)
-             tlay(ncol,k)     = t1d(k)
-             h2ovmr(ncol,k)   = qv1d(k) * amdw
-             co2vmr(ncol,k)   = co2
-             o2vmr(ncol,k)    = o2
-             ch4vmr(ncol,k)   = ch4
-             n2ovmr(ncol,k)   = n2o
+          do n = 1, ncol
+             k = kts
+             plev(n,kts) = p8w(i,k,j) / 100.
+             tlev(n,kts) = t8w(i,k,j)
+             tsfc(n)     = tsk(i,j)
+             do k = kts, kte
+                plev(n,k+1)   = p8w(i,k+1,j) / 100.
+                tlev(n,k+1)   = t8w(i,k+1,j)
+                play(n,k)     = p3d(i,k,j) / 100.
+                pdel(n,k)     = plev(n,k) - plev(n,k+1)
+                tlay(n,k)     = t3d(i,k,j)
+                h2ovmr(n,k)   = amax1(qv3d(i,k,j),1.e-12)
+                h2ovmr(n,k)   = h2ovmr(n,k) * amdw
+                co2vmr(n,k)   = co2
+                o2vmr(n,k)    = o2
+                ch4vmr(n,k)   = ch4
+                n2ovmr(n,k)   = n2o
+             enddo
+             plev(n,kte+2)   = 1.0e-5
+             tlev(n,kte+2)   = tlev(n,kte+1) + 0.0
+             play(n,kte+1)   = 0.5 * plev(n,kte+1)
+             tlay(n,kte+1)   = tlev(n,kte+1) + 0.0
+             h2ovmr(n,kte+1) = h2ovmr(n,kte)
+             co2vmr(n,kte+1) = co2vmr(n,kte)
+             o2vmr(n,kte+1)  = o2vmr(n,kte)
+             ch4vmr(n,kte+1) = ch4vmr(n,kte)
+             n2ovmr(n,kte+1) = n2ovmr(n,kte)
           enddo
-          plev(ncol,kte+2)   = 1.0e-5
-          tlev(ncol,kte+2)   = tlev(ncol,kte+1) + 0.0
-          play(ncol,kte+1)   = 0.5 * plev(ncol,kte+1)
-          tlay(ncol,kte+1)   = tlev(ncol,kte+1) + 0.0
-          h2ovmr(ncol,kte+1) = h2ovmr(ncol,kte) 
-          co2vmr(ncol,kte+1) = co2vmr(ncol,kte) 
-          o2vmr(ncol,kte+1)  = o2vmr(ncol,kte) 
-          ch4vmr(ncol,kte+1) = ch4vmr(ncol,kte) 
-          n2ovmr(ncol,kte+1) = n2ovmr(ncol,kte) 
 
           !---  mji - derive height of each layer mid-point from layer thickness. needed for exponential
           !     (icld=4) and exponential-random overlap option (icld=5) only.
-          dzsum = 0.0
-          do k = kts, kte
-             dz = dz1d(k)
-             hgt(ncol,k) = dzsum + 0.5*dz
-             dzsum = dzsum + dz
+          do n = 1, ncol
+             dzsum = 0.0
+             do k = kts, kte
+                dz = dz8w(i,k,j)
+                hgt(n,k) = dzsum + 0.5*dz
+                dzsum = dzsum + dz
+             enddo
           enddo
 
           !--- initialize the ozone voume mixing ratio:
