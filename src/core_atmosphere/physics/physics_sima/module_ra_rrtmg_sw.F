@@ -2,7 +2,7 @@
  module module_ra_rrtmg_sw
 
  use mpas_log
- use mpas_atmphys_constants,only : cp,g=>gravity
+ use mpas_atmphys_constants,only : cp,gravity
  use module_ra_rrtmg_vinterp,only: vinterp_ozn
  use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
 #define FATAL_ERROR(M) call physics_error_fatal(M)
@@ -95,7 +95,7 @@
  real:: coszrs,xt24,tloctm,hrang,xxlat,adjes,scon
  real:: ro,dz
  real:: corr
- real:: gliqwp,gicewp,gsnowp,gravmks
+ real:: gliqwp,gicewp,gsnowp
  real:: snow_mass_factor
 
  real,dimension(its:ite):: coszen,tsfc
@@ -198,7 +198,6 @@
  integer:: cldovrlp
 
 !-----------------------------------------------------------------------------------------------------------------
- gravmks = g
 
 !--- all fields are ordered vertically from bottom to top (pressures are in mb):
  ncol = ite-its+1
@@ -545,19 +544,19 @@
 
           !--- calculate the cloud liquid water path in units of g/m2 below the model top:
           do k = kts, kte
-             gliqwp = qc1d(k) * pdel(i,k)*100.0 / gravmks * 1000.0              !grid box liquid water path.
+             gliqwp = qc1d(k) * pdel(i,k)*100.0 / gravity * 1000.0              !grid box liquid water path.
              cliqwp(i,k) = gliqwp / max(0.01,cldfrac(i,k))                      !in-cloud liquid water path.
           enddo
 
           !--- calculate the cloud ice path in units of g/m2 below the model top:
           if(iceflgsw .eq. 3) then
              do k = kts, kte
-                gicewp = (qi1d(k)+qs1d(k)) * pdel(i,k)*100.0 / gravmks * 1000.0 !grid box ice water path.
+                gicewp = (qi1d(k)+qs1d(k)) * pdel(i,k)*100.0 / gravity * 1000.0 !grid box ice water path.
                 cicewp(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
              enddo
           elseif(iceflgsw .ge. 4) then
              do k = kts, kte
-                gicewp = qi1d(k) * pdel(i,k)*100.0 / gravmks * 1000.0           !grid box ice water path.
+                gicewp = qi1d(k) * pdel(i,k)*100.0 / gravity * 1000.0           !grid box ice water path.
                 cicewp(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
              enddo
           endif
@@ -570,7 +569,7 @@
                    snow_mass_factor = (130.0/resnow(i,k))*(130.0/resnow(i,k))
                    resnow(i,k)   = 130.0
                 endif
-                gsnowp = qs1d(k) * pdel(n,k)*100.0 / gravmks * 1000.0          !grid box snow path.
+                gsnowp = qs1d(k) * pdel(n,k)*100.0 / gravity * 1000.0          !grid box snow path.
                 csnowp(i,k) = snow_mass_factor * gsnowp / max(0.01,cldfrac(i,k))
              enddo
           endif
