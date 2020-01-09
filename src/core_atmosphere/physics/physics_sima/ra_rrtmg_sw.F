@@ -8763,9 +8763,9 @@ use module_wrf_error
 !------------------------------------------------------------------
 
       subroutine rrtmg_sw_run &
-            (ncol    ,nlay    ,icld    , &
+            (dorrsw  ,ncol    ,nlay    ,icld    , &
              play    ,plev    ,tlay    ,tlev    ,tsfc   , &
-             h2ovmr , o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr ,o2vmr , &
+             h2ovmr  , o3vmr  ,co2vmr  ,ch4vmr  ,n2ovmr ,o2vmr , &
              asdir   ,asdif   ,aldir   ,aldif   , &
              coszen  ,adjes   ,dyofyr  ,scon    , &
              inflgsw ,iceflgsw,liqflgsw,cldfmcl , &
@@ -8883,6 +8883,7 @@ use module_wrf_error
 ! ------- Declarations
 
 ! ----- Input -----
+      logical, intent(in) :: dorrsw(:)                ! Logical set to true for daylight columns
 
       integer(kind=im), intent(in) :: ncol            ! Number of horizontal columns     
       integer(kind=im), intent(in) :: nlay            ! Number of model layers
@@ -9249,6 +9250,8 @@ use module_wrf_error
 
       do iplon = 1, ncol
 
+         if(dorrsw(iplon)) then
+
 ! Prepare atmosphere profile from GCM for use in RRTMG, and define
 ! other input parameters
 
@@ -9517,6 +9520,9 @@ use module_wrf_error
          enddo
 
 #endif
+
+      endif ! end dorrsw.
+
 ! End longitude loop
       enddo
 

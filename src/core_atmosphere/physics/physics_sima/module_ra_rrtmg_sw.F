@@ -634,16 +634,17 @@
                 asmcmcl , fsfcmcl)
 
     call rrtmg_sw_run &
-               (ncol     , nlay      , icld      , play      , plev      , tlay ,      &
-                tlev     , tsfc      , h2ovmr    , o3vmr     , co2vmr    , ch4vmr    , &
-                n2ovmr   , o2vmr     , asdir     , asdif     , aldir     , aldif     , &
-                coszen   , adjes     , dyofyr    , scon      , inflgsw   , iceflgsw  , &
-                liqflgsw , cldfmcl   , taucmcl   , ssacmcl   , asmcmcl   , fsfcmcl   , &
-                ciwpmcl  , clwpmcl   , cswpmcl   , reicmcl   , relqmcl   , resnmcl   , &
-                tauaer   , ssaaer    , asmaer    , ecaer     , swuflx    , swdflx    , &
-                swhr     , swuflxc   , swdflxc   , swhrc     , swuflxcln , swdflxcln , &
-                aer_opt  , sibvisdir , sibvisdif , sibnirdir , sibnirdif , swdkdir   , &
-                swdkdif  , swdkdirc  , calc_clean_atm_diag   , errmsg    , errflg)
+               (dorrsw    , ncol     , nlay      , icld      , play      , plev      , &
+                tlay      , tlev     , tsfc      , h2ovmr    , o3vmr     , co2vmr    , &
+                ch4vmr    , n2ovmr   , o2vmr     , asdir     , asdif     , aldir     , &
+                aldif     , coszen   , adjes     , dyofyr    , scon      , inflgsw   , &
+                iceflgsw  , liqflgsw , cldfmcl   , taucmcl   , ssacmcl   , asmcmcl   , &
+                fsfcmcl   , ciwpmcl  , clwpmcl   , cswpmcl   , reicmcl   , relqmcl   , &
+                resnmcl   , tauaer   , ssaaer    , asmaer    , ecaer     , swuflx    , &
+                swdflx    , swhr     , swuflxc   , swdflxc   , swhrc     , swuflxcln , &
+                swdflxcln , aer_opt  , sibvisdir , sibvisdif , sibnirdir , sibnirdif , &
+                swdkdir   , swdkdif  , swdkdirc  , calc_clean_atm_diag   , errmsg    , &
+                errflg)
 
 
 !--- outputs:
