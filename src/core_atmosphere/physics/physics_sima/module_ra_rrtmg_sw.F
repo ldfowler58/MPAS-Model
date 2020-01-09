@@ -9,7 +9,7 @@
 #define WRITE_MESSAGE(M) call physics_message(M)
 
  use parrrsw,only: nbndsw, ngptsw, naerec
- use rrtmg_sw_rad,only: rrtmg_sw
+ use rrtmg_sw_rad,only: rrtmg_sw_run
  use mcica_subcol_gen_sw, only: mcica_subcol_sw
 
  use module_ra_rrtmg_lw, only : inirad, o3data, relcalc, reicalc, retab
@@ -633,7 +633,7 @@
                 clwpmcl , cswpmcl , reicmcl , relqmcl , resnmcl     , taucmcl , ssacmcl , &
                 asmcmcl , fsfcmcl)
 
-    call rrtmg_sw &
+    call rrtmg_sw_run &
                (ncol     , nlay      , icld      , play      , plev      , tlay ,      &
                 tlev     , tsfc      , h2ovmr    , o3vmr     , co2vmr    , ch4vmr    , &
                 n2ovmr   , o2vmr     , asdir     , asdif     , aldir     , aldif     , &

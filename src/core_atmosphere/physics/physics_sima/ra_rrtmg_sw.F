@@ -8752,7 +8752,7 @@ use module_wrf_error
       implicit none
 
 ! public interfaces/functions/subroutines
-      public :: rrtmg_sw, inatm_sw, earth_sun
+      public :: rrtmg_sw_run, rrtmg_sw_init, rrtmg_sw_finalize, inatm_sw, earth_sun
 
 !------------------------------------------------------------------
       contains
@@ -8762,7 +8762,7 @@ use module_wrf_error
 ! Public subroutines
 !------------------------------------------------------------------
 
-      subroutine rrtmg_sw &
+      subroutine rrtmg_sw_run &
             (ncol    ,nlay    ,icld    , &
              play    ,plev    ,tlay    ,tlev    ,tsfc   , &
              h2ovmr , o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr ,o2vmr , &
@@ -9523,9 +9523,37 @@ use module_wrf_error
       errmsg = 'rrtmg_ysu_run OK'
       errflg = 0
 
-      end subroutine rrtmg_sw
+      end subroutine rrtmg_sw_run
 
-!*************************************************************************
+!=================================================================================================================
+!> \section arg_table_rrtmg_sw_init  Argument Table
+!! \htmlinclude arg_table_rrtmg_sw_init.html
+!!
+ subroutine rrtmg_sw_init(errmsg,errflg)
+
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
+ errmsg = ''
+ errflg = 0
+
+ end subroutine rrtmg_sw_init
+
+!=================================================================================================================
+!> \section arg_table_rrtmg_sw_finalize  Argument Table
+!! \htmlinclude arg_table_rrtmg_sw_finalize.html
+!!
+ subroutine rrtmg_sw_finalize(errmsg,errflg)
+
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
+ errmsg = ''
+ errflg = 0
+
+ end subroutine rrtmg_sw_finalize
+
+!=================================================================================================================
       real(kind=rb) function earth_sun(idn)
 !*************************************************************************
 !
