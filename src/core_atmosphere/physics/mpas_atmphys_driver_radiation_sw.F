@@ -83,6 +83,9 @@
 ! * since we removed the local variable radt_sw_scheme from mpas_atmphys_vars.F, now defines radt_sw_scheme
 !   as a pointer to config_radt_sw_scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2917-02-16.
+! * in the subroutine driver_radiation_sw,added the flags errmsg and errflg for compliance with the CCPP
+!   framework.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-01-09.
 
 
  contains
@@ -674,7 +677,7 @@
 
 !=================================================================================================================
  subroutine driver_radiation_sw(itimestep,configs,mesh,state,time_lev,diag_physics,atm_input, &
-                                sfc_input,tend_physics,xtime_s,its,ite)
+                                sfc_input,tend_physics,xtime_s,its,ite,errmsg,errflg)
 !=================================================================================================================
 
 !input arguments:
@@ -694,6 +697,9 @@
  type(mpas_pool_type),intent(inout):: sfc_input
  type(mpas_pool_type),intent(inout):: tend_physics
 
+!output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out)         :: errflg
 
 !local pointers:
  logical,pointer:: config_o3climatology
@@ -763,6 +769,7 @@
               swupt    = swupt_p    , swuptc     = swuptc_p     , swdnt      = swdnt_p       , &
               swdntc   = swdntc_p   , swupb      = swupb_p      , swupbc     = swupbc_p      , &
               swdnb    = swdnb_p    , swdnbc     = swdnbc_p     ,                              &
+              errmsg   = errmsg     , errflg     = errflg       ,                              &
               ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde ,          &
               ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,          &
               its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte            &

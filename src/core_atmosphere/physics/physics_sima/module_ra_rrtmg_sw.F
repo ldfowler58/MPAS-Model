@@ -39,6 +39,7 @@
                        gaer300,gaer400,gaer600,gaer999,                &
                        waer300,waer400,waer600,waer999,                &
                        cldovrlp,                                       & !--- CPF development end.
+                       errmsg,errflg,                                  &
                        ids,ide, jds,jde, kds,kde,                      & 
                        ims,ime, jms,jme, kms,kme,                      &
                        its,ite, jts,jte, kts,kte                       &
@@ -79,8 +80,11 @@
  real,intent(inout),dimension(ims:ime,kms:kme,jms:jme):: rthratensw
 
 !--- output arguments:
-  real,intent(out),dimension(ims:ime,kms:kme+2,jms:jme ),optional:: &
-     swupflx,swupflxc,swdnflx,swdnflxc
+ character(len=*),intent(out):: errmsg
+ integer,intent(out)::errflg
+
+ real,intent(out),dimension(ims:ime,kms:kme+2,jms:jme ),optional:: &
+    swupflx,swupflxc,swdnflx,swdnflxc
 
 !local variables and arrays:
  logical,dimension(its:ite):: dorrsw
@@ -639,7 +643,7 @@
                 tauaer   , ssaaer    , asmaer    , ecaer     , swuflx    , swdflx    , &
                 swhr     , swuflxc   , swdflxc   , swhrc     , swuflxcln , swdflxcln , &
                 aer_opt  , sibvisdir , sibvisdif , sibnirdir , sibnirdif , swdkdir   , &
-                swdkdif  , swdkdirc  , calc_clean_atm_diag)
+                swdkdif  , swdkdirc  , calc_clean_atm_diag   , errmsg    , errflg)
 
 
 !--- outputs:

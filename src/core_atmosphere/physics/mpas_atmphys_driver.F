@@ -97,6 +97,9 @@
 ! * modified call to driver_cloudiness to accomodate the calculation of the cloud fraction with the Thompson
 !   cloud microphysics scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2016-06-04.
+! * in the call to the subroutine driver_radiation_sw,added the flags errmsg and errflg for compliance with the
+!   CCPP framework.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-01-09.
 
 
  contains
@@ -223,7 +226,8 @@
        do thread=1,nThreads
           call driver_radiation_sw(itimestep,block%configs,mesh,state,time_lev,diag_physics, &
                                    atm_input,sfc_input,tend_physics,xtime_s, &
-                                   cellSolveThreadStart(thread), cellSolveThreadEnd(thread))
+                                   cellSolveThreadStart(thread), cellSolveThreadEnd(thread), &
+                                   errmsg,errflg)
        end do
 !$OMP END PARALLEL DO
     endif

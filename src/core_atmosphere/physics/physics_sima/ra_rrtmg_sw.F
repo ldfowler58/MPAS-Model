@@ -8779,7 +8779,8 @@ use module_wrf_error
 ! ----------------------  End,  Zhenxin 2011-06-20    --------------------------------!
              swdkdir,swdkdif,                               & ! jararias, 2013/08/10
              swdkdirc                                       & ! PAJ
-             ,calc_clean_atm_diag                          &
+             ,calc_clean_atm_diag,                          &
+             errmsg,errflg                                  &
                                                                 )
 
 
@@ -8981,6 +8982,8 @@ use module_wrf_error
       integer, intent(in)       :: calc_clean_atm_diag! Control for clean air diagnositic calls for WRF-Chem
 
 ! ----- Output -----
+      character(len=*),intent(out) :: errmsg          ! error message associated with CCPP.
+      integer,intent(out) :: errflg                   ! error flag associated with CCPP.
 
       real(kind=rb), intent(out) :: swuflx(:,:)       ! Total sky shortwave upward flux (W/m2)
                                                       !    Dimensions: (ncol,nlay+1)
@@ -9516,6 +9519,9 @@ use module_wrf_error
 #endif
 ! End longitude loop
       enddo
+
+      errmsg = 'rrtmg_ysu_run OK'
+      errflg = 0
 
       end subroutine rrtmg_sw
 
