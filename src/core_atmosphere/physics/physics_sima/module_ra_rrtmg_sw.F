@@ -277,6 +277,40 @@
           enddo
        endif
 
+       !--- initialization of variables in call to subroutine mcica_subcol_sw:
+       do k = kts,kte+1
+          !input arrays:
+          cldfrac(i,k) = 0.
+          clwpth(i,k)  = 0.
+          ciwpth(i,k)  = 0.
+          cswpth(i,k)  = 0.
+          rel(i,k)     = 10.
+          rei(i,k)     = 10.
+          res(i,k)     = 10.
+          !--- note: these variables are only calculated if inflgsw is set to zero (inactive option at present):
+          do n = 1,nbndsw
+             taucld(n,i,k) = 0.
+             ssacld(n,i,k) = 1.
+             asmcld(n,i,k) = 0.
+             fsfcld(n,i,k) = 0.
+          enddo
+ 
+          !output arrays:
+          relqmcl(i,k) = 0.
+          reicmcl(i,k) = 0.
+          resnmcl(i,k) = 0.
+          do n = 1,ngptsw
+             cldfmcl(n,i,k) = 0.
+             clwpmcl(n,i,k) = 0.
+             ciwpmcl(n,i,k) = 0.
+             cswpmcl(n,i,k) = 0.
+             taucmcl(n,i,k) = 0.
+             ssacmcl(n,i,k) = 0.
+             asmcmcl(n,i,k) = 0.
+             fsfcmcl(n,i,k) = 0.
+          enddo
+       enddo
+
        !--- calculate the cosine of the solar zenith angle at the current time step to determine if the sun is
        !    above or below the horizon (xt24 is the fractional part of simulation days plus half of radt in 
        !    units of minutes, julian is in days, and radt is in minutes). do not call rrtmg_sw is night-time:
@@ -291,53 +325,48 @@
        dorrsw(i) = .true.
        if (coszrs.le.0.0) dorrsw(i) = .false.
 
-       !--- initialization of local arrays:
-       do k = kts,kte
-          reliq(i,k)  = 10.
-          reice(i,k)  = 10.
-          resnow(i,k) = 10.
-          cliqwp(i,k) = 0.
-          cicewp(i,k) = 0.
-          csnowp(i,k) = 0.
-       enddo
 
-       do k = kts,kte+1
-          clwpth(i,k)    = 0.
-          ciwpth(i,k)    = 0.
-          cswpth(i,k)    = 0.
-          rel(i,k)       = 0.
-          rei(i,k)       = 0.
-          res(i,k)       = 0.
-          cldfrac(i,k)   = 0.
-          relqmcl(i,k)   = 0.
-          reicmcl(i,k)   = 0.
-          resnmcl(i,k)   = 0.
+       !--- initialization of input and output arrays in call to subroutine rrtmg_sw_run. since shortwave
+       !    radiation computations are done for daytime columns only, these arrays are initialized when
+       !    dorrsw is set to true:
+       aer_opt = 0
+
+       if(dorrsw(i)) then    !begin if statement checking for daytime columns.
+          do k = kts,kte+1
+             !inputs:
+             do nb = 1,nbndsw
+                tauaer(i,k,nb) = 0.
+                ssaaer(i,k,nb) = 1.
+                asmaer(i,k,nb) = 0.
+             enddo
+             do na = 1,naerec
+                ecaer(i,k,na) = 0.
+             enddo
+
+             !outputs:
+             swuflx(i,k)    = 0.
+             swuflxc(i,k)   = 0.
+             swdflx(i,k)    = 0.
+             swdflxc(i,k)   = 0.
+             swhr(i,k)      = 0.
+             swhrc(i,k)     = 0.
+             swuflxcln(i,k) = 0.
+             swdflxcln(i,k) = 0.
+             sibvisdir(i,k) = 0.
+             sibvisdif(i,k) = 0.
+             sibnirdir(i,k) = 0.
+             sibnirdif(i,k) = 0.
+             swdkdir(i,k)   = 0.
+             swdkdirc(i,k)  = 0.
+             swdkdif(i,k)   = 0.
+          enddo
+          k = kte+2
           swuflx(i,k)    = 0.
           swuflxc(i,k)   = 0.
           swdflx(i,k)    = 0.
           swdflxc(i,k)   = 0.
-          swhr(i,k)      = 0.
-          swhrc(i,k)     = 0.
           swuflxcln(i,k) = 0.
           swdflxcln(i,k) = 0.
-          taucld(1:nbndsw,i,k)  = 0.
-          tauaer(i,k,1:nbndsw)  = 0.
-          ssaaer(i,k,1:nbndsw)  = 0.
-          asmaer(i,k,1:nbndsw)  = 0.
-          cldfmcl(1:ngptsw,i,k) = 0.
-          clwpmcl(1:ngptsw,i,k) = 0.
-          ciwpmcl(1:ngptsw,i,k) = 0.
-          cswpmcl(1:ngptsw,i,k) = 0.
-          taucmcl(1:ngptsw,i,k) = 0.
-       enddo
-       swuflx(i,kte+2)    = 0.
-       swuflxc(i,kte+2)   = 0.
-       swdflx(i,kte+2)    = 0.
-       swdflxc(i,kte+2)   = 0.
-       swuflxcln(i,kte+2) = 0.
-       swdflxcln(i,kte+2) = 0.
-
-       do k = kts,kte+2
           sibvisdir(i,k) = 0.
           sibvisdif(i,k) = 0.
           sibnirdir(i,k) = 0.
@@ -345,89 +374,72 @@
           swdkdir(i,k)   = 0.
           swdkdirc(i,k)  = 0.
           swdkdif(i,k)   = 0.
-       enddo
 
-       aer_opt = 0
-       do k = kts,kte+1
-          do na = 1,naerec
-             ecaer(i,k,na) = 0.
+          !initialization of surface albedo:
+          if(sf_surface_physics.eq.8 .and. xland(i,j).lt.1.5) then
+             asdir(i) = alswvisdir(i,j)
+             asdif(i) = alswvisdif(i,j)
+             aldir(i) = alswnirdir(i,j)
+             aldif(i) = alswnirdif(i,j)
+          else
+             asdir(i) = albedo(i,j)
+             asdif(i) = albedo(i,j)
+             aldir(i) = albedo(i,j)
+             aldif(i) = albedo(i,j)
+          endif
+
+          !initialization of input sounding:
+          k = kts
+          plev(i,kts) = p8w(i,k,j) / 100.
+          tlev(i,kts) = t8w(i,k,j)
+          tsfc(i)     = tsk(i,j)
+          do k = kts,kte
+             plev(i,k+1) = p8w(i,k+1,j) / 100.
+             tlev(i,k+1) = t8w(i,k+1,j)
+             play(i,k)   = p3d(i,k,j) / 100.
+             pdel(i,k)   = plev(i,k) - plev(i,k+1)
+             tlay(i,k)   = t3d(i,k,j)
+             h2ovmr(i,k) = amax1(qv3d(i,k,j),1.e-12)
+             h2ovmr(i,k) = h2ovmr(i,k)*amdw
+             co2vmr(i,k) = co2
+             o2vmr(i,k)  = o2
+             ch4vmr(i,k) = ch4
+             n2ovmr(i,k) = n2o
           enddo
-       enddo
+          plev(i,kte+2)   = 1.0e-5
+          tlev(i,kte+2)   = tlev(i,kte+1)
+          play(i,kte+1)   = 0.5 * plev(i,kte+1)
+          tlay(i,kte+1)   = tlev(i,kte+1)
+          h2ovmr(i,kte+1) = h2ovmr(i,kte)
+          co2vmr(i,kte+1) = co2vmr(i,kte)
+          o2vmr(i,kte+1)  = o2vmr(i,kte)
+          ch4vmr(i,kte+1) = ch4vmr(i,kte)
+          n2ovmr(i,kte+1) = n2ovmr(i,kte)
 
-       !--- fill local arrays with input sounding. convert water vapor mass mixing ratio to volume mixing ratio:
-       k = kts
-       plev(i,kts) = p8w(i,k,j) / 100.
-       tlev(i,kts) = t8w(i,k,j)
-       tsfc(i)     = tsk(i,j)
-       do k = kts,kte
-          plev(i,k+1) = p8w(i,k+1,j) / 100.
-          tlev(i,k+1) = t8w(i,k+1,j)
-          play(i,k)   = p3d(i,k,j) / 100.
-          pdel(i,k)   = plev(i,k) - plev(i,k+1)
-          tlay(i,k)   = t3d(i,k,j)
-          h2ovmr(i,k) = amax1(qv3d(i,k,j),1.e-12)
-          h2ovmr(i,k) = h2ovmr(i,k)*amdw
-          co2vmr(i,k) = co2
-          o2vmr(i,k)  = o2
-          ch4vmr(i,k) = ch4
-          n2ovmr(i,k) = n2o
-       enddo
-       plev(i,kte+2)   = 1.0e-5
-       tlev(i,kte+2)   = tlev(i,kte+1) + 0.0
-       play(i,kte+1)   = 0.5 * plev(i,kte+1)
-       tlay(i,kte+1)   = tlev(i,kte+1) + 0.0
-       h2ovmr(i,kte+1) = h2ovmr(i,kte)
-       co2vmr(i,kte+1) = co2vmr(i,kte)
-       o2vmr(i,kte+1)  = o2vmr(i,kte)
-       ch4vmr(i,kte+1) = ch4vmr(i,kte)
-       n2ovmr(i,kte+1) = n2ovmr(i,kte)
-
-
-       !---  mji - derive height of each layer mid-point from layer thickness. needed for exponential
-       !     (icld=4) and exponential-random overlap option (icld=5) only.
-       dzsum = 0.0
-       do k = kts, kte
-          dz = dz8w(i,k,j)
-          hgt(i,k) = dzsum + 0.5*dz
-          dzsum = dzsum + dz
-       enddo
-       hgt(i,kte+1) = 0.
-
-       !--- initialize the ozone volume mixing ratio:
-       pcols = 1
-       do k = kts,kte+1
-          p1dlay(k) = play(i,k)
-          p1dlev(k) = plev(i,k)
-       enddo
-       p1dlev(kte+2) = plev(i,kte+2)
-       call inirad(o3mmr,p1dlev,kts,kte)
-
-       if(o3input .eq. 2) then
-          do k = 1, noznlevels
-             o3clim1d(k) = o3clim(i,k,j)
-          enddo
-          call vinterp_ozn(1,pcols,pcols,kte+1,p1dlay,pin,noznlevels,o3clim1d,o3mmr)
+          !--- initialization of ozone volume mixing ratio:
+          pcols = 1
           do k = kts,kte+1
-             o3vmr(i,k) = o3mmr(k)
+             p1dlay(k) = play(i,k)
+             p1dlev(k) = plev(i,k)
           enddo
-       else
-          do k = kts,kte+1
-             o3vmr(i,k) = o3mmr(k)*amdo
-          enddo
-       endif
+          p1dlev(kte+2) = plev(i,kte+2)
+          call inirad(o3mmr,p1dlev,kts,kte)
 
-       !--- initialize the surface albedo:
-       if(sf_surface_physics.eq.8 .and. xland(i,j).lt.1.5) then
-          asdir(i) = alswvisdir(i,j)
-          asdif(i) = alswvisdif(i,j)
-          aldir(i) = alswnirdir(i,j)
-          aldif(i) = alswnirdif(i,j)
-       else
-          asdir(i) = albedo(i,j)
-          asdif(i) = albedo(i,j)
-          aldir(i) = albedo(i,j)
-          aldif(i) = albedo(i,j)
-       endif
+          if(o3input .eq. 2) then
+             do k = 1, noznlevels
+                o3clim1d(k) = o3clim(i,k,j)
+             enddo
+             call vinterp_ozn(1,pcols,pcols,kte+1,p1dlay,pin,noznlevels,o3clim1d,o3mmr)
+             do k = kts,kte+1
+                o3vmr(i,k) = o3mmr(k)
+             enddo
+          else
+             do k = kts,kte+1
+                o3vmr(i,k) = o3mmr(k)*amdo
+             enddo
+          endif
+
+       endif    !begin if statement checking for daytime columns.
 
     end do i_loop !end longitude loop.
 
@@ -435,232 +447,190 @@
 !--- calculate the cloud optical properties:
     i_loop2: do i = its,ite
 
-       if(icloud .gt. 0) then
-          if(present(f_qc) .and. present(qc3d)) then
-             do k = kts,kte
-                qc1d(k) = amax1(qc3d(i,k,j),0.)
+       if(dorrsw(i)) then    !begin if statement checking for daytime columns.
+
+          if(icloud .gt. 0) then !begin cloud effect to shortwave radiation.
+
+             !---  mji - derive height of each layer mid-point from layer thickness. needed for exponential
+             !     (icld=4) and exponential-random overlap option (icld=5) only.
+             dzsum = 0.0
+             do k = kts, kte
+                dz = dz8w(i,k,j)
+                hgt(i,k) = dzsum + 0.5*dz
+                dzsum = dzsum + dz
              enddo
-          else
+             hgt(i,kte+1) = 0.
+
              do k = kts,kte
                 qc1d(k) = 0.
-             enddo
-          endif
-          if(present(f_qr) .and. present(qr3d)) then
-             do k = kts,kte
-                qr1d(k) = amax1(qr3d(i,k,j),0.)
-             enddo
-          else
-             do k = kts,kte
                 qr1d(k) = 0.
-             enddo
-          endif
-          if(present(f_qi) .and. present(qi3d)) then
-             do k = kts,kte
-                qi1d(k) = amax1(qi3d(i,k,j),0.)
-             enddo
-          else
-             do k = kts,kte
                 qi1d(k) = 0.
-             enddo
-          endif
-          if(present(f_qs) .and. present(qs3d)) then
-             do k = kts,kte
-                qs1d(k) = amax1(qs3d(i,k,j),0.)
-             enddo
-          else
-             do k = kts,kte
                 qs1d(k) = 0.
              enddo
-          endif
-          if(present(f_qc).and.present(qc3d) .and. present(f_qi).and.present(qi3d)  .and. &
-             present(f_qs).and.present(qs3d) .and. present(cldfra3d)) then
-             do k = kts,kte
-                cldfrac(i,k) = cldfra3d(i,k,j)
-             enddo
-             cldfrac(i,kte+1) = 0.
-          else
-             do k = kts,kte+1
-                cldfrac(i,k) = 0.
-             enddo
-          endif
-       else
-          do k = kts,kte
-             qc1d(k) = 0.
-             qr1d(k) = 0.
-             qi1d(k) = 0.
-             qs1d(k) = 0.
-             cldfrac(i,k) = 0.
-          enddo
-          cldfrac(i,kte+1) = 0.
-       endif
-
-       if(inflgsw .gt. 0) then
-
-          !--- initialization:
-          do k = kts,kte+1
-             do nb = 1, nbndsw
-                taucld(nb,i,k) = 0.0
-                ssacld(nb,i,k) = 1.0
-                asmcld(nb,i,k) = 0.0
-                fsfcld(nb,i,k) = 0.0
-             enddo
-          enddo
-
-          if(has_reqc .ne. 0) then
-             !--- fill the effective radius for cloud water with that calculated in the Thompson cloud
-             !    microphysics parameterization:
-             inflgsw = 3
-             do k = kts,kte
-                reliq(i,k) = max(2.5,re_cloud(i,k,j)*1.e6)
-                if(reliq(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
-                   (xland(i,j)-1.5).gt.0.) then        !--- ocean.
-                   reliq(i,k) = 10.5
-                elseif(reliq(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
-                   (xland(i,j)-1.5).lt.0.) then        !--- land.
-                   reliq(i,k) = 7.5
-                endif
-             enddo
-          else
-             !---  calculate the effective radius for cloud water in layers below the model top. we added the
-             !     dimensions pcols, pver so that the calls to subroutines relcalc and reicalc remain the same
-             !     as in WRF although the two dimensions are duplicate and not needed inside the subroutines:
-             pcols = 1
-             pver  = nlay-1
-             landfrac(pcols) = 2.-xland(i,j)
-             landm(pcols)    = landfrac(pcols)
-             snowh(pcols)    = 0.001*snow(i,j)
-             icefrac(pcols)  = xice(i,j)
-             do k = kts,kte
-                t1d(pcols,k) = tlay(i,k)
-             enddo
-             call relcalc(pcols,pcols,pver,t1d,landfrac,landm,icefrac,rel1d,snowh)
-             do k = kts,kte
-                reliq(i,k) = rel1d(pcols,k)
-             enddo
-          endif
-
-          if(has_reqi .ne. 0) then
-             !--- fill the effective radius for cloud ice with that calculated in the Thompson cloud
-             !    microphysics parameterization:
-             inflgsw  = 4
-             iceflgsw = 4
-             do k = kts,kte
-                reice(i,k) = max(5.,re_ice(i,k,j)*1.e6)
-                if(reice(i,k).le.5. .and. cldfrac(i,k).gt.0.) then
-                   idx_rei = int(tlay(i,k)-179.)
-                   idx_rei = min(max(idx_rei,1),75)
-                   corr = tlay(i,k) - int(tlay(i,k))
-                   reice(i,k) = retab(idx_rei)*(1.-corr) + retab(idx_rei+1)*corr
-                   reice(i,k) = max(reice(i,k),5.0)
-                endif
-             enddo
-          else
-             !--- calculate the effective radius for cloud ice in layers below the model top, following
-             !    Kristjansson and Mitchell. limit upper bound of reice for Fu ice parameterization and
-             !    convert effective radius to generalized effective size (*1.0315; Fu, 1996):
-             pcols = 1
-             pver  = nlay-1
-             do k = kts,kte
-                t1d(pcols,k) = tlay(i,k)
-             enddo
-             call reicalc(pcols,pcols,pver,t1d,rei1d)
-             do k = kts,kte
-                reice(i,k) = rei1d(pcols,k)
-             enddo
-             if(iceflgsw .eq. 3) then
-                do k = kts, kte
-                   reice(i,k) = reice(i,k) * 1.0315
-                   reice(i,k) = min(140.0,reice(i,k))
+             if(present(f_qc) .and. present(qc3d)) then
+                do k = kts,kte
+                   qc1d(k) = amax1(qc3d(i,k,j),0.)
                 enddo
              endif
-          endif
+             if(present(f_qr) .and. present(qr3d)) then
+                do k = kts,kte
+                   qr1d(k) = amax1(qr3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qi) .and. present(qi3d)) then
+                do k = kts,kte
+                   qi1d(k) = amax1(qi3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qs) .and. present(qs3d)) then
+                do k = kts,kte
+                   qs1d(k) = amax1(qs3d(i,k,j),0.)
+                enddo
+             endif
+             if(present(f_qc).and.present(qc3d) .and. present(f_qi).and.present(qi3d)  .and. &
+                present(f_qs).and.present(qs3d) .and. present(cldfra3d)) then
+                do k = kts,kte
+                   cldfrac(i,k) = cldfra3d(i,k,j)
+                enddo
+             endif
 
-          if(has_reqs .ne. 0) then
-             !--- fill the effective radius for snow with that calculated in the Thompson cloud
-             !    microphysics parameterization:
-             inflgsw  = 5
-             iceflgsw = 5
-             do k = kts, kte
-                resnow(i,k) = max(10.,re_snow(i,k,j)*1.e6)
-             enddo
-          else
-             do k = kts, kte
-                resnow(i,k) = 10.
-             enddo
-          endif
+             if(inflgsw .gt. 0) then
 
-          !--- calculate the cloud liquid water path in units of g/m2 below the model top:
-          do k = kts, kte
-             gliqwp = qc1d(k) * pdel(i,k)*100.0 / gravity * 1000.0              !grid box liquid water path.
-             cliqwp(i,k) = gliqwp / max(0.01,cldfrac(i,k))                      !in-cloud liquid water path.
-          enddo
-
-          !--- calculate the cloud ice path in units of g/m2 below the model top:
-          if(iceflgsw .eq. 3) then
-             do k = kts, kte
-                gicewp = (qi1d(k)+qs1d(k)) * pdel(i,k)*100.0 / gravity * 1000.0 !grid box ice water path.
-                cicewp(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
-             enddo
-          elseif(iceflgsw .ge. 4) then
-             do k = kts, kte
-                gicewp = qi1d(k) * pdel(i,k)*100.0 / gravity * 1000.0           !grid box ice water path.
-                cicewp(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
-             enddo
-          endif
-
-          !--- calculate the snow path in units of g/m2 below the model top:
-          if(iceflgsw.eq.5) then
-             do k = kts, kte
-                snow_mass_factor = 1.0
-                if(resnow(i,k) .gt. 130.)then
-                   snow_mass_factor = (130.0/resnow(i,k))*(130.0/resnow(i,k))
-                   resnow(i,k)   = 130.0
+                !--- calculation of the effective radii for cloud liquid water, cloud ice, and snow:
+                if(has_reqc .ne. 0) then
+                   !fill the effective radius for cloud water with that calculated in the Thompson cloud
+                   !microphysics parameterization:
+                   inflgsw = 3
+                   do k = kts,kte
+                      reliq(i,k) = max(2.5,re_cloud(i,k,j)*1.e6)
+                      if(reliq(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
+                         (xland(i,j)-1.5).gt.0.) then        !--- ocean.
+                         reliq(i,k) = 10.5
+                      elseif(reliq(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
+                         (xland(i,j)-1.5).lt.0.) then        !--- land.
+                         reliq(i,k) = 7.5
+                      endif
+                   enddo
+                else
+                   !calculate the effective radius for cloud water in layers below the model top. we added the
+                   !dimensions pcols, pver so that the calls to subroutines relcalc and reicalc remain the same
+                   !as in WRF although the two dimensions are duplicate and not needed inside the subroutines:
+                   pcols = 1
+                   pver  = nlay-1
+                   landfrac(pcols) = 2.-xland(i,j)
+                   landm(pcols)    = landfrac(pcols)
+                   snowh(pcols)    = 0.001*snow(i,j)
+                   icefrac(pcols)  = xice(i,j)
+                   do k = kts,kte
+                      t1d(pcols,k) = tlay(i,k)
+                   enddo
+                   call relcalc(pcols,pcols,pver,t1d,landfrac,landm,icefrac,rel1d,snowh)
+                   do k = kts,kte
+                      reliq(i,k) = rel1d(pcols,k)
+                   enddo
                 endif
-                gsnowp = qs1d(k) * pdel(n,k)*100.0 / gravity * 1000.0          !grid box snow path.
-                csnowp(i,k) = snow_mass_factor * gsnowp / max(0.01,cldfrac(i,k))
-             enddo
-          endif
+                if(has_reqi .ne. 0) then
+                   !fill the effective radius for cloud ice with that calculated in the Thompson cloud
+                   !microphysics parameterization:
+                   inflgsw  = 4
+                   iceflgsw = 4
+                   do k = kts,kte
+                      reice(i,k) = max(5.,re_ice(i,k,j)*1.e6)
+                      if(reice(i,k).le.5. .and. cldfrac(i,k).gt.0.) then
+                         idx_rei = int(tlay(i,k)-179.)
+                         idx_rei = min(max(idx_rei,1),75)
+                         corr = tlay(i,k) - int(tlay(i,k))
+                         reice(i,k) = retab(idx_rei)*(1.-corr) + retab(idx_rei+1)*corr
+                         reice(i,k) = max(reice(i,k),5.0)
+                      endif
+                   enddo
+                else
+                   !calculate the effective radius for cloud ice in layers below the model top, following
+                   !Kristjansson and Mitchell. limit upper bound of reice for Fu ice parameterization and
+                   !convert effective radius to generalized effective size (*1.0315; Fu, 1996):
+                   pcols = 1
+                   pver  = nlay-1
+                   do k = kts,kte
+                      t1d(pcols,k) = tlay(i,k)
+                   enddo
+                   call reicalc(pcols,pcols,pver,t1d,rei1d)
+                   do k = kts,kte
+                      reice(i,k) = rei1d(pcols,k)
+                   enddo
+                   if(iceflgsw .eq. 3) then
+                      do k = kts, kte
+                         reice(i,k) = reice(i,k) * 1.0315
+                         reice(i,k) = min(140.0,reice(i,k))
+                      enddo
+                   endif
+                endif
+                if(has_reqs .ne. 0) then
+                   !fill the effective radius for snow with that calculated in the Thompson cloud
+                   !microphysics parameterization:
+                   inflgsw  = 5
+                   iceflgsw = 5
+                   do k = kts, kte
+                      resnow(i,k) = max(10.,re_snow(i,k,j)*1.e6)
+                   enddo
+                else
+                   do k = kts, kte
+                      resnow(i,k) = 10.
+                   enddo
+                endif
 
-          !--- set the cloud physical property between the model top and the top of the atmosphere.
-          !    do not allow clouds between the model top and the top of the atmosphere: 
-          do k = kts, kte
-             clwpth(i,k) = cliqwp(i,k)
-             ciwpth(i,k) = cicewp(i,k)
-             cswpth(i,k) = csnowp(i,k)
-             rel(i,k) = reliq(i,k)
-             rei(i,k) = reice(i,k)
-             res(i,k) = resnow(i,k)
-          enddo
-          !---- no clouds are allowed in the extra layer from model top to TOA:
-          clwpth(i,kte+1)  = 0.
-          ciwpth(i,kte+1)  = 0.
-          cswpth(i,kte+1)  = 0.
-          rel(i,kte+1)     = 10.
-          rei(i,kte+1)     = 10.
-          res(i,kte+1)     = 10.
-          do nb = 1, nbndsw
-             taucld(nb,i,kte+1) = 0.
-             ssacld(nb,i,kte+1) = 1.
-             asmcld(nb,i,kte+1) = 0.
-             fsfcld(nb,i,kte+1) = 0.
-          enddo
+                !--- calculation of the cloud liquid water, cloud ice, and snow paths (units are g/m2):
+                !cloud liquid water path:
+                do k = kts, kte
+                   gliqwp = qc1d(k) * pdel(i,k)*100.0 / gravity * 1000.0              !grid box liquid water path.
+                   cliqwp(i,k) = gliqwp / max(0.01,cldfrac(i,k))                      !in-cloud liquid water path.
+                enddo
+                !cloud ice path:
+                if(iceflgsw .eq. 3) then
+                   do k = kts, kte
+                      gicewp = (qi1d(k)+qs1d(k)) * pdel(i,k)*100.0 / gravity * 1000.0 !grid box ice water path.
+                      cicewp(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
+                   enddo
+                elseif(iceflgsw .ge. 4) then
+                   do k = kts, kte
+                      gicewp = qi1d(k) * pdel(i,k)*100.0 / gravity * 1000.0           !grid box ice water path.
+                      cicewp(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
+                   enddo
+                endif
+                !snow path:
+                if(iceflgsw.eq.5) then
+                   do k = kts, kte
+                      snow_mass_factor = 1.0
+                      if(resnow(i,k) .gt. 130.)then
+                         snow_mass_factor = (130.0/resnow(i,k))*(130.0/resnow(i,k))
+                         resnow(i,k)   = 130.0
+                      endif
+                      gsnowp = qs1d(k) * pdel(n,k)*100.0 / gravity * 1000.0          !grid box snow path.
+                      csnowp(i,k) = snow_mass_factor * gsnowp / max(0.01,cldfrac(i,k))
+                   enddo
+                endif
 
+                !--- initialize input variables to subroutine mcica_subcol_sw. do not allow clouds between
+                !    the model-top and the top of the atmosphere:
+                do k = kts, kte
+                   clwpth(i,k) = cliqwp(i,k)
+                   ciwpth(i,k) = cicewp(i,k)
+                   cswpth(i,k) = csnowp(i,k)
+                   rel(i,k) = reliq(i,k)
+                   rei(i,k) = reice(i,k)
+                   res(i,k) = resnow(i,k)
+                enddo
+                clwpth(i,kte+1)  = 0.
+                ciwpth(i,kte+1)  = 0.
+                cswpth(i,kte+1)  = 0.
+                rel(i,kte+1)     = 10.
+                rei(i,kte+1)     = 10.
+                res(i,kte+1)     = 10.
 
-          !--- initialization of aerosol optical properties:
-          do nb = 1, nbndsw
-             do k = kts, kte+1
-                tauaer(i,k,nb) = 0.
-                ssaaer(i,k,nb) = 1.
-                asmaer(i,k,nb) = 0.
-             enddo
-          enddo
+             endif !end inflgsw.
 
-          do na = 1, naerec
-             do k = kts, kte+1
-                ecaer(i,k,na) = 0.
-             enddo
-          enddo
-       endif
+          endif !end cloud effect to shortwave radiation.
+
+       endif    !end if statement checking for daytime columns.
 
     end do i_loop2 !end longitude loop.
 
@@ -693,7 +663,8 @@
 !--- outputs:
     i_loop3: do i = its,ite
 
-       if(dorrsw(i)) then
+
+       if(dorrsw(i)) then    !begin if statement checking for daytime columns.
           gsw(i,j)  = swdflx(i,1) - swuflx(i,1)
 
           if(present(swupt)) then
@@ -716,10 +687,10 @@
              swdnbcln(i,j) = swdflxcln(i,1)
           endif
           if(sf_surface_physics .eq. 8) then
-             swvisdir(i,j)  = sibvisdir(i,1)
-             swvisdif(i,j)  = sibvisdif(i,1)
-             swnirdir(i,j)  = sibnirdir(i,1)
-             swnirdif(i,j)  = sibnirdif(i,1)
+             swvisdir(i,j) = sibvisdir(i,1)
+             swvisdif(i,j) = sibvisdif(i,1)
+             swnirdir(i,j) = sibnirdir(i,1)
+             swnirdif(i,j) = sibnirdif(i,1)
           endif
           if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
              present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
@@ -745,7 +716,7 @@
              rthratensw(i,k,j) = tten1d(k)/pi3d(i,k,j)
           enddo
 
-       endif
+       endif    !end if statement checking for daytime columns.
 
     end do i_loop3
 
