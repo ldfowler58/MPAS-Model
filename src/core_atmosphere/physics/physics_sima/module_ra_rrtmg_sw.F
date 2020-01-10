@@ -50,6 +50,8 @@
 !=================================================================================================================
 
 !--- input arguments:
+ logical,intent(in),optional:: f_qc,f_qr,f_qi,f_qs
+
  integer,intent(in):: ids,ide, jds,jde, kds,kde, &
                       ims,ime, jms,jme, kms,kme, &
                       its,ite, jts,jte, kts,kte
@@ -62,29 +64,32 @@
  real,intent(in),dimension(ims:ime,jms:jme):: albedo,tsk,snow,xice,xland
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: t3d,p3d,pi3d,qv3d
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: dz8w,p8w,t8w
-
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: re_cloud,re_ice,re_snow
+
+ real,intent(in),dimension(ims:ime,jms:jme),optional:: alswvisdir,alswvisdif,alswnirdir,alswnirdif
+ real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: cldfra3d,qc3d,qr3d,qi3d,qs3d,o33d
+
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-    cldfra3d,qc3d,qr3d,qi3d,qs3d,o33d
+    tauaer300,tauaer400,tauaer600,tauaer999,gaer300,gaer400,gaer600,gaer999,waer300,waer400,waer600,waer999
 
 !--- additional input arguments to use the CAM ozone climatology:
  integer,intent(in):: noznlevels
  real,intent(in),dimension(1:noznlevels),optional:: pin
  real,intent(in),dimension(ims:ime,1:noznlevels,jms:jme),optional:: o3clim
 
-!--- inout arguments:
- real,intent(inout),dimension(ims:ime,jms:jme):: coszr,gsw,swcf
- real,intent(inout),dimension(ims:ime,jms:jme),optional:: &
-    swupt,swuptc,swdnt,swdntc,swupb,swupbc,swdnb,swdnbc
-
- real,intent(inout),dimension(ims:ime,kms:kme,jms:jme):: rthratensw
-
 !--- output arguments:
  character(len=*),intent(out):: errmsg
  integer,intent(out)::errflg
 
- real,intent(out),dimension(ims:ime,kms:kme+2,jms:jme ),optional:: &
-    swupflx,swupflxc,swdnflx,swdnflxc
+ real,intent(out),dimension(ims:ime,jms:jme):: coszr,gsw
+ real,intent(out),dimension(ims:ime,kms:kme,jms:jme):: rthratensw
+
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swcf,swupt,swuptc,swdnt,swdntc,swupb,swupbc,swdnb,swdnbc
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swddir,swddni,swddif,swddirc,swddnic,swdownc
+ real,intent(out),dimension(ims:ime,jms:jme),optional:: swvisdir,swvisdif,swnirdir,swnirdif
+
+ real,intent(out),dimension(ims:ime,kms:kme+2,jms:jme ),optional:: swupflx,swupflxc,swdnflx,swdnflxc
 
 !local variables and arrays:
  logical,dimension(its:ite):: dorrsw
@@ -96,14 +101,21 @@
  integer:: idx_rei
  integer:: i,j,k,n
 
+ integer:: calc_clean_atm_diag
+ integer:: sf_surface_physics
+ integer:: aer_ra_feedback
+ integer:: cldovrlp
+
  real:: coszrs,xt24,tloctm,hrang,xxlat,adjes,scon
  real:: ro,dz
  real:: corr
  real:: gliqwp,gicewp,gsnowp
  real:: snow_mass_factor
+ real:: dzsum
 
  real,dimension(its:ite):: coszen,tsfc
  real,dimension(its:ite,kts:kte):: pdel,cicewp,cliqwp,csnowp,reliq,reice,resnow
+ real,dimension(its:ite,kts:kte+1):: hgt
 
  real,dimension(1):: landfrac,landm,snowh,icefrac
  real,dimension(its:ite):: asdir,asdif,aldir,aldif
@@ -173,23 +185,7 @@
   data amdo /  0.603461 /
   data amdo2 / 0.905190 /
 
-!--- CPF development:
- logical,intent(in),optional:: f_qc,f_qr,f_qi,f_qs
- real,intent(in),dimension(ims:ime,jms:jme),optional:: alswvisdir,alswvisdif,alswnirdir,alswnirdif
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-    tauaer300,tauaer400,tauaer600,tauaer999,gaer300,gaer400,gaer600,gaer999, &
-    waer300,waer400,waer600,waer999
-
- real,intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
- real,intent(out),dimension(ims:ime,jms:jme),optional:: swddir,swddni,swddif,swddirc,swddnic,swdownc
- real,intent(out),dimension(ims:ime,jms:jme),optional:: swvisdir,swvisdif,swnirdir,swnirdif
-
- integer:: calc_clean_atm_diag
- integer:: sf_surface_physics
- integer:: aer_ra_feedback
- real:: dzsum
- real,dimension(its:ite,kts:kte+1):: hgt
-
+!--- additional data:
  character(len=200):: msg
  real,parameter:: thresh=1.e-9
  real:: ang,slope
@@ -198,8 +194,6 @@
  real,dimension(nbndsw):: wavemid
  data wavemin /3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,0.200,3.846/
  data wavemax /3.846,3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,12.195/
-
- integer:: cldovrlp
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -232,7 +226,56 @@
  j_loop: do j = jts,jte
 
 !--- longitude loop:
+
     i_loop: do i = its,ite
+
+       !--- initialization of outputs:
+       coszr(i,j) = 0.
+       gsw(i,j)   = 0.
+       do k = kts,kte
+          rthratensw(i,k,j) = 0.
+       enddo
+
+       if(present(swupt)) then
+          swcf(i,j) = 0.
+          swupt(i,j)  = 0.
+          swuptc(i,j) = 0.
+          swdnt(i,j)  = 0.
+          swdntc(i,j) = 0.
+          swupb(i,j)  = 0.
+          swupbc(i,j) = 0.
+          swdnb(i,j)  = 0.
+          swdnbc(i,j) = 0.
+       endif
+       if(calc_clean_atm_diag .gt. 0)then
+          swuptcln(i,j) = 0.
+          swdntcln(i,j) = 0.
+          swupbcln(i,j) = 0.
+          swdnbcln(i,j) = 0.
+       endif
+       if(sf_surface_physics .eq. 8) then
+          swvisdir(i,j) = 0.
+          swvisdif(i,j) = 0.
+          swnirdir(i,j) = 0.
+          swnirdif(i,j) = 0.
+       endif
+       if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
+          present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
+          swddir(i,j)   = 0.
+          swddni(i,j)   = 0.
+          swddif(i,j)   = 0.
+          swdownc(i, j) = 0.
+          swddirc(i,j)  = 0.
+          swddnic(i,j)  = 0.
+       endif
+       if(present(swupflx)) then
+          do k = kts, kte+2
+             swupflx(i,k,j)  = 0.
+             swupflxc(i,k,j) = 0.
+             swdnflx(i,k,j)  = 0.
+             swdnflxc(i,k,j) = 0.
+          enddo
+       endif
 
        !--- calculate the cosine of the solar zenith angle at the current time step to determine if the sun is
        !    above or below the horizon (xt24 is the fractional part of simulation days plus half of radt in 
@@ -247,7 +290,7 @@
 
        dorrsw(i) = .true.
        if (coszrs.le.0.0) dorrsw(i) = .false.
-       
+
        !--- initialization of local arrays:
        do k = kts,kte
           reliq(i,k)  = 10.
@@ -652,9 +695,9 @@
 
        if(dorrsw(i)) then
           gsw(i,j)  = swdflx(i,1) - swuflx(i,1)
-          swcf(i,j) = (swdflx(i,kte+2)-swuflx(i,kte+2)) - (swdflxc(i,kte+2)-swuflxc(i,kte+2))
 
           if(present(swupt)) then
+             swcf(i,j) = (swdflx(i,kte+2)-swuflx(i,kte+2)) - (swdflxc(i,kte+2)-swuflxc(i,kte+2))
              !output up and down toa fluxes for total and clear sky:
              swupt(i,j)  = swuflx(i,kte+2)
              swuptc(i,j) = swuflxc(i,kte+2)
@@ -665,47 +708,42 @@
              swupbc(i,j) = swuflxc(i,1)
              swdnb(i,j)  = swdflx(i,1)
              swdnbc(i,j) = swdflxc(i,1)
-
-             if(calc_clean_atm_diag .gt. 0)then
-                swuptcln(i,j) = swuflxcln(i,kte+2)
-                swdntcln(i,j) = swdflxcln(i,kte+2)
-                swupbcln(i,j) = swuflxcln(i,1)
-                swdnbcln(i,j) = swdflxcln(i,1)
-             endif
-             !added by Zhenxin for 4 components of swdown radiation:
-             if(sf_surface_physics .eq. 8) then
-                swvisdir(i,j)  = sibvisdir(i,1)
-                swvisdif(i,j)  = sibvisdif(i,1)
-                swnirdir(i,j)  = sibnirdir(i,1)
-                swnirdif(i,j)  = sibnirdif(i,1)
-             endif
-
-             if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
-                present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
-                swddir(i,j)   = swdkdir(i,1)          ! jararias 2013/08/10
-                swddni(i,j)   = swddir(i,j) / coszrs  ! jararias 2013/08/10
-                swddif(i,j)   = swdkdif(i,1)          ! jararias 2013/08/10
-                swdownc(i, j) = swdflxc(i,1)          ! PAJ: clear-sky GHI
-                swddirc(i,j)  = swdkdirc(i,1)         ! PAJ: clear-sky direct normal irradiance
-                swddnic(i,j)  = swddirc(i,j) / coszrs ! PAJ: clear-sky direct normal irradiance
-             endif
-
-             if(present(swupflx)) then
-                do k = kts, kte+2
-                   swupflx(i,k,j)  = swuflx(i,k)
-                   swupflxc(i,k,j) = swuflxc(i,k)
-                   swdnflx(i,k,j)  = swdflx(i,k)
-                   swdnflxc(i,k,j) = swdflxc(i,k)
-                enddo
-             endif
-
-             !--- output heating rate tendency; convert heating rate from K/d to K/s:
-             do k = kts, kte
-                tten1d(k) = swhr(i,k)/86400.
-                rthratensw(i,k,j) = tten1d(k)/pi3d(i,k,j)
-             enddo
-
           endif
+          if(calc_clean_atm_diag .gt. 0)then
+             swuptcln(i,j) = swuflxcln(i,kte+2)
+             swdntcln(i,j) = swdflxcln(i,kte+2)
+             swupbcln(i,j) = swuflxcln(i,1)
+             swdnbcln(i,j) = swdflxcln(i,1)
+          endif
+          if(sf_surface_physics .eq. 8) then
+             swvisdir(i,j)  = sibvisdir(i,1)
+             swvisdif(i,j)  = sibvisdif(i,1)
+             swnirdir(i,j)  = sibnirdir(i,1)
+             swnirdif(i,j)  = sibnirdif(i,1)
+          endif
+          if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
+             present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
+             swddir(i,j)   = swdkdir(i,1)          ! jararias 2013/08/10
+             swddni(i,j)   = swddir(i,j) / coszrs  ! jararias 2013/08/10
+             swddif(i,j)   = swdkdif(i,1)          ! jararias 2013/08/10
+             swdownc(i, j) = swdflxc(i,1)          ! PAJ: clear-sky GHI
+             swddirc(i,j)  = swdkdirc(i,1)         ! PAJ: clear-sky direct normal irradiance
+             swddnic(i,j)  = swddirc(i,j) / coszrs ! PAJ: clear-sky direct normal irradiance
+          endif
+          if(present(swupflx)) then
+             do k = kts, kte+2
+                swupflx(i,k,j)  = swuflx(i,k)
+                swupflxc(i,k,j) = swuflxc(i,k)
+                swdnflx(i,k,j)  = swdflx(i,k)
+                swdnflxc(i,k,j) = swdflxc(i,k)
+             enddo
+          endif
+
+          !--- output heating rate tendency; convert heating rate from K/d to K/s:
+          do k = kts, kte
+             tten1d(k) = swhr(i,k)/86400.
+             rthratensw(i,k,j) = tten1d(k)/pi3d(i,k,j)
+          enddo
 
        endif
 
