@@ -1,6 +1,7 @@
 !=================================================================================================================
  module module_ra_rrtmg_sw
 
+ use mpas_kind_types,only: kind_phys => RKIND
  use mpas_log
  use mpas_atmphys_constants,only : cp,gravity
  use module_ra_rrtmg_vinterp,only: vinterp_ozn
@@ -30,7 +31,7 @@
                        swupt,swuptc,swdnt,swdntc,                      &
                        swupb,swupbc,swdnb,swdnbc,                      &
                        swupflx,swupflxc,swdnflx,swdnflxc,              &
-                       swuptcln,swdntcln,swupbcln,swdnbcln,            & !--- CPF development.
+                       swuptcln,swdntcln,swupbcln,swdnbcln,            &
                        swddir,swddni,swddif,swddirc,swddnic,swdownc,   &
                        f_qc,f_qr,f_qi,f_qs,                            &
                        alswvisdir,alswvisdif,alswnirdir,alswnirdif,    &
@@ -38,7 +39,7 @@
                        tauaer300,tauaer400,tauaer600,tauaer999,        &
                        gaer300,gaer400,gaer600,gaer999,                &
                        waer300,waer400,waer600,waer999,                &
-                       cldovrlp,                                       & !--- CPF development end.
+                       cldovrlp,                                       &
                        errmsg,errflg,                                  &
                        ids,ide, jds,jde, kds,kde,                      & 
                        ims,ime, jms,jme, kms,kme,                      &
@@ -59,37 +60,42 @@
  integer,intent(in):: julday
  integer,intent(in),optional:: o3input
 
- real,intent(in):: radt,degrad,xtime,declin,solcon,gmt
- real,intent(in),dimension(ims:ime,jms:jme):: xlat,xlong
- real,intent(in),dimension(ims:ime,jms:jme):: albedo,tsk,snow,xice,xland
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: t3d,p3d,pi3d,qv3d
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: dz8w,p8w,t8w
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme):: re_cloud,re_ice,re_snow
+ real(kind=kind_phys),intent(in):: radt,degrad,xtime,declin,solcon,gmt
+ real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: xlat,xlong
+ real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: albedo,tsk,snow,xice,xland
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: t3d,p3d,pi3d,qv3d
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: dz8w,p8w,t8w
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: re_cloud,re_ice,re_snow
 
- real,intent(in),dimension(ims:ime,jms:jme),optional:: alswvisdir,alswvisdif,alswnirdir,alswnirdif
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: cldfra3d,qc3d,qr3d,qi3d,qs3d,o33d
+ real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme),optional:: &
+    alswvisdir,alswvisdif,alswnirdir,alswnirdif
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: cldfra3d,qc3d,qr3d,qi3d,qs3d,o33d
 
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
     tauaer300,tauaer400,tauaer600,tauaer999,gaer300,gaer400,gaer600,gaer999,waer300,waer400,waer600,waer999
 
 !--- additional input arguments to use the CAM ozone climatology:
  integer,intent(in):: noznlevels
- real,intent(in),dimension(1:noznlevels),optional:: pin
- real,intent(in),dimension(ims:ime,1:noznlevels,jms:jme),optional:: o3clim
+ real(kind=kind_phys),intent(in),dimension(1:noznlevels),optional:: pin
+ real(kind=kind_phys),intent(in),dimension(ims:ime,1:noznlevels,jms:jme),optional:: o3clim
 
 !--- output arguments:
  character(len=*),intent(out):: errmsg
  integer,intent(out)::errflg
 
- real,intent(out),dimension(ims:ime,jms:jme):: coszr,gsw
- real,intent(out),dimension(ims:ime,kms:kme,jms:jme):: rthratensw
+ real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme):: coszr,gsw
+ real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme,jms:jme):: rthratensw
 
- real,intent(out),dimension(ims:ime,jms:jme),optional:: swcf,swupt,swuptc,swdnt,swdntc,swupb,swupbc,swdnb,swdnbc
- real,intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
- real,intent(out),dimension(ims:ime,jms:jme),optional:: swddir,swddni,swddif,swddirc,swddnic,swdownc
- real,intent(out),dimension(ims:ime,jms:jme),optional:: swvisdir,swvisdif,swnirdir,swnirdif
+ real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+      swcf,swupt,swuptc,swdnt,swdntc,swupb,swupbc,swdnb,swdnbc
+ real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
+ real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+      swddir,swddni,swddif,swddirc,swddnic,swdownc
+ real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+      swvisdir,swvisdif,swnirdir,swnirdif
 
- real,intent(out),dimension(ims:ime,kms:kme+2,jms:jme ),optional:: swupflx,swupflxc,swdnflx,swdnflxc
+ real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme+2,jms:jme ),optional:: &
+      swupflx,swupflxc,swdnflx,swdnflxc
 
 !local variables and arrays:
  logical,dimension(its:ite):: dorrsw
@@ -106,92 +112,91 @@
  integer:: aer_ra_feedback
  integer:: cldovrlp
 
- real:: coszrs,xt24,tloctm,hrang,xxlat,adjes,scon
- real:: ro,dz
- real:: corr
- real:: gliqwp,gicewp,gsnowp
- real:: snow_mass_factor
- real:: dzsum
+ real(kind=kind_phys):: coszrs,xt24,tloctm,hrang,xxlat,adjes,scon
+ real(kind=kind_phys):: ro,dz
+ real(kind=kind_phys):: corr
+ real(kind=kind_phys):: gliqwp,gicewp,gsnowp
+ real(kind=kind_phys):: snow_mass_factor
+ real(kind=kind_phys):: dzsum
 
- real,dimension(its:ite):: coszen,tsfc
- real,dimension(its:ite,kts:kte):: pdel,cicewp,cliqwp,csnowp,reliq,reice,resnow
- real,dimension(its:ite,kts:kte+1):: hgt
+ real(kind=kind_phys),dimension(its:ite):: coszen,tsfc
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: pdel,cicewp,cliqwp,csnowp,reliq,reice,resnow
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: hgt
 
- real,dimension(1):: landfrac,landm,snowh,icefrac
- real,dimension(its:ite):: asdir,asdif,aldir,aldif
+ real(kind=kind_phys),dimension(1):: landfrac,landm,snowh,icefrac
+ real(kind=kind_phys),dimension(its:ite):: asdir,asdif,aldir,aldif
 
- real,dimension(kts:kte):: tten1d,cldfra1d,qc1d,qr1d,qi1d,qs1d,o31d
- real,dimension(kts:kte+1):: o3mmr,p1dlay
- real,dimension(kts:kte+2):: p1dlev
+ real(kind=kind_phys),dimension(kts:kte):: tten1d,cldfra1d,qc1d,qr1d,qi1d,qs1d,o31d
+ real(kind=kind_phys),dimension(kts:kte+1):: o3mmr,p1dlay
+ real(kind=kind_phys),dimension(kts:kte+2):: p1dlev
 
- real,dimension(1,kts:kte):: t1d,rei1d,rel1d
+ real(kind=kind_phys),dimension(1,kts:kte):: t1d,rei1d,rel1d
 
 !--- additional local variables and arrays needed to include additional layers between the model top
 !    and the top of the atmosphere:
- real,dimension(its:ite,kts:kte+1):: play,tlay,h2ovmr,o3vmr,co2vmr,o2vmr,ch4vmr,n2ovmr
- real,dimension(its:ite,kts:kte+1):: clwpth,ciwpth,cswpth,rel,rei,res,cldfrac,relqmcl,reicmcl,resnmcl
- real,dimension(its:ite,kts:kte+1):: swhr,swhrc
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: play,tlay,h2ovmr,o3vmr,co2vmr,o2vmr,ch4vmr,n2ovmr
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: &
+      clwpth,ciwpth,cswpth,rel,rei,res,cldfrac,relqmcl,reicmcl,resnmcl
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: swhr,swhrc
 
- real,dimension(its:ite,kts:kte+2):: plev,tlev
- real,dimension(its:ite,kts:kte+2):: swuflx,swdflx,swuflxc,swdflxc
- real,dimension(its:ite,kts:kte+2):: swuflxcln,swdflxcln
- real,dimension(its:ite,kts:kte+2):: sibvisdir,sibvisdif,sibnirdir,sibnirdif
- real,dimension(its:ite,kts:kte+2):: swdkdir,swdkdif,swdkdirc
+ real(kind=kind_phys),dimension(its:ite,kts:kte+2):: plev,tlev
+ real(kind=kind_phys),dimension(its:ite,kts:kte+2):: swuflx,swdflx,swuflxc,swdflxc
+ real(kind=kind_phys),dimension(its:ite,kts:kte+2):: swuflxcln,swdflxcln
+ real(kind=kind_phys),dimension(its:ite,kts:kte+2):: sibvisdir,sibvisdif,sibnirdir,sibnirdif
+ real(kind=kind_phys),dimension(its:ite,kts:kte+2):: swdkdir,swdkdif,swdkdirc
 
- real,dimension(its:ite,kts:kte+1,nbndsw):: tauaer,ssaaer,asmaer
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1,nbndsw):: tauaer,ssaaer,asmaer
 
- real,dimension(nbndsw,its:ite,kts:kte+1):: taucld,ssacld,asmcld,fsfcld
- real,dimension(ngptsw,its:ite,kts:kte+1):: cldfmcl,clwpmcl,ciwpmcl,cswpmcl,taucmcl,ssacmcl,asmcmcl,fsfcmcl
+ real(kind=kind_phys),dimension(nbndsw,its:ite,kts:kte+1):: taucld,ssacld,asmcld,fsfcld
+ real(kind=kind_phys),dimension(ngptsw,its:ite,kts:kte+1):: &
+      cldfmcl,clwpmcl,ciwpmcl,cswpmcl,taucmcl,ssacmcl,asmcmcl,fsfcmcl
 
 !--- additional local variables and arrays needed for the CAM ozone climatologyL
- real,dimension(1:noznlevels):: o3clim1d
+ real(kind=kind_phys),dimension(1:noznlevels):: o3clim1d
 
 !--- additional local variables related to the implementation of aerosols in rrtmg_swrad in WRF 3.8.
-!    In WRF 3.8, these variables are in the argument list of subroutine rrtmg_swrad, but are made
-!    local here:
  integer:: aer_opt 
- real,dimension(its:ite,kts:kte+1,naerec):: ecaer
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1,naerec):: ecaer
 
 !--- set trace gas volume mixing ratios, 2005 values, IPCC (2007):
 !carbon dioxide (379 ppmv)
- real :: co2
+ real(kind=kind_phys):: co2
  data co2 / 379.e-6 / 
 !methane (1774 ppbv)
- real :: ch4
+ real(kind=kind_phys):: ch4
  data ch4 / 1774.e-9 / 
 !nitrous oxide (319 ppbv)
- real :: n2o
+ real(kind=kind_phys):: n2o
  data n2o / 319.e-9 / 
-
 !--- set oxygen volume mixing ratio (for o2mmr=0.23143):
- real :: o2
+ real(kind=kind_phys):: o2
  data o2 / 0.209488 /
 
 !--- molecular weights and ratios for converting mmr to vmr units
-! real :: amd       ! Effective molecular weight of dry air (g/mol)  
-! real :: amw       ! Molecular weight of water vapor (g/mol)        
-! real :: amo       ! Molecular weight of ozone (g/mol)              
-! real :: amo2      ! Molecular weight of oxygen (g/mol)              
-! Atomic weights for conversion from mass to volume mixing ratios                
-! data amd   /  28.9660   /                                                  
-! data amw   /  18.0160   /                                                  
-! data amo   /  47.9998   /                                                  
-! data amo2  /  31.9999   /
+!real(kind=kind_phys):: amd       ! Effective molecular weight of dry air (g/mol)
+!real(kind=kind_phys):: amw       ! Molecular weight of water vapor (g/mol)
+!real(kind=kind_phys):: amo       ! Molecular weight of ozone (g/mol)
+!real(kind=kind_phys):: amo2      ! Molecular weight of oxygen (g/mol)
+!Atomic weights for conversion from mass to volume mixing ratios
+!data amd   /  28.9660   /
+!data amw   /  18.0160   /
+!data amo   /  47.9998   /
+!data amo2  /  31.9999   /
                                                                                  
-  real :: amdw     ! Molecular weight of dry air / water vapor  
-  real :: amdo     ! Molecular weight of dry air / ozone
-  real :: amdo2    ! Molecular weight of dry air / oxygen
-  data amdw /  1.607793 /                                                    
-  data amdo /  0.603461 /
-  data amdo2 / 0.905190 /
+ real(kind=kind_phys):: amdw     ! Molecular weight of dry air / water vapor
+ real(kind=kind_phys):: amdo     ! Molecular weight of dry air / ozone
+ real(kind=kind_phys):: amdo2    ! Molecular weight of dry air / oxygen
+ data amdw /  1.607793 /
+ data amdo /  0.603461 /
+ data amdo2 / 0.905190 /
 
 !--- additional data:
  character(len=200):: msg
- real,parameter:: thresh=1.e-9
- real:: ang,slope
- real,dimension(nbndsw),save :: wavemin ! minimum wavelength (um) of 14 intervals.
- real,dimension(nbndsw),save :: wavemax ! maximum wavelength (um) of 14 intervals.
- real,dimension(nbndsw):: wavemid
+ real(kind=kind_phys),parameter:: thresh=1.e-9
+ real(kind=kind_phys):: ang,slope
+ real(kind=kind_phys),dimension(nbndsw),save :: wavemin ! minimum wavelength (um) of 14 intervals.
+ real(kind=kind_phys),dimension(nbndsw),save :: wavemax ! maximum wavelength (um) of 14 intervals.
+ real(kind=kind_phys),dimension(nbndsw):: wavemid
  data wavemin /3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,0.200,3.846/
  data wavemax /3.846,3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,12.195/
 
