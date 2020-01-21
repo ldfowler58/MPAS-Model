@@ -58,6 +58,7 @@
                       its,ite, jts,jte, kts,kte
  integer,intent(in):: icloud,has_reqc,has_reqi,has_reqs
  integer,intent(in):: julday
+ integer,intent(in):: cldovrlp
  integer,intent(in),optional:: o3input
 
  real(kind=kind_phys),intent(in):: radt,degrad,xtime,declin,solcon,gmt
@@ -110,7 +111,6 @@
  integer:: calc_clean_atm_diag
  integer:: sf_surface_physics
  integer:: aer_ra_feedback
- integer:: cldovrlp
 
  real(kind=kind_phys):: coszrs,xt24,tloctm,hrang,xxlat,adjes,scon
  real(kind=kind_phys):: ro,dz
