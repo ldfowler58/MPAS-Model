@@ -9,6 +9,8 @@
 #define FATAL_ERROR(M) call physics_error_fatal(M)
 #define WRITE_MESSAGE(M) call physics_message(M)
 
+ use rrtmg_sw_mpas,only: rrtmg_sw_mpas_timestep_final
+
  use parrrsw,only: nbndsw, ngptsw, naerec
  use rrtmg_sw_rad,only: rrtmg_sw_run
  use mcica_subcol_gen_sw, only: mcica_subcol_sw
@@ -201,6 +203,9 @@
  data wavemax /3.846,3.077,2.500,2.150,1.942,1.626,1.299,1.242,0.778,0.625,0.442,0.345,0.263,12.195/
 
 !-----------------------------------------------------------------------------------------------------------------
+
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine rrtmg_swrad:')
 
 !--- all fields are ordered vertically from bottom to top (pressures are in mb):
  ncol = ite-its+1
@@ -664,69 +669,21 @@
                 swdkdir   , swdkdif  , swdkdirc  , calc_clean_atm_diag   , errmsg    , &
                 errflg)
 
-
-!--- outputs:
-    i_loop3: do i = its,ite
-
-
-       if(dorrsw(i)) then    !begin if statement checking for daytime columns.
-          gsw(i,j)  = swdflx(i,1) - swuflx(i,1)
-
-          if(present(swupt)) then
-             swcf(i,j) = (swdflx(i,kte+2)-swuflx(i,kte+2)) - (swdflxc(i,kte+2)-swuflxc(i,kte+2))
-             !output up and down toa fluxes for total and clear sky:
-             swupt(i,j)  = swuflx(i,kte+2)
-             swuptc(i,j) = swuflxc(i,kte+2)
-             swdnt(i,j)  = swdflx(i,kte+2)
-             swdntc(i,j) = swdflxc(i,kte+2)
-             !output up and down surface fluxes for total and clear sky:
-             swupb(i,j)  = swuflx(i,1)
-             swupbc(i,j) = swuflxc(i,1)
-             swdnb(i,j)  = swdflx(i,1)
-             swdnbc(i,j) = swdflxc(i,1)
-          endif
-          if(calc_clean_atm_diag .gt. 0)then
-             swuptcln(i,j) = swuflxcln(i,kte+2)
-             swdntcln(i,j) = swdflxcln(i,kte+2)
-             swupbcln(i,j) = swuflxcln(i,1)
-             swdnbcln(i,j) = swdflxcln(i,1)
-          endif
-          if(sf_surface_physics .eq. 8) then
-             swvisdir(i,j) = sibvisdir(i,1)
-             swvisdif(i,j) = sibvisdif(i,1)
-             swnirdir(i,j) = sibnirdir(i,1)
-             swnirdif(i,j) = sibnirdif(i,1)
-          endif
-          if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
-             present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
-             swddir(i,j)   = swdkdir(i,1)          ! jararias 2013/08/10
-             swddni(i,j)   = swddir(i,j) / coszrs  ! jararias 2013/08/10
-             swddif(i,j)   = swdkdif(i,1)          ! jararias 2013/08/10
-             swdownc(i, j) = swdflxc(i,1)          ! PAJ: clear-sky GHI
-             swddirc(i,j)  = swdkdirc(i,1)         ! PAJ: clear-sky direct normal irradiance
-             swddnic(i,j)  = swddirc(i,j) / coszrs ! PAJ: clear-sky direct normal irradiance
-          endif
-          if(present(swupflx)) then
-             do k = kts, kte+2
-                swupflx(i,k,j)  = swuflx(i,k)
-                swupflxc(i,k,j) = swuflxc(i,k)
-                swdnflx(i,k,j)  = swdflx(i,k)
-                swdnflxc(i,k,j) = swdflxc(i,k)
-             enddo
-          endif
-
-          !--- output heating rate tendency; convert heating rate from K/d to K/s:
-          do k = kts, kte
-             tten1d(k) = swhr(i,k)/86400.
-             rthratensw(i,k,j) = tten1d(k)/pi3d(i,k,j)
-          enddo
-
-       endif    !end if statement checking for daytime columns.
-
-    end do i_loop3
-
  end do j_loop !end latitude loop.                                           
 
+!--- output the all-sky shortwave heating rate, shortwave net surface radiation for land surface scheme, and
+!    shortwave surface and top-of-the-atmosphere all-sky and clear-sky fluxes (mainly diagnostics):
+ call rrtmg_sw_mpas_timestep_final &
+            (dorrsw,pi3d,alswvisdir,alswvisdif,alswnirdir,alswnirdif,coszr,                  &
+             gsw,swhr,swhrc,swuflx,swuflxc,swdflx,swdflxc,swuflxcln,swdflxcln,               &
+             sibvisdir,sibvisdif,sibnirdir,sibnirdif,swdkdir,swdkdirc,swdkdif,               &
+             rthratensw,swcf,swupt,swuptc,swdnt,swdntc,swupb,swupbc,swdnb,swdnbc,            &
+             swuptcln,swdntcln,swupbcln,swdnbcln,swvisdir,swvisdif,swnirdir,swnirdif,        &
+             swddir,swddni,swddif,swddirc,swddnic,swdownc,swupflx,swupflxc,swdnflx,swdnflxc, &
+             ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte)
+
+ call mpas_log_write('--- end subroutine rrtmg_swrad:')
+ call mpas_log_write(' ')
 
  end subroutine rrtmg_swrad
 
