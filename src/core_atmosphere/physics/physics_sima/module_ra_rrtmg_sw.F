@@ -9,7 +9,8 @@
 #define FATAL_ERROR(M) call physics_error_fatal(M)
 #define WRITE_MESSAGE(M) call physics_message(M)
 
- use rrtmg_sw_mpas,only: rrtmg_sw_mpas_timestep_final
+ use rrtmg_sw_mpas,only: rrtmg_sw_mpas_timestep_init, &
+                         rrtmg_sw_mpas_timestep_final
 
  use parrrsw,only: nbndsw, ngptsw, naerec
  use rrtmg_sw_rad,only: rrtmg_sw_run
@@ -26,7 +27,7 @@
                        p3d,p8w,pi3d,t3d,t8w,dz8w,qv3d,qc3d,qr3d,       &
                        qi3d,qs3d,cldfra3d,o33d,tsk,albedo,             &
                        xland,xice,snow,coszr,xtime,gmt,julday,radt,    &
-                       degrad,declin,solcon,xlat,xlong,icloud,o3input, &
+                       degrad,declin,scon,xlat,xlong,icloud,o3input,   &
                        noznlevels,pin,o3clim,gsw,swcf,rthratensw,      &
                        has_reqc,has_reqi,has_reqs,re_cloud,            &
                        re_ice,re_snow,                                 &
@@ -61,9 +62,9 @@
  integer,intent(in):: icloud,has_reqc,has_reqi,has_reqs
  integer,intent(in):: julday
  integer,intent(in):: cldovrlp
- integer,intent(in),optional:: o3input
+ integer,intent(in):: o3input
 
- real(kind=kind_phys),intent(in):: radt,degrad,xtime,declin,solcon,gmt
+ real(kind=kind_phys),intent(in):: radt,degrad,xtime,declin,scon,gmt
  real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: xlat,xlong
  real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: albedo,tsk,snow,xice,xland
  real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: t3d,p3d,pi3d,qv3d
@@ -114,7 +115,7 @@
  integer:: sf_surface_physics
  integer:: aer_ra_feedback
 
- real(kind=kind_phys):: coszrs,xt24,tloctm,hrang,xxlat,adjes,scon
+ real(kind=kind_phys):: coszrs,xt24,tloctm,hrang,xxlat,adjes
  real(kind=kind_phys):: ro,dz
  real(kind=kind_phys):: corr
  real(kind=kind_phys):: gliqwp,gicewp,gsnowp
@@ -207,15 +208,28 @@
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine rrtmg_swrad:')
 
+ call rrtmg_sw_mpas_timestep_init &
+            (ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte, &
+             cldovrlp , gmt        , declin     , degrad     , radt       , &
+             xtime    , xlat       , xlong      , tsk        , albedo     , &
+             p3d      , t3d        , qv3d       , dz8w       , p8w        , &
+             t8w      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
+             o3input  , noznlevels , pin        , o3clim     , ncol       , &
+             nlay     , icld       , inflgsw    , iceflgsw   , liqflgsw   , &
+             dyofyr   , adjes      , dorrsw     , coszen     , tsfc       , &
+             asdir    , asdif      , aldir      , aldif      , play       , &
+             tlay     , pdel       , h2ovmr     , o3vmr      , co2vmr     , &
+             o2vmr    , ch4vmr     , n2ovmr     , plev       , tlev)
+
 !--- all fields are ordered vertically from bottom to top (pressures are in mb):
- ncol = ite-its+1
- nlay = (kte-kts+1) + 1
+!ncol = ite-its+1
+!nlay = (kte-kts+1) + 1
 
 !--- initialize option for the calculation of the cloud optical properties:
- icld     = cldovrlp
- inflgsw  = 2
- iceflgsw = 3
- liqflgsw = 1
+!icld     = cldovrlp
+!inflgsw  = 2
+!iceflgsw = 3
+!liqflgsw = 1
 
 !--- initialize calc_clean_atm_diag:
  calc_clean_atm_diag = 0
@@ -228,9 +242,9 @@
     sf_surface_physics = 8
 
 !--- set solar constant:
- scon   = solcon
- dyofyr = 0
- adjes  = 1.0 
+!scon = solcon
+!dyofyr = 0
+!adjes  = 1.0 
 
 !--- latitude loop:
  j_loop: do j = jts,jte
@@ -321,19 +335,19 @@
           enddo
        enddo
 
-       !--- calculate the cosine of the solar zenith angle at the current time step to determine if the sun is
-       !    above or below the horizon (xt24 is the fractional part of simulation days plus half of radt in 
-       !    units of minutes, julian is in days, and radt is in minutes). do not call rrtmg_sw is night-time:
-       xt24 = mod(xtime+radt*0.5,1440.)
-       tloctm = gmt + xt24/60. + xlong(i,j)/15.
-       hrang = 15. * (tloctm-12.) * degrad
-       xxlat = xlat(i,j) * degrad
-       coszrs = sin(xxlat) * sin(declin) + cos(xxlat) * cos(declin) * cos(hrang)
-       coszr(i,j) = coszrs
-       coszen(i)  = coszrs
+!      !--- calculate the cosine of the solar zenith angle at the current time step to determine if the sun is
+!      !    above or below the horizon (xt24 is the fractional part of simulation days plus half of radt in 
+!      !    units of minutes, julian is in days, and radt is in minutes). do not call rrtmg_sw is night-time:
+!      xt24 = mod(xtime+radt*0.5,1440.)
+!      tloctm = gmt + xt24/60. + xlong(i,j)/15.
+!      hrang = 15. * (tloctm-12.) * degrad
+!      xxlat = xlat(i,j) * degrad
+!      coszrs = sin(xxlat) * sin(declin) + cos(xxlat) * cos(declin) * cos(hrang)
+!      coszr(i,j) = coszrs
+!      coszen(i)  = coszrs
 
-       dorrsw(i) = .true.
-       if (coszrs.le.0.0) dorrsw(i) = .false.
+!      dorrsw(i) = .true.
+!      if (coszrs.le.0.0) dorrsw(i) = .false.
 
 
        !--- initialization of input and output arrays in call to subroutine rrtmg_sw_run. since shortwave
@@ -385,69 +399,69 @@
           swdkdirc(i,k)  = 0.
           swdkdif(i,k)   = 0.
 
-          !initialization of surface albedo:
-          if(sf_surface_physics.eq.8 .and. xland(i,j).lt.1.5) then
-             asdir(i) = alswvisdir(i,j)
-             asdif(i) = alswvisdif(i,j)
-             aldir(i) = alswnirdir(i,j)
-             aldif(i) = alswnirdif(i,j)
-          else
-             asdir(i) = albedo(i,j)
-             asdif(i) = albedo(i,j)
-             aldir(i) = albedo(i,j)
-             aldif(i) = albedo(i,j)
-          endif
+!         !initialization of surface albedo:
+!         if(sf_surface_physics.eq.8 .and. xland(i,j).lt.1.5) then
+!            asdir(i) = alswvisdir(i,j)
+!            asdif(i) = alswvisdif(i,j)
+!            aldir(i) = alswnirdir(i,j)
+!            aldif(i) = alswnirdif(i,j)
+!         else
+!            asdir(i) = albedo(i,j)
+!            asdif(i) = albedo(i,j)
+!            aldir(i) = albedo(i,j)
+!            aldif(i) = albedo(i,j)
+!         endif
 
-          !initialization of input sounding:
-          k = kts
-          plev(i,kts) = p8w(i,k,j) / 100.
-          tlev(i,kts) = t8w(i,k,j)
-          tsfc(i)     = tsk(i,j)
-          do k = kts,kte
-             plev(i,k+1) = p8w(i,k+1,j) / 100.
-             tlev(i,k+1) = t8w(i,k+1,j)
-             play(i,k)   = p3d(i,k,j) / 100.
-             pdel(i,k)   = plev(i,k) - plev(i,k+1)
-             tlay(i,k)   = t3d(i,k,j)
-             h2ovmr(i,k) = amax1(qv3d(i,k,j),1.e-12)
-             h2ovmr(i,k) = h2ovmr(i,k)*amdw
-             co2vmr(i,k) = co2
-             o2vmr(i,k)  = o2
-             ch4vmr(i,k) = ch4
-             n2ovmr(i,k) = n2o
-          enddo
-          plev(i,kte+2)   = 1.0e-5
-          tlev(i,kte+2)   = tlev(i,kte+1)
-          play(i,kte+1)   = 0.5 * plev(i,kte+1)
-          tlay(i,kte+1)   = tlev(i,kte+1)
-          h2ovmr(i,kte+1) = h2ovmr(i,kte)
-          co2vmr(i,kte+1) = co2vmr(i,kte)
-          o2vmr(i,kte+1)  = o2vmr(i,kte)
-          ch4vmr(i,kte+1) = ch4vmr(i,kte)
-          n2ovmr(i,kte+1) = n2ovmr(i,kte)
+!         !initialization of input sounding:
+!         k = kts
+!         plev(i,kts) = p8w(i,k,j) / 100.
+!         tlev(i,kts) = t8w(i,k,j)
+!         tsfc(i)     = tsk(i,j)
+!         do k = kts,kte
+!            plev(i,k+1) = p8w(i,k+1,j) / 100.
+!            tlev(i,k+1) = t8w(i,k+1,j)
+!            play(i,k)   = p3d(i,k,j) / 100.
+!            pdel(i,k)   = plev(i,k) - plev(i,k+1)
+!            tlay(i,k)   = t3d(i,k,j)
+!            h2ovmr(i,k) = amax1(qv3d(i,k,j),1.e-12)
+!            h2ovmr(i,k) = h2ovmr(i,k)*amdw
+!            co2vmr(i,k) = co2
+!            o2vmr(i,k)  = o2
+!            ch4vmr(i,k) = ch4
+!            n2ovmr(i,k) = n2o
+!         enddo
+!         plev(i,kte+2)   = 1.0e-5
+!         tlev(i,kte+2)   = tlev(i,kte+1)
+!         play(i,kte+1)   = 0.5 * plev(i,kte+1)
+!         tlay(i,kte+1)   = tlev(i,kte+1)
+!         h2ovmr(i,kte+1) = h2ovmr(i,kte)
+!         co2vmr(i,kte+1) = co2vmr(i,kte)
+!         o2vmr(i,kte+1)  = o2vmr(i,kte)
+!         ch4vmr(i,kte+1) = ch4vmr(i,kte)
+!         n2ovmr(i,kte+1) = n2ovmr(i,kte)
 
-          !--- initialization of ozone volume mixing ratio:
-          pcols = 1
-          do k = kts,kte+1
-             p1dlay(k) = play(i,k)
-             p1dlev(k) = plev(i,k)
-          enddo
-          p1dlev(kte+2) = plev(i,kte+2)
-          call inirad(o3mmr,p1dlev,kts,kte)
+!         !--- initialization of ozone volume mixing ratio:
+!         pcols = 1
+!         do k = kts,kte+1
+!            p1dlay(k) = play(i,k)
+!            p1dlev(k) = plev(i,k)
+!         enddo
+!         p1dlev(kte+2) = plev(i,kte+2)
+!         call inirad(o3mmr,p1dlev,kts,kte)
 
-          if(o3input .eq. 2) then
-             do k = 1, noznlevels
-                o3clim1d(k) = o3clim(i,k,j)
-             enddo
-             call vinterp_ozn(1,pcols,pcols,kte+1,p1dlay,pin,noznlevels,o3clim1d,o3mmr)
-             do k = kts,kte+1
-                o3vmr(i,k) = o3mmr(k)
-             enddo
-          else
-             do k = kts,kte+1
-                o3vmr(i,k) = o3mmr(k)*amdo
-             enddo
-          endif
+!         if(o3input .eq. 2) then
+!            do k = 1, noznlevels
+!               o3clim1d(k) = o3clim(i,k,j)
+!            enddo
+!            call vinterp_ozn(1,pcols,pcols,kte+1,p1dlay,pin,noznlevels,o3clim1d,o3mmr)
+!            do k = kts,kte+1
+!               o3vmr(i,k) = o3mmr(k)
+!            enddo
+!         else
+!            do k = kts,kte+1
+!               o3vmr(i,k) = o3mmr(k)*amdo
+!            enddo
+!         endif
 
        endif    !begin if statement checking for daytime columns.
 
@@ -674,7 +688,7 @@
 !--- output the all-sky shortwave heating rate, shortwave net surface radiation for land surface scheme, and
 !    shortwave surface and top-of-the-atmosphere all-sky and clear-sky fluxes (mainly diagnostics):
  call rrtmg_sw_mpas_timestep_final &
-            (dorrsw,pi3d,alswvisdir,alswvisdif,alswnirdir,alswnirdif,coszr,                  &
+            (dorrsw,pi3d,alswvisdir,alswvisdif,alswnirdir,alswnirdif,coszr,coszen,           &
              gsw,swhr,swhrc,swuflx,swuflxc,swdflx,swdflxc,swuflxcln,swdflxcln,               &
              sibvisdir,sibvisdif,sibnirdir,sibnirdif,swdkdir,swdkdirc,swdkdif,               &
              rthratensw,swcf,swupt,swuptc,swdnt,swdntc,swupb,swupbc,swdnb,swdnbc,            &
