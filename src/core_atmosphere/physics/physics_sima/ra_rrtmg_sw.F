@@ -9526,7 +9526,7 @@ use module_wrf_error
 ! End longitude loop
       enddo
 
-      errmsg = 'rrtmg_ysu_run OK'
+      errmsg = 'rrtmg_sw_run OK'
       errflg = 0
 
       end subroutine rrtmg_sw_run
