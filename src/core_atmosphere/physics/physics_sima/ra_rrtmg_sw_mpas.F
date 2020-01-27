@@ -16,29 +16,6 @@
  contains
 
 
-!   call rrtmg_sw_run &
-!              (dorrsw    , ncol     , nlay      , icld      , play      , plev      , &
-!               tlay      , tlev     , tsfc      , h2ovmr    , o3vmr     , co2vmr    , &
-!               ch4vmr    , n2ovmr   , o2vmr     , asdir     , asdif     , aldir     , &
-!               aldif     , coszen   , adjes     , dyofyr    , scon      , inflgsw   , &
-!               iceflgsw  , liqflgsw , cldfmcl   , taucmcl   , ssacmcl   , asmcmcl   , &
-!               fsfcmcl   , ciwpmcl  , clwpmcl   , cswpmcl   , reicmcl   , relqmcl   , &
-!               resnmcl   , tauaer   , ssaaer    , asmaer    , ecaer     , swuflx    , &
-!               swdflx    , swhr     , swuflxc   , swdflxc   , swhrc     , swuflxcln , &
-!               swdflxcln , aer_opt  , sibvisdir , sibvisdif , sibnirdir , sibnirdif , &
-!               swdkdir   , swdkdif  , swdkdirc  , calc_clean_atm_diag   , errmsg    , &
-!               errflg)
-
-
-!   call rrtmg_sw_run &
-!               cldfmcl   , taucmcl  , ssacmcl   , asmcmcl   ,                         &
-!               fsfcmcl   , ciwpmcl  , clwpmcl   , cswpmcl   , reicmcl   , relqmcl   , &
-!               resnmcl   , tauaer   , ssaaer    , asmaer    , ecaer     , swuflx    , &
-!               swdflx    , swhr     , swuflxc   , swdflxc   , swhrc     , swuflxcln , &
-!               swdflxcln , aer_opt  , sibvisdir , sibvisdif , sibnirdir , sibnirdif , &
-!               swdkdir   , swdkdif  , swdkdirc  , calc_clean_atm_diag   , errmsg    , &
-!               errflg)
-
 !=================================================================================================================
  subroutine rrtmg_sw_mpas_run(errmsg,errflg)
 !=================================================================================================================
@@ -69,8 +46,8 @@
                    asdir    , asdif      , aldir      , aldif      , play       , &
                    tlay     , pdel       , h2ovmr     , o3vmr      , co2vmr     , &
                    o2vmr    , ch4vmr     , n2ovmr     , plev       , tlev       , &
-                   reliq    , reice      , resnow     , cliqwp     , cicewp     , &
-                   csnowp   , hgt        , cldfrac)
+                   rel      , rei        , res        , clwpth     , ciwpth     , &
+                   cswpth   , hgt        , cldfrac)
 !=================================================================================================================
 
 !input arguments:
@@ -169,19 +146,10 @@
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte):: &
     pdel
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte):: &
-    cicewp,   &!
-    cliqwp,   &!
-    csnowp,   &!
-    reliq,    &!
-    reice,    &!
-    resnow     !
-
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
     play,     &!
     tlay,     &!
     h2ovmr,   &!
-
     o3vmr,    &!
     co2vmr,   &!
     o2vmr,    &!
@@ -191,6 +159,14 @@
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
     hgt,      &!
     cldfrac    !
+
+ real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
+    ciwpth,   &!
+    clwpth,   &!
+    cswpth,   &!
+    rei,      &!
+    rel,      &!
+    res        !
 
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+2):: &
     plev,     &!
@@ -354,14 +330,20 @@
 
 !--- calculation of the cloud optical properties for daytime columns:
  do i = its,ite
- do k = kts,kte
-    reliq(i,k)  = 0._kind_phys
-    reice(i,k)  = 0._kind_phys
-    resnow(i,k) = 0._kind_phys
-    cliqwp(i,k) = 0._kind_phys
-    cicewp(i,k) = 0._kind_phys
-    csnowp(i,k) = 0._kind_phys
- enddo
+    do k = kts,kte
+       ciwpth(i,k) = 0._kind_phys
+       clwpth(i,k) = 0._kind_phys
+       cswpth(i,k) = 0._kind_phys
+       rei(i,k)    = 0._kind_phys
+       rel(i,k)    = 0._kind_phys
+       res(i,k)    = 0._kind_phys
+    enddo
+    ciwpth(i,kte+1) = 0._kind_phys
+    clwpth(i,kte+1) = 0._kind_phys
+    cswpth(i,kte+1) = 0._kind_phys
+    rei(i,kte+1)    = 10._kind_phys
+    rel(i,kte+1)    = 10._kind_phys
+    res(i,kte+1)    = 10._kind_phys
  enddo
 
  if(icloud .gt. 0) then !begin cloud effect to shortwave radiation.
@@ -418,13 +400,13 @@
                    !microphysics parameterization:
                    inflgsw = 3
                    do k = kts,kte
-                      reliq(i,k) = max(2.5,re_cloud(i,k,j)*1.e6)
-                      if(reliq(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
+                      rel(i,k) = max(2.5,re_cloud(i,k,j)*1.e6)
+                      if(rel(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
                          (xland(i,j)-1.5).gt.0.) then        !--- ocean.
-                         reliq(i,k) = 10.5
-                      elseif(reliq(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
+                         rel(i,k) = 10.5
+                      elseif(rel(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
                          (xland(i,j)-1.5).lt.0.) then        !--- land.
-                         reliq(i,k) = 7.5
+                         rel(i,k) = 7.5
                       endif
                    enddo
                 else
@@ -442,7 +424,7 @@
                    enddo
                    call relcalc(pcols,pcols,pver,t1d,landfrac,landm,icefrac,rel1d,snowh)
                    do k = kts,kte
-                      reliq(i,k) = rel1d(pcols,k)
+                      rel(i,k) = rel1d(pcols,k)
                    enddo
                 endif
                 if(has_reqi .ne. 0) then
@@ -451,18 +433,18 @@
                    inflgsw  = 4
                    iceflgsw = 4
                    do k = kts,kte
-                      reice(i,k) = max(5.,re_ice(i,k,j)*1.e6)
-                      if(reice(i,k).le.5. .and. cldfrac(i,k).gt.0.) then
+                      rei(i,k) = max(5.,re_ice(i,k,j)*1.e6)
+                      if(rei(i,k).le.5. .and. cldfrac(i,k).gt.0.) then
                          idx_rei = int(tlay(i,k)-179.)
                          idx_rei = min(max(idx_rei,1),75)
                          corr = tlay(i,k) - int(tlay(i,k))
-                         reice(i,k) = retab(idx_rei)*(1.-corr) + retab(idx_rei+1)*corr
-                         reice(i,k) = max(reice(i,k),5.0)
+                         rei(i,k) = retab(idx_rei)*(1.-corr) + retab(idx_rei+1)*corr
+                         rei(i,k) = max(rei(i,k),5.0)
                       endif
                    enddo
                 else
                    !calculate the effective radius for cloud ice in layers below the model top, following
-                   !Kristjansson and Mitchell. limit upper bound of reice for Fu ice parameterization and
+                   !Kristjansson and Mitchell. limit upper bound of rei for Fu ice parameterization and
                    !convert effective radius to generalized effective size (*1.0315; Fu, 1996):
                    pcols = 1
                    pver  = nlay-1
@@ -471,12 +453,12 @@
                    enddo
                    call reicalc(pcols,pcols,pver,t1d,rei1d)
                    do k = kts,kte
-                      reice(i,k) = rei1d(pcols,k)
+                      rei(i,k) = rei1d(pcols,k)
                    enddo
                    if(iceflgsw .eq. 3) then
                       do k = kts, kte
-                         reice(i,k) = reice(i,k) * 1.0315
-                         reice(i,k) = min(140.0,reice(i,k))
+                         rei(i,k) = rei(i,k) * 1.0315
+                         rei(i,k) = min(140.0,rei(i,k))
                       enddo
                    endif
                 endif
@@ -486,11 +468,11 @@
                    inflgsw  = 5
                    iceflgsw = 5
                    do k = kts, kte
-                      resnow(i,k) = max(10.,re_snow(i,k,j)*1.e6)
+                      res(i,k) = max(10.,re_snow(i,k,j)*1.e6)
                    enddo
                 else
                    do k = kts, kte
-                      resnow(i,k) = 10.
+                      res(i,k) = 10.
                    enddo
                 endif
              endif
@@ -499,30 +481,30 @@
              !cloud liquid water path:
              do k = kts, kte
                 gliqwp = qc1d(k) * pdel(i,k)*100.0 / gravity * 1000.0              !grid box liquid water path.
-                cliqwp(i,k) = gliqwp / max(0.01,cldfrac(i,k))                      !in-cloud liquid water path.
+                clwpth(i,k) = gliqwp / max(0.01,cldfrac(i,k))                      !in-cloud liquid water path.
              enddo
              !cloud ice path:
              if(iceflgsw .eq. 3) then
                 do k = kts, kte
                    gicewp = (qi1d(k)+qs1d(k)) * pdel(i,k)*100.0 / gravity * 1000.0 !grid box ice water path.
-                   cicewp(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
+                   ciwpth(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
                 enddo
              elseif(iceflgsw .ge. 4) then
                 do k = kts, kte
                    gicewp = qi1d(k) * pdel(i,k)*100.0 / gravity * 1000.0           !grid box ice water path.
-                   cicewp(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
+                   ciwpth(i,k) = gicewp / max(0.01,cldfrac(i,k))                   !in-cloud ice water path.
                 enddo
              endif
              !snow path:
              if(iceflgsw.eq.5) then
                 do k = kts, kte
                    snow_mass_factor = 1.0
-                   if(resnow(i,k) .gt. 130.)then
-                      snow_mass_factor = (130.0/resnow(i,k))*(130.0/resnow(i,k))
-                      resnow(i,k)   = 130.0
+                   if(res(i,k) .gt. 130.)then
+                      snow_mass_factor = (130.0/res(i,k))*(130.0/res(i,k))
+                      res(i,k)   = 130.0
                    endif
                    gsnowp = qs1d(k) * pdel(i,k)*100.0 / gravity * 1000.0          !grid box snow path.
-                   csnowp(i,k) = snow_mass_factor * gsnowp / max(0.01,cldfrac(i,k))
+                   cswpth(i,k) = snow_mass_factor * gsnowp / max(0.01,cldfrac(i,k))
                 enddo
              endif
 

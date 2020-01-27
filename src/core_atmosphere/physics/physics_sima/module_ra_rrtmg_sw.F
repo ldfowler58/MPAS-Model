@@ -224,18 +224,8 @@
                    asdir      , asdif      , aldir      , aldif      , play       , &
                    tlay       , pdel       , h2ovmr     , o3vmr      , co2vmr     , &
                    o2vmr      , ch4vmr     , n2ovmr     , plev       , tlev       , &
-                   reliq      , reice      , resnow     , cliqwp     , cicewp     , &
-                   csnowp     , hgt        , cldfrac)
-
-!--- all fields are ordered vertically from bottom to top (pressures are in mb):
-!ncol = ite-its+1
-!nlay = (kte-kts+1) + 1
-
-!--- initialize option for the calculation of the cloud optical properties:
-!icld     = cldovrlp
-!inflgsw  = 2
-!iceflgsw = 3
-!liqflgsw = 1
+                   rel        , rei        , res        , clwpth     , ciwpth     , &
+                   cswpth     , hgt        , cldfrac)
 
 !--- initialize calc_clean_atm_diag:
  calc_clean_atm_diag = 0
@@ -306,11 +296,11 @@
        do k = kts,kte+1
           !input arrays:
 !         cldfrac(i,k) = 0.
-          clwpth(i,k)  = 0.
-          ciwpth(i,k)  = 0.
+!         clwpth(i,k)  = 0.
+!         ciwpth(i,k)  = 0.
           cswpth(i,k)  = 0.
-          rel(i,k)     = 10.
-          rei(i,k)     = 10.
+!         rel(i,k)     = 10.
+!         rei(i,k)     = 10.
           res(i,k)     = 10.
           !--- note: these variables are only calculated if inflgsw is set to zero (inactive option at present):
           do n = 1,nbndsw
@@ -389,28 +379,6 @@
     end do i_loop !end longitude loop.
 
 
-!--- calculate the cloud optical properties:
-    i_loop2: do i = its,ite
-
-                !--- initialize input variables to subroutine mcica_subcol_sw. do not allow clouds between
-                !    the model-top and the top of the atmosphere:
-                do k = kts, kte
-                   clwpth(i,k) = cliqwp(i,k)
-                   ciwpth(i,k) = cicewp(i,k)
-                   cswpth(i,k) = csnowp(i,k)
-                   rel(i,k) = reliq(i,k)
-                   rei(i,k) = reice(i,k)
-                   res(i,k) = resnow(i,k)
-                enddo
-                clwpth(i,kte+1)  = 0.
-                ciwpth(i,kte+1)  = 0.
-                cswpth(i,kte+1)  = 0.
-                rel(i,kte+1)     = 10.
-                rei(i,kte+1)     = 10.
-                res(i,kte+1)     = 10.
-
-    end do i_loop2 !end longitude loop.
-
 !--- call the short-wave radiation code:
     iplon = 1
     irng  = 0
@@ -422,7 +390,6 @@
                 clwpmcl , cswpmcl , reicmcl , relqmcl , resnmcl     , taucmcl , ssacmcl , &
                 asmcmcl , fsfcmcl)
 
-!   call mpas_log_write('$i $i $i $i $i $i $i',intArgs=(/ncol,nlay,icloud,icld,inflgsw,iceflgsw,liqflgsw/))
     call rrtmg_sw_run &
                (dorrsw    , ncol     , nlay      , icld      , play      , plev      , &
                 tlay      , tlev     , tsfc      , h2ovmr    , o3vmr     , co2vmr    , &
