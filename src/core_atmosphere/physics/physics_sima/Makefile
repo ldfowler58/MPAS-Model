@@ -25,6 +25,11 @@ module_ra_rrtmg_sw.o: \
 	ra_rrtmg_sw_mpas.o \
 	../physics_wrf/module_ra_rrtmg_vinterp.o
 
+ra_rrtmg_sw_mpas.o: \
+	module_ra_rrtmg_lw.o \
+	ra_rrtmg_sw.o \
+	../physics_wrf/module_ra_rrtmg_vinterp.o
+
 clean:
 	$(RM) *.f90 *.o *.mod
 	@# Certain systems with intel compilers generate *.i files
