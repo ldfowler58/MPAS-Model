@@ -210,22 +210,25 @@
 
  call rrtmg_sw_mpas_timestep_init &
                   (ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte, &
-                   f_qc       , f_qr       , f_qi       , f_qs       , icloud     , &
-                   has_reqc   , has_reqi   , has_reqs   , cldovrlp   , gravity    , &
-                   gmt        , declin     , degrad     , radt       , xtime      , &
-                   xlat       , xlong      , tsk        , albedo     , xland      , &
-                   xice       , snow       , p3d        , t3d        , qv3d       , &
-                   qc3d       , qr3d       , qi3d       , qs3d       , cldfra3d   , &
-                   re_cloud   , re_ice     , re_snow    , dz8w       , p8w        , &
-                   t8w        , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
-                   o3input    , noznlevels , pin        , o3clim     , ncol       , &
-                   nlay       , icld       , inflgsw    , iceflgsw   , liqflgsw   , &
-                   dyofyr     , adjes      , dorrsw     , coszen     , tsfc       , &
-                   asdir      , asdif      , aldir      , aldif      , play       , &
-                   tlay       , pdel       , h2ovmr     , o3vmr      , co2vmr     , &
-                   o2vmr      , ch4vmr     , n2ovmr     , plev       , tlev       , &
-                   rel        , rei        , res        , clwpth     , ciwpth     , &
-                   cswpth     , hgt        , cldfrac)
+                   nbndsw   , ngptsw     ,                                        &
+                   f_qc     , f_qr       , f_qi       , f_qs       , icloud     , &
+                   has_reqc , has_reqi   , has_reqs   , cldovrlp   , gravity    , &
+                   gmt      , declin     , degrad     , radt       , xtime      , &
+                   xlat     , xlong      , tsk        , albedo     , xland      , &
+                   xice     , snow       , p3d        , t3d        , qv3d       , &
+                   qc3d     , qr3d       , qi3d       , qs3d       , cldfra3d   , &
+                   re_cloud , re_ice     , re_snow    , dz8w       , p8w        , &
+                   t8w      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
+                   o3input  , noznlevels , pin        , o3clim     , ncol       , &
+                   nlay     , icld       , inflgsw    , iceflgsw   , liqflgsw   , &
+                   dyofyr   , adjes      , dorrsw     , coszen     , tsfc       , &
+                   asdir    , asdif      , aldir      , aldif      , play       , &
+                   tlay     , pdel       , h2ovmr     , o3vmr      , co2vmr     , &
+                   o2vmr    , ch4vmr     , n2ovmr     , plev       , tlev       , &
+                   rel      , rei        , res        , clwpth     , ciwpth     , &
+                   cswpth   , hgt        , cldfrac    , cldfmcl    , clwpmcl    , &
+                   ciwpmcl  , cswpmcl    , relqmcl    , reicmcl    , resnmcl    , &
+                   taucmcl  , ssacmcl    , asmcmcl    , fsfcmcl)
 
 !--- initialize calc_clean_atm_diag:
  calc_clean_atm_diag = 0
@@ -292,40 +295,6 @@
           enddo
        endif
 
-       !--- initialization of variables in call to subroutine mcica_subcol_sw:
-       do k = kts,kte+1
-          !input arrays:
-!         cldfrac(i,k) = 0.
-!         clwpth(i,k)  = 0.
-!         ciwpth(i,k)  = 0.
-          cswpth(i,k)  = 0.
-!         rel(i,k)     = 10.
-!         rei(i,k)     = 10.
-          res(i,k)     = 10.
-          !--- note: these variables are only calculated if inflgsw is set to zero (inactive option at present):
-          do n = 1,nbndsw
-             taucld(n,i,k) = 0.
-             ssacld(n,i,k) = 1.
-             asmcld(n,i,k) = 0.
-             fsfcld(n,i,k) = 0.
-          enddo
- 
-          !output arrays:
-          relqmcl(i,k) = 0.
-          reicmcl(i,k) = 0.
-          resnmcl(i,k) = 0.
-          do n = 1,ngptsw
-             cldfmcl(n,i,k) = 0.
-             clwpmcl(n,i,k) = 0.
-             ciwpmcl(n,i,k) = 0.
-             cswpmcl(n,i,k) = 0.
-             taucmcl(n,i,k) = 0.
-             ssacmcl(n,i,k) = 0.
-             asmcmcl(n,i,k) = 0.
-             fsfcmcl(n,i,k) = 0.
-          enddo
-       enddo
-
        !--- initialization of input and output arrays in call to subroutine rrtmg_sw_run. since shortwave
        !    radiation computations are done for daytime columns only, these arrays are initialized when
        !    dorrsw is set to true:
@@ -378,32 +347,21 @@
 
     end do i_loop !end longitude loop.
 
+ end do j_loop !end latitude loop.                                           
 
 !--- call the short-wave radiation code:
-    iplon = 1
-    irng  = 0
-    permuteseed = 1
-    call mcica_subcol_sw &
-               (iplon   , ncol    , nlay    , icld    , permuteseed , irng    , play    , &
-                hgt     , cldfrac , ciwpth  , clwpth  , cswpth      , rei     , rel     , &
-                res     , taucld  , ssacld  , asmcld  , fsfcld      , cldfmcl , ciwpmcl , &
-                clwpmcl , cswpmcl , reicmcl , relqmcl , resnmcl     , taucmcl , ssacmcl , &
-                asmcmcl , fsfcmcl)
-
-    call rrtmg_sw_run &
-               (dorrsw    , ncol     , nlay      , icld      , play      , plev      , &
-                tlay      , tlev     , tsfc      , h2ovmr    , o3vmr     , co2vmr    , &
-                ch4vmr    , n2ovmr   , o2vmr     , asdir     , asdif     , aldir     , &
-                aldif     , coszen   , adjes     , dyofyr    , scon      , inflgsw   , &
-                iceflgsw  , liqflgsw , cldfmcl   , taucmcl   , ssacmcl   , asmcmcl   , &
-                fsfcmcl   , ciwpmcl  , clwpmcl   , cswpmcl   , reicmcl   , relqmcl   , &
-                resnmcl   , tauaer   , ssaaer    , asmaer    , ecaer     , swuflx    , &
-                swdflx    , swhr     , swuflxc   , swdflxc   , swhrc     , swuflxcln , &
-                swdflxcln , aer_opt  , sibvisdir , sibvisdif , sibnirdir , sibnirdif , &
-                swdkdir   , swdkdif  , swdkdirc  , calc_clean_atm_diag   , errmsg    , &
-                errflg)
-
- end do j_loop !end latitude loop.                                           
+ call rrtmg_sw_run &
+            (dorrsw    , ncol     , nlay      , icld      , play      , plev      , &
+             tlay      , tlev     , tsfc      , h2ovmr    , o3vmr     , co2vmr    , &
+             ch4vmr    , n2ovmr   , o2vmr     , asdir     , asdif     , aldir     , &
+             aldif     , coszen   , adjes     , dyofyr    , scon      , inflgsw   , &
+             iceflgsw  , liqflgsw , cldfmcl   , taucmcl   , ssacmcl   , asmcmcl   , &
+             fsfcmcl   , ciwpmcl  , clwpmcl   , cswpmcl   , reicmcl   , relqmcl   , &
+             resnmcl   , tauaer   , ssaaer    , asmaer    , ecaer     , swuflx    , &
+             swdflx    , swhr     , swuflxc   , swdflxc   , swhrc     , swuflxcln , &
+             swdflxcln , aer_opt  , sibvisdir , sibvisdif , sibnirdir , sibnirdif , &
+             swdkdir   , swdkdif  , swdkdirc  , calc_clean_atm_diag   , errmsg    , &
+             errflg)
 
 !--- output the all-sky shortwave heating rate, shortwave net surface radiation for land surface scheme, and
 !    shortwave surface and top-of-the-atmosphere all-sky and clear-sky fluxes (mainly diagnostics):

@@ -5,7 +5,7 @@
 
  use module_ra_rrtmg_vinterp,only: vinterp_ozn
  use module_ra_rrtmg_lw,only: inirad,reicalc,relcalc,retab
-!use parrrsw,only: nbndsw,ngptsw,naerec
+ use mcica_subcol_gen_sw,only: mcica_subcol_sw
 
  implicit none
  public:: rrtmg_sw_mpas_run,           &
@@ -32,6 +32,7 @@
 !=================================================================================================================
  subroutine rrtmg_sw_mpas_timestep_init &
                   (ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte, &
+                   nbndsw   , ngptsw     ,                                        &
                    f_qc     , f_qr       , f_qi       , f_qs       , icloud     , &
                    has_reqc , has_reqi   , has_reqs   , cldovrlp   , gravity    , &
                    gmt      , declin     , degrad     , radt       , xtime      , &
@@ -47,7 +48,9 @@
                    tlay     , pdel       , h2ovmr     , o3vmr      , co2vmr     , &
                    o2vmr    , ch4vmr     , n2ovmr     , plev       , tlev       , &
                    rel      , rei        , res        , clwpth     , ciwpth     , &
-                   cswpth   , hgt        , cldfrac)
+                   cswpth   , hgt        , cldfrac    , cldfmcl    , clwpmcl    , &
+                   ciwpmcl  , cswpmcl    , relqmcl    , reicmcl    , resnmcl    , &
+                   taucmcl  , ssacmcl    , asmcmcl    , fsfcmcl)
 !=================================================================================================================
 
 !input arguments:
@@ -58,6 +61,10 @@
     f_qs         !
 
  integer,intent(in):: ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte
+
+ integer,intent(in):: &
+    nbndsw,     &!
+    ngptsw       !
 
  integer,intent(in):: &
     icloud,     &!
@@ -166,16 +173,30 @@
     cswpth,   &!
     rei,      &!
     rel,      &!
-    res        !
+    res,      &!
+    relqmcl,  &!
+    reicmcl,  &!
+    resnmcl    !
 
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+2):: &
     plev,     &!
     tlev
 
+ real(kind=kind_phys),intent(out),dimension(ngptsw,its:ite,kts:kte+1):: &
+    cldfmcl,  &!
+    clwpmcl,  &!
+    ciwpmcl,  &!
+    cswpmcl,  &!
+    taucmcl,  &!
+    ssacmcl,  &!
+    asmcmcl,  &!
+    fsfcmcl
+
 !local variables and arrays:
  integer:: i,j,k,n
  integer:: pcols,pver
  integer:: idx_rei
+ integer:: iplon,irng,permuteseed
 
  real(kind=kind_phys):: coszrs,hrang,tloctm,xt24,xxlat
  real(kind=kind_phys):: dz,dzsum
@@ -188,7 +209,7 @@
  real(kind=kind_phys),dimension(1,kts:kte):: t1d,rei1d,rel1d
  real(kind=kind_phys),dimension(1:noznlevels):: o3clim1d
 
-!real(kind=kind_phys),dimension(its:ite,kts:kte+1):: hgt,cldfrac
+ real(kind=kind_phys),dimension(nbndsw,its:ite,kts:kte+1):: taucld,ssacld,asmcld,fsfcld
 
 !--- set trace gas volume mixing ratios, 2005 values, IPCC (2007):
 !carbon dioxide (379 ppmv)
@@ -330,20 +351,52 @@
 
 !--- calculation of the cloud optical properties for daytime columns:
  do i = its,ite
+    !initialization of input variables:
     do k = kts,kte
-       ciwpth(i,k) = 0._kind_phys
-       clwpth(i,k) = 0._kind_phys
-       cswpth(i,k) = 0._kind_phys
-       rei(i,k)    = 0._kind_phys
-       rel(i,k)    = 0._kind_phys
-       res(i,k)    = 0._kind_phys
+       cldfrac(i,k)  = 0._kind_phys
+       ciwpth(i,k)   = 0._kind_phys
+       clwpth(i,k)   = 0._kind_phys
+       cswpth(i,k)   = 0._kind_phys
+       rei(i,k)      = 0._kind_phys
+       rel(i,k)      = 0._kind_phys
+       res(i,k)      = 0._kind_phys
+       do n = 1, nbndsw
+          taucld(n,i,k) = 0._kind_phys
+          ssacld(n,i,k) = 1._kind_phys
+          asmcld(n,i,k) = 0._kind_phys
+          fsfcld(n,i,k) = 0._kind_phys
+       enddo
     enddo
-    ciwpth(i,kte+1) = 0._kind_phys
-    clwpth(i,kte+1) = 0._kind_phys
-    cswpth(i,kte+1) = 0._kind_phys
-    rei(i,kte+1)    = 10._kind_phys
-    rel(i,kte+1)    = 10._kind_phys
-    res(i,kte+1)    = 10._kind_phys
+    k = kte+1
+    cldfrac(i,k) = 0._kind_phys
+    ciwpth(i,k)  = 0._kind_phys
+    clwpth(i,k)  = 0._kind_phys
+    cswpth(i,k)  = 0._kind_phys
+    rei(i,k)     = 10._kind_phys
+    rel(i,k)     = 10._kind_phys
+    res(i,k)     = 10._kind_phys
+    do n = 1,nbndsw
+       taucld(n,i,k) = 0._kind_phys
+       ssacld(n,i,k) = 1._kind_phys
+       asmcld(n,i,k) = 0._kind_phys
+       fsfcld(n,i,k) = 0._kind_phys
+    enddo
+    !initialization of output variables:
+    do k = kts,kte+1
+       relqmcl(i,k) = 0._kind_phys
+       reicmcl(i,k) = 0._kind_phys
+       resnmcl(i,k) = 0._kind_phys
+       do n = 1,ngptsw
+          cldfmcl(n,i,k) = 0._kind_phys
+          clwpmcl(n,i,k) = 0._kind_phys
+          ciwpmcl(n,i,k) = 0._kind_phys
+          cswpmcl(n,i,k) = 0._kind_phys
+          taucmcl(n,i,k) = 0._kind_phys
+          ssacmcl(n,i,k) = 0._kind_phys
+          asmcmcl(n,i,k) = 0._kind_phys
+          fsfcmcl(n,i,k) = 0._kind_phys
+       enddo
+    enddo
  enddo
 
  if(icloud .gt. 0) then !begin cloud effect to shortwave radiation.
@@ -511,6 +564,19 @@
           endif !end if statement checking for daytime columns.
 
        enddo i_loop2
+
+       !--- call to subroutine mcica_subcol_sw which outputs the stochastic cloud optical properties:
+       iplon = 1
+       irng  = 0
+       permuteseed = 1
+       call mcica_subcol_sw &
+                  (iplon   , ncol    , nlay    , icld    , permuteseed , irng    , play    , &
+                   hgt     , cldfrac , ciwpth  , clwpth  , cswpth      , rei     , rel     , &
+                   res     , taucld  , ssacld  , asmcld  , fsfcld      , cldfmcl , ciwpmcl , &
+                   clwpmcl , cswpmcl , reicmcl , relqmcl , resnmcl     , taucmcl , ssacmcl , &
+                   asmcmcl , fsfcmcl)
+
+
     enddo j_loop2
  endif
 
