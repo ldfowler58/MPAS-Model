@@ -31,8 +31,9 @@
 
 !=================================================================================================================
  subroutine rrtmg_sw_mpas_timestep_init &
-                  (ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte, &
-                   nbndsw   , ngptsw     ,                                        &
+                  (ims      , ime        , jms        , jme        , kms        , &
+                   kme      , its        , ite        , jts        , jte        , &
+                   kts      , kte        , nbndsw     , ngptsw     , naerec     , &
                    f_qc     , f_qr       , f_qi       , f_qs       , icloud     , &
                    has_reqc , has_reqi   , has_reqs   , cldovrlp   , gravity    , &
                    gmt      , declin     , degrad     , radt       , xtime      , &
@@ -43,14 +44,15 @@
                    t8w      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
                    o3input  , noznlevels , pin        , o3clim     , ncol       , &
                    nlay     , icld       , inflgsw    , iceflgsw   , liqflgsw   , &
-                   dyofyr   , adjes      , dorrsw     , coszen     , tsfc       , &
-                   asdir    , asdif      , aldir      , aldif      , play       , &
-                   tlay     , pdel       , h2ovmr     , o3vmr      , co2vmr     , &
-                   o2vmr    , ch4vmr     , n2ovmr     , plev       , tlev       , &
-                   rel      , rei        , res        , clwpth     , ciwpth     , &
-                   cswpth   , hgt        , cldfrac    , cldfmcl    , clwpmcl    , &
-                   ciwpmcl  , cswpmcl    , relqmcl    , reicmcl    , resnmcl    , &
-                   taucmcl  , ssacmcl    , asmcmcl    , fsfcmcl)
+                   aer_opt  , dyofyr     , adjes      , dorrsw     , coszen     , &
+                   tsfc     , asdir      , asdif      , aldir      , aldif      , &
+                   play     , tlay       , pdel       , h2ovmr     , o3vmr      , &
+                   co2vmr   , o2vmr      , ch4vmr     , n2ovmr     , plev       , &
+                   tlev     , rel        , rei        , res        , clwpth     , &
+                   ciwpth   , cswpth     , hgt        , cldfrac    , cldfmcl    , &
+                   clwpmcl  , ciwpmcl    , cswpmcl    , relqmcl    , reicmcl    , &
+                   resnmcl  , taucmcl    , ssacmcl    , asmcmcl    , fsfcmcl    , &
+                   tauaer   , ssaaer     , asmaer     , ecaer)
 !=================================================================================================================
 
 !input arguments:
@@ -64,7 +66,8 @@
 
  integer,intent(in):: &
     nbndsw,     &!
-    ngptsw       !
+    ngptsw,     &!
+    naerec       !
 
  integer,intent(in):: &
     icloud,     &!
@@ -134,6 +137,9 @@
     dyofyr     !
 
  integer,intent(out):: &
+    aer_opt    !
+
+ integer,intent(out):: &
     icld,     &!
     inflgsw,  &!
     iceflgsw, &!
@@ -191,6 +197,14 @@
     ssacmcl,  &!
     asmcmcl,  &!
     fsfcmcl
+
+ real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1,nbndsw):: &
+    tauaer,   &!
+    ssaaer,   &!
+    asmaer     !
+
+ real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1,naerec):: &
+    ecaer
 
 !local variables and arrays:
  integer:: i,j,k,n
@@ -258,6 +272,9 @@
  inflgsw  = 2
  iceflgsw = 3
  liqflgsw = 1
+
+!--- initialize option for the calculation of the aerosol optical properties:
+ aer_opt = 0
 
 !--- set solar constant:
  dyofyr = 0
@@ -344,10 +361,23 @@
                 o3vmr(i,k) = o3mmr(k)*amdo
              enddo
           endif
+
+          !initialization of the aerosol cloud optical properties:
+          do k = kts,kte+1
+             do n = 1,nbndsw
+                tauaer(i,k,n) = 0._kind_phys
+                ssaaer(i,k,n) = 1._kind_phys
+                asmaer(i,k,n) = 0._kind_phys
+             enddo
+             do n = 1,naerec
+                ecaer(i,k,n) = 0._kind_phys
+             enddo
+          enddo
        endif !end if statement checking for daytime columns.
 
     enddo i_loop
  enddo j_loop
+
 
 !--- calculation of the cloud optical properties for daytime columns:
  do i = its,ite

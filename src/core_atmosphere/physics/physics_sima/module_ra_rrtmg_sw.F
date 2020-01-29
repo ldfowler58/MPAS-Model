@@ -209,8 +209,9 @@
  call mpas_log_write('--- enter subroutine rrtmg_swrad:')
 
  call rrtmg_sw_mpas_timestep_init &
-                  (ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte, &
-                   nbndsw   , ngptsw     ,                                        &
+                  (ims      , ime        , jms        , jme        , kms        , &
+                   kme      , its        , ite        , jts        , jte        , &
+                   kts      , kte        , nbndsw     , ngptsw     , naerec     , &
                    f_qc     , f_qr       , f_qi       , f_qs       , icloud     , &
                    has_reqc , has_reqi   , has_reqs   , cldovrlp   , gravity    , &
                    gmt      , declin     , degrad     , radt       , xtime      , &
@@ -221,14 +222,15 @@
                    t8w      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
                    o3input  , noznlevels , pin        , o3clim     , ncol       , &
                    nlay     , icld       , inflgsw    , iceflgsw   , liqflgsw   , &
-                   dyofyr   , adjes      , dorrsw     , coszen     , tsfc       , &
-                   asdir    , asdif      , aldir      , aldif      , play       , &
-                   tlay     , pdel       , h2ovmr     , o3vmr      , co2vmr     , &
-                   o2vmr    , ch4vmr     , n2ovmr     , plev       , tlev       , &
-                   rel      , rei        , res        , clwpth     , ciwpth     , &
-                   cswpth   , hgt        , cldfrac    , cldfmcl    , clwpmcl    , &
-                   ciwpmcl  , cswpmcl    , relqmcl    , reicmcl    , resnmcl    , &
-                   taucmcl  , ssacmcl    , asmcmcl    , fsfcmcl)
+                   aer_opt  , dyofyr     , adjes      , dorrsw     , coszen     , &
+                   tsfc     , asdir      , asdif      , aldir      , aldif      , &
+                   play     , tlay       , pdel       , h2ovmr     , o3vmr      , &
+                   co2vmr   , o2vmr      , ch4vmr     , n2ovmr     , plev       , &
+                   tlev     , rel        , rei        , res        , clwpth     , &
+                   ciwpth   , cswpth     , hgt        , cldfrac    , cldfmcl    , &
+                   clwpmcl  , ciwpmcl    , cswpmcl    , relqmcl    , reicmcl    , &
+                   resnmcl  , taucmcl    , ssacmcl    , asmcmcl    , fsfcmcl    , &
+                   tauaer   , ssaaer     , asmaer     , ecaer)
 
 !--- initialize calc_clean_atm_diag:
  calc_clean_atm_diag = 0
@@ -244,7 +246,6 @@
  j_loop: do j = jts,jte
 
 !--- longitude loop:
-
     i_loop: do i = its,ite
 
        !--- initialization of outputs:
@@ -298,21 +299,9 @@
        !--- initialization of input and output arrays in call to subroutine rrtmg_sw_run. since shortwave
        !    radiation computations are done for daytime columns only, these arrays are initialized when
        !    dorrsw is set to true:
-       aer_opt = 0
 
        if(dorrsw(i)) then    !begin if statement checking for daytime columns.
           do k = kts,kte+1
-             !inputs:
-             do nb = 1,nbndsw
-                tauaer(i,k,nb) = 0.
-                ssaaer(i,k,nb) = 1.
-                asmaer(i,k,nb) = 0.
-             enddo
-             do na = 1,naerec
-                ecaer(i,k,na) = 0.
-             enddo
-
-             !outputs:
              swuflx(i,k)    = 0.
              swuflxc(i,k)   = 0.
              swdflx(i,k)    = 0.
