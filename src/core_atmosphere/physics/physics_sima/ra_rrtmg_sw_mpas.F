@@ -46,13 +46,17 @@
                    nlay     , icld       , inflgsw    , iceflgsw   , liqflgsw   , &
                    aer_opt  , dyofyr     , adjes      , dorrsw     , coszen     , &
                    tsfc     , asdir      , asdif      , aldir      , aldif      , &
-                   play     , tlay       , pdel       , h2ovmr     , o3vmr      , &
+                   play     , tlay       , h2ovmr     , o3vmr      , &
                    co2vmr   , o2vmr      , ch4vmr     , n2ovmr     , plev       , &
-                   tlev     , rel        , rei        , res        , clwpth     , &
-                   ciwpth   , cswpth     , hgt        , cldfrac    , cldfmcl    , &
-                   clwpmcl  , ciwpmcl    , cswpmcl    , relqmcl    , reicmcl    , &
-                   resnmcl  , taucmcl    , ssacmcl    , asmcmcl    , fsfcmcl    , &
-                   tauaer   , ssaaer     , asmaer     , ecaer)
+                   tlev     , cldfmcl    , clwpmcl    , ciwpmcl    , cswpmcl    , &
+                   relqmcl  , reicmcl    , resnmcl    , taucmcl    , ssacmcl    , &
+                   asmcmcl  , fsfcmcl    , tauaer     , ssaaer     , asmaer     , &
+                   ecaer)
+!                  tlev     , rel        , rei        , res        , clwpth     , &
+!                  ciwpth   , cswpth     , hgt        , cldfrac    , cldfmcl    , &
+!                  clwpmcl  , ciwpmcl    , cswpmcl    , relqmcl    , reicmcl    , &
+!                  resnmcl  , taucmcl    , ssacmcl    , asmcmcl    , fsfcmcl    , &
+!                  tauaer   , ssaaer     , asmaer     , ecaer)
 !=================================================================================================================
 
 !input arguments:
@@ -156,9 +160,6 @@
     aldir,    &!
     aldif      !
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte):: &
-    pdel
-
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
     play,     &!
     tlay,     &!
@@ -170,16 +171,6 @@
     n2ovmr     !
 
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
-    hgt,      &!
-    cldfrac    !
-
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
-    ciwpth,   &!
-    clwpth,   &!
-    cswpth,   &!
-    rei,      &!
-    rel,      &!
-    res,      &!
     relqmcl,  &!
     reicmcl,  &!
     resnmcl    !
@@ -223,6 +214,9 @@
  real(kind=kind_phys),dimension(1,kts:kte):: t1d,rei1d,rel1d
  real(kind=kind_phys),dimension(1:noznlevels):: o3clim1d
 
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: pdel
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: hgt,cldfrac
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: ciwpth,clwpth,cswpth,rei,rel,res
  real(kind=kind_phys),dimension(nbndsw,its:ite,kts:kte+1):: taucld,ssacld,asmcld,fsfcld
 
 !--- set trace gas volume mixing ratios, 2005 values, IPCC (2007):
