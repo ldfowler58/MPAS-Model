@@ -4,8 +4,8 @@
  use mpas_log
 
  use module_ra_rrtmg_vinterp,only: vinterp_ozn
- use module_ra_rrtmg_lw,only: inirad,reicalc,relcalc,retab
- use mcica_subcol_gen_sw,only: mcica_subcol_sw
+ use module_ra_rrtmg_lw,only     : inirad,reicalc,relcalc,retab
+ use mcica_subcol_gen_sw,only    : mcica_subcol_sw
 
  implicit none
  public:: rrtmg_sw_mpas_run,           &
@@ -51,151 +51,154 @@
                    tlev     , cldfmcl    , clwpmcl    , ciwpmcl    , cswpmcl    , &
                    relqmcl  , reicmcl    , resnmcl    , taucmcl    , ssacmcl    , &
                    asmcmcl  , fsfcmcl    , tauaer     , ssaaer     , asmaer     , &
-                   ecaer)
-!                  tlev     , rel        , rei        , res        , clwpth     , &
-!                  ciwpth   , cswpth     , hgt        , cldfrac    , cldfmcl    , &
-!                  clwpmcl  , ciwpmcl    , cswpmcl    , relqmcl    , reicmcl    , &
-!                  resnmcl  , taucmcl    , ssacmcl    , asmcmcl    , fsfcmcl    , &
-!                  tauaer   , ssaaer     , asmaer     , ecaer)
+                   ecaer    , errmsg     , errflg)
 !=================================================================================================================
 
 !input arguments:
  logical,intent(in),optional:: &
-    f_qc,       &!
-    f_qr,       &!
-    f_qi,       &!
-    f_qs         !
+    f_qc,       &! if true, the physics package includes the cloud liquid water mixing ratio.
+    f_qr,       &! if true, the physics package includes the rain mixing ratio.
+    f_qi,       &! if true, the physics package includes the cloud ice mixing ratio.
+    f_qs         ! if true, the physics package includes the snow mixing ratio.
 
  integer,intent(in):: ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte
 
  integer,intent(in):: &
-    nbndsw,     &!
-    ngptsw,     &!
-    naerec       !
+    nbndsw,     &! number of shortwave spectral bands.
+    ngptsw,     &! number of reduced g-intervals for rrtmg_sw.
+    naerec       ! number of aerosols for the option iaer=6 (ecmwf aerosols option)
 
  integer,intent(in):: &
-    icloud,     &!
-    has_reqc,   &!
-    has_reqi,   &!
-    has_reqs,   &!
-    cldovrlp,   &!
-    noznlevels, &!
-    o3input      !
+    icloud,     &! option that defines the cloud effect on the SW optical depth.
+    has_reqc,   &! = 1 if effective radius of cloud liquid water computed from cloud microphysics, = 0 otherwise.
+    has_reqi,   &! = 1 if effective radius of cloud ice computed from cloud microphysics, = 0 otherwise.
+    has_reqs,   &! = 1 if effective radius of snow computed from cloud microphysics, = 0 otherwise.
+    cldovrlp,   &! option that defines the type of cloud overlap.
+    noznlevels, &! number of levels of climatological ozone data.
+    o3input      ! ozone input option for shortwave radiation.
 
  real(kind=kind_phys),intent(in):: &
-    declin,     &!
-    degrad,     &!
-    gmt,        &!
-    gravity,    &!
-    radt,       &!
-    xtime        !
+    declin,     &! solar declination (radian).
+    degrad,     &! conversion factor from degree to radian (-).
+    gmt,        &! GMT time.
+    gravity,    &! acceleration due to gravity (m/s2).
+    radt,       &! shortwave radiation timestep (s).
+    xtime        ! MPAS run time.
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: &
-    xlat,       &!
-    xlon,       &!
-    xland,      &!
-    xice,       &!
-    snow,       &!
+    xlat,       &! latitude (radian).
+    xlon,       &! longitude (radian).
+    xland,      &! land-ocean mask (1=land including sea-ice ; 2=ocean)
+    xice,       &! fractional seaice amount (-).
+    snow,       &! snow water equivalent (kg/m2).
     albedo,     &! surface albedo (-).
     tsk          ! surface temperature (K).
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
-    t3d,        &!
-    p3d,        &!
-    qv3d,       &!
-    re_cloud,   &!
-    re_ice,     &!
-    re_snow      !
-
- real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme),optional:: &
-   alswvisdir,  &!
-   alswvisdif,  &!
-   alswnirdir,  &!
-   alswnirdif    !
+    t3d,        &! temperature at middle of layers (K).
+    p3d,        &! pressure at middle of layers (Pa).
+    qv3d,       &! water vapor mixing ratio at middle of layers (kg/kg).
+    re_cloud,   &! effective radius of cloud liquid droplets at middle of layers (m).
+    re_ice,     &! effective radius of cloud ice crystals at middle of layers (m). 
+    re_snow      ! effective radius of snow crystals at middle of layers (m).
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
-    dz8w,       &!
-    p8w,        &!
-    t8w          !
+    dz8w,       &! thickness of layers (m).
+    p8w,        &! pressure at interface of layers (Pa).
+    t8w          ! temperature at interface of layers (K).
+
+ real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme),optional:: &
+    alswvisdir, &! visible direct component of surface albedo when using SIB LSM (-).
+    alswvisdif, &! visible diffuse component of surface albedo when using SIB LSM (-).
+    alswnirdir, &! near-IR direct component of surface albedo when using SIB LSM (-).
+    alswnirdif   ! near-IR diffuse component of surface albedo when using SIB LSM (-).
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-    cldfra3d,   &!
-    qc3d,       &!
-    qr3d,       &!
-    qi3d,       &!
-    qs3d         !
+    cldfra3d,   &! cloud fraction at middle of layers (-).
+    qc3d,       &! cloud liquid water mixing ratio at middle of layers (kg/kg).
+    qr3d,       &! rain mixing ratio at middle of layers (kg/kg).
+    qi3d,       &! cloud ice mixing ratio at middle of layers (kg/kg).
+    qs3d         ! snow mixing ratio (kg/kg).
 
  real(kind=kind_phys),intent(in),dimension(1:noznlevels),optional:: &
-    pin          !
+    pin          ! fixed pressures at which climatological ozone data are defined (hPa).
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,1:noznlevels,jms:jme),optional:: &
-    o3clim       !
+    o3clim       ! monthly-mean climatological ozone data at fixed pressure levels.
+
 
 !output arguments:
+ character(len=*),intent(out):: &
+    errmsg       ! output error message (-).
+
  logical,intent(out),dimension(its:ite):: &
-    dorrsw     !
+    dorrsw       ! logical set to true for daytime grid-points (-).
 
  integer,intent(out):: &
-    ncol,     &!
-    nlay,     &!
-    dyofyr     !
+    errflg       ! output error flag (-).
 
  integer,intent(out):: &
-    aer_opt    !
+    ncol,       &! number of columns in each MPI domain.
+    nlay,       &! number of layers plus one (between the top of the model and top-of-the-atmosphere).
+    dyofyr       ! day of the year.
 
  integer,intent(out):: &
-    icld,     &!
-    inflgsw,  &!
-    iceflgsw, &!
-    liqflgsw   !
+    aer_opt      ! local option of optical properties of aerosols.
+
+ integer,intent(out):: &
+    icld,       &! local option that defines the type of cloud overlap.
+    inflgsw,    &! local flag for calculation of shortwave cloud optical properties.
+    iceflgsw,   &! local flag for ice particle specifications.
+    liqflgsw     ! local flag for liquid droplet specifications.
 
  real(kind=kind_phys),intent(out):: &
-    adjes
+    adjes        ! flux adjustment for Earth/Sun distance (-).
 
  real(kind=kind_phys),intent(out),dimension(its:ite):: &
-    coszen,   &!
-    tsfc,     &!
-    asdir,    &!
-    asdif,    &!
-    aldir,    &!
-    aldif      !
+    coszen,     &! local cosine of solar zenith angle (-).
+    tsfc,       &! local surface temperature (K).
+    asdir,      &! local visible direct surface albedo (-).
+    asdif,      &! local visible diffuse surface albedo (-).
+    aldir,      &! local near-IR direct surface albedo (-).
+    aldif        ! local near-IR diffuse surface albedo (-).
 
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
-    play,     &!
-    tlay,     &!
-    h2ovmr,   &!
-    o3vmr,    &!
-    co2vmr,   &!
-    o2vmr,    &!
-    ch4vmr,   &!
-    n2ovmr     !
+    play,       &! local pressure at middle of layers (hPa).
+    tlay,       &! local temperature at middle of layers (K).
+    h2ovmr,     &! local volume mixing ratio of water vapor ().
+    o3vmr,      &! local volume mixing ratio of ozone ().
+    co2vmr,     &! local volume mixing ratio of carbon dioxide ().
+    o2vmr,      &! local volume mixing ratio of oxygen ().
+    ch4vmr,     &! local volume mixing ratio of methane ().
+    n2ovmr       ! local volume mixing ratio of nitrous oxide ().
 
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
-    relqmcl,  &!
-    reicmcl,  &!
-    resnmcl    !
+    relqmcl,    &! local cloud liquid water particle size (microns).
+    reicmcl,    &! local cloud ice particle size (microns).
+    resnmcl      ! local snow particle size (microns).
 
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+2):: &
-    plev,     &!
-    tlev
+    plev,       &! local pressure at interface between layers (hPa).
+    tlev         ! local temperature at interface between layers (K).
 
  real(kind=kind_phys),intent(out),dimension(ngptsw,its:ite,kts:kte+1):: &
-    cldfmcl,  &!
-    clwpmcl,  &!
-    ciwpmcl,  &!
-    cswpmcl,  &!
-    taucmcl,  &!
-    ssacmcl,  &!
-    asmcmcl,  &!
-    fsfcmcl
+    cldfmcl,    &! in-cloud cloud fraction (-).
+    clwpmcl,    &! in-cloud liquid water path (g/m2).
+    ciwpmcl,    &! in-cloud ice water path (g/m2).
+    cswpmcl,    &! in-cloud snow water path (g/m2).
+    taucmcl,    &! in-cloud optical depth (-).
+    ssacmcl,    &! in-cloud single scattering albedo (-).
+    asmcmcl,    &! in-cloud asymmetry factor (-).
+    fsfcmcl      ! in-cloud forward scattering fraction (-).
 
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1,nbndsw):: &
-    tauaer,   &!
-    ssaaer,   &!
-    asmaer     !
+    tauaer,     &! aerosol optical depth (-).
+    ssaaer,     &! aerosol single scattering albedo (-).
+    asmaer       ! aerosol asymmetry factor (-).
 
  real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1,naerec):: &
-    ecaer
+    ecaer        ! aerosol mixing ratio for ECMWF aerosols ().
+
 
 !local variables and arrays:
  integer:: i,j,k,n
@@ -604,108 +607,123 @@
     enddo j_loop2
  endif
 
+ errmsg = 'rrtmg_sw_mpas_timestep_init OK'
+ errflg = 0
+
  call mpas_log_write('--- end subroutine rrtmg_sw_mpas_timestep_init:')
-!call mpas_log_write(' ')
 
  end subroutine rrtmg_sw_mpas_timestep_init
 
 !=================================================================================================================
  subroutine rrtmg_sw_mpas_timestep_final &
-                  (dorrsw,pi3d,alswvisdir,alswvisdif,alswnirdir,alswnirdif,coszen,                 &
-                   coszr,gsw,swhr,swhrc,swuflx,swuflxc,swdflx,swdflxc,swuflxcln,swdflxcln,         &
-                   sibvisdir,sibvisdif,sibnirdir,sibnirdif,swdkdir,swdkdirc,swdkdif,               &
-                   rthratensw,swcf,swupt,swuptc,swdnt,swdntc,swupb,swupbc,swdnb,swdnbc,            &
-                   swuptcln,swdntcln,swupbcln,swdnbcln,swvisdir,swvisdif,swnirdir,swnirdif,        &
-                   swddir,swddni,swddif,swddirc,swddnic,swdownc,swupflx,swupflxc,swdnflx,swdnflxc, &
-                   ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte)
+                  (ims        , ime       , jms        , jme        , kms        , kme        , &
+                   its        , ite       , jts        , jte        , kts        , kte        , &
+                   dorrsw     , pi3d      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
+                   coszen     , swhr      , swhrc      , swuflx     , swuflxc    , swdflx     , &
+                   swdflxc    , swuflxcln , swdflxcln  , sibvisdir  , sibvisdif  , sibnirdir  , &
+                   sibnirdif  , swdkdir   , swdkdirc   , swdkdif    , coszr      , gsw        , &
+                   rthratensw , swcf      , swupt      , swuptc     , swdnt      , swdntc     , &
+                   swupb      , swupbc    , swdnb      , swdnbc     , swuptcln   , swdntcln   , &
+                   swupbcln   , swdnbcln  , swvisdir   , swvisdif   , swnirdir   , swnirdif   , &
+                   swddir     , swddni    , swddif     , swddirc    , swddnic    , swdownc    , &
+                   swupflx    , swupflxc  , swdnflx    , swdnflxc   , errmsg     , errflg)
 !=================================================================================================================
 
 !input arguments:
- logical,intent(in),dimension(its:ite):: dorrsw
+ logical,intent(in),dimension(its:ite):: &
+    dorrsw       ! logical set to true for daytime grid-points (-).
 
  integer,intent(in):: ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte
 
  real(kind=kind_phys),intent(in),dimension(its:ite):: &
-    coszen       !
+    coszen       ! local cosine of the solar zenith angle (-). 
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+1):: &
-    swhr,       &! all-sky shortwave heating rate (K/day).
-    swhrc        ! clear-sky shortwave heating rate (K/day).
+    swhr,       &! local instantaneous all-sky shortwave heating rate (K/day).
+    swhrc        ! local instantaneous clear-sky shortwave heating rate (K/day).
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+2):: &
-    swuflx,     &! all-sky upward shortwave radiation flux (W/m2).
-    swuflxc,    &! clear-sky upward shortwave radiation flux (W/m2)
-    swdflx,     &! all-sky downward shortwave radiation flux (W/m2).
-    swdflxc      ! clear-sky downward shortwave radiation flux (W/m2).
+    swuflx,     &! local instantaneous all-sky upward shortwave radiation flux (W/m2).
+    swuflxc,    &! local instantaneous clear-sky upward shortwave radiation flux (W/m2)
+    swdflx,     &! local instantaneous all-sky downward shortwave radiation flux (W/m2).
+    swdflxc      ! local instantaneous clear-sky downward shortwave radiation flux (W/m2).
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+2):: &
-    swuflxcln,  &!
-    swdflxcln    !
+    swuflxcln,  &! local instantaneous clean-sky upward shortwave radiation flux (W/m2).
+    swdflxcln    ! local instantaneous clean-sky downward shortwave radiation flux (W/m2).
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+2):: &
-    sibvisdir,  &!
-    sibvisdif,  &!
-    sibnirdir,  &!
-    sibnirdif    !
+    sibvisdir,  &! local instantaneous direct visible shortwave radiation flux when using SIB LSM (W/m2).
+    sibvisdif,  &! local instantaneous diffuse visible shortwave radiation flux when using SIB LSM (W/m2).
+    sibnirdir,  &! local instantaneous direct near-IR shortwave radiation flux when using SIB LSM (W/m2).
+    sibnirdif    ! local instantaneous diffuse near-IR shortwave radiation flux when using SIB LSM (W/m2).
 
  real(kind=kind_phys),dimension(its:ite,kts:kte+2):: &
-    swdkdir,    &!
-    swdkdirc,   &!
-    swdkdif      !
+    swdkdir,    &! local instantaneous all-sky downward direct shortwave irradiance (W/m2).
+    swdkdirc,   &! local instantaneous clear-sky downward direct shortwave irradiance (W/m2).
+    swdkdif      ! local instantaneous all-sky downward diffuse shortwave irradiance (W/m2).
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
     pi3d         ! exner function (-).
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme),optional:: &
-    alswvisdir, &!
-    alswvisdif, &!
-    alswnirdir, &!
-    alswnirdif   !
+    alswvisdir, &! visible direct component of surface albedo when using SIB LSM (-).
+    alswvisdif, &! visible diffuse component of surface albedo when using SIB LSM (-).
+    alswnirdir, &! near-IR direct component of surface albedo when using SIB LSM (-).
+    alswnirdif   ! near-IR diffuse component of surface albedo when using SIB LSM (-).
+
 
 !output arguments:
+ character(len=*),intent(out):: &
+    errmsg       ! output error message (-).
+
+ integer,intent(out):: &
+    errflg       ! output error flag (-).
+
  real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme):: &
     coszr,      &! cosine of the solar zenith angle (-).
     gsw          ! all-sky net surface radiation (W/m2).
 
  real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
-    swcf,       &! all-sky shortwave cloud radiative forcing (W/m2).
-    swupt,      &! all-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
-    swuptc,     &! clear-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
-    swdnt,      &! all-sky shortwave top-of-the-atmosphere downward radiation (W/m2).
-    swdntc,     &! clear-sky shortwave top-of-the-atmosphere downward radiation (W/m2).
-    swupb,      &! all-sky shortwave surface upward radiation (W/m2).
-    swupbc,     &! clear-sky shortwave surface upward radiation (W/m2).
-    swdnb,      &! all-sky shortwave surface downward radiation (W/m2).
-    swdnbc       ! clear-sky shortwave surface downward radiation (W/m2).
+    swcf,       &! instantaneous all-sky shortwave top-of-the-atmosphere cloud radiative forcing (W/m2).
+    swupt,      &! instantaneous all-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
+    swuptc,     &! instantaneous clear-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
+    swdnt,      &! instantaneous all-sky shortwave top-of-the-atmosphere downward radiation (W/m2).
+    swdntc,     &! instantaneous clear-sky shortwave top-of-the-atmosphere downward radiation (W/m2).
+    swupb,      &! instantaneous all-sky shortwave surface upward radiation (W/m2).
+    swupbc,     &! instantaneous clear-sky shortwave surface upward radiation (W/m2).
+    swdnb,      &! instantaneous all-sky shortwave surface downward radiation (W/m2).
+    swdnbc       ! instantaneous clear-sky shortwave surface downward radiation (W/m2).
 
  real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
-    swuptcln,   &!
-    swdntcln,   &!
-    swupbcln,   &!
-    swdnbcln     !
+    swuptcln,   &! instantaneous clean-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
+    swdntcln,   &! instantaneous clean-sky shortwave top-of-the-atmosphere downward radiation (W/m2).
+    swupbcln,   &! instantaneous clean-sky shortwave surface upward radiation (W/m2).
+    swdnbcln     ! instantaneous clean-sky shortwave surface downward radiation (W/m2).
 
  real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
-    swvisdir,   &!
-    swvisdif,   &!
-    swnirdir,   &!
-    swnirdif     !
+    swvisdir,   &! instantaneous visible direct all-sky shortwave surface radiation when using SIB LSM (W/m2).
+    swvisdif,   &! instantaneous visible diffuse all-sky shortwave surface radiation when using SIB LSM (W/m2).
+    swnirdir,   &! instantaneous near-IR direct all-sky shortwave surface radiation when using SIB LSM (W/m2).
+    swnirdif     ! instantaneous near-IR diffuse all-sky shortwave surface radiation when using SIB LSM (W/m2).
 
  real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
-      swddir,   &!
-      swddni,   &!
-      swddif,   &!
-      swddirc,  &!
-      swddnic,  &!
-      swdownc    !
+    swddir,     &! instantaneous direct all-sky shortwave surface downward irradiance (W/m2).
+    swddni,     &! instantaneous direct all-sky shortwave surface downward normal irradiance (W/m2).
+    swddif,     &! instantaneous diffuse all-sky shortwave surface downward irradiance (W/m2).
+    swddirc,    &! instantaneous direct clear-sky shortwave surface downward irradiance (W/m2).
+    swddnic,    &! instantaneous direct clear-sky shortwave surface downward normal irradiance (W/m2).
+    swdownc      ! instantaneous clear-sky shortwave surface downward radiation (W/m2).
 
  real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme,jms:jme):: &
-    rthratensw   !
+    rthratensw   ! all-sky shortwave radiation heating rate (K/s).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme+1,jms:jme ),optional:: &
-    swupflx,    &!
-    swupflxc,   &!
-    swdnflx,    &!
-    swdnflxc     !
+ real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme+1,jms:jme),optional:: &
+    swupflx,    &! instantaneous all-sky shortwave upward radiation flux profile (W/m2).
+    swupflxc,   &! instantaneous clear-sky shortwave upward radiation flux profile (W/m2).
+    swdnflx,    &! instantaneous all-sky shortwave downward radiation flux profile (W/m2).
+    swdnflxc     ! instantaneous clear-sky shortwave downward radiation flux profile (W/m2).
+
 
 !local variables and arrays:
  integer:: i,k,j
@@ -714,7 +732,6 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 
-!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine rrtmg_sw_mpas_timestep_final:')
 
 !--- initialization of calc_clean_atm_diag:
@@ -742,7 +759,7 @@
 
           !optional arguments:
           if(present(swupt)) then
-             swcf(i,j) = (swdflx(i,kte+2)-swuflx(i,kte+2)) - (swdflxc(i,kte+2)-swuflxc(i,kte+2))
+             swcf(i,j)   = (swdflx(i,kte+2)-swuflx(i,kte+2)) - (swdflxc(i,kte+2)-swuflxc(i,kte+2))
              swupt(i,j)  = swuflx(i,kte+2)
              swuptc(i,j) = swuflxc(i,kte+2)
              swdnt(i,j)  = swdflx(i,kte+2)
@@ -836,8 +853,10 @@
 
  enddo j_loop !end latitude loop.
 
+ errmsg = 'rrtmg_sw_mpas_timestep_final OK'
+ errflg = 0
+
  call mpas_log_write('--- end subroutine rrtmg_sw_mpas_timestep_final:')
-!call mpas_log_write(' ')
 
  end subroutine rrtmg_sw_mpas_timestep_final
 

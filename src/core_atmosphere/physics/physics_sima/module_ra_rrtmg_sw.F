@@ -3,105 +3,178 @@
 
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_log
- use mpas_atmphys_constants,only : cp,gravity
- use module_ra_rrtmg_vinterp,only: vinterp_ozn
- use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
-#define FATAL_ERROR(M) call physics_error_fatal(M)
-#define WRITE_MESSAGE(M) call physics_message(M)
+ use mpas_atmphys_constants,only: gravity
 
+ use parrrsw,only      : nbndsw,ngptsw,naerec
  use rrtmg_sw_mpas,only: rrtmg_sw_mpas_timestep_init, &
                          rrtmg_sw_mpas_timestep_final
+ use rrtmg_sw_rad,only : rrtmg_sw_run
 
- use parrrsw,only: nbndsw, ngptsw, naerec
- use rrtmg_sw_rad,only: rrtmg_sw_run
- use mcica_subcol_gen_sw, only: mcica_subcol_sw
-
- use module_ra_rrtmg_lw, only : inirad, o3data, relcalc, reicalc, retab
+ implicit none
+ public:: rrtmg_swrad
 
 
  contains
 
 
 !=================================================================================================================
- subroutine rrtmg_swrad( &
-                       p3d,p8w,pi3d,t3d,t8w,dz8w,qv3d,qc3d,qr3d,       &
-                       qi3d,qs3d,cldfra3d,o33d,tsk,albedo,             &
-                       xland,xice,snow,coszr,xtime,gmt,julday,radt,    &
-                       degrad,declin,scon,xlat,xlong,icloud,o3input,   &
-                       noznlevels,pin,o3clim,gsw,swcf,rthratensw,      &
-                       has_reqc,has_reqi,has_reqs,re_cloud,            &
-                       re_ice,re_snow,                                 &
-                       swupt,swuptc,swdnt,swdntc,                      &
-                       swupb,swupbc,swdnb,swdnbc,                      &
-                       swupflx,swupflxc,swdnflx,swdnflxc,              &
-                       swuptcln,swdntcln,swupbcln,swdnbcln,            &
-                       swddir,swddni,swddif,swddirc,swddnic,swdownc,   &
-                       f_qc,f_qr,f_qi,f_qs,                            &
-                       alswvisdir,alswvisdif,alswnirdir,alswnirdif,    &
-                       swvisdir,swvisdif,swnirdir,swnirdif,            &
-                       tauaer300,tauaer400,tauaer600,tauaer999,        &
-                       gaer300,gaer400,gaer600,gaer999,                &
-                       waer300,waer400,waer600,waer999,                &
-                       cldovrlp,                                       &
-                       errmsg,errflg,                                  &
-                       ids,ide, jds,jde, kds,kde,                      & 
-                       ims,ime, jms,jme, kms,kme,                      &
-                       its,ite, jts,jte, kts,kte                       &
-                       )
-
- implicit none
-
+ subroutine rrtmg_swrad &
+                  (ims        , ime        , jms        , jme        , kms        , kme      , &
+                   its        , ite        , jts        , jte        , kts        , kte      , &
+                   f_qc       , f_qr       , f_qi       , f_qs       , icloud     , cldovrlp , &
+                   has_reqc   , has_reqi   , has_reqs   , noznlevels , o3input    , xtime    , &
+                   declin     , gmt        , julday     , radt       , scon       , degrad   , &
+                   xland      , xice       , snow       , xlat       , xlon       , tsk      , &
+                   albedo     , alswvisdir , alswvisdif , alswnirdir , alswnirdif , pin      , &
+                   o3clim     , p3d        , pi3d       , t3d        , qv3d       , qc3d     , &
+                   qr3d       , qi3d       , qs3d       , cldfra3d   , o33d       , re_cloud , &
+                   re_ice     , re_snow    , dz8w       , p8w        , t8w        , coszr    , &
+                   rthratensw , gsw        , swcf       , swupt      , swuptc     , swdnt    , &
+                   swdntc     , swupb      , swupbc     , swdnb      , swdnbc     , swupflx  , &
+                   swupflxc   , swdnflx    , swdnflxc   , swuptcln   , swdntcln   , swupbcln , &
+                   swdnbcln   , swddir     , swddni     , swddif     , swddirc    , swddnic  , &
+                   swdownc    , swvisdir   , swvisdif   , swnirdir   , swnirdif   ,            &
+                   tauaer300  , tauaer400  , tauaer600  , tauaer999  , gaer300    , gaer400  , &
+                   gaer600    , gaer999    , waer300    , waer400    , waer600    , waer999  , &
+                   errmsg     , errflg)
 !=================================================================================================================
 
 !--- input arguments:
- logical,intent(in),optional:: f_qc,f_qr,f_qi,f_qs
+ logical,intent(in),optional:: &
+    f_qc,       &! if true, the physics package includes the cloud liquid water mixing ratio.
+    f_qr,       &! if true, the physics package includes the rain mixing ratio.
+    f_qi,       &! if true, the physics package includes the cloud ice mixing ratio.
+    f_qs         ! if true, the physics package includes the snow mixing ratio.
 
- integer,intent(in):: ids,ide,jds,jde,kds,kde, &
-                      ims,ime,jms,jme,kms,kme, &
-                      its,ite,jts,jte,kts,kte
- integer,intent(in):: icloud,has_reqc,has_reqi,has_reqs
- integer,intent(in):: julday
- integer,intent(in):: cldovrlp
- integer,intent(in):: o3input
+ integer,intent(in):: ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte
 
- real(kind=kind_phys),intent(in):: radt,degrad,xtime,declin,scon,gmt
- real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: xlat,xlong
- real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: albedo,tsk,snow,xice,xland
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: t3d,p3d,pi3d,qv3d
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: dz8w,p8w,t8w
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: re_cloud,re_ice,re_snow
+ integer,intent(in):: &
+    icloud,     &! option that defines the cloud effect on the SW optical depth.
+    has_reqc,   &! = 1 if effective radius of cloud liquid water computed from cloud microphysics, = 0 otherwise.
+    has_reqi,   &! = 1 if effective radius of cloud ice computed from cloud microphysics, = 0 otherwise.
+    has_reqs,   &! = 1 if effective radius of snow computed from cloud microphysics, = 0 otherwise.
+    cldovrlp,   &! option that defines the type of cloud overlap.
+    noznlevels, &! number of levels of climatological ozone data.
+    o3input,    &! ozone input option for shortwave radiation.
+    julday       !julian day.
+
+ real(kind=kind_phys),intent(in):: &
+    declin,     &! solar declination (radian).
+    degrad,     &! conversion factor from degree to radian (-).
+    gmt,        &! GMT time.
+    radt,       &! shortwave radiation timestep (s).
+    xtime        ! MPAS run time.
+
+ real(kind=kind_phys),intent(in)::scon
+
+ real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: &
+    xlat,       &! latitude (radian).
+    xlon,       &! longitude (radian).
+    xland,      &! land-ocean mask (1=land including sea-ice ; 2=ocean)
+    xice,       &! fractional seaice amount (-).
+    snow,       &! snow water equivalent (kg/m2).
+    albedo,     &! surface albedo (-).
+    tsk          ! surface temperature (K).
+
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
+    t3d,        &! temperature at middle of layers (K).
+    p3d,        &! pressure at middle of layers (Pa).
+    pi3d,       &! exner function (-).
+    qv3d,       &! water vapor mixing ratio at middle of layers (kg/kg).
+    re_cloud,   &! effective radius of cloud liquid droplets at middle of layers (m).
+    re_ice,     &! effective radius of cloud ice crystals at middle of layers (m). 
+    re_snow      ! effective radius of snow crystals at middle of layers (m).
+
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
+    dz8w,       &! thickness of layers (m).
+    p8w,        &! pressure at interface of layers (Pa).
+    t8w          ! temperature at interface of layers (K).
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme),optional:: &
-    alswvisdir,alswvisdif,alswnirdir,alswnirdif
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: cldfra3d,qc3d,qr3d,qi3d,qs3d,o33d
+    alswvisdir, &! visible direct component of surface albedo when using SIB LSM (-).
+    alswvisdif, &! visible diffuse component of surface albedo when using SIB LSM (-).
+    alswnirdir, &! near-IR direct component of surface albedo when using SIB LSM (-).
+    alswnirdif   ! near-IR diffuse component of surface albedo when using SIB LSM (-).
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-    tauaer300,tauaer400,tauaer600,tauaer999,gaer300,gaer400,gaer600,gaer999,waer300,waer400,waer600,waer999
+    cldfra3d,   &! cloud fraction at middle of layers (-).
+    qc3d,       &! cloud liquid water mixing ratio at middle of layers (kg/kg).
+    qr3d,       &! rain mixing ratio at middle of layers (kg/kg).
+    qi3d,       &! cloud ice mixing ratio at middle of layers (kg/kg).
+    qs3d,       &! snow mixing ratio (kg/kg).
+    o33d         ! ozone mixing ratio (kg/kg).
 
-!--- additional input arguments to use the CAM ozone climatology:
- integer,intent(in):: noznlevels
- real(kind=kind_phys),intent(in),dimension(1:noznlevels),optional:: pin
- real(kind=kind_phys),intent(in),dimension(ims:ime,1:noznlevels,jms:jme),optional:: o3clim
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+    tauaer300,  &! aerosol optical depth at ??? nm from WRF-chem.
+    tauaer400,  &! aerosol optical depth at ??? nm from WRF-chem.
+    tauaer600,  &! aerosol optical depth at ??? nm from WRF-chem.
+    tauaer999,  &! aerosol optical depth at ??? nm from WRF-chem.
+    gaer300,    &! asymmetry factor at ??? nm from WRF-chem.
+    gaer400,    &! asymmetry factor at ??? nm from WRF-chem.
+    gaer600,    &! asymmetry factor at ??? nm from WRF-chem.
+    gaer999,    &! asymmetry factor at ??? nm from WRF-chem.
+    waer300,    &! single scattering albedo at ??? nm from WRF-chem.
+    waer400,    &! single scattering albedo at ??? nm from WRF chem.
+    waer600,    &! single scattering albedo at ??? nm from WRF chem.
+    waer999      !  single scattering albedo at ??? nm from WRF chem.
+
+ real(kind=kind_phys),intent(in),dimension(1:noznlevels),optional:: &
+    pin          ! fixed pressures at which climatological ozone data are defined (hPa).
+
+ real(kind=kind_phys),intent(in),dimension(ims:ime,1:noznlevels,jms:jme),optional:: &
+    o3clim       ! monthly-mean climatological ozone data at fixed pressure levels.
 
 
 !--- output arguments:
- character(len=*),intent(out):: errmsg
- integer,intent(out)::errflg
+ character(len=*),intent(out):: &
+    errmsg       ! output error message (-).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme):: coszr,gsw
- real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme,jms:jme):: rthratensw
+ integer,intent(out):: &
+    errflg       ! output error flag (-).
+
+ real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme):: &
+    coszr,      &! cosine of the solar zenith angle (-).
+    gsw          ! all-sky net surface radiation (W/m2).
+
+ real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme,jms:jme):: &
+    rthratensw   ! all-sky shortwave radiation heating rate (K/s).
 
  real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
-      swcf,swupt,swuptc,swdnt,swdntc,swupb,swupbc,swdnb,swdnbc
- real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: swuptcln,swdntcln,swupbcln,swdnbcln
- real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
-      swddir,swddni,swddif,swddirc,swddnic,swdownc
- real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
-      swvisdir,swvisdif,swnirdir,swnirdif
+    swcf,       &! instantaneous all-sky shortwave top-of-the-atmosphere cloud radiative forcing (W/m2).
+    swupt,      &! instantaneous all-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
+    swuptc,     &! instantaneous clear-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
+    swdnt,      &! instantaneous all-sky shortwave top-of-the-atmosphere downward radiation (W/m2).
+    swdntc,     &! instantaneous clear-sky shortwave top-of-the-atmosphere downward radiation (W/m2).
+    swupb,      &! instantaneous all-sky shortwave surface upward radiation (W/m2).
+    swupbc,     &! instantaneous clear-sky shortwave surface upward radiation (W/m2).
+    swdnb,      &! instantaneous all-sky shortwave surface downward radiation (W/m2).
+    swdnbc       ! instantaneous clear-sky shortwave surface downward radiation (W/m2).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme+2,jms:jme ),optional:: &
-      swupflx,swupflxc,swdnflx,swdnflxc
+ real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+    swuptcln,   &! instantaneous clean-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
+    swdntcln,   &! instantaneous clean-sky shortwave top-of-the-atmosphere downward radiation (W/m2).
+    swupbcln,   &! instantaneous clean-sky shortwave surface upward radiation (W/m2).
+    swdnbcln     ! instantaneous clean-sky shortwave surface downward radiation (W/m2).
 
+ real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+    swvisdir,   &! instantaneous visible direct all-sky shortwave surface radiation when using SIB LSM (W/m2).
+    swvisdif,   &! instantaneous visible diffuse all-sky shortwave surface radiation when using SIB LSM (W/m2).
+    swnirdir,   &! instantaneous near-IR direct all-sky shortwave surface radiation when using SIB LSM (W/m2).
+    swnirdif     ! instantaneous near-IR diffuse all-sky shortwave surface radiation when using SIB LSM (W/m2).
+
+ real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme+1,jms:jme),optional:: &
+    swupflx,    &! instantaneous all-sky shortwave upward radiation flux profile (W/m2).
+    swupflxc,   &! instantaneous clear-sky shortwave upward radiation flux profile (W/m2).
+    swdnflx,    &! instantaneous all-sky shortwave downward radiation flux profile (W/m2).
+    swdnflxc     ! instantaneous clear-sky shortwave downward radiation flux profile (W/m2).
+
+ real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+    swddir,     &! instantaneous direct all-sky shortwave surface downward irradiance (W/m2).
+    swddni,     &! instantaneous direct all-sky shortwave surface downward normal irradiance (W/m2).
+    swddif,     &! instantaneous diffuse all-sky shortwave surface downward irradiance (W/m2).
+    swddirc,    &! instantaneous direct clear-sky shortwave surface downward irradiance (W/m2).
+    swddnic,    &! instantaneous direct clear-sky shortwave surface downward normal irradiance (W/m2).
+    swdownc      ! instantaneous clear-sky shortwave surface downward radiation (W/m2).
 
 !local variables and arrays:
  logical,dimension(its:ite):: dorrsw
@@ -141,6 +214,8 @@
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine rrtmg_swrad:')
 
+
+!--- initialization of all local variables needed to run rrtmg_sw_run:
  call rrtmg_sw_mpas_timestep_init &
                   (ims      , ime        , jms        , jme        , kms        , &
                    kme      , its        , ite        , jts        , jte        , &
@@ -148,7 +223,7 @@
                    f_qc     , f_qr       , f_qi       , f_qs       , icloud     , &
                    has_reqc , has_reqi   , has_reqs   , cldovrlp   , gravity    , &
                    gmt      , declin     , degrad     , radt       , xtime      , &
-                   xlat     , xlong      , tsk        , albedo     , xland      , &
+                   xlat     , xlon       , tsk        , albedo     , xland      , &
                    xice     , snow       , p3d        , t3d        , qv3d       , &
                    qc3d     , qr3d       , qi3d       , qs3d       , cldfra3d   , &
                    re_cloud , re_ice     , re_snow    , dz8w       , p8w        , &
@@ -161,7 +236,9 @@
                    o2vmr    , ch4vmr     , n2ovmr     , plev       , tlev       , &
                    cldfmcl  , clwpmcl    , ciwpmcl    , cswpmcl    , relqmcl    , &
                    reicmcl  , resnmcl    , taucmcl    , ssacmcl    , asmcmcl    , &
-                   fsfcmcl  , tauaer     , ssaaer     , asmaer     , ecaer)
+                   fsfcmcl  , tauaer     , ssaaer     , asmaer     , ecaer      , &
+                   errmsg   , errflg)
+
 
 !--- initialize calc_clean_atm_diag:
  calc_clean_atm_diag = 0
@@ -173,57 +250,6 @@
  if(present(alswvisdir) .and. present(alswvisdif) .and. present(alswnirdir) .and. present(alswnirdif)) &
     sf_surface_physics = 8
 
-!--- latitude loop:
- j_loop: do j = jts,jte
-
-!--- longitude loop:
-    i_loop: do i = its,ite
-
-       !--- initialization of outputs:
-       if(present(swupflx)) then
-          do k = kts, kte+2
-             swupflx(i,k,j)  = 0.
-             swupflxc(i,k,j) = 0.
-             swdnflx(i,k,j)  = 0.
-             swdnflxc(i,k,j) = 0.
-          enddo
-       endif
-
-       !--- initialization of output arrays from call to subroutine rrtmg_sw_run:
-       do k = kts,kte+1
-          swuflx(i,k)    = 0.
-          swuflxc(i,k)   = 0.
-          swdflx(i,k)    = 0.
-          swdflxc(i,k)   = 0.
-          swhr(i,k)      = 0.
-          swhrc(i,k)     = 0.
-          swuflxcln(i,k) = 0.
-          swdflxcln(i,k) = 0.
-          sibvisdir(i,k) = 0.
-          sibvisdif(i,k) = 0.
-          sibnirdir(i,k) = 0.
-          sibnirdif(i,k) = 0.
-          swdkdir(i,k)   = 0.
-          swdkdirc(i,k)  = 0.
-          swdkdif(i,k)   = 0.
-       enddo
-       k = kte+2
-       swuflx(i,k)    = 0.
-       swuflxc(i,k)   = 0.
-       swdflx(i,k)    = 0.
-       swdflxc(i,k)   = 0.
-       swuflxcln(i,k) = 0.
-       swdflxcln(i,k) = 0.
-       sibvisdir(i,k) = 0.
-       sibvisdif(i,k) = 0.
-       sibnirdir(i,k) = 0.
-       sibnirdif(i,k) = 0.
-       swdkdir(i,k)   = 0.
-       swdkdirc(i,k)  = 0.
-       swdkdif(i,k)   = 0.
-    end do i_loop !end longitude loop.
-
- end do j_loop !end latitude loop.                                           
 
 !--- call the short-wave radiation code:
  call rrtmg_sw_run &
@@ -239,19 +265,21 @@
              swdkdir   , swdkdif  , swdkdirc  , calc_clean_atm_diag   , errmsg    , &
              errflg)
 
+
 !--- output the all-sky shortwave heating rate, shortwave net surface radiation for land surface scheme, and
-!    shortwave surface and top-of-the-atmosphere all-sky and clear-sky fluxes (mainly diagnostics):
+!    optional shortwave surface and top-of-the-atmosphere all-sky and clear-sky fluxes (mainly diagnostics):
  call rrtmg_sw_mpas_timestep_final &
-            (dorrsw     , pi3d      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
-             coszr      , coszen    , gsw        , swhr       , swhrc      , swuflx     , &
-             swuflxc    , swdflx    , swdflxc    , swuflxcln  , swdflxcln  , sibvisdir  , &
-             sibvisdif  , sibnirdir , sibnirdif  , swdkdir    , swdkdirc   , swdkdif    , &
+            (ims        , ime       , jms        , jme        , kms        , kme        , &
+             its        , ite       , jts        , jte        , kts        , kte        , &
+             dorrsw     , pi3d      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
+             coszen     , swhr      , swhrc      , swuflx     , swuflxc    , swdflx     , &       
+             swdflxc    , swuflxcln , swdflxcln  , sibvisdir  , sibvisdif  , sibnirdir  , &
+             sibnirdif  , swdkdir   , swdkdirc   , swdkdif    , coszr      , gsw        , &
              rthratensw , swcf      , swupt      , swuptc     , swdnt      , swdntc     , &
              swupb      , swupbc    , swdnb      , swdnbc     , swuptcln   , swdntcln   , &
              swupbcln   , swdnbcln  , swvisdir   , swvisdif   , swnirdir   , swnirdif   , &
              swddir     , swddni    , swddif     , swddirc    , swddnic    , swdownc    , &
-             swupflx    , swupflxc  , swdnflx    , swdnflxc   ,                           &
-             ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte)
+             swupflx    , swupflxc  , swdnflx    , swdnflxc   , errmsg     , errflg)
 
  call mpas_log_write('--- end subroutine rrtmg_swrad:')
  call mpas_log_write(' ')

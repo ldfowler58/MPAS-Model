@@ -760,7 +760,7 @@
               xice     = xice_p     , snow       = snow_p       , coszr      = coszr_p       , &
               xtime    = xtime_m    , gmt        = gmt          , julday     = julday        , &
               radt     = radt       , degrad     = degrad       , declin     = declin        , &
-              solcon   = solcon     , xlat       = xlat_p       , xlong      = xlon_p        , &
+              scon     = solcon     , xlat       = xlat_p       , xlon       = xlon_p        , &
               icloud   = icloud     , o3input    = o3input      , noznlevels = num_oznlevels , &
               pin      = pin_p      , o3clim     = o3clim_p     , gsw        = gsw_p         , &
               swcf     = swcf_p     , rthratensw = rthratensw_p , has_reqc   = has_reqc      , &
@@ -770,7 +770,6 @@
               swdntc   = swdntc_p   , swupb      = swupb_p      , swupbc     = swupbc_p      , &
               swdnb    = swdnb_p    , swdnbc     = swdnbc_p     ,                              &
               errmsg   = errmsg     , errflg     = errflg       ,                              &
-              ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde ,          &
               ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,          &
               its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte            &
                        )
