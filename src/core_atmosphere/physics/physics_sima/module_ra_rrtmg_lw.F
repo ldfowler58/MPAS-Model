@@ -1,57 +1,5 @@
 !MODULE module_ra_rrtmg_lw
 
-      module parkind
-!     implicit none
-      save
-
-!------------------------------------------------------------------
-! rrtmg kinds
-! Define integer and real kinds for various types.
-!
-! Initial version: MJIacono, AER, jun2006
-! Revised: MJIacono, AER, aug2008
-!------------------------------------------------------------------
-
-!
-!     integer kinds
-!     -------------
-!
-!     integer, parameter :: kind_ib = selected_int_kind(13)  ! 8 byte integer
-!     integer, parameter :: kind_im = selected_int_kind(6)   ! 4 byte integer
-      integer, parameter :: kind_ib = kind(1)            
-      integer, parameter :: kind_im = kind(1)            
-      integer, parameter :: kind_in = kind(1)                ! native integer
-
-!
-!     real kinds
-!     ----------
-!
-!      integer, parameter :: kind_rb = selected_real_kind(12) ! 8 byte real
-!      integer, parameter :: kind_rm = selected_real_kind(6)  ! 4 byte real
-!      integer, parameter :: kind_rn = kind(1.0)              ! native real
-
-#ifdef SINGLE_PRECISION
-#define RWORDSIZE 4
-#define IWORDSIZE 4
-#else
-#define RWORDSIZE 8
-#define IWORDSIZE 4
-#endif
-
-#if 0
-! Modified for WRF:
-#if (RWORDSIZE == 8)
-      integer, parameter :: kind_rb = selected_real_kind(12) ! 8 byte real
-#endif
-#if (RWORDSIZE == 4)
-      integer, parameter :: kind_rb = selected_real_kind(6)  ! 4 byte real
-#endif
-#else
-       integer, parameter :: kind_rb = kind(1.0)              ! native real
-#endif
-
-      end module parkind
-
       module parrrtm
 
       use parkind ,only : im => kind_im

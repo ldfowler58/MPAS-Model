@@ -3,8 +3,8 @@
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_log
 
+ use ra_rrtmg_shared,only        : inirad,reicalc,relcalc,retab
  use module_ra_rrtmg_vinterp,only: vinterp_ozn
- use module_ra_rrtmg_lw,only     : inirad,reicalc,relcalc,retab
  use mcica_subcol_gen_sw,only    : mcica_subcol_sw
 
  implicit none
