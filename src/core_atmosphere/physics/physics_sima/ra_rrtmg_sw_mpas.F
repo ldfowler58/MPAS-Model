@@ -85,7 +85,7 @@
     radt,       &! shortwave radiation timestep (s).
     xtime        ! MPAS run time.
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite):: &
     xlat,       &! latitude (radian).
     xlon,       &! longitude (radian).
     xland,      &! land-ocean mask (1=land including sea-ice ; 2=ocean)
@@ -94,16 +94,16 @@
     albedo,     &! surface albedo (-).
     tsk          ! surface temperature (K).
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: &
     t3d,        &! temperature at middle of layers (K).
     p3d,        &! pressure at middle of layers (Pa).
     qv3d,       &! water vapor mixing ratio at middle of layers (kg/kg).
+    dz8w,       &! thickness of layers (m).
     re_cloud,   &! effective radius of cloud liquid droplets at middle of layers (m).
     re_ice,     &! effective radius of cloud ice crystals at middle of layers (m). 
     re_snow      ! effective radius of snow crystals at middle of layers (m).
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
-    dz8w,       &! thickness of layers (m).
+ real(kind=kind_phys),intent(in),dimension(its:ite,kts:kme):: &
     p8w,        &! pressure at interface of layers (Pa).
     t8w          ! temperature at interface of layers (K).
 
@@ -283,9 +283,9 @@
 
        !calculation of the solar zenith angle:
        xt24 = mod(xtime+radt*0.5,1440.)
-       tloctm = gmt + xt24/60. + xlon(i,j)/15.
+       tloctm = gmt + xt24/60. + xlon(i)/15.
        hrang = 15. * (tloctm-12.) * degrad
-       xxlat = xlat(i,j) * degrad
+       xxlat = xlat(i) * degrad
        coszrs = sin(xxlat) * sin(declin) + cos(xxlat) * cos(declin) * cos(hrang)
        coszen(i) = coszrs
 
@@ -302,24 +302,24 @@
              aldir(i) = alswnirdir(i,j)
              aldif(i) = alswnirdif(i,j)
           else
-             asdir(i) = albedo(i,j)
-             asdif(i) = albedo(i,j)
-             aldir(i) = albedo(i,j)
-             aldif(i) = albedo(i,j)
+             asdir(i) = albedo(i)
+             asdif(i) = albedo(i)
+             aldir(i) = albedo(i)
+             aldif(i) = albedo(i)
           endif
 
           !initialization of the local input soundings:
           k = kts
-          plev(i,kts) = p8w(i,k,j) / 100.
-          tlev(i,kts) = t8w(i,k,j)
-          tsfc(i)     = tsk(i,j)
+          plev(i,kts) = p8w(i,k) / 100.
+          tlev(i,kts) = t8w(i,k)
+          tsfc(i)     = tsk(i)
           do k = kts,kte
-             plev(i,k+1) = p8w(i,k+1,j) / 100.
-             tlev(i,k+1) = t8w(i,k+1,j)
-             play(i,k)   = p3d(i,k,j) / 100.
+             plev(i,k+1) = p8w(i,k+1) / 100.
+             tlev(i,k+1) = t8w(i,k+1)
+             play(i,k)   = p3d(i,k) / 100.
              pdel(i,k)   = plev(i,k) - plev(i,k+1)
-             tlay(i,k)   = t3d(i,k,j)
-             h2ovmr(i,k) = amax1(qv3d(i,k,j),1.e-12)
+             tlay(i,k)   = t3d(i,k)
+             h2ovmr(i,k) = amax1(qv3d(i,k),1.e-12)
              h2ovmr(i,k) = h2ovmr(i,k)*amdw
              co2vmr(i,k) = co2
              o2vmr(i,k)  = o2
@@ -434,7 +434,7 @@
 
              dzsum = 0.0
              do k = kts, kte
-                dz = dz8w(i,k,j)
+                dz = dz8w(i,k)
                 hgt(i,k) = dzsum + 0.5*dz
                 dzsum = dzsum + dz
              enddo
@@ -480,12 +480,12 @@
                    !microphysics parameterization:
                    inflgsw = 3
                    do k = kts,kte
-                      rel(i,k) = max(2.5,re_cloud(i,k,j)*1.e6)
+                      rel(i,k) = max(2.5,re_cloud(i,k)*1.e6)
                       if(rel(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
-                         (xland(i,j)-1.5).gt.0.) then        !--- ocean.
+                         (xland(i)-1.5).gt.0.) then        !--- ocean.
                          rel(i,k) = 10.5
                       elseif(rel(i,k).le.2.5 .and. cldfrac(i,k).gt.0. .and. &
-                         (xland(i,j)-1.5).lt.0.) then        !--- land.
+                         (xland(i)-1.5).lt.0.) then        !--- land.
                          rel(i,k) = 7.5
                       endif
                    enddo
@@ -495,10 +495,10 @@
                    !as in WRF although the two dimensions are duplicate and not needed inside the subroutines:
                    pcols = 1
                    pver  = nlay-1
-                   landfrac(pcols) = 2.-xland(i,j)
+                   landfrac(pcols) = 2.-xland(i)
                    landm(pcols)    = landfrac(pcols)
-                   snowh(pcols)    = 0.001*snow(i,j)
-                   icefrac(pcols)  = xice(i,j)
+                   snowh(pcols)    = 0.001*snow(i)
+                   icefrac(pcols)  = xice(i)
                    do k = kts,kte
                       t1d(pcols,k) = tlay(i,k)
                    enddo
@@ -513,7 +513,7 @@
                    inflgsw  = 4
                    iceflgsw = 4
                    do k = kts,kte
-                      rei(i,k) = max(5.,re_ice(i,k,j)*1.e6)
+                      rei(i,k) = max(5.,re_ice(i,k)*1.e6)
                       if(rei(i,k).le.5. .and. cldfrac(i,k).gt.0.) then
                          idx_rei = int(tlay(i,k)-179.)
                          idx_rei = min(max(idx_rei,1),75)
@@ -548,7 +548,7 @@
                    inflgsw  = 5
                    iceflgsw = 5
                    do k = kts, kte
-                      res(i,k) = max(10.,re_snow(i,k,j)*1.e6)
+                      res(i,k) = max(10.,re_snow(i,k)*1.e6)
                    enddo
                 else
                    do k = kts, kte
