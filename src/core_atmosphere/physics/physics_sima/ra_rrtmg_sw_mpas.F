@@ -107,7 +107,7 @@
     p8w,        &! pressure at interface of layers (Pa).
     t8w          ! temperature at interface of layers (K).
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme),optional:: &
+ real(kind=kind_phys),intent(in),dimension(its:ite),optional:: &
     alswvisdir, &! visible direct component of surface albedo when using SIB LSM (-).
     alswvisdif, &! visible diffuse component of surface albedo when using SIB LSM (-).
     alswnirdir, &! near-IR direct component of surface albedo when using SIB LSM (-).
@@ -120,17 +120,10 @@
     qi3d,       &! cloud ice mixing ratio at middle of layers (kg/kg).
     qs3d         ! snow mixing ratio (kg/kg).
 
-!real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-!   cldfra3d,   &! cloud fraction at middle of layers (-).
-!   qc3d,       &! cloud liquid water mixing ratio at middle of layers (kg/kg).
-!   qr3d,       &! rain mixing ratio at middle of layers (kg/kg).
-!   qi3d,       &! cloud ice mixing ratio at middle of layers (kg/kg).
-!   qs3d         ! snow mixing ratio (kg/kg).
-
  real(kind=kind_phys),intent(in),dimension(1:noznlevels),optional:: &
     pin          ! fixed pressures at which climatological ozone data are defined (hPa).
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,1:noznlevels,jms:jme),optional:: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,1:noznlevels):: &
     o3clim       ! monthly-mean climatological ozone data at fixed pressure levels.
 
 
@@ -304,16 +297,17 @@
           !initialization of the surface albedo:
           if(present(alswvisdir) .and. present(alswvisdir) .and. &
              present(alswnirdir) .and. present(alswnirdif)) then
-             asdir(i) = alswvisdir(i,j)
-             asdif(i) = alswvisdif(i,j)
-             aldir(i) = alswnirdir(i,j)
-             aldif(i) = alswnirdif(i,j)
+             asdir(i) = alswvisdir(i)
+             asdif(i) = alswvisdif(i)
+             aldir(i) = alswnirdir(i)
+             aldif(i) = alswnirdif(i)
           else
              asdir(i) = albedo(i)
              asdif(i) = albedo(i)
              aldir(i) = albedo(i)
              aldif(i) = albedo(i)
           endif
+!         call mpas_log_write('$i $r $r $r $r',intArgs=(/i/),realArgs=(/asdir(i),asdif(i),aldir(i),aldif(i)/))
 
           !initialization of the local input soundings:
           k = kts
@@ -354,7 +348,7 @@
 
           if(o3input .eq. 2) then
              do k = 1, noznlevels
-                o3clim1d(k) = o3clim(i,k,j)
+                o3clim1d(k) = o3clim(i,k)
              enddo
              call vinterp_ozn(1,pcols,pcols,kte+1,p1dlay,pin,noznlevels,o3clim1d,o3mmr)
              do k = kts,kte+1
