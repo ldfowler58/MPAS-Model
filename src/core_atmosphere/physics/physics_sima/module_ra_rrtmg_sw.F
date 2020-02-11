@@ -177,7 +177,8 @@
     swdownc      ! instantaneous clear-sky shortwave surface downward radiation (W/m2).
 
 
-!local variables only needed for conversion from ims->its,ime->ite,kms->kts,kme->kte,etc::
+!local variables only needed for conversion from ims->its,ime->ite,kms->kts,kme->kte,etc in call to
+!subroutine rrtmg_sw_timestep_init:
  real(kind=kind_phys),dimension(its:ite):: &
     xlat_hv,xlon_hv,xland_hv,xice_hv,snow_hv,albedo_hv,tsk_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
@@ -324,27 +325,25 @@
 
 !--- initialization of all local variables needed to run rrtmg_sw_run:
  call rrtmg_sw_mpas_timestep_init &
-                  (ims         , ime           , jms           , jme           , kms           , &
-                   kme         , its           , ite           , jts           , jte           , &
-                   kts         , kte           , nbndsw        , ngptsw        , naerec        , &
-                   f_qc        , f_qr          , f_qi          , f_qs          , icloud        , &
-                   has_reqc    , has_reqi      , has_reqs      , cldovrlp      , gravity       , &
-                   gmt         , declin        , degrad        , radt          , xtime         , &
-                   xlat_hv     , xlon_hv       , tsk_hv        , albedo_hv     , xland_hv      , &
-                   xice_hv     , snow_hv       , p3d_hv        , t3d_hv        , qv3d_hv       , &
-                   qc3d_hv     , qr3d_hv       , qi3d_hv       , qs3d_hv       , cldfra3d_hv   , &
-                   re_cloud_hv , re_ice_hv     , re_snow_hv    , dz8w_hv       , p8w_hv        , &
-                   t8w_hv      , alswvisdir_hv , alswvisdif_hv , alswnirdir_hv , alswnirdif_hv , &
-                   o3input     , noznlevels    , pin           , o3clim_hv     , ncol          , &
-                   nlay        , icld          , inflgsw       , iceflgsw      , liqflgsw      , &
-                   aer_opt     , dyofyr        , adjes         , dorrsw        , coszen        , &
-                   tsfc        , asdir         , asdif         , aldir         , aldif         , &
-                   play        , tlay          , h2ovmr        , o3vmr         , co2vmr        , &
-                   o2vmr       , ch4vmr        , n2ovmr        , plev          , tlev          , &
-                   cldfmcl     , clwpmcl       , ciwpmcl       , cswpmcl       , relqmcl       , &
-                   reicmcl     , resnmcl       , taucmcl       , ssacmcl       , asmcmcl       , &
-                   fsfcmcl     , tauaer        , ssaaer        , asmaer        , ecaer         , &
-                   errmsg      , errflg)
+            (its           , ite           , kts           , kte         , kme           , &
+             nbndsw        , ngptsw        , naerec        , f_qc        , f_qr          , &
+             f_qi          , f_qs          , icloud        , has_reqc    , has_reqi      , &
+             has_reqs      , cldovrlp      , gravity       , gmt         , declin        , &
+             degrad        , radt          , xtime         , xlat_hv     , xlon_hv       , &
+             tsk_hv        , albedo_hv     , xland_hv      , xice_hv     , snow_hv       , &
+             p3d_hv        , t3d_hv        , qv3d_hv       , qc3d_hv     , qr3d_hv       , &
+             qi3d_hv       , qs3d_hv       , cldfra3d_hv   , re_cloud_hv , re_ice_hv     , &
+             re_snow_hv    , dz8w_hv       , p8w_hv        , t8w_hv      , alswvisdir_hv , &
+             alswvisdif_hv , alswnirdir_hv , alswnirdif_hv , o3input     , noznlevels    , &
+             pin           , o3clim_hv     , ncol          , nlay        , icld          , &
+             inflgsw       , iceflgsw      , liqflgsw      , aer_opt     , dyofyr        , &
+             adjes         , dorrsw        , coszen        , tsfc        , asdir         , &
+             asdif         , aldir         , aldif         , play        , tlay          , &
+             h2ovmr        , o3vmr         , co2vmr        , o2vmr       , ch4vmr        , &
+             n2ovmr        , plev          , tlev          , cldfmcl     , clwpmcl       , &
+             ciwpmcl       , cswpmcl       , relqmcl       , reicmcl     , resnmcl       , &
+             taucmcl       , ssacmcl       , asmcmcl       , fsfcmcl     , tauaer        , &
+             ssaaer        , asmaer        , ecaer         , errmsg      , errflg)
 
 
 !--- initialize calc_clean_atm_diag:
