@@ -113,12 +113,19 @@
     alswnirdir, &! near-IR direct component of surface albedo when using SIB LSM (-).
     alswnirdif   ! near-IR diffuse component of surface albedo when using SIB LSM (-).
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte),optional:: &
     cldfra3d,   &! cloud fraction at middle of layers (-).
     qc3d,       &! cloud liquid water mixing ratio at middle of layers (kg/kg).
     qr3d,       &! rain mixing ratio at middle of layers (kg/kg).
     qi3d,       &! cloud ice mixing ratio at middle of layers (kg/kg).
     qs3d         ! snow mixing ratio (kg/kg).
+
+!real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+!   cldfra3d,   &! cloud fraction at middle of layers (-).
+!   qc3d,       &! cloud liquid water mixing ratio at middle of layers (kg/kg).
+!   qr3d,       &! rain mixing ratio at middle of layers (kg/kg).
+!   qi3d,       &! cloud ice mixing ratio at middle of layers (kg/kg).
+!   qs3d         ! snow mixing ratio (kg/kg).
 
  real(kind=kind_phys),intent(in),dimension(1:noznlevels),optional:: &
     pin          ! fixed pressures at which climatological ozone data are defined (hPa).
@@ -448,28 +455,28 @@
              enddo
              if(present(f_qc) .and. present(qc3d)) then
                 do k = kts,kte
-                   qc1d(k) = amax1(qc3d(i,k,j),0.)
+                   qc1d(k) = amax1(qc3d(i,k),0.)
                 enddo
              endif
              if(present(f_qr) .and. present(qr3d)) then
                 do k = kts,kte
-                   qr1d(k) = amax1(qr3d(i,k,j),0.)
+                   qr1d(k) = amax1(qr3d(i,k),0.)
                 enddo
              endif
              if(present(f_qi) .and. present(qi3d)) then
                 do k = kts,kte
-                   qi1d(k) = amax1(qi3d(i,k,j),0.)
+                   qi1d(k) = amax1(qi3d(i,k),0.)
                 enddo
              endif
              if(present(f_qs) .and. present(qs3d)) then
                 do k = kts,kte
-                   qs1d(k) = amax1(qs3d(i,k,j),0.)
+                   qs1d(k) = amax1(qs3d(i,k),0.)
                 enddo
              endif
              if(present(f_qc).and.present(qc3d) .and. present(f_qi).and.present(qi3d)  .and. &
                 present(f_qs).and.present(qs3d) .and. present(cldfra3d)) then
                 do k = kts,kte
-                   cldfrac(i,k) = cldfra3d(i,k,j)
+                   cldfrac(i,k) = cldfra3d(i,k)
                 enddo
              endif
 

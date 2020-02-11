@@ -184,6 +184,8 @@
     t3d_hv,p3d_hv,qv3d_hv,re_cloud_hv,re_ice_hv,re_snow_hv,dz8w_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte+1):: &
     p8w_hv,t8w_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: cldfra3d_hv,qc3d_hv,qr3d_hv,qi3d_hv,qs3d_hv
+
 
 !local variables and arrays:
  logical,dimension(its:ite):: dorrsw
@@ -253,31 +255,68 @@
        p8w_hv(i,k)  = p8w(i,k,j)
        t8w_hv(i,k)  = t8w(i,k,j)
     enddo
+
+    !--- optional arrays:
+    if(present(f_qc) .and. present(qc3d)) then
+       do k = kts,kte
+          do i = its,ite
+             qc3d_hv(i,k) = qc3d(i,k,j)
+          enddo
+       enddo
+    endif
+    if(present(f_qr) .and. present(qr3d)) then
+       do k = kts,kte
+          do i = its,ite
+             qr3d_hv(i,k) = qr3d(i,k,j)
+          enddo
+       enddo
+    endif
+    if(present(f_qi) .and. present(qi3d)) then
+       do k = kts,kte
+          do i = its,ite
+             qi3d_hv(i,k) = qi3d(i,k,j)
+          enddo
+       enddo
+    endif
+    if(present(f_qs) .and. present(qs3d)) then
+       do k = kts,kte
+          do i = its,ite
+             qs3d_hv(i,k) = qs3d(i,k,j)
+          enddo
+       enddo
+    endif
+    if(present(cldfra3d)) then
+       do k = kts,kte
+          do i = its,ite
+             cldfra3d_hv(i,k) = cldfra3d(i,k,j)
+          enddo
+       enddo
+    endif
  enddo
 
 
 !--- initialization of all local variables needed to run rrtmg_sw_run:
  call rrtmg_sw_mpas_timestep_init &
-                  (ims         , ime        , jms        , jme        , kms        , &
-                   kme         , its        , ite        , jts        , jte        , &
-                   kts         , kte        , nbndsw     , ngptsw     , naerec     , &
-                   f_qc        , f_qr       , f_qi       , f_qs       , icloud     , &
-                   has_reqc    , has_reqi   , has_reqs   , cldovrlp   , gravity    , &
-                   gmt         , declin     , degrad     , radt       , xtime      , &
-                   xlat_hv     , xlon_hv    , tsk_hv     , albedo_hv  , xland_hv   , &
-                   xice_hv     , snow_hv    , p3d_hv     , t3d_hv     , qv3d_hv    , &
-                   qc3d        , qr3d       , qi3d       , qs3d       , cldfra3d   , &
-                   re_cloud_hv , re_ice_hv  , re_snow_hv , dz8w_hv    , p8w_hv     , &
-                   t8w_hv      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
-                   o3input     , noznlevels , pin        , o3clim     , ncol       , &
-                   nlay        , icld       , inflgsw    , iceflgsw   , liqflgsw   , &
-                   aer_opt     , dyofyr     , adjes      , dorrsw     , coszen     , &
-                   tsfc        , asdir      , asdif      , aldir      , aldif      , &
-                   play        , tlay       , h2ovmr     , o3vmr      , co2vmr     , &
-                   o2vmr       , ch4vmr     , n2ovmr     , plev       , tlev       , &
-                   cldfmcl     , clwpmcl    , ciwpmcl    , cswpmcl    , relqmcl    , &
-                   reicmcl     , resnmcl    , taucmcl    , ssacmcl    , asmcmcl    , &
-                   fsfcmcl     , tauaer     , ssaaer     , asmaer     , ecaer      , &
+                  (ims         , ime        , jms        , jme        , kms         , &
+                   kme         , its        , ite        , jts        , jte         , &
+                   kts         , kte        , nbndsw     , ngptsw     , naerec      , &
+                   f_qc        , f_qr       , f_qi       , f_qs       , icloud      , &
+                   has_reqc    , has_reqi   , has_reqs   , cldovrlp   , gravity     , &
+                   gmt         , declin     , degrad     , radt       , xtime       , &
+                   xlat_hv     , xlon_hv    , tsk_hv     , albedo_hv  , xland_hv    , &
+                   xice_hv     , snow_hv    , p3d_hv     , t3d_hv     , qv3d_hv     , &
+                   qc3d_hv     , qr3d_hv    , qi3d_hv    , qs3d_hv    , cldfra3d_hv , &
+                   re_cloud_hv , re_ice_hv  , re_snow_hv , dz8w_hv    , p8w_hv      , &
+                   t8w_hv      , alswvisdir , alswvisdif , alswnirdir , alswnirdif  , &
+                   o3input     , noznlevels , pin        , o3clim     , ncol        , &
+                   nlay        , icld       , inflgsw    , iceflgsw   , liqflgsw    , &
+                   aer_opt     , dyofyr     , adjes      , dorrsw     , coszen      , &
+                   tsfc        , asdir      , asdif      , aldir      , aldif       , &
+                   play        , tlay       , h2ovmr     , o3vmr      , co2vmr      , &
+                   o2vmr       , ch4vmr     , n2ovmr     , plev       , tlev        , &
+                   cldfmcl     , clwpmcl    , ciwpmcl    , cswpmcl    , relqmcl     , &
+                   reicmcl     , resnmcl    , taucmcl    , ssacmcl    , asmcmcl     , &
+                   fsfcmcl     , tauaer     , ssaaer     , asmaer     , ecaer       , &
                    errmsg      , errflg)
 
 
