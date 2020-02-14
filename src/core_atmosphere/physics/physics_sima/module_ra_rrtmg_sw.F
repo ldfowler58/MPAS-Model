@@ -182,7 +182,7 @@
  real(kind=kind_phys),dimension(its:ite):: &
     xlat_hv,xlon_hv,xland_hv,xice_hv,snow_hv,albedo_hv,tsk_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
-    t3d_hv,p3d_hv,qv3d_hv,re_cloud_hv,re_ice_hv,re_snow_hv,dz8w_hv
+    t3d_hv,p3d_hv,pi3d_hv,qv3d_hv,re_cloud_hv,re_ice_hv,re_snow_hv,dz8w_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte+1):: &
     p8w_hv,t8w_hv
 
@@ -190,6 +190,18 @@
     alswvisdir_hv,alswvisdif_hv,alswnirdir_hv,alswnirdif_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: cldfra3d_hv,qc3d_hv,qr3d_hv,qi3d_hv,qs3d_hv
  real(kind=kind_phys),dimension(its:ite,1:noznlevels):: o3clim_hv
+
+
+!local variables only needed for conversion from ims->its,ime->ite,kms->kts,kme->kte,etc in call to
+!subroutine rrtmg_sw_timestep_final:
+ real(kind=kind_phys),dimension(its:ite):: gsw_hv
+ real(kind=kind_phys),dimension(its:ite):: swcf_hv,swupt_hv,swuptc_hv,swdnt_hv,swdntc_hv, &
+                                           swupb_hv,swupbc_hv,swdnb_hv,swdnbc_hv
+ real(kind=kind_phys),dimension(its:ite):: swuptcln_hv,swdntcln_hv,swupbcln_hv,swdnbcln_hv
+ real(kind=kind_phys),dimension(its:ite):: swvisdir_hv,swvisdif_hv,swnirdir_hv,swnirdif_hv
+ real(kind=kind_phys),dimension(its:ite):: swddir_hv,swddni_hv,swddif_hv,swddirc_hv,swddnic_hv,swdownc_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte)  :: rthratensw_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kme+1):: swupflx_hv,swupflxc_hv,swdnflx_hv,swdnflxc_hv
 
 
 !local variables and arrays:
@@ -246,6 +258,7 @@
        do i = its,ite
           t3d_hv(i,k)  = t3d(i,k,j)
           p3d_hv(i,k)  = p3d(i,k,j)
+          pi3d_hv(i,k) = pi3d(i,k,j)
           qv3d_hv(i,k) = qv3d(i,k,j)
           dz8w_hv(i,k) = dz8w(i,k,j)
           p8w_hv(i,k)  = p8w(i,k,j)
@@ -375,17 +388,75 @@
 !--- output the all-sky shortwave heating rate, shortwave net surface radiation for land surface scheme, and
 !    optional shortwave surface and top-of-the-atmosphere all-sky and clear-sky fluxes (mainly diagnostics):
  call rrtmg_sw_mpas_timestep_final &
-            (ims        , ime       , jms        , jme        , kms        , kme        , &
-             its        , ite       , jts        , jte        , kts        , kte        , &
-             dorrsw     , pi3d      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
-             coszen     , swhr      , swhrc      , swuflx     , swuflxc    , swdflx     , &       
-             swdflxc    , swuflxcln , swdflxcln  , sibvisdir  , sibvisdif  , sibnirdir  , &
-             sibnirdif  , swdkdir   , swdkdirc   , swdkdif    , coszr      , gsw        , &
-             rthratensw , swcf      , swupt      , swuptc     , swdnt      , swdntc     , &
-             swupb      , swupbc    , swdnb      , swdnbc     , swuptcln   , swdntcln   , &
-             swupbcln   , swdnbcln  , swvisdir   , swvisdif   , swnirdir   , swnirdif   , &
-             swddir     , swddni    , swddif     , swddirc    , swddnic    , swdownc    , &
-             swupflx    , swupflxc  , swdnflx    , swdnflxc   , errmsg     , errflg)
+            (its           , ite         , kts           , kte           , kme           , &
+             dorrsw        , pi3d_hv     , alswvisdir_hv , alswvisdif_hv , alswnirdir_hv , &
+             alswnirdif_hv , coszen      , swhr          , swhrc         , swuflx        , &
+             swuflxc       , swdflx      , swdflxc       , swuflxcln     , swdflxcln     , &
+             sibvisdir     , sibvisdif   , sibnirdir     , sibnirdif     , swdkdir       , &
+             swdkdirc      , swdkdif     , gsw_hv        , rthratensw_hv , swcf_hv       , &
+             swupt_hv      , swuptc_hv   , swdnt_hv      , swdntc_hv     , swupb_hv      , &
+             swupbc_hv     , swdnb_hv    , swdnbc_hv     , swuptcln_hv   , swdntcln_hv   , &
+             swupbcln_hv   , swdnbcln_hv , swvisdir_hv   , swvisdif_hv   , swnirdir_hv   , &
+             swnirdif_hv   , swddir_hv   , swddni_hv     , swddif_hv     , swddirc_hv    , &
+             swddnic_hv    , swdownc_hv  , swupflx_hv    , swupflxc_hv   , swdnflx_hv    , &
+             swdnflxc_hv   , errmsg      , errflg)
+
+
+!---
+ do j = jts,jte
+    do i = its,ite
+       coszr(i,j) = coszen(i)
+       gsw(i,j) = gsw_hv(i)
+       do k = kts,kte
+          rthratensw(i,k,j) = rthratensw_hv(i,k)
+       enddo
+
+       !optional arguments:
+       if(present(swupt)) then
+          swcf(i,j)   = swcf_hv(i)
+          swupt(i,j)  = swupt_hv(i)
+          swuptc(i,j) = swuptc_hv(i)
+          swdnt(i,j)  = swdnt_hv(i)
+          swdntc(i,j) = swdntc_hv(i)
+          swupb(i,j)  = swupb_hv(i)
+          swupbc(i,j) = swupbc_hv(i)
+          swdnb(i,j)  = swdnb_hv(i)
+          swdnbc(i,j) = swdnbc_hv(i)
+       endif
+       if(present(swupflx)) then
+          do k = kts, kme+1
+             swupflx(i,k,j)  = swupflx_hv(i,k)
+             swupflxc(i,k,j) = swupflxc_hv(i,k)
+             swdnflx(i,k,j)  = swdnflx_hv(i,k)
+             swdnflxc(i,k,j) = swdnflxc_hv(i,k)
+          enddo
+       endif
+       if(present(swuptcln) .and. present(swdntcln) .and. &
+          present(swupbcln) .and. present(swdnbcln)) then
+          swuptcln(i,j) = swuptcln_hv(i)
+          swdntcln(i,j) = swdntcln_hv(i)
+          swupbcln(i,j) = swupbcln_hv(i)
+          swdnbcln(i,j) = swdnbcln_hv(i)
+       endif
+       if(present(alswvisdir) .and. present(alswvisdif) .and. &
+          present(alswnirdir) .and. present(alswnirdif)) then
+          swvisdir(i,j) = swvisdir_hv(i)
+          swvisdif(i,j) = swvisdif_hv(i)
+          swnirdir(i,j) = swnirdir_hv(i)
+          swnirdif(i,j) = swnirdif_hv(i)
+       endif
+       if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
+          present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
+          swddir(i,j)  = swddir_hv(i)
+          swddni(i,j)  = swddni_hv(i)
+          swddif(i,j)  = swddif_hv(i)
+          swdownc(i,j) = swdownc_hv(i)
+          swddirc(i,j) = swddirc_hv(i)
+          swddnic(i,j) = swddnic_hv(i)
+       endif
+    enddo
+ enddo
+
 
  call mpas_log_write('--- end subroutine rrtmg_swrad:')
  call mpas_log_write(' ')

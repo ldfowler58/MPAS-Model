@@ -609,24 +609,28 @@
 
 !=================================================================================================================
  subroutine rrtmg_sw_mpas_timestep_final &
-                  (ims        , ime       , jms        , jme        , kms        , kme        , &
-                   its        , ite       , jts        , jte        , kts        , kte        , &
-                   dorrsw     , pi3d      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
-                   coszen     , swhr      , swhrc      , swuflx     , swuflxc    , swdflx     , &
-                   swdflxc    , swuflxcln , swdflxcln  , sibvisdir  , sibvisdif  , sibnirdir  , &
-                   sibnirdif  , swdkdir   , swdkdirc   , swdkdif    , coszr      , gsw        , &
-                   rthratensw , swcf      , swupt      , swuptc     , swdnt      , swdntc     , &
-                   swupb      , swupbc    , swdnb      , swdnbc     , swuptcln   , swdntcln   , &
-                   swupbcln   , swdnbcln  , swvisdir   , swvisdif   , swnirdir   , swnirdif   , &
-                   swddir     , swddni    , swddif     , swddirc    , swddnic    , swdownc    , &
-                   swupflx    , swupflxc  , swdnflx    , swdnflxc   , errmsg     , errflg)
+                  (its        , ite       , kts        , kte        , kme        , &
+                   dorrsw     , pi3d      , alswvisdir , alswvisdif , alswnirdir , &
+                   alswnirdif , coszen    , swhr       , swhrc      , swuflx     , &
+                   swuflxc    , swdflx    , swdflxc    , swuflxcln  , swdflxcln  , &
+                   sibvisdir  , sibvisdif , sibnirdir  , sibnirdif  , swdkdir    , &
+                   swdkdirc   , swdkdif   , gsw        , rthratensw , swcf       , &
+                   swupt      , swuptc    , swdnt      , swdntc     , swupb      , &
+                   swupbc     , swdnb     , swdnbc     , swuptcln   , swdntcln   , &
+                   swupbcln   , swdnbcln  , swvisdir   , swvisdif   , swnirdir   , &
+                   swnirdif   , swddir    , swddni     , swddif     , swddirc    , &
+                   swddnic    , swdownc   , swupflx    , swupflxc   , swdnflx    , &
+                   swdnflxc   , errmsg    , errflg)
 !=================================================================================================================
 
 !input arguments:
  logical,intent(in),dimension(its:ite):: &
     dorrsw       ! logical set to true for daytime grid-points (-).
 
- integer,intent(in):: ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte
+ integer,intent(in):: &
+    its,ite,    &! first and last index for horizontal dimension.
+    kts,kte,    &! first and last index for vertical dimension.
+    kme          ! defined as kte+1.
 
  real(kind=kind_phys),intent(in),dimension(its:ite):: &
     coszen       ! local cosine of the solar zenith angle (-). 
@@ -656,10 +660,10 @@
     swdkdirc,   &! local instantaneous clear-sky downward direct shortwave irradiance (W/m2).
     swdkdif      ! local instantaneous all-sky downward diffuse shortwave irradiance (W/m2).
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: &
     pi3d         ! exner function (-).
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme),optional:: &
+ real(kind=kind_phys),intent(in),dimension(its:ite),optional:: &
     alswvisdir, &! visible direct component of surface albedo when using SIB LSM (-).
     alswvisdif, &! visible diffuse component of surface albedo when using SIB LSM (-).
     alswnirdir, &! near-IR direct component of surface albedo when using SIB LSM (-).
@@ -673,11 +677,10 @@
  integer,intent(out):: &
     errflg       ! output error flag (-).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme):: &
-    coszr,      &! cosine of the solar zenith angle (-).
+ real(kind=kind_phys),intent(out),dimension(its:ite):: &
     gsw          ! all-sky net surface radiation (W/m2).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+ real(kind=kind_phys),intent(out),dimension(its:ite),optional:: &
     swcf,       &! instantaneous all-sky shortwave top-of-the-atmosphere cloud radiative forcing (W/m2).
     swupt,      &! instantaneous all-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
     swuptc,     &! instantaneous clear-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
@@ -688,19 +691,19 @@
     swdnb,      &! instantaneous all-sky shortwave surface downward radiation (W/m2).
     swdnbc       ! instantaneous clear-sky shortwave surface downward radiation (W/m2).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+ real(kind=kind_phys),intent(out),dimension(its:ite),optional:: &
     swuptcln,   &! instantaneous clean-sky shortwave top-of-the-atmosphere upward radiation (W/m2).
     swdntcln,   &! instantaneous clean-sky shortwave top-of-the-atmosphere downward radiation (W/m2).
     swupbcln,   &! instantaneous clean-sky shortwave surface upward radiation (W/m2).
     swdnbcln     ! instantaneous clean-sky shortwave surface downward radiation (W/m2).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+ real(kind=kind_phys),intent(out),dimension(its:ite),optional:: &
     swvisdir,   &! instantaneous visible direct all-sky shortwave surface radiation when using SIB LSM (W/m2).
     swvisdif,   &! instantaneous visible diffuse all-sky shortwave surface radiation when using SIB LSM (W/m2).
     swnirdir,   &! instantaneous near-IR direct all-sky shortwave surface radiation when using SIB LSM (W/m2).
     swnirdif     ! instantaneous near-IR diffuse all-sky shortwave surface radiation when using SIB LSM (W/m2).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme),optional:: &
+ real(kind=kind_phys),intent(out),dimension(its:ite),optional:: &
     swddir,     &! instantaneous direct all-sky shortwave surface downward irradiance (W/m2).
     swddni,     &! instantaneous direct all-sky shortwave surface downward normal irradiance (W/m2).
     swddif,     &! instantaneous diffuse all-sky shortwave surface downward irradiance (W/m2).
@@ -708,10 +711,10 @@
     swddnic,    &! instantaneous direct clear-sky shortwave surface downward normal irradiance (W/m2).
     swdownc      ! instantaneous clear-sky shortwave surface downward radiation (W/m2).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme,jms:jme):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte):: &
     rthratensw   ! all-sky shortwave radiation heating rate (K/s).
 
- real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme+1,jms:jme),optional:: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme+1),optional:: &
     swupflx,    &! instantaneous all-sky shortwave upward radiation flux profile (W/m2).
     swupflxc,   &! instantaneous clear-sky shortwave upward radiation flux profile (W/m2).
     swdnflx,    &! instantaneous all-sky shortwave downward radiation flux profile (W/m2).
@@ -719,132 +722,117 @@
 
 
 !local variables and arrays:
- integer:: i,k,j
- integer:: calc_clean_atm_diag
- integer:: sf_surface_physics
+ integer:: i,k
 
 !-----------------------------------------------------------------------------------------------------------------
 
  call mpas_log_write('--- enter subroutine rrtmg_sw_mpas_timestep_final:')
 
-!--- initialization of calc_clean_atm_diag:
- calc_clean_atm_diag = 0
- if(present(swuptcln) .and. present(swdntcln) .and. present(swupbcln) .and. present(swdnbcln)) &
-    calc_clean_atm_diag = 1
+ i_loop: do i = its,ite
 
-!--- initialization sf_surface_physics:
- sf_surface_physics = 0
- if(present(alswvisdir) .and. present(alswvisdif) .and. present(alswnirdir) .and. present(alswnirdif)) &
-    sf_surface_physics = 8
+    if(dorrsw(i)) then
+       gsw(i) = swdflx(i,1) - swuflx(i,1)
+       do k = kts,kte
+          rthratensw(i,k) = swhr(i,k)/86400.
+          rthratensw(i,k) = rthratensw(i,k)/pi3d(i,k)
+       enddo
 
-!--- latitude loop:
- j_loop: do j = jts,jte
-
-    !--- longitude loop:
-    i_loop: do i = its,ite
-       coszr(i,j) = coszen(i)
-       if(dorrsw(i)) then 
-          gsw(i,j) = swdflx(i,1) - swuflx(i,1)
-          do k = kts,kte
-             rthratensw(i,k,j) = swhr(i,k)/86400.
-             rthratensw(i,k,j) = rthratensw(i,k,j)/pi3d(i,k,j)
+       !optional arguments:
+       if(present(swupt)) then
+         swcf(i)   = (swdflx(i,kte+2)-swuflx(i,kte+2)) - (swdflxc(i,kte+2)-swuflxc(i,kte+2))
+         swupt(i)  = swuflx(i,kte+2)
+         swuptc(i) = swuflxc(i,kte+2)
+         swdnt(i)  = swdflx(i,kte+2)
+         swdntc(i) = swdflxc(i,kte+2)
+         swupb(i)  = swuflx(i,1)
+         swupbc(i) = swuflxc(i,1)
+         swdnb(i)  = swdflx(i,1)
+         swdnbc(i) = swdflxc(i,1)
+       endif
+       if(present(swupflx)) then
+          do k = kts, kme+1
+             swupflx(i,k)  = swuflx(i,k)
+             swupflxc(i,k) = swuflxc(i,k)
+             swdnflx(i,k)  = swdflx(i,k)
+             swdnflxc(i,k) = swdflxc(i,k)
           enddo
-
-          !optional arguments:
-          if(present(swupt)) then
-             swcf(i,j)   = (swdflx(i,kte+2)-swuflx(i,kte+2)) - (swdflxc(i,kte+2)-swuflxc(i,kte+2))
-             swupt(i,j)  = swuflx(i,kte+2)
-             swuptc(i,j) = swuflxc(i,kte+2)
-             swdnt(i,j)  = swdflx(i,kte+2)
-             swdntc(i,j) = swdflxc(i,kte+2)
-             swupb(i,j)  = swuflx(i,1)
-             swupbc(i,j) = swuflxc(i,1)
-             swdnb(i,j)  = swdflx(i,1)
-             swdnbc(i,j) = swdflxc(i,1)
-          endif
-          if(present(swupflx)) then
-             do k = kts, kte+1
-                swupflx(i,k,j)  = swuflx(i,k)
-                swupflxc(i,k,j) = swuflxc(i,k)
-                swdnflx(i,k,j)  = swdflx(i,k)
-                swdnflxc(i,k,j) = swdflxc(i,k)
-             enddo
-          endif
-          if(calc_clean_atm_diag .gt. 0)then
-             swuptcln(i,j) = swuflxcln(i,kte+2)
-             swdntcln(i,j) = swdflxcln(i,kte+2)
-             swupbcln(i,j) = swuflxcln(i,1)
-             swdnbcln(i,j) = swdflxcln(i,1)
-          endif
-          if(sf_surface_physics .eq. 8) then
-             swvisdir(i,j) = sibvisdir(i,1)
-             swvisdif(i,j) = sibvisdif(i,1)
-             swnirdir(i,j) = sibnirdir(i,1)
-             swnirdif(i,j) = sibnirdif(i,1)
-          endif
-          if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
-             present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
-             swddir(i,j)   = swdkdir(i,1)
-             swddni(i,j)   = swddir(i,j) / coszen(i)
-             swddif(i,j)   = swdkdif(i,1)
-             swdownc(i, j) = swdflxc(i,1)
-             swddirc(i,j)  = swdkdirc(i,1)
-             swddnic(i,j)  = swddirc(i,j) / coszen(i)
-          endif
+       endif
+       if(present(swuptcln) .and. present(swdntcln) .and. &
+          present(swupbcln) .and. present(swdnbcln)) then
+          swuptcln(i) = swuflxcln(i,kte+2)
+          swdntcln(i) = swdflxcln(i,kte+2)
+          swupbcln(i) = swuflxcln(i,1)
+          swdnbcln(i) = swdflxcln(i,1)
+       endif
+       if(present(alswvisdir) .and. present(alswvisdif) .and. &
+          present(alswnirdir) .and. present(alswnirdif)) then
+          swvisdir(i) = sibvisdir(i,1)
+          swvisdif(i) = sibvisdif(i,1)
+          swnirdir(i) = sibnirdir(i,1)
+          swnirdif(i) = sibnirdif(i,1)
+       endif
+       if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
+          present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
+          swddir(i)  = swdkdir(i,1)
+          swddni(i)  = swddir(i) / coszen(i)
+          swddif(i)  = swdkdif(i,1)
+          swdownc(i) = swdflxc(i,1)
+          swddirc(i) = swdkdirc(i,1)
+          swddnic(i) = swddirc(i) / coszen(i)
+       endif
  
-       else
+    else
 
-          gsw(i,j) = 0._kind_phys
-          do k = kts,kte
-             rthratensw(i,k,j) = 0._kind_phys
+       gsw(i) = 0._kind_phys
+       do k = kts,kte
+          rthratensw(i,k) = 0._kind_phys
+       enddo
+
+       !optional arguments:
+       if(present(swupt)) then
+          swcf(i)   = 0._kind_phys
+          swupt(i)  = 0._kind_phys
+          swuptc(i) = 0._kind_phys
+          swdnt(i)  = 0._kind_phys
+          swdntc(i) = 0._kind_phys
+          swupb(i)  = 0._kind_phys
+          swupbc(i) = 0._kind_phys
+          swdnb(i)  = 0._kind_phys
+          swdnbc(i) = 0._kind_phys
+       endif
+       if(present(swupflx)) then
+          do k = kts, kte+1
+             swupflx(i,k)  = 0._kind_phys
+             swupflxc(i,k) = 0._kind_phys
+             swdnflx(i,k)  = 0._kind_phys
+             swdnflxc(i,k) = 0._kind_phys
           enddo
+       endif
+       if(present(swuptcln) .and. present(swdntcln) .and. &
+          present(swupbcln) .and. present(swdnbcln)) then
+          swuptcln(i) = 0._kind_phys
+          swdntcln(i) = 0._kind_phys
+          swupbcln(i) = 0._kind_phys
+          swdnbcln(i) = 0._kind_phys
+       endif
+       if(present(alswvisdir) .and. present(alswvisdif) .and. &
+          present(alswnirdir) .and. present(alswnirdif)) then
+          swvisdir(i) = 0._kind_phys
+          swvisdif(i) = 0._kind_phys
+          swnirdir(i) = 0._kind_phys
+          swnirdif(i) = 0._kind_phys
+       endif
+       if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
+          present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
+          swddir(i)  = 0._kind_phys
+          swddif(i)  = 0._kind_phys
+          swdownc(i) = 0._kind_phys
+          swddirc(i) = 0._kind_phys
+          swddnic(i) = 0._kind_phys
+       endif
+    endif !endif daytime grid columns.
 
-          !optional arguments:
-          if(present(swupt)) then
-             swcf(i,j)   = 0._kind_phys
-             swupt(i,j)  = 0._kind_phys
-             swuptc(i,j) = 0._kind_phys
-             swdnt(i,j)  = 0._kind_phys
-             swdntc(i,j) = 0._kind_phys
-             swupb(i,j)  = 0._kind_phys
-             swupbc(i,j) = 0._kind_phys
-             swdnb(i,j)  = 0._kind_phys
-             swdnbc(i,j) = 0._kind_phys
-          endif
-          if(present(swupflx)) then
-             do k = kts, kte+1
-                swupflx(i,k,j)  = 0._kind_phys
-                swupflxc(i,k,j) = 0._kind_phys
-                swdnflx(i,k,j)  = 0._kind_phys
-                swdnflxc(i,k,j) = 0._kind_phys
-             enddo
-          endif
-          if(calc_clean_atm_diag .gt. 0) then
-             swuptcln(i,j) = 0._kind_phys
-             swdntcln(i,j) = 0._kind_phys
-             swupbcln(i,j) = 0._kind_phys
-             swdnbcln(i,j) = 0._kind_phys
-          endif
-          if(sf_surface_physics .eq. 8) then
-             swvisdir(i,j) = 0._kind_phys
-             swvisdif(i,j) = 0._kind_phys
-             swnirdir(i,j) = 0._kind_phys
-             swnirdif(i,j) = 0._kind_phys
-          endif
-          if(present(swddir) .and. present(swddif) .and. present(swddni) .and. &
-             present(swddirc) .and. present(swddnic) .and. present(swdownc)) then
-             swddir(i,j)   = 0._kind_phys
-             swddif(i,j)   = 0._kind_phys
-             swdownc(i, j) = 0._kind_phys
-             swddirc(i,j)  = 0._kind_phys
-             swddnic(i,j)  = 0._kind_phys
-          endif
-
-       endif !endif daytime grid columns.
-
-    enddo i_loop !end longitude loop.
-
- enddo j_loop !end latitude loop.
+ enddo i_loop
 
  errmsg = 'rrtmg_sw_mpas_timestep_final OK'
  errflg = 0
