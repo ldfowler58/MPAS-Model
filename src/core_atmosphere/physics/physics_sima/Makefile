@@ -9,30 +9,31 @@ OBJS = \
 	bl_ysu.o             \
 	module_ra_rrtmg_lw.o \
 	module_ra_rrtmg_sw.o \
+	ra_rrtmg_mcica.o     \
 	ra_rrtmg_shared.o    \
-	ra_rrtmg_sw.o        \
-	ra_rrtmg_sw_mpas.o
+	ra_rrtmg_sw_mpas.o   \
+	ra_rrtmg_sw.o
 
 physics_sima: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
 
 # DEPENDENCIES:
 module_ra_rrtmg_lw.o: \
-	ra_rrtmg_shared.o \
-	../physics_wrf/module_ra_rrtmg_vinterp.o
-
-module_ra_rrtmg_sw.o: \
-	ra_rrtmg_sw.o \
-	ra_rrtmg_sw_mpas.o
-
-ra_rrtmg_sw.o: \
-	module_ra_rrtmg_lw.o \
+	ra_rrtmg_mcica.o \
 	ra_rrtmg_shared.o
 
+module_ra_rrtmg_sw.o: \
+	ra_rrtmg_sw_mpas.o
+
+ra_rrtmg_mcica.o: \
+	ra_rrtmg_sw.o
+
 ra_rrtmg_sw_mpas.o: \
-	ra_rrtmg_shared.o \
-	ra_rrtmg_sw.o \
-	../physics_wrf/module_ra_rrtmg_vinterp.o
+	ra_rrtmg_mcica.o \
+	ra_rrtmg_shared.o
+
+ra_rrtmg_sw.o: \
+	ra_rrtmg_shared.o
 
 clean:
 	$(RM) *.f90 *.o *.mod
