@@ -1924,26 +1924,35 @@
                         <var name="lbc_qv" name_in_code="qv" array_group="moist" units="kg kg^{-1} s^{-1}"
                              description="Lateral boundary tendency of water vapor mixing ratio"/>
 
-                        <var name="lbc_qc" name_in_code="qc" array_group="moist"  packages="bl_mynn_in;cu_tiedtke_in;mp_kessler_in;mp_thompson_in;mp_wsm6_in" units="kg kg^{-1} s^{-1}"
+                        <var name="lbc_qc" name_in_code="qc" array_group="moist" units="kg kg^{-1} s^{-1}"
                              description="Lateral boundary tendency of cloud water mixing ratio"/>
 
-                        <var name="lbc_qr" name_in_code="qr" array_group="moist"  packages="mp_kessler_in;mp_thompson_in;mp_wsm6_in" units="kg kg^{-1} s^{-1}"
+                        <var name="lbc_qr" name_in_code="qr" array_group="moist" units="kg kg^{-1} s^{-1}"
                              description="Lateral boundary tendency of rain water mixing ratio"/>
 
-                        <var name="lbc_qi" name_in_code="qi" array_group="moist"  packages="bl_mynn_in;cu_tiedtke_in;mp_thompson_in;mp_wsm6_in" units="kg kg^{-1} s^{-1}"
+                        <var name="lbc_qi" name_in_code="qi" array_group="moist" units="kg kg^{-1} s^{-1}"
                              description="Lateral boundary tendency of ice mixing ratio"/>
 
-                        <var name="lbc_qs" name_in_code="qs" array_group="moist"  packages="mp_thompson_in;mp_wsm6_in" units="kg kg^{-1} s^{-1}"
+                        <var name="lbc_qs" name_in_code="qs" array_group="moist" units="kg kg^{-1} s^{-1}"
                              description="Lateral boundary tendency of snow mixing ratio"/>
 
-                        <var name="lbc_qg" name_in_code="qg" array_group="moist"  packages="mp_thompson_in;mp_wsm6_in" units="kg kg^{-1} s^{-1}"
+                        <var name="lbc_qg" name_in_code="qg" array_group="moist" units="kg kg^{-1} s^{-1}"
                              description="Lateral boundary tendency of graupel mixing ratio"/>
 
-                        <var name="lbc_nr" name_in_code="nr" array_group="number" packages="mp_thompson_in" units="m^{-3} s^{-1}"
+                        <var name="lbc_nc" name_in_code="nc" array_group="number" packages="bl_mynn_in;cu_grell_freitas_in;mp_thompson_in" units="kg^{-1} s^{-1}"
+                             description="Lateral boundary tendency of liquid water number concentration"/>
+
+                        <var name="lbc_ni" name_in_code="ni" array_group="number" packages="bl_mynn_in;cu_grell_freitas_in;mp_thompson_in" units="kg^{-1} s^{-1}"
+                             description="Lateral boundary tendency of ice number concentration"/>
+
+                        <var name="lbc_nr" name_in_code="nr" array_group="number" packages="bl_mynn_in;cu_grell_freitas_in;mp_thompson_in" units="kg^{-1} s^{-1}"
                              description="Lateral boundary tendency of rain number concentration"/>
 
-                        <var name="lbc_ni" name_in_code="ni" array_group="number" packages="bl_mynn_in;mp_thompson_in" units="m^{-3} s^{-1}"
-                             description="Lateral boundary tendency of ice number concentration"/>
+                        <var name="lbc_nifa" name_in_code="nifa" array_group="aerosols" packages="bl_mynn_in;cu_grell_freitas_in;mp_thompson_in" units="kg^{-1} s^{-1}"
+                             description="Lateral boundary tendency of "ice-friendly" aerosol number concentration"/>
+
+                        <var name="lbc_nwfa" name_in_code="nwfa" array_group="aerosols" packages="bl_mynn_in;cu_grell_freitas_in;mp_thompson_in" units="kg^{-1} s^{-1}"
+                             description="Lateral boundary tendency of "water-friendly" aerosol number concentration"/>
                 </var_array>
         </var_struct>
 
