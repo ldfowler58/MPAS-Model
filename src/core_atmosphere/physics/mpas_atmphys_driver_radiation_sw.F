@@ -86,6 +86,8 @@
 ! * in the subroutine driver_radiation_sw,added the flags errmsg and errflg for compliance with the CCPP
 !   framework.
 !   Laura D. Fowler (laura@ucar.edu) / 2020-01-09.
+! * in call to rrtmg_swrad, use icld instead of cldovrlp to point to cldoverlap.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-03-04.
 
 
  contains
@@ -765,7 +767,7 @@
               pin      = pin_p      , o3clim     = o3clim_p     , gsw        = gsw_p         , &
               swcf     = swcf_p     , rthratensw = rthratensw_p , has_reqc   = has_reqc      , &
               has_reqi = has_reqi   , has_reqs   = has_reqs     , re_cloud   = recloud_p     , &
-              re_ice   = reice_p    , re_snow    = resnow_p     , cldovrlp   = cldoverlap    , &
+              re_ice   = reice_p    , re_snow    = resnow_p     , icld       = cldoverlap    , &
               swupt    = swupt_p    , swuptc     = swuptc_p     , swdnt      = swdnt_p       , &
               swdntc   = swdntc_p   , swupb      = swupb_p      , swupbc     = swupbc_p      , &
               swdnb    = swdnb_p    , swdnbc     = swdnbc_p     ,                              &

@@ -34,22 +34,22 @@
                   (its        , ite        , kts        , kte        , kme        , &
                    nbndsw     , ngptsw     , naerec     , f_qc       , f_qr       , &
                    f_qi       , f_qs       , icloud     , has_reqc   , has_reqi   , &
-                   has_reqs   , cldovrlp   , gravity    , gmt        , declin     , &
+                   has_reqs   , icld       , gravity    , gmt        , declin     , &
                    degrad     , radt       , xtime      , xlat       , xlon       , &
-                   tsk        , albedo     , xland      , xice       , snow       , &
-                   p3d        , t3d        , qv3d       , qc3d       , qr3d       , &
-                   qi3d       , qs3d       , cldfra3d   , re_cloud   , re_ice     , &
-                   re_snow    , dz8w       , p8w        , t8w        , alswvisdir , &
-                   alswvisdif , alswnirdir , alswnirdif , o3input    , noznlevels , &
-                   pin        , o3clim     , ncol       , nlay       , icld       , &
-                   inflgsw    , iceflgsw   , liqflgsw   , aer_opt    , dyofyr     , &
-                   adjes      , dorrsw     , coszen     , tsfc       , asdir      , &
-                   asdif      , aldir      , aldif      , play       , tlay       , &
-                   h2ovmr     , o3vmr      , co2vmr     , o2vmr      , ch4vmr     , &
-                   n2ovmr     , plev       , tlev       , cldfmcl    , clwpmcl    , &
-                   ciwpmcl    , cswpmcl    , relqmcl    , reicmcl    , resnmcl    , &
-                   taucmcl    , ssacmcl    , asmcmcl    , fsfcmcl    , tauaer     , &
-                   ssaaer     , asmaer     , ecaer      , errmsg     , errflg)
+                   albedo     , xland      , xice       , snow       , p2d        , &
+                   t2d        , qv2d       , qc2d       , qr2d       , qi2d       , &
+                   qs2d       , cldfra2d   , re_cloud   , re_ice     , re_snow    , &
+                   dz8w2d     , p2di       , t2di       , alswvisdir , alswvisdif , &
+                   alswnirdir , alswnirdif , tsfc       , o3input    , noznlevels , &
+                   pin        , o3clim     , ncol       , nlay       , inflgsw    , &
+                   iceflgsw   , liqflgsw   , aer_opt    , dyofyr     , adjes      , &
+                   dorrsw     , coszen     , asdir      , asdif      , aldir      , &
+                   aldif      , play       , tlay       , h2ovmr     , o3vmr      , &
+                   co2vmr     , o2vmr      , ch4vmr     , n2ovmr     , plev       , &
+                   tlev       , cldfmcl    , clwpmcl    , ciwpmcl    , cswpmcl    , &
+                   relqmcl    , reicmcl    , resnmcl    , taucmcl    , ssacmcl    , &
+                   asmcmcl    , fsfcmcl    , tauaer     , ssaaer     , asmaer     , &
+                   ecaer      , errmsg     , errflg)
 !=================================================================================================================
 
 !input arguments:
@@ -74,7 +74,7 @@
     has_reqc,   &! = 1 if effective radius of cloud liquid water computed from cloud microphysics, = 0 otherwise.
     has_reqi,   &! = 1 if effective radius of cloud ice computed from cloud microphysics, = 0 otherwise.
     has_reqs,   &! = 1 if effective radius of snow computed from cloud microphysics, = 0 otherwise.
-    cldovrlp,   &! option that defines the type of cloud overlap.
+    icld,       &! option that defines the type of cloud overlap.
     noznlevels, &! number of levels of climatological ozone data.
     o3input      ! ozone input option for shortwave radiation.
 
@@ -93,20 +93,20 @@
     xice,       &! fractional seaice amount (-).
     snow,       &! snow water equivalent (kg/m2).
     albedo,     &! surface albedo (-).
-    tsk          ! surface temperature (K).
+    tsfc         ! surface temperature (K).
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: &
-    t3d,        &! temperature at middle of layers (K).
-    p3d,        &! pressure at middle of layers (Pa).
-    qv3d,       &! water vapor mixing ratio at middle of layers (kg/kg).
-    dz8w,       &! thickness of layers (m).
+    t2d,        &! temperature at middle of layers (K).
+    p2d,        &! pressure at middle of layers (Pa).
+    qv2d,       &! water vapor mixing ratio at middle of layers (kg/kg).
+    dz8w2d,     &! thickness of layers (m).
     re_cloud,   &! effective radius of cloud liquid droplets at middle of layers (m).
     re_ice,     &! effective radius of cloud ice crystals at middle of layers (m). 
     re_snow      ! effective radius of snow crystals at middle of layers (m).
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kme):: &
-    p8w,        &! pressure at interface of layers (Pa).
-    t8w          ! temperature at interface of layers (K).
+    p2di,       &! pressure at interface of layers (Pa).
+    t2di         ! temperature at interface of layers (K).
 
  real(kind=kind_phys),intent(in),dimension(its:ite),optional:: &
     alswvisdir, &! visible direct component of surface albedo when using SIB LSM (-).
@@ -115,11 +115,11 @@
     alswnirdif   ! near-IR diffuse component of surface albedo when using SIB LSM (-).
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte),optional:: &
-    cldfra3d,   &! cloud fraction at middle of layers (-).
-    qc3d,       &! cloud liquid water mixing ratio at middle of layers (kg/kg).
-    qr3d,       &! rain mixing ratio at middle of layers (kg/kg).
-    qi3d,       &! cloud ice mixing ratio at middle of layers (kg/kg).
-    qs3d         ! snow mixing ratio (kg/kg).
+    cldfra2d,   &! cloud fraction at middle of layers (-).
+    qc2d,       &! cloud liquid water mixing ratio at middle of layers (kg/kg).
+    qr2d,       &! rain mixing ratio at middle of layers (kg/kg).
+    qi2d,       &! cloud ice mixing ratio at middle of layers (kg/kg).
+    qs2d         ! snow mixing ratio (kg/kg).
 
  real(kind=kind_phys),intent(in),dimension(1:noznlevels),optional:: &
     pin          ! fixed pressures at which climatological ozone data are defined (hPa).
@@ -144,26 +144,24 @@
     dyofyr       ! day of the year.
 
  integer,intent(out):: &
-    aer_opt      ! local option of optical properties of aerosols.
+    aer_opt      ! local option for shortwave optical properties of aerosols.
 
  integer,intent(out):: &
-    icld,       &! local option that defines the type of cloud overlap.
     inflgsw,    &! local flag for calculation of shortwave cloud optical properties.
-    iceflgsw,   &! local flag for ice particle specifications.
-    liqflgsw     ! local flag for liquid droplet specifications.
+    iceflgsw,   &! local flag for calculation of shortwave cloud ice particle properties.
+    liqflgsw     ! local flag for calculation of shortwave cloud liquid droplet properties.
 
  real(kind=kind_phys),intent(out):: &
     adjes        ! flux adjustment for Earth/Sun distance (-).
 
  real(kind=kind_phys),intent(out),dimension(its:ite):: &
     coszen,     &! local cosine of solar zenith angle (-).
-    tsfc,       &! local surface temperature (K).
     asdir,      &! local visible direct surface albedo (-).
     asdif,      &! local visible diffuse surface albedo (-).
     aldir,      &! local near-IR direct surface albedo (-).
     aldif        ! local near-IR diffuse surface albedo (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme):: &
     play,       &! local pressure at middle of layers (hPa).
     tlay,       &! local temperature at middle of layers (K).
     h2ovmr,     &! local volume mixing ratio of water vapor ().
@@ -173,7 +171,7 @@
     ch4vmr,     &! local volume mixing ratio of methane ().
     n2ovmr       ! local volume mixing ratio of nitrous oxide ().
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme):: &
     relqmcl,    &! local cloud liquid water particle size (microns).
     reicmcl,    &! local cloud ice particle size (microns).
     resnmcl      ! local snow particle size (microns).
@@ -182,23 +180,23 @@
     plev,       &! local pressure at interface between layers (hPa).
     tlev         ! local temperature at interface between layers (K).
 
- real(kind=kind_phys),intent(out),dimension(ngptsw,its:ite,kts:kte+1):: &
+ real(kind=kind_phys),intent(out),dimension(ngptsw,its:ite,kts:kme):: &
     cldfmcl,    &! in-cloud cloud fraction (-).
     clwpmcl,    &! in-cloud liquid water path (g/m2).
     ciwpmcl,    &! in-cloud ice water path (g/m2).
-    cswpmcl,    &! in-cloud snow water path (g/m2).
+    cswpmcl,    &! in-cloud snow path (g/m2).
     taucmcl,    &! in-cloud optical depth (-).
     ssacmcl,    &! in-cloud single scattering albedo (-).
     asmcmcl,    &! in-cloud asymmetry factor (-).
     fsfcmcl      ! in-cloud forward scattering fraction (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1,nbndsw):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme,nbndsw):: &
     tauaer,     &! aerosol optical depth (-).
     ssaaer,     &! aerosol single scattering albedo (-).
     asmaer       ! aerosol asymmetry factor (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+1,naerec):: &
-    ecaer        ! aerosol mixing ratio for ECMWF aerosols ().
+ real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme,naerec):: &
+    ecaer        ! aerosol optical depth for ECMWF aerosols ().
 
 
 !local variables and arrays:
@@ -266,7 +264,6 @@
  nlay = (kte-kts+1) + 1
 
 !--- initialize option for the calculation of the cloud optical properties:
- icld     = cldovrlp
  inflgsw  = 2
  iceflgsw = 3
  liqflgsw = 1
@@ -310,16 +307,15 @@
 
        !initialization of the local input soundings:
        k = kts
-       plev(i,kts) = p8w(i,k) / 100.
-       tlev(i,kts) = t8w(i,k)
-       tsfc(i)     = tsk(i)
+       plev(i,kts) = p2di(i,k) / 100.
+       tlev(i,kts) = t2di(i,k)
        do k = kts,kte
-          plev(i,k+1) = p8w(i,k+1) / 100.
-          tlev(i,k+1) = t8w(i,k+1)
-          play(i,k)   = p3d(i,k) / 100.
+          plev(i,k+1) = p2di(i,k+1) / 100.
+          tlev(i,k+1) = t2di(i,k+1)
+          play(i,k)   = p2d(i,k) / 100.
           pdel(i,k)   = plev(i,k) - plev(i,k+1)
-          tlay(i,k)   = t3d(i,k)
-          h2ovmr(i,k) = amax1(qv3d(i,k),1.e-12)
+          tlay(i,k)   = t2d(i,k)
+          h2ovmr(i,k) = amax1(qv2d(i,k),1.e-12)
           h2ovmr(i,k) = h2ovmr(i,k)*amdw
           co2vmr(i,k) = co2
           o2vmr(i,k)  = o2
@@ -431,7 +427,7 @@
        if(dorrsw(i)) then !begin if statement checking for daytime columns.
           dzsum = 0.0
           do k = kts, kte
-             dz = dz8w(i,k)
+             dz = dz8w2d(i,k)
              hgt(i,k) = dzsum + 0.5*dz
              dzsum = dzsum + dz
           enddo
@@ -443,30 +439,30 @@
              qi1d(k) = 0.
              qs1d(k) = 0.
           enddo
-          if(present(f_qc) .and. present(qc3d)) then
+          if(present(f_qc) .and. present(qc2d)) then
              do k = kts,kte
-                qc1d(k) = amax1(qc3d(i,k),0.)
+                qc1d(k) = amax1(qc2d(i,k),0.)
              enddo
           endif
-          if(present(f_qr) .and. present(qr3d)) then
+          if(present(f_qr) .and. present(qr2d)) then
              do k = kts,kte
-                qr1d(k) = amax1(qr3d(i,k),0.)
+                qr1d(k) = amax1(qr2d(i,k),0.)
              enddo
           endif
-          if(present(f_qi) .and. present(qi3d)) then
+          if(present(f_qi) .and. present(qi2d)) then
              do k = kts,kte
-                qi1d(k) = amax1(qi3d(i,k),0.)
+                qi1d(k) = amax1(qi2d(i,k),0.)
              enddo
           endif
-          if(present(f_qs) .and. present(qs3d)) then
+          if(present(f_qs) .and. present(qs2d)) then
              do k = kts,kte
-                qs1d(k) = amax1(qs3d(i,k),0.)
+                qs1d(k) = amax1(qs2d(i,k),0.)
              enddo
           endif
-          if(present(f_qc).and.present(qc3d) .and. present(f_qi).and.present(qi3d)  .and. &
-             present(f_qs).and.present(qs3d) .and. present(cldfra3d)) then
+          if(present(f_qc).and.present(qc2d) .and. present(f_qi).and.present(qi2d)  .and. &
+             present(f_qs).and.present(qs2d) .and. present(cldfra2d)) then
              do k = kts,kte
-                cldfrac(i,k) = cldfra3d(i,k)
+                cldfrac(i,k) = cldfra2d(i,k)
              enddo
           endif
 
@@ -610,7 +606,7 @@
 !=================================================================================================================
  subroutine rrtmg_sw_mpas_timestep_final &
                   (its        , ite       , kts        , kte        , kme        , &
-                   dorrsw     , pi3d      , alswvisdir , alswvisdif , alswnirdir , &
+                   dorrsw     , pi2d      , alswvisdir , alswvisdif , alswnirdir , &
                    alswnirdif , coszen    , swhr       , swhrc      , swuflx     , &
                    swuflxc    , swdflx    , swdflxc    , swuflxcln  , swdflxcln  , &
                    sibvisdir  , sibvisdif , sibnirdir  , sibnirdif  , swdkdir    , &
@@ -661,7 +657,7 @@
     swdkdif      ! local instantaneous all-sky downward diffuse shortwave irradiance (W/m2).
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: &
-    pi3d         ! exner function (-).
+    pi2d         ! exner function (-).
 
  real(kind=kind_phys),intent(in),dimension(its:ite),optional:: &
     alswvisdir, &! visible direct component of surface albedo when using SIB LSM (-).
@@ -734,7 +730,7 @@
        gsw(i) = swdflx(i,1) - swuflx(i,1)
        do k = kts,kte
           rthratensw(i,k) = swhr(i,k)/86400.
-          rthratensw(i,k) = rthratensw(i,k)/pi3d(i,k)
+          rthratensw(i,k) = rthratensw(i,k)/pi2d(i,k)
        enddo
 
        !optional arguments:
