@@ -1,0 +1,521 @@
+[ccpp-arg-table]
+  name = rrtmg_sw_run
+  type = scheme
+[dorrsw]
+  standard_name = flag_daytime_grid_points
+  long_name = logical set to true for daytime grid-points
+  units = none
+  dimensions = ()
+  type = logical
+  intent = in
+  optional = F
+[ncol]
+  standard_name = horizontal_loop_extent_for_sw_radiation
+  long_name = horizontal loop extent for shortwave radiation calculation
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[nlay]
+  standard_name = number_of_vertical_layers_for_sw_radiation
+  long_name = number of vertical layers for shortwave radiation calculation
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[icld]
+  standard_name = option_for_cloud_overlap
+  long_name = option defining the type of cloud overlap
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[play]
+  standard_name = air_pressure_at_layer_for_radiation_in_hPa
+  long_name = air pressure at vertical layer for radiation calculation
+  units = hPa
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[plev]
+  standard_name = air_pressure_at_interface_for_radiation_in_hPa
+  long_name = air pressure at vertical interface for radiation calculation
+  units = hPa
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[tlay]
+  standard_name = air_temperature_at_layer_for_radiation
+  long_name = air temperature at vertical layer for radiation calculation
+  units = K
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[tlev]
+  standard_name = air_temperature_at_interface_for_radiation
+  long_name = air temperature at vertical interface for radiation calculation
+  units = K
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[tsfc]
+  standard_name = surface_ground_temperature_for_radiation
+  long_name = surface ground temperature for radiation
+  units = K
+  dimensions = (horizontal_loop_extent_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[h2ovmr]
+  standard_name = volume_mixing_ratio_h2o
+  long_name = volume mixing ratio h2o
+  units = 
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[o3vmr]
+  standard_name = volume_mixing_ratio_o3
+  long_name = volume mixing ratio o3
+  units =
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[co2vmr]
+  standard_name = volume_mixing_ratio_co2
+  long_name = volume mixing ratio co2
+  units =
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[ch4vmr]
+  standard_name = volume_mixing_ratio_ch4
+  long_name = volume mixing ratio ch4
+  units =
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[n2ovmr]
+  standard_name = volume_mixing_ratio_n2o
+  long_name = volume mixing ratio n2o
+  units =
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[o2vmr]
+  standard_name = volume_mixing_ratio_o2
+  long_name = volume mixing ratio o2
+  units =
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[asdir]
+  standard_name = surface_albedo_due_to_UV_and_VIS_direct
+  long_name = surface albedo due to UV+VIS direct beam
+  units = fraction
+  dimensions = (horizontal_loop_extent_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[asdif]
+  standard_name = surface_albedo_due_to_UV_and_VIS_diffused
+  long_name = surface albedo due to UV+VIS diffused beam
+  units = fraction
+  dimensions = (horizontal_loop_extent_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[aldir]
+  standard_name = surface_albedo_due_to_near_IR_direct
+  long_name = surface albedo due to near IR direct beam
+  units = fraction
+  dimensions = (horizontal_loop_extent_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[aldif]
+  standard_name = surface_albedo_due_to_near_IR_diffused
+  long_name = surface albedo due to near IR diffuse beam
+  units = fraction
+  dimensions = (horizontal_loop_extent_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[coszen]
+  standard_name = cosine_of_zenith_angle
+  long_name = mean cos of zenith angle over rad call period
+  units = dimensionless
+  dimensions = (horizontal_loop_extent_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[adjes]
+  standard_name = flux_adjustment_Earth_Sun_distance
+  long_name = flux adjustment for Earth/Sun distance
+  units = dimensionless
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[dyofyr]
+  standard_name = day_of_the_year
+  long_name = day of the year
+  units = dimensionless
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[scon]
+  standard_name = solar_constant
+  long_name = solar constant (sun-earth distance adjusted)
+  units = W m-2
+  dimensions = none
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[inflgsw]
+  standard_name = flag_sw_cloud_optical_properties
+  long_name = flag for calculation of shortwave cloud optical properties
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[iceflgsw]
+  standard_name = flag_sw_ice_cloud_optical_properties
+  long_name = flag for calculation of shortwave cloud ice particle properties
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[liqflgsw]
+  standard_name = flag_sw_liquid_cloud_optical_properties
+  long_name = flag for calculation of shortwave cloud liquid droplet properties
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[cldfmcl]
+  standard_name = cloud_fraction_for_radiation
+  long_name = cloud fraction for radiation calculation
+  units = fraction
+  dimensions = (nb_sw_g_intervals,horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[taucmcl]
+  standard_name = cloud_optical_depth_for_radiation
+  long_name = cloud optical depth for radiation calculation
+  units = dimensionless
+  dimensions = (nb_sw_g_intervals,horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[ssacmcl]
+  standard_name = cloud_single_scattering_albedo_for_radiation
+  long_name = cloud single scattering albedo for radiation calculation
+  units = dimensionless
+  dimensions = (nb_sw_g_intervals,horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[asmcmcl]
+  standard_name = cloud_asymmetry_factor_for_radiation
+  long_name = cloud asymmetry factor for radiation calculation
+  units = dimensionless
+  dimensions = (nb_sw_g_intervals,horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[fsfcmcl]
+  standard_name = cloud_forward_scattering_function_for_radiation
+  long_name = cloud forward scattering function for radiation
+  units = dimensionless
+  dimensions = (nb_sw_g_intervals,horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[ciwpmcl]
+  standard_name = cloud_ice_water_path_for_radiation
+  long_name = cloud ice water path for radiation
+  units = g m-2
+  dimensions = (nb_sw_g_intervals,horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[clwpmcl]
+  standard_name = cloud_liquid_water_path_for_radiation
+  long_name = cloud liquid water path for radiation
+  units = g m-2
+  dimensions = (nb_sw_g_intervals,horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[cswpmcl]
+  standard_name = cloud_snow_water_path_for_radiation
+  long_name = cloud snow water path for radiation
+  units = g m-2
+  dimensions = (nb_sw_g_intervals,horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[reicmcl]
+  standard_name = cloud_ice_water_effective_radius_for radiation
+  long_name = cloud ice water effective radius for radiation
+  units = microns
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[relqmcl]
+  standard_name = cloud_liquid_water_effective_radius_for radiation
+  long_name = cloud liquid water effective radius for radiation
+  units = microns
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[resnmcl]
+  standard_name = cloud_snow_effective_radius_for_radiation
+  long_name = cloud snow effective radius for radiation
+  units = microns
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[tauaer]
+  standard_name = sw_spectral_aerosol_optical_depth_for_radiation
+  long_name = shortwave spectral aerosol optical depth for radiation
+  units = dimensionless
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation,nb_sw_spectral_bands)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[ssaaer]
+  standard_name = sw_spectral_aerosol_single_scattering_albedo_for_radiation
+  long_name = shortwave spectral aerosol single scattering albedo for radiation
+  units = dimensionless
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation,nb_sw_spectral_bands)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[asmaer]
+  standard_name = sw_spectral_aerosol_asymmetry_factor_for_radiation
+  long_name = shortwave spectral aerosol asymmetry factor for radiation
+  units = none
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation,nb_sw_spectral_bands)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[ecaer]
+  standard_name = ecmwf_sw_aerosol_optical_depth_for_radiation
+  long_name = ecmwf shortwave aerosol optical depth for radiation
+  units = dimensionless
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation,nb_aerosols_ecmwf_option)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[swuflx]
+  standard_name = instantaneous_all_sky_upward_sw_radiation_flux
+  long_name = instantaneous all-sky upward shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swdflx]
+  standard_name = instantaneous_all_sky_downward_sw_radiation_flux
+  long_name = instantaneous all-sky downward shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swhr]
+  standard_name = all_sky_tendency_of_air_temperature_due_to_sw_radiation_per_day
+  long_name = all sky tendency of air temperature due to shortwave radiation per day
+  units = K day-1
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swuflxc]
+  standard_name = instantaneous_clear_sky_upward_sw_radiation_flux
+  long_name = instantaneous clear-sky upward shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swdflxc]
+  standard_name = instantaneous_clear_sky_downward_sw_radiation_flux
+  long_name = instantaneous clear-sky downward shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swhrc]
+  standard_name = clear_sky_tendency_of_air_temperature_due_to_sw_radiation_per_day
+  long_name = clear sky tendency of air temperature due to shortwave radiation per day
+  units = K day-1
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swuflxcln]
+  standard_name = instantaneous_clean_air_upward_sw_radiation_flux
+  long_name = instantaneous clean air upward shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swdflxcln]
+  standard_name = instantaneous_clean_air_downward_sw_radiation_flux
+  long_name = instantaneous clean air downward shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[aer_opt]
+  standard_name = option_for_aerosol_source
+  long_name = option defining the source of aerosols
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[sibvisdir]
+  standard_name = instantaneous_all_sky_UV_and_VIS_downward_direct_sw_radiation_flux 
+  long_name = instantaneous all-sky UV+VIS downward direct shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[sibvisdif]
+  standard_name = instantaneous_all_sky_UV_and_VIS_downward_diffuse_sw_radiation_flux 
+  long_name = instantaneous all-sky UV+VIS downward diffuse shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[sibnirdir]
+  standard_name = instantaneous_all_sky_near_IR_downward_direct_sw_radiation_flux 
+  long_name = instantaneous all-sky near IR downward direct shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[sibnirdif]
+  standard_name = instantaneous_all_sky_near_IR_downward_diffuse_sw_radiation_flux 
+  long_name = instantaneous all-sky near IR downward diffuse shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swdkdir]
+  standard_name = instantaneous_all_sky_downward_direct_sw_radiation_flux 
+  long_name = instantaneous all-sky downward direct shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swdkdif]
+  standard_name = instantaneous_all_sky_downward_diffuse_sw_radiation_flux 
+  long_name = instantaneous all-sky downward diffuse shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[swdkdirc]
+  standard_name = instantaneous_clear_sky_downward_direct_sw_radiation_flux 
+  long_name = instantaneous clear-sky downward direct shortwave radiation flux
+  units = W m-2
+  dimensions = (horizontal_loop_extent_for_sw_radiation,number_of_vertical_layers_for_sw_radiation+1)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[calc_clean_atm_diag]
+  standard_name = option_for_calculating_clean_sky_sw_radiation_fluxes
+  long_name = option for calculating clean-sky shortwave radiation fluxes
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character | kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+[ccpp-arg-table]
+  name = rrtmg_sw_init
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character | kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+[ccpp-arg-table]
+  name = rrtmg_sw_finalize
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character | kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
