@@ -7,9 +7,8 @@ dummy:
 
 OBJS = \
 	bl_ysu.o             \
-	module_ra_rrtmg_lw.o \
-	module_ra_rrtmg_sw.o \
 	ra_rrtmg_mcica.o     \
+	ra_rrtmg_vinterp.o   \
 	ra_rrtmg_shared.o    \
 	ra_rrtmg_sw_mpas.o   \
 	ra_rrtmg_sw.o
@@ -18,19 +17,13 @@ physics_sima: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
 
 # DEPENDENCIES:
-module_ra_rrtmg_lw.o: \
-	ra_rrtmg_mcica.o \
-	ra_rrtmg_shared.o
-
-module_ra_rrtmg_sw.o: \
-	ra_rrtmg_sw_mpas.o
-
 ra_rrtmg_mcica.o: \
 	ra_rrtmg_sw.o
 
 ra_rrtmg_sw_mpas.o: \
 	ra_rrtmg_mcica.o \
-	ra_rrtmg_shared.o
+	ra_rrtmg_shared.o \
+	ra_rrtmg_vinterp.o
 
 ra_rrtmg_sw.o: \
 	ra_rrtmg_shared.o
@@ -44,7 +37,7 @@ clean:
 .F.o:
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../physics_wrf  -I../../../framework -I../../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../physics_wrf -I../../../framework -I../../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90
 endif

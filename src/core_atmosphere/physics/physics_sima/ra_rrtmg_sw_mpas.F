@@ -3,9 +3,9 @@
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_log
 
- use ra_rrtmg_shared,only        : inirad,reicalc,relcalc,retab
- use module_ra_rrtmg_vinterp,only: vinterp_ozn
- use mcica_subcol_gen_sw,only    : mcica_subcol_sw
+ use ra_rrtmg_shared,only    : inirad,reicalc,relcalc,retab
+ use ra_rrtmg_vinterp,only   : vinterp_ozn
+ use mcica_subcol_gen_sw,only: mcica_subcol_sw
 
  implicit none
  public:: rrtmg_sw_mpas_run,           &

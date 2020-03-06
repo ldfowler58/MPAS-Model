@@ -21,7 +21,7 @@
 !wrf physics:
  use module_ra_cam            
  use module_ra_rrtmg_lw
- use module_ra_rrtmg_vinterp
+ use ra_rrtmg_vinterp
 
  implicit none
  private

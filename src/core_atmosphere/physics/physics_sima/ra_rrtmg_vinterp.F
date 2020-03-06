@@ -1,14 +1,6 @@
 !=================================================================================================================
-!in module_ra_rrtmg_vinterp, the subroutine vinterp_ozn was originally the same as subroutine radozn and copied
-!from module_ra_cam.F. module_ra_cam.F was itself copied from WRF 3.3.0.
-
-!subroutine vinterp_ozn is called from the subroutines rrtmg_lwrad (in module_ra_rrtmg_lw.F) and rrtmg_swrad (in
-!module_ra_rrtmg_sw.F) for interpolation of climatological ozone onto the MPAS pressure levels. vinterp_ozn is
-!also called from subroutine radiation_lw_from_MPAS (in mpas_atmphys_driver_radiation_lw.F) for diagnostic only.
-!Laura D. Fowler (laura@ucar.edu)/2017-02-10.
-!=================================================================================================================
- module module_ra_rrtmg_vinterp
- use mpas_kind_types
+ module ra_rrtmg_vinterp
+ use mpas_kind_types,only: kind_phys => RKIND
 
  implicit none
  private
@@ -46,17 +38,17 @@
    integer, intent(in) :: levsiz              ! number of ozone layers
 
 !ldf begin:
-!  real(kind=RKIND), intent(in) :: pmid(pcols,pver)   ! level pressures (mks)
-!  real(kind=RKIND), intent(in) :: pin(levsiz)        ! ozone data level pressures (mks)
-!  real(kind=RKIND), intent(in) :: ozmix(pcols,levsiz)! ozone mixing ratio
+!  real(kind=kind_phys), intent(in) :: pmid(pcols,pver)   ! level pressures (mks)
+!  real(kind=kind_phys), intent(in) :: pin(levsiz)        ! ozone data level pressures (mks)
+!  real(kind=kind_phys), intent(in) :: ozmix(pcols,levsiz)! ozone mixing ratio
 
-!  real(kind=RKIND), intent(out) :: o3vmr(pcols,pver) ! ozone volume mixing ratio
+!  real(kind=kind_phys), intent(out) :: o3vmr(pcols,pver) ! ozone volume mixing ratio
 
-   real(kind=RKIND), intent(in) :: pmid_in(pcols,pver)   ! level pressures (mks)
-   real(kind=RKIND), intent(in) :: pin_in(levsiz)        ! ozone data level pressures (mks)
-   real(kind=RKIND), intent(in) :: ozmix_in(pcols,levsiz)! ozone mixing ratio
+   real(kind=kind_phys), intent(in) :: pmid_in(pcols,pver)   ! level pressures (mks)
+   real(kind=kind_phys), intent(in) :: pin_in(levsiz)        ! ozone data level pressures (mks)
+   real(kind=kind_phys), intent(in) :: ozmix_in(pcols,levsiz)! ozone mixing ratio
 
-   real(kind=RKIND), intent(out) :: o3vmr_out(pcols,pver)! ozone volume mixing ratio
+   real(kind=kind_phys), intent(out) :: o3vmr_out(pcols,pver)! ozone volume mixing ratio
 !ldf end.
 !
 ! local storage
@@ -68,14 +60,14 @@
    integer lats(pcols)         ! latitude indices
    integer lons(pcols)         ! latitude indices
 
-   real(kind=RKIND) dpu        ! upper level pressure difference
-   real(kind=RKIND) dpl        ! lower level pressure difference
+   real(kind=kind_phys) dpu        ! upper level pressure difference
+   real(kind=kind_phys) dpl        ! lower level pressure difference
 
 !ldf begin:
-   real(kind=RKIND):: pmid(pcols,pver)                ! level pressures (mks)
-   real(kind=RKIND):: pin(levsiz)                     ! ozone data level pressures (mks)
-   real(kind=RKIND):: ozmix(pcols,levsiz)             ! ozone mixing ratio
-   real(kind=RKIND):: o3vmr(pcols,pver) ! ozone volume mixing ratio
+   real(kind=kind_phys):: pmid(pcols,pver)                ! level pressures (mks)
+   real(kind=kind_phys):: pin(levsiz)                     ! ozone data level pressures (mks)
+   real(kind=kind_phys):: ozmix(pcols,levsiz)             ! ozone mixing ratio
+   real(kind=kind_phys):: o3vmr(pcols,pver) ! ozone volume mixing ratio
 !
 ! Initialize latitude indices
 !
@@ -177,5 +169,5 @@
 end subroutine vinterp_ozn
 
 !=================================================================================================================
- end module module_ra_rrtmg_vinterp
+ end module ra_rrtmg_vinterp
 !=================================================================================================================

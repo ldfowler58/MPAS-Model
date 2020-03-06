@@ -4,7 +4,7 @@ ifeq ($(CORE),atmosphere)
 COREDEF = -Dmpas
 endif
 
-all: lookup_tables core_physics_init core_physics_wrf core_physics_sima core_physics
+all: lookup_tables core_physics_init core_physics_sima core_physics_wrf core_physics
 
 dummy:
 	echo "****** compiling physics ******"
