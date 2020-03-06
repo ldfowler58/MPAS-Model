@@ -11,6 +11,7 @@
  use rrtmg_sw_rad,only : rrtmg_sw_run
 
  implicit none
+ private
  public:: rrtmg_swrad
 
 
