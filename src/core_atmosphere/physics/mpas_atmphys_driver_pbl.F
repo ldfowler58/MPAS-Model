@@ -16,7 +16,7 @@
 
 !wrf physics:
  use module_bl_mynn
- use bl_ysu
+ use module_bl_ysu
 
  implicit none
  private
