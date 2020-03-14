@@ -7,6 +7,7 @@ dummy:
 
 OBJS = \
 	bl_ysu.o             \
+	module_bl_ysu.o      \
 	ra_rrtmg_mcica.o     \
 	ra_rrtmg_vinterp.o   \
 	ra_rrtmg_shared.o    \
@@ -17,6 +18,9 @@ physics_sima: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
 
 # DEPENDENCIES:
+module_bl_ysu.o: \
+	bl_ysu.o
+
 ra_rrtmg_mcica.o: \
 	ra_rrtmg_sw.o
 
