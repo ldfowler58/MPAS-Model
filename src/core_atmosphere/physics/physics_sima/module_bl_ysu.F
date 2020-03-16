@@ -113,11 +113,11 @@
 
    integer,  intent(in)      ::      ysu_topdown_pblmix
 !
-   real,     intent(in   )   ::      dt,cp,g,rovcp,rovg,rd,xlv,rv
+   real(kind=kind_phys),     intent(in   )   ::      dt,cp,g,rovcp,rovg,rd,xlv,rv
 !
-   real,     intent(in )     ::      ep1,ep2,karman
+   real(kind=kind_phys),     intent(in )     ::      ep1,ep2,karman
 !
-   real,     dimension( ims:ime, kms:kme, jms:jme )                          , &
+   real(kind=kind_phys),     dimension( ims:ime, kms:kme, jms:jme )          , &
              intent(in   )   ::                                          qv3d, &
                                                                          qc3d, &
                                                                          qi3d, &
@@ -126,10 +126,10 @@
                                                                           t3d, &
                                                                          dz8w, &
                                                                      rthraten
-   real,     dimension( ims:ime, kms:kme, jms:jme )                          , &
+   real(kind=kind_phys),     dimension( ims:ime, kms:kme, jms:jme )          , &
              intent(in   )   ::                                          p3di
 !
-   real,     dimension( ims:ime, kms:kme, jms:jme )                          , &
+   real(kind=kind_phys),     dimension( ims:ime, kms:kme, jms:jme )          , &
              intent(out  )   ::                                       rublten, &
                                                                       rvblten, &
                                                                      rthblten, &
@@ -137,38 +137,38 @@
                                                                      rqcblten, &
                                                                      rqiblten
 !
-   real,     dimension( ims:ime, kms:kme, jms:jme )                          , &
+   real(kind=kind_phys),     dimension( ims:ime, kms:kme, jms:jme )          , &
              intent(out  )   ::                                        exch_h, &
                                                                        exch_m
-   real,     dimension( ims:ime, jms:jme )                                   , &
+   real(kind=kind_phys),     dimension( ims:ime, jms:jme )                   , &
              intent(out  )   ::                                         wstar
-   real,     dimension( ims:ime, jms:jme )                                   , &
+   real(kind=kind_phys),     dimension( ims:ime, jms:jme )                   , &
              intent(out  )   ::                                         delta
-   real,     dimension( ims:ime, jms:jme )                                   , &
+   real(kind=kind_phys),     dimension( ims:ime, jms:jme )                   , &
              intent(inout)   ::                                           u10, &
                                                                           v10
-   real,     dimension( ims:ime, jms:jme )                                   , &
+   real(kind=kind_phys),     dimension( ims:ime, jms:jme )                   , &
              intent(in   )   ::                                          uoce, &
                                                                          voce
 !
-   real,     dimension( ims:ime, jms:jme )                                   , &
+   real(kind=kind_phys),     dimension( ims:ime, jms:jme )                   , &
              intent(in   )   ::                                         xland, &
                                                                           hfx, &
                                                                           qfx, &
                                                                            br, &
                                                                          psfc
-   real,     dimension( ims:ime, jms:jme )                                   , &
+   real(kind=kind_phys),     dimension( ims:ime, jms:jme )                   , &
              intent(in   )   ::                                                &
                                                                          psim, &
                                                                          psih
-   real,     dimension( ims:ime, jms:jme )                                   , &
+   real(kind=kind_phys),     dimension( ims:ime, jms:jme )                   , &
              intent(in   )   ::                                           znt, &
                                                                           ust, &
                                                                           wspd
-   real,     dimension( ims:ime, jms:jme )                                   , &
+   real(kind=kind_phys),     dimension( ims:ime, jms:jme )                   , &
              intent(out  )   ::                                          hpbl
 !
-   real,     dimension( ims:ime, kms:kme, jms:jme )                          , &
+   real(kind=kind_phys),     dimension( ims:ime, kms:kme, jms:jme )          , &
              intent(in   )   ::                                           u3d, &
                                                                           v3d
 !
@@ -178,7 +178,7 @@
    logical,  intent(in)      ::                                       flag_qc, &
                                                                       flag_qi
 !
-   real,     dimension( ims:ime, jms:jme )                                   , &
+   real(kind=kind_phys),     dimension( ims:ime, jms:jme )                   , &
              optional                                                        , &
              intent(in   )   ::                                         ctopo, &
                                                                        ctopo2
@@ -192,16 +192,16 @@
 !mixed in subroutine bl_ysu_run:
    integer,  parameter :: nmix = 5
    integer :: n
-   real,     dimension ( ims:ime, kms:kme, jms:jme, nmix) ::             qmix
-   real,     dimension ( ims:ime, kms:kme, jms:jme, nmix) ::       rqmixblten
+   real(kind=kind_phys),   dimension(ims:ime,kms:kme,jms:jme,nmix)::       qmix
+   real(kind=kind_phys),   dimension(ims:ime,kms:kme,jms:jme,nmix):: rqmixblten
 
    !  Local tile-sized arrays for contiguous data for bl_ysu_run call.
 
-   real,                   dimension(its:ite,kts:kte,nmix) ::              &
+   real(kind=kind_phys),   dimension(its:ite,kts:kte,nmix) ::              &
                                                              qmix_hv     , &
                                                              rqmixblten_hv
 
-   real,                   dimension(its:ite,kts:kte)      ::              &
+   real(kind=kind_phys),   dimension(its:ite,kts:kte)      ::              &
                                                              u3d_hv      , &
                                                              v3d_hv      , &
                                                              t3d_hv      , &
@@ -221,10 +221,10 @@
                                                              exch_m_hv   , &
                                                              rthraten_hv
 
-   real,                   dimension(its:ite,kts:kte+1)    ::              &
+   real(kind=kind_phys),   dimension(its:ite,kts:kte+1)    ::              &
                                                              p3di_hv
 
-   real,                   dimension(its:ite)              ::              &
+   real(kind=kind_phys),   dimension(its:ite)              ::              &
                                                              psfc_hv     , &
                                                              znt_hv      , &
                                                              ust_hv      , &
