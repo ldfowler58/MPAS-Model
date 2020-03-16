@@ -421,6 +421,7 @@
      vfxpbl(i) = 0.0
      hgamu(i)  = 0.0
      hgamv(i)  = 0.0
+     delta(i)  = 0.0
      wstar3_2(i) =  0.0
    enddo
 !
