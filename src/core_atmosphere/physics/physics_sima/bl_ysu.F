@@ -1,5 +1,6 @@
 !=================================================================================================================
  module bl_ysu
+ use mpas_kind_types,only: kind_phys => RKIND
 
  implicit none
  private
@@ -94,20 +95,20 @@
 !
 !-------------------------------------------------------------------------------
 !
-   real,parameter    ::  xkzminm = 0.1,xkzminh = 0.01
-   real,parameter    ::  xkzmin = 0.01,xkzmax = 1000.,rimin = -100.
-   real,parameter    ::  rlam = 30.,prmin = 0.25,prmax = 4.
-   real,parameter    ::  brcr_ub = 0.0,brcr_sb = 0.25,cori = 1.e-4
-   real,parameter    ::  afac = 6.8,bfac = 6.8,pfac = 2.0,pfac_q = 2.0
-   real,parameter    ::  phifac = 8.,sfcfrac = 0.1
-   real,parameter    ::  d1 = 0.02, d2 = 0.05, d3 = 0.001
-   real,parameter    ::  h1 = 0.33333335, h2 = 0.6666667
-   real,parameter    ::  zfmin = 1.e-8,aphi5 = 5.,aphi16 = 16.
-   real,parameter    ::  tmin=1.e-2
-   real,parameter    ::  gamcrt = 3.,gamcrq = 2.e-3
-   real,parameter    ::  xka = 2.4e-5
+   real(kind=kind_phys),parameter    ::  xkzminm = 0.1,xkzminh = 0.01
+   real(kind=kind_phys),parameter    ::  xkzmin = 0.01,xkzmax = 1000.,rimin = -100.
+   real(kind=kind_phys),parameter    ::  rlam = 30.,prmin = 0.25,prmax = 4.
+   real(kind=kind_phys),parameter    ::  brcr_ub = 0.0,brcr_sb = 0.25,cori = 1.e-4
+   real(kind=kind_phys),parameter    ::  afac = 6.8,bfac = 6.8,pfac = 2.0,pfac_q = 2.0
+   real(kind=kind_phys),parameter    ::  phifac = 8.,sfcfrac = 0.1
+   real(kind=kind_phys),parameter    ::  d1 = 0.02, d2 = 0.05, d3 = 0.001
+   real(kind=kind_phys),parameter    ::  h1 = 0.33333335, h2 = 0.6666667
+   real(kind=kind_phys),parameter    ::  zfmin = 1.e-8,aphi5 = 5.,aphi16 = 16.
+   real(kind=kind_phys),parameter    ::  tmin=1.e-2
+   real(kind=kind_phys),parameter    ::  gamcrt = 3.,gamcrq = 2.e-3
+   real(kind=kind_phys),parameter    ::  xka = 2.4e-5
    integer,parameter ::  imvdif = 1
-   real,parameter    ::  rcl = 1.0
+   real(kind=kind_phys),parameter    ::  rcl = 1.0
 !
    integer,  intent(in   )   ::     its,ite, kts,kte, kms,kme, j
 
@@ -115,26 +116,26 @@
 !
    integer,  intent(in)      ::     nmix
 !
-   real,     intent(in   )   ::     dt,cp,g,rovcp,rovg,rd,xlv,rv
+   real(kind=kind_phys),     intent(in   )   ::     dt,cp,g,rovcp,rovg,rd,xlv,rv
 !
-   real,     intent(in )     ::     ep1,ep2,karman
+   real(kind=kind_phys),     intent(in )     ::     ep1,ep2,karman
 !
    logical,  intent(in )     ::     f_qc, f_qi
 !
-   real,     dimension( its:ite, kts:kte ),                                    &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte ),                    &
              intent(in)      ::                                        dz8w2d, &
                                                                          pi2d
 !
-   real,     dimension( its:ite, kts:kte )                                   , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte )                   , &
              intent(in   )   ::                                            tx, &
                                                                           qvx, &
                                                                           qcx, &
                                                                           qix
 !
-   real,     dimension( its:ite, kts:kte, nmix )                             , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix )             , &
              intent(in   )   ::                                          qmix
 !
-   real,     dimension( its:ite, kts:kte )                                   , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte )                   , &
              intent(out  )   ::                                          utnp, &
                                                                          vtnp, &
                                                                          ttnp, &
@@ -142,40 +143,40 @@
                                                                         qctnp, &
                                                                         qitnp
 !
-   real,     dimension( its:ite, kts:kte, nmix )                             , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix )             , &
              intent(out  )   ::                                       qmixtnp
 !
-   real,     dimension( its:ite, kms:kme )                                   , &
+   real(kind=kind_phys),     dimension( its:ite, kms:kme )                   , &
              intent(in   )   ::                                          p2di
 !
-   real,     dimension( its:ite, kts:kte )                                   , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte )                   , &
              intent(in   )   ::                                           p2d
 !
-   real,     dimension( its:ite )                                            , &
+   real(kind=kind_phys),     dimension( its:ite )                            , &
              intent(out  )   ::                                          hpbl
 !
-   real,     dimension( its:ite )                                            , &
+   real(kind=kind_phys),     dimension( its:ite )                            , &
              intent(in   )   ::                                           ust, &
                                                                           znt
-   real,     dimension( its:ite )                                            , &
+   real(kind=kind_phys),     dimension( its:ite )                            , &
              intent(in   )   ::                                         xland, &
                                                                           hfx, &
                                                                           qfx
 !
-   real,     dimension( its:ite ), intent(in   )   ::                    wspd
-   real,     dimension( its:ite ), intent(in  )    ::                      br
+   real(kind=kind_phys),     dimension( its:ite ), intent(in   )   ::    wspd
+   real(kind=kind_phys),     dimension( its:ite ), intent(in  )    ::      br
 !
-   real,     dimension( its:ite ), intent(in   )   ::                    psim, &
+   real(kind=kind_phys),     dimension( its:ite ), intent(in   )   ::    psim, &
                                                                          psih
 !
-   real,     dimension( its:ite ), intent(in   )   ::                  psfcpa
+   real(kind=kind_phys),     dimension( its:ite ), intent(in   )   ::  psfcpa
    integer,  dimension( its:ite ), intent(out  )   ::                  kpbl1d
 !
-   real,     dimension( its:ite, kts:kte )                                   , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte )                   , &
              intent(in   )   ::                                            ux, &
                                                                            vx, &
                                                                       rthraten
-   real,     dimension( its:ite )                                            , &
+   real(kind=kind_phys),     dimension( its:ite )                            , &
              optional                                                        , &
              intent(in   )   ::                                         ctopo, &
                                                                        ctopo2
@@ -186,10 +187,10 @@
 !
 ! local vars
 !
-   real,     dimension( its:ite )            ::                           hol
-   real,     dimension( its:ite, kms:kme )   ::                            zq
+   real(kind=kind_phys),     dimension( its:ite )            ::           hol
+   real(kind=kind_phys),     dimension( its:ite, kms:kme )   ::            zq
 !
-   real,     dimension( its:ite, kts:kte )   ::                                &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte )   ::                &
                                                                thx,thvx,thlix, &
                                                                           del, &
                                                                           dza, &
@@ -198,7 +199,7 @@
                                                                         xkzoh, &
                                                                            za
 !
-   real,    dimension( its:ite )             ::                                &
+   real(kind=kind_phys),    dimension( its:ite )             ::                &
                                                                          rhox, &
                                                                        govrth, &
                                                                   zl1,thermal, &
@@ -211,7 +212,7 @@
                                                                         prpbl, &
                                                               wspd1,thermalli
 !
-   real,    dimension( its:ite, kts:kte )    ::                xkzh,xkzm,xkzq, &
+   real(kind=kind_phys),    dimension( its:ite, kts:kte )   :: xkzh,xkzm,xkzq, &
                                                                         f1,f2, &
                                                                         r1,r2, &
                                                                         ad,au, &
@@ -223,23 +224,23 @@
 !
 !jdf added exch_hx
 !
-   real,    dimension( its:ite, kts:kte )                                    , &
+   real(kind=kind_phys),    dimension( its:ite, kts:kte )                    , &
             intent(out  )   ::                                        exch_hx, &
                                                                       exch_mx
 !
-   real,    dimension( its:ite )                                             , &
+   real(kind=kind_phys),    dimension( its:ite )                             , &
             intent(inout)    ::                                           u10, &
                                                                           v10
-   real,    dimension( its:ite )                                             , &
+   real(kind=kind_phys),    dimension( its:ite )                             , &
             intent(in  )    ::                                            uox, &
                                                                           vox
-   real,    dimension( its:ite )    ::                                         &
+   real(kind=kind_phys),    dimension( its:ite )    ::                         &
                                                                          brcr, &
                                                                         sflux, &
                                                                          zol1, &
                                                                     brcr_sbro
 !
-   real,    dimension( its:ite, kts:kte)     ::                         r3,f3
+   real(kind=kind_phys),    dimension( its:ite, kts:kte)     ::         r3,f3
    integer, dimension( its:ite )             ::                  kpbl,kpblold
 !
    logical, dimension( its:ite )             ::                        pblflg, &
@@ -253,23 +254,23 @@
    integer ::  klpbl
 !
 !
-   real    ::  dt2,rdt,spdk2,fm,fh,hol1,gamfac,vpert,prnum,prnum0
-   real    ::  ss,ri,qmean,tmean,alph,chi,zk,rl2,dk,sri
-   real    ::  brint,dtodsd,dtodsu,rdz,dsdzt,dsdzq,dsdz2,rlamdz
-   real    ::  utend,vtend,ttend,qtend
-   real    ::  dtstep,govrthv
-   real    ::  cont, conq, conw, conwrc
+   real(kind=kind_phys)    ::  dt2,rdt,spdk2,fm,fh,hol1,gamfac,vpert,prnum,prnum0
+   real(kind=kind_phys)    ::  ss,ri,qmean,tmean,alph,chi,zk,rl2,dk,sri
+   real(kind=kind_phys)    ::  brint,dtodsd,dtodsu,rdz,dsdzt,dsdzq,dsdz2,rlamdz
+   real(kind=kind_phys)    ::  utend,vtend,ttend,qtend
+   real(kind=kind_phys)    ::  dtstep,govrthv
+   real(kind=kind_phys)    ::  cont, conq, conw, conwrc
 !
 
-   real, dimension( its:ite, kts:kte )     ::                wscalek,wscalek2
-   real, dimension( its:ite ), intent(out) ::                           wstar, &
+   real(kind=kind_phys), dimension( its:ite, kts:kte )    :: wscalek,wscalek2
+   real(kind=kind_phys), dimension( its:ite ), intent(out) ::           wstar, &
                                                                         delta
-   real, dimension( its:ite, kts:kte )     ::                     xkzml,xkzhl, &
+   real(kind=kind_phys), dimension( its:ite, kts:kte )     ::     xkzml,xkzhl, &
                                                                zfacent,entfac
-   real, dimension( its:ite, kts:kte )     ::                            qcxl, &
+   real(kind=kind_phys), dimension( its:ite, kts:kte )     ::            qcxl, &
                                                                          qixl
-   real, dimension( its:ite, kts:kte, nmix ) ::                         qmixl
-   real, dimension( its:ite )              ::                            ust3, &
+   real(kind=kind_phys), dimension( its:ite, kts:kte, nmix ) ::         qmixl
+   real(kind=kind_phys), dimension( its:ite )              ::            ust3, &
                                                                        wstar3, &
                                                                      wstar3_2, &
                                                                   hgamu,hgamv, &
@@ -278,21 +279,21 @@
                                                                 hfxpbl,qfxpbl, &
                                                                 ufxpbl,vfxpbl, &
                                                                         dthvx
-   real    ::  prnumfac,bfx0,hfx0,qfx0,delb,dux,dvx,                           &
+   real(kind=kind_phys)    ::  prnumfac,bfx0,hfx0,qfx0,delb,dux,dvx,           &
                dsdzu,dsdzv,wm3,dthx,dqx,wspd10,ross,tem1,dsig,tvcon,conpr,     &
-               prfac,prfac2,phim8z,radsum,tmp1,templ,rvls,temps,ent_eff,    &
+               prfac,prfac2,phim8z,radsum,tmp1,templ,rvls,temps,ent_eff,       &
                rcldb,bruptmp,radflux,vconvlim,vconvnew,fluxc,vconvc,vconv
 !topo-corr
-   real,    dimension( its:ite, kts:kte )    ::                          fric, &
+   real(kind=kind_phys),    dimension( its:ite, kts:kte )    ::          fric, &
                                                                        tke_ysu,&
                                                                         el_ysu,&
                                                                      shear_ysu,&
-                                                                     buoy_ysu
-   real,    dimension( its:ite )             ::                       pblh_ysu,&
-                                                                      vconvfx
+                                                                      buoy_ysu
+   real(kind=kind_phys),    dimension( its:ite) ::                    pblh_ysu,&
+                                                                       vconvfx
 
-   real,     dimension( kts:kte )   :: dummy1,dummy2,dummy4
-   real,     dimension( kms:kme )   :: dummy3
+   real(kind=kind_phys),     dimension( kts:kte )   :: dummy1,dummy2,dummy4
+   real(kind=kind_phys),     dimension( kms:kme )   :: dummy3
 !
 !-------------------------------------------------------------------------------
 !
@@ -1270,23 +1271,23 @@
 !
    integer, intent(in )      ::     its,ite, kts,kte, nt
 !
-   real, dimension( its:ite, kts+1:kte+1 )                                   , &
+   real(kind=kind_phys), dimension( its:ite, kts+1:kte+1 )                   , &
          intent(in   )  ::                                                 cl
 !
-   real, dimension( its:ite, kts:kte )                                       , &
+   real(kind=kind_phys), dimension( its:ite, kts:kte )                       , &
          intent(in   )  ::                                                 cm, &
                                                                            r1
-   real, dimension( its:ite, kts:kte,nt )                                    , &
+   real(kind=kind_phys), dimension( its:ite, kts:kte,nt )                    , &
          intent(in   )  ::                                                 r2
 !
-   real, dimension( its:ite, kts:kte )                                       , &
+   real(kind=kind_phys), dimension( its:ite, kts:kte )                       , &
          intent(inout)  ::                                                 au, &
                                                                            cu, &
                                                                            f1
-   real, dimension( its:ite, kts:kte,nt )                                    , &
+   real(kind=kind_phys), dimension( its:ite, kts:kte,nt )                    , &
          intent(inout)  ::                                                 f2
 !
-   real    :: fk
+   real(kind=kind_phys) :: fk
    integer :: i,k,l,n,it
 !
 !-------------------------------------------------------------------------------
@@ -1361,21 +1362,21 @@
 !
    integer, intent(in )      ::     its,ite, kts,kte, nt
 !
-   real, dimension( its:ite, kts+1:kte+1 )                                   , &
+   real(kind=kind_phys), dimension( its:ite, kts+1:kte+1 )                   , &
          intent(in   )  ::                                                 cl
 !
-   real, dimension( its:ite, kts:kte )                                       , &
+   real(kind=kind_phys), dimension( its:ite, kts:kte )                       , &
          intent(in   )  ::                                                 au, &
                                                                            cm, &
                                                                            cu
-   real, dimension( its:ite, kts:kte,nt )                                    , &
+   real(kind=kind_phys), dimension( its:ite, kts:kte,nt )                    , &
          intent(in   )  ::                                                 r2
 
-   real, dimension( its:ite, kts:kte,nt )                                    , &
+   real(kind=kind_phys), dimension( its:ite, kts:kte,nt )                    , &
          intent(inout)  ::                                                 f2
 !
-   real    :: fk
-   real, dimension( its:ite, kts:kte ) ::                                 aul
+   real(kind=kind_phys) :: fk
+   real(kind=kind_phys), dimension( its:ite, kts:kte ) ::                 aul
    integer :: i,k,l,n,it
 !
 !-------------------------------------------------------------------------------
@@ -1423,12 +1424,9 @@
    enddo
 !
    end subroutine tridin_ysu
-!-------------------------------------------------------------------------------
-!
-!-------------------------------------------------------------------------------
-! ==================================================================
 
-      SUBROUTINE GET_PBLH(KTS,KTE,zi,thetav1D,qke1D,zw1D,dz1D,landsea)
+!=================================================================================================================
+      subroutine get_pblh(kts,kte,zi,thetav1d,qke1d,zw1d,dz1d,landsea)
 ! Copied from MYNN PBL
 
       !---------------------------------------------------------------
@@ -1448,94 +1446,94 @@
       !value could be found to work best in all conditions.
       !---------------------------------------------------------------
 
-      INTEGER,INTENT(IN) :: KTS,KTE
-      REAL, INTENT(OUT) :: zi
-      REAL, INTENT(IN) :: landsea
-      REAL, DIMENSION(KTS:KTE), INTENT(IN) :: thetav1D, qke1D, dz1D
-      REAL, DIMENSION(KTS:KTE+1), INTENT(IN) :: zw1D
-      !LOCAL VARS
-      REAL ::  PBLH_TKE,qtke,qtkem1,wt,maxqke,TKEeps,minthv
-      REAL :: delt_thv   !delta theta-v; dependent on land/sea point
-      REAL, PARAMETER :: sbl_lim  = 200. !Theta-v PBL lower limit of trust (m).
-      REAL, PARAMETER :: sbl_damp = 400. !Damping range for averaging with TKE-based PBLH (m).
-      INTEGER :: I,J,K,kthv,ktke
+      integer,intent(in) :: kts,kte
+      real(kind=kind_phys), intent(out) :: zi
+      real(kind=kind_phys), intent(in) :: landsea
+      real(kind=kind_phys), dimension(kts:kte), intent(in) :: thetav1d, qke1d, dz1d
+      real(kind=kind_phys), dimension(kts:kte+1), intent(in) :: zw1d
+      !local vars
+      real(kind=kind_phys) ::  pblh_tke,qtke,qtkem1,wt,maxqke,tkeeps,minthv
+      real(kind=kind_phys) :: delt_thv   !delta theta-v; dependent on land/sea point
+      real(kind=kind_phys), parameter :: sbl_lim  = 200. !theta-v pbl lower limit of trust (m).
+      real(kind=kind_phys), parameter :: sbl_damp = 400. !damping range for averaging with tke-based pblh (m).
+      integer :: i,j,k,kthv,ktke
 
-      !FIND MAX TKE AND MIN THETAV IN THE LOWEST 500 M
+      !find max tke and min thetav in the lowest 500 m
       k = kts+1
       kthv = 1
       ktke = 1
       maxqke = 0.
-      minthv = 9.E9
+      minthv = 9.e9
 
-      DO WHILE (zw1D(k) .LE. 500.)
-        qtke  =MAX(Qke1D(k),0.)   ! maximum QKE
-         IF (maxqke < qtke) then
+      do while (zw1d(k) .le. 500.)
+        qtke  =max(qke1d(k),0.)   ! maximum qke
+         if (maxqke < qtke) then
             maxqke = qtke
             ktke = k
-         ENDIF
-         IF (minthv > thetav1D(k)) then
-             minthv = thetav1D(k)
+         endif
+         if (minthv > thetav1d(k)) then
+             minthv = thetav1d(k)
              kthv = k
-         ENDIF
+         endif
          k = k+1
-      ENDDO
-      !TKEeps = maxtke/20. = maxqke/40.
-      TKEeps = maxqke/40.
-      TKEeps = MAX(TKEeps,0.025)
-      TKEeps = MIN(TKEeps,0.25)
+      enddo
+      !tkeeps = maxtke/20. = maxqke/40.
+      tkeeps = maxqke/40.
+      tkeeps = max(tkeeps,0.025)
+      tkeeps = min(tkeeps,0.25)
 
-      !FIND THETAV-BASED PBLH (BEST FOR DAYTIME).
+      !find thetav-based pblh (best for daytime).
       zi=0.
       k = kthv+1
-      IF((landsea-1.5).GE.0)THEN
-      ! WATER
+      if((landsea-1.5).ge.0)then
+      ! water
           delt_thv = 0.75
-      ELSE
-      ! LAND
+      else
+      ! land
           delt_thv = 1.5
-      ENDIF
+      endif
 
       zi=0.
       k = kthv+1
-      DO WHILE (zi .EQ. 0.)
-         IF (thetav1D(k) .GE. (minthv + delt_thv))THEN
-            zi = zw1D(k) - dz1D(k-1)* &
-              & MIN((thetav1D(k)-(minthv + delt_thv))/MAX(thetav1D(k)-thetav1D(k-1),1E-6),1.0)
-        ENDIF
+      do while (zi .eq. 0.)
+         if (thetav1d(k) .ge. (minthv + delt_thv))then
+            zi = zw1d(k) - dz1d(k-1)* &
+              & min((thetav1d(k)-(minthv + delt_thv))/max(thetav1d(k)-thetav1d(k-1),1e-6),1.0)
+        endif
         k = k+1
-         IF (k .EQ. kte-1) zi = zw1D(kts+1) !EXIT SAFEGUARD
-      ENDDO
+         if (k .eq. kte-1) zi = zw1d(kts+1) !exit safeguard
+      enddo
 
-      !print*,"IN GET_PBLH:",thsfc,zi
-      !FOR STABLE BOUNDARY LAYERS, USE TKE METHOD TO COMPLEMENT THE
-      !THETAV-BASED DEFINITION (WHEN THE THETA-V BASED PBLH IS BELOW ~0.5 KM).
-      !THE TANH WEIGHTING FUNCTION WILL MAKE THE TKE-BASED DEFINITION NEGLIGIBLE
-      !WHEN THE THETA-V-BASED DEFINITION IS ABOVE ~1 KM.
-      !FIND TKE-BASED PBLH (BEST FOR NOCTURNAL/STABLE CONDITIONS).
+      !print*,"in get_pblh:",thsfc,zi
+      !for stable boundary layers, use tke method to complement the
+      !thetav-based definition (when the theta-v based pblh is below ~0.5 km).
+      !the tanh weighting function will make the tke-based definition negligible
+      !when the theta-v-based definition is above ~1 km.
+      !find tke-based pblh (best for nocturnal/stable conditions).
 
-      PBLH_TKE=0.
+      pblh_tke=0.
       k = ktke+1
-     DO WHILE (PBLH_TKE .EQ. 0.)
-        !QKE CAN BE NEGATIVE (IF CKmod == 0)... MAKE TKE NON-NEGATIVE.
-         qtke  =MAX(Qke1D(k)/2.,0.)      ! maximum TKE
-         qtkem1=MAX(Qke1D(k-1)/2.,0.)
-         IF (qtke .LE. TKEeps) THEN
-               PBLH_TKE = zw1D(k) - dz1D(k-1)* &
-               & MIN((TKEeps-qtke)/MAX(qtkem1-qtke, 1E-6), 1.0)
-             !IN CASE OF NEAR ZERO TKE, SET PBLH = LOWEST LEVEL.
-             PBLH_TKE = MAX(PBLH_TKE,zw1D(kts+1))
-             !print *,"PBLH_TKE:",i,j,PBLH_TKE, Qke1D(k)/2., zw1D(kts+1)
-         ENDIF
+     do while (pblh_tke .eq. 0.)
+        !qke can be negative (if ckmod == 0)... make tke non-negative.
+         qtke  =max(qke1d(k)/2.,0.)      ! maximum tke
+         qtkem1=max(qke1d(k-1)/2.,0.)
+         if (qtke .le. tkeeps) then
+               pblh_tke = zw1d(k) - dz1d(k-1)* &
+               & min((tkeeps-qtke)/max(qtkem1-qtke, 1e-6), 1.0)
+             !in case of near zero tke, set pblh = lowest level.
+             pblh_tke = max(pblh_tke,zw1d(kts+1))
+             !print *,"pblh_tke:",i,j,pblh_tke, qke1d(k)/2., zw1d(kts+1)
+         endif
          k = k+1
-         IF (k .EQ. kte-1) PBLH_TKE = zw1D(kts+1) !EXIT SAFEGUARD
-      ENDDO
+         if (k .eq. kte-1) pblh_tke = zw1d(kts+1) !exit safeguard
+      enddo
 
-    !BLEND THE TWO PBLH TYPES HERE:
+    !blend the two pblh types here:
 
-      wt=.5*TANH((zi - sbl_lim)/sbl_damp) + .5
-      zi=PBLH_TKE*(1.-wt) + zi*wt
+      wt=.5*tanh((zi - sbl_lim)/sbl_damp) + .5
+      zi=pblh_tke*(1.-wt) + zi*wt
 
-   END SUBROUTINE GET_PBLH
+   end subroutine get_pblh
 
 !=================================================================================================================
  end module bl_ysu
