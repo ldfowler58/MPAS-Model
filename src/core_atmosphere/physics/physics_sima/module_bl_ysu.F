@@ -12,7 +12,7 @@
 
 
 !=================================================================================================================
-   subroutine ysu(u3d,v3d,th3d,t3d,qv3d,qc3d,qi3d,p3d,p3di,pi3d,               &
+   subroutine ysu(u3d,v3d,t3d,qv3d,qc3d,qi3d,p3d,p3di,pi3d,                    &
                   rublten,rvblten,rthblten,                                    &
                   rqvblten,rqcblten,rqiblten,flag_qc,flag_qi,                  &
                   cp,g,rovcp,rd,rovg,ep1,ep2,karman,xlv,rv,                    &
@@ -123,7 +123,6 @@
                                                                          qi3d, &
                                                                           p3d, &
                                                                          pi3d, &
-                                                                         th3d, &
                                                                           t3d, &
                                                                          dz8w, &
                                                                      rthraten
