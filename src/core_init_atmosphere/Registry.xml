@@ -285,6 +285,11 @@
                      description="Whether to interpolate first-guess passive tracers and emissions from input data"
                      possible_values="true or false"/>
 
+                <nml_option name="config_chems_interp" type="logical" default_value="false"
+                     units="-"
+                     description="Whether to interpolate first-guess chemical species and emissions from input data"
+                     possible_values="true or false"/>
+
         </nml_record>
 
         <nml_record name="io" in_defaults="true">
@@ -579,7 +584,11 @@
                         <var name="nifa_clim" packages="met_stage_out"/>
                         <var name="nwfa_clim" packages="met_stage_out"/>
                         <var name="pwif_clim" packages="met_stage_out"/>
+#ifdef ATM_CHEMISTRY
                         <var_array name="tracers" packages="met_stage_out"/>
+                        <var_array name="chems" packages="met_stage_out"/>
+                        <var_array name="CO"/>
+#endif
 		</stream>
 
 		<stream name="surface" 
@@ -1179,6 +1188,9 @@
                      description="precipitable water"/>
         </var_struct>
 
+#ifdef ATM_CHEMISTRY
+#include "../core_atmosphere/chemistry/Registry_init_chems.xml"
 #include "../core_atmosphere/chemistry/Registry_init_tracers.xml"
+#endif
 
 </registry>
