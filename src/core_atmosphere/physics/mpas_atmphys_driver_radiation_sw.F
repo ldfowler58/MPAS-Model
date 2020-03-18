@@ -11,7 +11,7 @@
  use mpas_pool_routines
  use mpas_timer, only : mpas_timer_start, mpas_timer_stop
 
- use mpas_atmphys_constants
+ use mpas_atmphys_constants, only: degrad,dpd,solcon_0
  use mpas_atmphys_manager, only: gmt,curr_julday,julday,year
  use mpas_atmphys_camrad_init
  use mpas_atmphys_rrtmg_swinit
@@ -730,7 +730,7 @@
 !$OMP SINGLE
 !... calculates solar declination:
 !call radconst(declin,solcon,julday,degrad,dpd)
- call radconst(declin,solcon,curr_julday,degrad,dpd)
+ call radconst(declin,solcon,curr_julday,degrad,dpd,solcon_0)
 !call mpas_log_write('     ITIMESTEP   = $i', intArgs=(/itimestep/))
 !call mpas_log_write('     YEAR        = $i', intArgs=(/year/))
 !call mpas_log_write('     JULDAY      = $i', intArgs=(/julday/))
@@ -841,13 +841,14 @@
  end subroutine driver_radiation_sw
 
 !=================================================================================================================
- subroutine radconst(declin,solcon,julian,degrad,dpd)
+ subroutine radconst(declin,solcon,julian,degrad,dpd,solcon_0)
 !=================================================================================================================
 
 !input arguments:
 !integer,intent(in):: julian
  real(kind=RKIND),intent(in):: julian
  real(kind=RKIND),intent(in):: degrad,dpd
+ real(kind=RKIND),intent(in):: solcon_0
 
 !output arguments:
  real(kind=RKIND),intent(out):: declin,solcon

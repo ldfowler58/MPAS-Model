@@ -12,7 +12,7 @@
  use mpas_timer, only : mpas_timer_start, mpas_timer_stop
 
  use mpas_atmphys_driver_radiation_sw, only: radconst
- use mpas_atmphys_constants
+ use mpas_atmphys_constants, only: degrad,dpd,solcon_0
  use mpas_atmphys_manager, only: gmt,curr_julday,julday,year
  use mpas_atmphys_camrad_init
  use mpas_atmphys_rrtmg_lwinit
@@ -881,7 +881,7 @@
 ! are global variables in mpas_atmphys_vars.F and race conditions may occur otherwise!
 !$OMP SINGLE
        !... calculates solar declination:
-       call radconst(declin,solcon,curr_julday,degrad,dpd)
+       call radconst(declin,solcon,curr_julday,degrad,dpd,solcon_0)
 !$OMP END SINGLE
 
 !... convert the radiation time_step to minutes:
