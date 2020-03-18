@@ -17,6 +17,9 @@
  use mpas_atmphys_rrtmg_swinit
  use mpas_atmphys_vars
  
+!sima physics:
+ use ra_sw_radconst,only: radconst
+
 !wrf physics:
  use module_ra_cam
  use module_ra_rrtmg_sw
@@ -725,12 +728,6 @@
 !copy MPAS arrays to local arrays:
  call radiation_sw_from_MPAS(configs,mesh,state,time_lev,diag_physics,atm_input,sfc_input,xtime_s,its,ite)
 
-! This should be OMP MASTER with barrier afterwards or OMP SINGLE, since declin and solcon
-! are global variables in mpas_atmphys_vars.F and race conditions may occur otherwise!
-!$OMP SINGLE
-!... calculates solar declination:
-!call radconst(declin,solcon,julday,degrad,dpd)
- call radconst(declin,solcon,curr_julday,degrad,dpd,solcon_0)
 !call mpas_log_write('     ITIMESTEP   = $i', intArgs=(/itimestep/))
 !call mpas_log_write('     YEAR        = $i', intArgs=(/year/))
 !call mpas_log_write('     JULDAY      = $i', intArgs=(/julday/))
@@ -750,6 +747,13 @@
     case ("rrtmg_sw")
        o3input = 0
        if(config_o3climatology) o3input = 2
+
+! This should be OMP MASTER with barrier afterwards or OMP SINGLE, since declin and solcon
+! are global variables in mpas_atmphys_vars.F and race conditions may occur otherwise!
+!$OMP SINGLE
+       !--- calculates solar declination:
+       call radconst(declin,solcon,curr_julday,degrad,dpd,solcon_0)
+!$OMP END SINGLE
 
        call mpas_timer_start('RRTMG_sw')
        call rrtmg_swrad( &
@@ -778,6 +782,14 @@
        call mpas_timer_stop('RRTMG_sw')
 
     case ("cam_sw")
+
+! This should be OMP MASTER with barrier afterwards or OMP SINGLE, since declin and solcon
+! are global variables in mpas_atmphys_vars.F and race conditions may occur otherwise!
+!$OMP SINGLE
+       !--- calculates solar declination:
+       call radconst(declin,solcon,curr_julday,degrad,dpd,solcon_0)
+!$OMP END SINGLE
+
        call mpas_timer_start('CAMRAD_sw')
        call camrad( dolw = .false. , dosw = .true. ,                                         &
                 p_phy         = pres_hyd_p    , p8w           = pres2_hyd_p   ,              &
@@ -839,51 +851,6 @@
 !call mpas_log_write('--- end subroutine driver_radiation_sw.')
 
  end subroutine driver_radiation_sw
-
-!=================================================================================================================
- subroutine radconst(declin,solcon,julian,degrad,dpd,solcon_0)
-!=================================================================================================================
-
-!input arguments:
-!integer,intent(in):: julian
- real(kind=RKIND),intent(in):: julian
- real(kind=RKIND),intent(in):: degrad,dpd
- real(kind=RKIND),intent(in):: solcon_0
-
-!output arguments:
- real(kind=RKIND),intent(out):: declin,solcon
-
-!local variables:
- real(kind=RKIND):: obecl,sinob,sxlong,arg,decdeg,djul,rjul,eccfac
-
-!-----------------------------------------------------------------------------------------------------------------
-
-   declin=0.
-   solcon=0.
-
-!obecl : obliquity = 23.5 degree.
-        
-   obecl=23.5*degrad
-   sinob=sin(obecl)
-        
-!calculate longitude of the sun from vernal equinox:        
-
-   if(julian.ge.80.)sxlong=dpd*(julian-80.)
-   if(julian.lt.80.)sxlong=dpd*(julian+285.)
-   sxlong=sxlong*degrad
-   arg=sinob*sin(sxlong)
-   declin=asin(arg)
-   decdeg=declin/degrad
-
-!solar constant eccentricity factor (paltridge and platt 1976)
-
-   djul=julian*360./365.
-   rjul=djul*degrad
-   eccfac=1.000110+0.034221*cos(rjul)+0.001280*sin(rjul)+0.000719*  &
-          cos(2*rjul)+0.000077*sin(2*rjul)
-   solcon=solcon_0*eccfac
-
- end subroutine radconst
 
 !=================================================================================================================
  end module mpas_atmphys_driver_radiation_sw
