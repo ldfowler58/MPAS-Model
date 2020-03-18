@@ -8,6 +8,7 @@
  use mcica_subcol_gen_sw,only: mcica_subcol_sw
 
  implicit none
+ private
  public:: rrtmg_sw_mpas_run,           &
           rrtmg_sw_mpas_timestep_init, &
           rrtmg_sw_mpas_timestep_final
