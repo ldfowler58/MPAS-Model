@@ -351,8 +351,8 @@
              nbndsw        , ngptsw        , naerec      , f_qc          , f_qr          , &
              f_qi          , f_qs          , icloud      , has_reqc      , has_reqi      , &
              has_reqs      , icld          , gravity     , gmt           , julian        , &
-             declin        , degrad        , dpd         , solcon_0      ,                 &
-             radt          , xtime         , xlat_hv     , xlon_hv       , &
+             degrad        , dpd           , solcon_0    , radt          , xtime         , &
+             xlat_hv       , xlon_hv       ,                                               &
              albedo_hv     , xland_hv      , xice_hv     , snow_hv       , p3d_hv        , &
              t3d_hv        , qv3d_hv       , qc3d_hv     , qr3d_hv       , qi3d_hv       , &
              qs3d_hv       , cldfra3d_hv   , re_cloud_hv , re_ice_hv     , re_snow_hv    , &
