@@ -24,7 +24,8 @@ ra_rrtmg_mcica.o: \
 ra_rrtmg_sw_mpas.o: \
 	ra_rrtmg_mcica.o \
 	ra_rrtmg_shared.o \
-	ra_rrtmg_vinterp.o
+	ra_rrtmg_vinterp.o \
+	ra_sw_radconst.o
 
 ra_rrtmg_sw.o: \
 	ra_rrtmg_shared.o

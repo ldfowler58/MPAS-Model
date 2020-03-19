@@ -24,7 +24,8 @@
                    its        , ite        , jts        , jte        , kts        , kte      , &
                    f_qc       , f_qr       , f_qi       , f_qs       , icloud     , icld     , &
                    has_reqc   , has_reqi   , has_reqs   , noznlevels , o3input    , xtime    , &
-                   declin     , gmt        , julday     , radt       , scon       , degrad   , &
+                   declin     , gmt        , julday     , julian     , radt       , scon     , &
+                   degrad     , dpd        , solcon_0   ,                                      &
                    xland      , xice       , snow       , xlat       , xlon       , tsk      , &
                    albedo     , alswvisdir , alswvisdif , alswnirdir , alswnirdif , pin      , &
                    o3clim     , p3d        , pi3d       , t3d        , qv3d       , qc3d     , &
@@ -56,13 +57,16 @@
     has_reqs,   &! = 1 if effective radius of snow computed from cloud microphysics, = 0 otherwise.
     noznlevels, &! number of levels of climatological ozone data.
     o3input,    &! ozone input option for shortwave radiation.
-    julday       !julian day.
+    julday       ! julian day.
 
  real(kind=kind_phys),intent(in):: &
     declin,     &! solar declination (radian).
+    dpd,        &! ratio between two fixed julian days (-).
     degrad,     &! conversion factor from degree to radian (-).
     gmt,        &! GMT time.
+    julian,     &! current julian day.
     radt,       &! shortwave radiation timestep (s).
+    solcon_0,   &! initial solar constant (W/m2).
     xtime        ! MPAS run time.
 
  real(kind=kind_phys),intent(in)::scon
@@ -346,8 +350,9 @@
             (its           , ite           , kts         , kte           , kme           , &
              nbndsw        , ngptsw        , naerec      , f_qc          , f_qr          , &
              f_qi          , f_qs          , icloud      , has_reqc      , has_reqi      , &
-             has_reqs      , icld          , gravity     , gmt           , declin        , &
-             degrad        , radt          , xtime       , xlat_hv       , xlon_hv       , &
+             has_reqs      , icld          , gravity     , gmt           , julian        , &
+             declin        , degrad        , dpd         , solcon_0      ,                 &
+             radt          , xtime         , xlat_hv     , xlon_hv       , &
              albedo_hv     , xland_hv      , xice_hv     , snow_hv       , p3d_hv        , &
              t3d_hv        , qv3d_hv       , qc3d_hv     , qr3d_hv       , qi3d_hv       , &
              qs3d_hv       , cldfra3d_hv   , re_cloud_hv , re_ice_hv     , re_snow_hv    , &

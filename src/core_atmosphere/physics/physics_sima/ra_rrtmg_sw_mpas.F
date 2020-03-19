@@ -5,6 +5,7 @@
 
  use ra_rrtmg_shared,only    : inirad,reicalc,relcalc,retab
  use ra_rrtmg_vinterp,only   : vinterp_ozn
+ use ra_sw_radconst,only     : radconst
  use mcica_subcol_gen_sw,only: mcica_subcol_sw
 
  implicit none
@@ -35,8 +36,9 @@
                   (its        , ite        , kts        , kte        , kme        , &
                    nbndsw     , ngptsw     , naerec     , f_qc       , f_qr       , &
                    f_qi       , f_qs       , icloud     , has_reqc   , has_reqi   , &
-                   has_reqs   , icld       , gravity    , gmt        , declin     , &
-                   degrad     , radt       , xtime      , xlat       , xlon       , &
+                   has_reqs   , icld       , gravity    , gmt        , julian     , &
+                   declin     , degrad     , dpd        , solcon_0   , radt       , &
+                   xtime      , xlat       , xlon       ,                           &
                    albedo     , xland      , xice       , snow       , p2d        , &
                    t2d        , qv2d       , qc2d       , qr2d       , qi2d       , &
                    qs2d       , cldfra2d   , re_cloud   , re_ice     , re_snow    , &
@@ -81,10 +83,13 @@
 
  real(kind=kind_phys),intent(in):: &
     declin,     &! solar declination (radian).
+    dpd,        &! ratio between two fixed julian days (-).
     degrad,     &! conversion factor from degree to radian (-).
     gmt,        &! GMT time.
     gravity,    &! acceleration due to gravity (m/s2).
+    julian,     &! current julian day (-).
     radt,       &! shortwave radiation timestep (s).
+    solcon_0,   &! initial solar constant (W/m2).
     xtime        ! MPAS run time.
 
  real(kind=kind_phys),intent(in),dimension(its:ite):: &
@@ -254,6 +259,9 @@
  data amdo /  0.603461 /
  data amdo2 / 0.905190 /
 
+!---
+ real(kind=kind_phys):: declin0,scon0
+
 !-----------------------------------------------------------------------------------------------------------------
 
 !call mpas_log_write(' ')
@@ -272,9 +280,12 @@
 !--- initialize option for the calculation of the aerosol optical properties:
  aer_opt = 0
 
-!--- set solar constant:
+!--- calculate solar declination and set solar constant:
  dyofyr = 0
  adjes  = 1.0
+
+ call radconst(declin0,scon0,julian,degrad,dpd,solcon_0)
+!call mpas_log_write('--- declin = $r  declin0 = $r  solcon_0 = $r',realArgs=(/declin,declin0,solcon_0/)) 
 
 !--- calculation of the local input soundings for daytime columns:
  i_loop: do i = its,ite
@@ -284,7 +295,8 @@
     tloctm = gmt + xt24/60. + xlon(i)/15.
     hrang = 15. * (tloctm-12.) * degrad
     xxlat = xlat(i) * degrad
-    coszrs = sin(xxlat) * sin(declin) + cos(xxlat) * cos(declin) * cos(hrang)
+!   coszrs = sin(xxlat) * sin(declin) + cos(xxlat) * cos(declin) * cos(hrang)
+    coszrs = sin(xxlat) * sin(declin0) + cos(xxlat) * cos(declin0) * cos(hrang)
     coszen(i) = coszrs
 
     dorrsw(i) = .true.
