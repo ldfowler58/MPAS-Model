@@ -91,6 +91,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2020-01-09.
 ! * in call to rrtmg_swrad, use icld instead of cldovrlp to point to cldoverlap.
 !   Laura D. Fowler (laura@ucar.edu) / 2020-03-04.
+! * moved the call to the subroutine radconst inside subroutine rrtmg_swrad. added the call to subroutine
+!   radconst just above the call to subroutine camrad.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-03-19.
 
 
  contains
@@ -748,38 +751,29 @@
        o3input = 0
        if(config_o3climatology) o3input = 2
 
-! This should be OMP MASTER with barrier afterwards or OMP SINGLE, since declin and solcon
-! are global variables in mpas_atmphys_vars.F and race conditions may occur otherwise!
-!$OMP SINGLE
-       !--- calculates solar declination:
-       call radconst(declin,solcon,curr_julday,degrad,dpd,solcon_0)
-!$OMP END SINGLE
-
        call mpas_timer_start('RRTMG_sw')
        call rrtmg_swrad( &
-              p3d      = pres_hyd_p  , p8w        = pres2_hyd_p  , pi3d       = pi_p          , &
-              t3d      = t_p         , t8w        = t2_p         , dz8w       = dz_p          , &
-              qv3d     = qvrad_p     , qc3d       = qcrad_p      , qi3d       = qirad_p       , &
-              qs3d     = qsrad_p     , cldfra3d   = cldfrac_p    , f_qc       = f_qc          , &
-              f_qr     = f_qr        , f_qi       = f_qi         , f_qs       = f_qs          , &
-              tsk      = tsk_p       , albedo     = sfc_albedo_p , xland      = xland_p       , &
-              xice     = xice_p      , snow       = snow_p       , coszr      = coszr_p       , &
-              xtime    = xtime_m     , gmt        = gmt          , julday     = julday        , &
-              julian   = curr_julday ,                                                          &
-              radt     = radt        , degrad     = degrad       , dpd        = dpd           , &
-              declin   = declin      , solcon_0   = solcon_0     ,                              &
-              scon     = solcon      , xlat       = xlat_p       , xlon       = xlon_p        , &
-              icloud   = icloud      , o3input    = o3input      , noznlevels = num_oznlevels , &
-              pin      = pin_p       , o3clim     = o3clim_p     , gsw        = gsw_p         , &
-              swcf     = swcf_p      , rthratensw = rthratensw_p , has_reqc   = has_reqc      , &
-              has_reqi = has_reqi    , has_reqs   = has_reqs     , re_cloud   = recloud_p     , &
-              re_ice   = reice_p     , re_snow    = resnow_p     , icld       = cldoverlap    , &
-              swupt    = swupt_p     , swuptc     = swuptc_p     , swdnt      = swdnt_p       , &
-              swdntc   = swdntc_p    , swupb      = swupb_p      , swupbc     = swupbc_p      , &
-              swdnb    = swdnb_p     , swdnbc     = swdnbc_p     ,                              &
-              errmsg   = errmsg      , errflg     = errflg       ,                              &
-              ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,          &
-              its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte            &
+              p3d        = pres_hyd_p    , p8w        = pres2_hyd_p  , pi3d       = pi_p          , &
+              t3d        = t_p           , t8w        = t2_p         , dz8w       = dz_p          , &
+              qv3d       = qvrad_p       , qc3d       = qcrad_p      , qi3d       = qirad_p       , &
+              qs3d       = qsrad_p       , cldfra3d   = cldfrac_p    , f_qc       = f_qc          , &
+              f_qr       = f_qr          , f_qi       = f_qi         , f_qs       = f_qs          , &
+              tsk        = tsk_p         , albedo     = sfc_albedo_p , xland      = xland_p       , &
+              xice       = xice_p        , snow       = snow_p       , coszr      = coszr_p       , &
+              xtime      = xtime_m       , gmt        = gmt          , julday     = julday        , &
+              julian     = curr_julday   , radt       = radt         , degrad     = degrad        , &
+              dpd        = dpd           , solcon_0   = solcon_0     , xlat       = xlat_p        , &
+              xlon       = xlon_p        , icloud     = icloud       , o3input    = o3input       , &
+              noznlevels = num_oznlevels , pin        = pin_p        , o3clim     = o3clim_p      , &
+              gsw        = gsw_p         , swcf       = swcf_p       , rthratensw = rthratensw_p  , &
+              has_reqc   = has_reqc      , has_reqi   = has_reqi     , has_reqs   = has_reqs      , &
+              re_cloud   = recloud_p     , re_ice     = reice_p      , re_snow    = resnow_p      , &
+              icld       = cldoverlap    , swupt      = swupt_p      , swuptc     = swuptc_p      , &
+              swdnt      = swdnt_p       , swdntc     = swdntc_p     , swupb      = swupb_p       , &
+              swupbc     = swupbc_p      , swdnb      = swdnb_p      , swdnbc     = swdnbc_p      , &
+              errmsg     = errmsg        , errflg     = errflg       ,                              &
+              ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,               &
+              its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte                 &
                        )
        call mpas_timer_stop('RRTMG_sw')
 

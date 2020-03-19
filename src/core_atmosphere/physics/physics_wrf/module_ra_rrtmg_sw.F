@@ -20,25 +20,24 @@
 
 !=================================================================================================================
  subroutine rrtmg_swrad &
-                  (ims        , ime        , jms        , jme        , kms        , kme      , &
-                   its        , ite        , jts        , jte        , kts        , kte      , &
-                   f_qc       , f_qr       , f_qi       , f_qs       , icloud     , icld     , &
-                   has_reqc   , has_reqi   , has_reqs   , noznlevels , o3input    , xtime    , &
-                   declin     , gmt        , julday     , julian     , radt       , scon     , &
-                   degrad     , dpd        , solcon_0   ,                                      &
-                   xland      , xice       , snow       , xlat       , xlon       , tsk      , &
-                   albedo     , alswvisdir , alswvisdif , alswnirdir , alswnirdif , pin      , &
-                   o3clim     , p3d        , pi3d       , t3d        , qv3d       , qc3d     , &
-                   qr3d       , qi3d       , qs3d       , cldfra3d   , o33d       , re_cloud , &
-                   re_ice     , re_snow    , dz8w       , p8w        , t8w        , coszr    , &
-                   rthratensw , gsw        , swcf       , swupt      , swuptc     , swdnt    , &
-                   swdntc     , swupb      , swupbc     , swdnb      , swdnbc     , swupflx  , &
-                   swupflxc   , swdnflx    , swdnflxc   , swuptcln   , swdntcln   , swupbcln , &
-                   swdnbcln   , swddir     , swddni     , swddif     , swddirc    , swddnic  , &
-                   swdownc    , swvisdir   , swvisdif   , swnirdir   , swnirdif   ,            &
-                   tauaer300  , tauaer400  , tauaer600  , tauaer999  , gaer300    , gaer400  , &
-                   gaer600    , gaer999    , waer300    , waer400    , waer600    , waer999  , &
-                   errmsg     , errflg)
+                  (ims       , ime        , jms        , jme        , kms        , kme        , &
+                   its       , ite        , jts        , jte        , kts        , kte        , &
+                   f_qc      , f_qr       , f_qi       , f_qs       , icloud     , icld       , &
+                   has_reqc  , has_reqi   , has_reqs   , noznlevels , o3input    , xtime      , &
+                   gmt       , julday     , julian     , radt       , degrad     , dpd        , &
+                   solcon_0  , xland      , xice       , snow       , xlat       , xlon       , &
+                   tsk       , albedo     , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
+                   pin       , o3clim     , p3d        , pi3d       , t3d        , qv3d       , &
+                   qc3d      , qr3d       , qi3d       , qs3d       , cldfra3d   , o33d       , &
+                   re_cloud  , re_ice     , re_snow    , dz8w       , p8w        , t8w        , &
+                   coszr     , rthratensw , gsw        , swcf       , swupt      , swuptc     , &
+                   swdnt     , swdntc     , swupb      , swupbc     , swdnb      , swdnbc     , &
+                   swupflx   , swupflxc   , swdnflx    , swdnflxc   , swuptcln   , swdntcln   , &
+                   swupbcln  , swdnbcln   , swddir     , swddni     , swddif     , swddirc    , &
+                   swddnic   , swdownc    , swvisdir   , swvisdif   , swnirdir   , swnirdif   , &
+                   tauaer300 , tauaer400  , tauaer600  , tauaer999  , gaer300    , gaer400    , &
+                   gaer600   , gaer999    , waer300    , waer400    , waer600    , waer999    , &
+                   errmsg    , errflg)
 !=================================================================================================================
 
 !--- input arguments:
@@ -60,7 +59,6 @@
     julday       ! julian day.
 
  real(kind=kind_phys),intent(in):: &
-    declin,     &! solar declination (radian).
     dpd,        &! ratio between two fixed julian days (-).
     degrad,     &! conversion factor from degree to radian (-).
     gmt,        &! GMT time.
@@ -68,8 +66,6 @@
     radt,       &! shortwave radiation timestep (s).
     solcon_0,   &! initial solar constant (W/m2).
     xtime        ! MPAS run time.
-
- real(kind=kind_phys),intent(in)::scon
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: &
     xlat,       &! latitude (radian).
@@ -224,7 +220,7 @@
  integer:: aer_ra_feedback
  integer:: aer_opt
 
- real(kind=kind_phys):: adjes
+ real(kind=kind_phys):: adjes,scon
 
  real(kind=kind_phys),dimension(its:ite):: coszen,tsfc
  real(kind=kind_phys),dimension(its:ite):: asdir,asdif,aldir,aldif
@@ -347,26 +343,26 @@
 
 !--- initialization of all local variables needed to run rrtmg_sw_run:
  call rrtmg_sw_mpas_timestep_init &
-            (its           , ite           , kts         , kte           , kme           , &
-             nbndsw        , ngptsw        , naerec      , f_qc          , f_qr          , &
-             f_qi          , f_qs          , icloud      , has_reqc      , has_reqi      , &
-             has_reqs      , icld          , gravity     , gmt           , julian        , &
-             degrad        , dpd           , solcon_0    , radt          , xtime         , &
-             xlat_hv       , xlon_hv       ,                                               &
-             albedo_hv     , xland_hv      , xice_hv     , snow_hv       , p3d_hv        , &
-             t3d_hv        , qv3d_hv       , qc3d_hv     , qr3d_hv       , qi3d_hv       , &
-             qs3d_hv       , cldfra3d_hv   , re_cloud_hv , re_ice_hv     , re_snow_hv    , &
-             dz8w_hv       , p8w_hv        , t8w_hv      , alswvisdir_hv , alswvisdif_hv , &
-             alswnirdir_hv , alswnirdif_hv , tsfc        , o3input       , noznlevels    , &
-             pin           , o3clim_hv     , ncol        , nlay          , inflgsw       , &
-             iceflgsw      , liqflgsw      , aer_opt     , dyofyr        , adjes         , &
-             dorrsw        , coszen        , asdir       , asdif         , aldir         , &
-             aldif         , play          , tlay        , h2ovmr        , o3vmr         , &
-             co2vmr        , o2vmr         , ch4vmr      , n2ovmr        , plev          , &
-             tlev          , cldfmcl       , clwpmcl     , ciwpmcl       , cswpmcl       , &
-             relqmcl       , reicmcl       , resnmcl     , taucmcl       , ssacmcl       , &
-             asmcmcl       , fsfcmcl       , tauaer      , ssaaer        , asmaer        , &
-             ecaer         , errmsg        , errflg)
+            (its           , ite           , kts           , kte           , kme         , &
+             nbndsw        , ngptsw        , naerec        , f_qc          , f_qr        , &
+             f_qi          , f_qs          , icloud        , has_reqc      , has_reqi    , &
+             has_reqs      , icld          , gravity       , gmt           , julian      , &
+             degrad        , dpd           , solcon_0      , radt          , xtime       , &
+             xlat_hv       , xlon_hv       , albedo_hv     , xland_hv      , xice_hv     , &
+             snow_hv       , p3d_hv        , t3d_hv        , qv3d_hv       , qc3d_hv     , &
+             qr3d_hv       , qi3d_hv       , qs3d_hv       , cldfra3d_hv   , re_cloud_hv , &
+             re_ice_hv     , re_snow_hv    , dz8w_hv       , p8w_hv        , t8w_hv      , &
+             alswvisdir_hv , alswvisdif_hv , alswnirdir_hv , alswnirdif_hv , tsfc        , &
+             o3input       , noznlevels    , pin           , o3clim_hv     , ncol        , &
+             nlay          , inflgsw       , iceflgsw      , liqflgsw      , aer_opt     , &
+             dyofyr        , adjes         , scon          , dorrsw        , coszen      , &
+             asdir         , asdif         , aldir         , aldif         , play        , &
+             tlay          , h2ovmr        , o3vmr         , co2vmr        , o2vmr       , &
+             ch4vmr        , n2ovmr        , plev          , tlev          , cldfmcl     , &
+             clwpmcl       , ciwpmcl       , cswpmcl       , relqmcl       , reicmcl     , &
+             resnmcl       , taucmcl       , ssacmcl       , asmcmcl       , fsfcmcl     , &
+             tauaer        , ssaaer        , asmaer        , ecaer         , errmsg      , &
+             errflg)
 
 
 !--- initialize calc_clean_atm_diag:

@@ -33,26 +33,26 @@
 
 !=================================================================================================================
  subroutine rrtmg_sw_mpas_timestep_init &
-                  (its        , ite        , kts        , kte        , kme        , &
-                   nbndsw     , ngptsw     , naerec     , f_qc       , f_qr       , &
-                   f_qi       , f_qs       , icloud     , has_reqc   , has_reqi   , &
-                   has_reqs   , icld       , gravity    , gmt        , julian     , &
-                   degrad     , dpd        , solcon_0   , radt       , xtime      , &
-                   xlat       , xlon       ,                                        &
-                   albedo     , xland      , xice       , snow       , p2d        , &
-                   t2d        , qv2d       , qc2d       , qr2d       , qi2d       , &
-                   qs2d       , cldfra2d   , re_cloud   , re_ice     , re_snow    , &
-                   dz8w2d     , p2di       , t2di       , alswvisdir , alswvisdif , &
-                   alswnirdir , alswnirdif , tsfc       , o3input    , noznlevels , &
-                   pin        , o3clim     , ncol       , nlay       , inflgsw    , &
-                   iceflgsw   , liqflgsw   , aer_opt    , dyofyr     , adjes      , &
-                   dorrsw     , coszen     , asdir      , asdif      , aldir      , &
-                   aldif      , play       , tlay       , h2ovmr     , o3vmr      , &
-                   co2vmr     , o2vmr      , ch4vmr     , n2ovmr     , plev       , &
-                   tlev       , cldfmcl    , clwpmcl    , ciwpmcl    , cswpmcl    , &
-                   relqmcl    , reicmcl    , resnmcl    , taucmcl    , ssacmcl    , &
-                   asmcmcl    , fsfcmcl    , tauaer     , ssaaer     , asmaer     , &
-                   ecaer      , errmsg     , errflg)
+                  (its        , ite        , kts        , kte        , kme      , &
+                   nbndsw     , ngptsw     , naerec     , f_qc       , f_qr     , &
+                   f_qi       , f_qs       , icloud     , has_reqc   , has_reqi , &
+                   has_reqs   , icld       , gravity    , gmt        , julian   , &
+                   degrad     , dpd        , solcon_0   , radt       , xtime    , &
+                   xlat       , xlon       , albedo     , xland      , xice     , &
+                   snow       , p2d        , t2d        , qv2d       , qc2d     , &
+                   qr2d       , qi2d       , qs2d       , cldfra2d   , re_cloud , &
+                   re_ice     , re_snow    , dz8w2d     , p2di       , t2di     , &
+                   alswvisdir , alswvisdif , alswnirdir , alswnirdif , tsfc     , &
+                   o3input    , noznlevels , pin        , o3clim     , ncol     , &
+                   nlay       , inflgsw    , iceflgsw   , liqflgsw   , aer_opt  , &
+                   dyofyr     , adjes      , scon       , dorrsw     , coszen   , &
+                   asdir      , asdif      , aldir      , aldif      , play     , &
+                   tlay       , h2ovmr     , o3vmr      , co2vmr     , o2vmr    , &
+                   ch4vmr     , n2ovmr     , plev       , tlev       , cldfmcl  , &
+                   clwpmcl    , ciwpmcl    , cswpmcl    , relqmcl    , reicmcl  , &
+                   resnmcl    , taucmcl    , ssacmcl    , asmcmcl    , fsfcmcl  , &
+                   tauaer     , ssaaer     , asmaer     , ecaer      , errmsg   , &
+                   errflg)
 !=================================================================================================================
 
 !input arguments:
@@ -157,7 +157,8 @@
     liqflgsw     ! local flag for calculation of shortwave cloud liquid droplet properties.
 
  real(kind=kind_phys),intent(out):: &
-    adjes        ! flux adjustment for Earth/Sun distance (-).
+    adjes,      &! flux adjustment for Earth/Sun distance (-).
+    scon         ! ajusted solar constant (W/m2).
 
  real(kind=kind_phys),intent(out),dimension(its:ite):: &
     coszen,     &! local cosine of solar zenith angle (-).
@@ -283,7 +284,7 @@
  dyofyr = 0
  adjes  = 1.0
 
- call radconst(declin,scon0,julian,degrad,dpd,solcon_0)
+ call radconst(declin,scon,julian,degrad,dpd,solcon_0)
 
 !--- calculation of the local input soundings for daytime columns:
  i_loop: do i = its,ite
