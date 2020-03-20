@@ -153,10 +153,10 @@
   type = real | kind = kind_phys
   intent = in
   optional = F
-[declin]
-  standard_name = solar_declination_angle
-  long_name = solar declination angle
-  units = radian
+[julian]
+  standard_name = curr_julian_day
+  long_name = current julian day
+  units = none
   dimensions = ()
   type = real | kind = kind_phys
   intent = in
@@ -169,7 +169,23 @@
   type = real | kind = kind_phys
   intent = in
   optional = F
-[radt]
+[dpd]
+  standard_name = ratio_day_360_over_365
+  long_name = ratio between day 360 and day 365
+  units = none
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[solcon_0]
+  standard_name = initial_solar_constant
+  long_name = initial solar constant
+  units = W m-2
+  dimensions = ()
+  type = real | kind=kind_phys
+  intent = in
+  optional = F
+[dt_radtsw]
   standard_name = sw_radiation_timestep
   long_name = shortwave radiation timestep
   units = s
@@ -177,12 +193,12 @@
   type = real | kind = kind_phys
   intent = in
   optional = F
-[xtime]
+[xtime_s]
   standard_name = model_valid_time
   long_name = model valid time
-  units = none
+  units = s
   dimensions = ()
-  type = character | kind = len=* 
+  type = real
   intent = in
   optional = F
 [xlat]
@@ -197,14 +213,6 @@
   standard_name = longitude
   long_name = longitude
   units = degree
-  dimensions = (horizontal_loop_start:horizontal_loop_end)
-  type = real | kind = kind_phys
-  intent = in
-  optional = F
-[tsfc]
-  standard_name = surface_ground_temperature_for_radiation
-  long_name = surface ground temperature for radiation
-  units = K
   dimensions = (horizontal_loop_start:horizontal_loop_end)
   type = real | kind = kind_phys
   intent = in
@@ -372,7 +380,7 @@
   type = real | kind = kind_phys
   intent = in
   optional = T
-[alswvisdir]
+[alswnirdir]
   standard_name = SIB_surface_albedo_due_to_near_IR_direct
   long_name = SIB surface albedo due to near IR direct beam
   units = fraction
@@ -380,7 +388,7 @@
   type = real | kind = kind_phys
   intent = in
   optional = T
-[alswvisdif]
+[alswnirdif]
   standard_name = SIB_surface_albedo_due_to_near_IR_diffused
   long_name = SIB surface albedo due to near IR diffuse beam
   units = fraction
@@ -388,6 +396,14 @@
   type = real | kind = kind_phys
   intent = in
   optional = T
+[tsfc]
+  standard_name = surface_ground_temperature_for_radiation
+  long_name = surface ground temperature for radiation
+  units = K
+  dimensions = (horizontal_loop_start:horizontal_loop_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
 [o3input]
   standard_name = option_for_input_climatological_ozone
   long_name = option for input ozone (2 for climatological ozone; 0 otherwise)
@@ -432,14 +448,6 @@
 [nlay]
   standard_name = number_of_vertical_layers_for_sw_radiation
   long_name = number of vertical layers for shortwave radiation calculation
-  units = none
-  dimensions = ()
-  type = integer
-  intent = out
-  optional = F
-[icld]
-  standard_name = option_for_cloud_overlap
-  long_name = option defining the type of cloud overlap
   units = none
   dimensions = ()
   type = integer
@@ -491,6 +499,14 @@
   units = dimensionless
   dimensions = ()
   type = real | kind = kind_phys
+  intent = out
+  optional = F
+[scon]
+  standard_name = adjusted_solar_constant
+  long_name = adjusted solar constant
+  units = W m-2
+  dimensions = ()
+  type = real | kind=kind_phys
   intent = out
   optional = F
 [dorrsw]
