@@ -212,7 +212,7 @@
  integer:: iplon,irng,permuteseed
 
  real(kind=kind_phys):: radt,xtime
- real(kind=kind_phys):: coszrs,declin,hrang,tloctm,xt24,xxlat
+ real(kind=kind_phys):: coszrs,declin,hrang,tloctm,xt24,xxlat,xxlon
  real(kind=kind_phys):: dz,dzsum
  real(kind=kind_phys):: corr
  real(kind=kind_phys):: gliqwp,gicewp,gsnowp,snow_mass_factor
@@ -292,10 +292,11 @@
  i_loop: do i = its,ite
 
     !calculation of the solar zenith angle:
-    xt24 = mod(xtime+radt*0.5,1440.)
+    xt24   = mod(xtime+radt*0.5,1440.)
+    xxlon  = xlon(i)/degrad
     tloctm = gmt + xt24/60. + xlon(i)/15.
-    hrang = 15. * (tloctm-12.) * degrad
-    xxlat = xlat(i) * degrad
+    hrang  = 15. * (tloctm-12.) * degrad
+    xxlat  = xlat(i)
     coszrs = sin(xxlat) * sin(declin) + cos(xxlat) * cos(declin) * cos(hrang)
     coszen(i) = coszrs
 

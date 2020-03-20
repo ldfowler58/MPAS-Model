@@ -373,9 +373,6 @@
 
  do j = jts,jte
  do i = its,ite
-    xlat_p(i,j)       = latCell(i) / degrad
-    xlon_p(i,j)       = lonCell(i) / degrad
-
     sfc_albedo_p(i,j) = sfc_albedo(i)
     snow_p(i,j)       = snow(i)
     tsk_p(i,j)        = skintemp(i)
@@ -403,17 +400,17 @@
 
  do j = jts,jte
  do i = its,ite
-    coszr_p(i,j)    = 0.0_RKIND
-    gsw_p(i,j)      = 0.0_RKIND
-    swcf_p(i,j)     = 0.0_RKIND
-    swdnb_p(i,j)    = 0.0_RKIND
-    swdnbc_p(i,j)   = 0.0_RKIND
-    swdnt_p(i,j)    = 0.0_RKIND
-    swdntc_p(i,j)   = 0.0_RKIND
-    swupb_p(i,j)    = 0.0_RKIND
-    swupbc_p(i,j)   = 0.0_RKIND
-    swupt_p(i,j)    = 0.0_RKIND
-    swuptc_p(i,j)   = 0.0_RKIND
+    coszr_p(i,j)  = 0.0_RKIND
+    gsw_p(i,j)    = 0.0_RKIND
+    swcf_p(i,j)   = 0.0_RKIND
+    swdnb_p(i,j)  = 0.0_RKIND
+    swdnbc_p(i,j) = 0.0_RKIND
+    swdnt_p(i,j)  = 0.0_RKIND
+    swdntc_p(i,j) = 0.0_RKIND
+    swupb_p(i,j)  = 0.0_RKIND
+    swupbc_p(i,j) = 0.0_RKIND
+    swupt_p(i,j)  = 0.0_RKIND
+    swuptc_p(i,j) = 0.0_RKIND
  enddo
 
  do k = kts,kte
@@ -463,6 +460,13 @@
        end select microp_select
 
        do j = jts,jte
+       do i = its,ite
+          xlat_p(i,j) = latCell(i)
+          xlon_p(i,j) = lonCell(i)
+       enddo
+       enddo
+
+       do j = jts,jte
        do k = kts,kte+2
        do i = its,ite
           swdnflx_p(i,k,j)  = 0.0_RKIND
@@ -501,6 +505,8 @@
     case("cam_sw")
        do j = jts,jte
        do i = its,ite
+          xlat_p(i,j)       = latCell(i)/degrad
+          xlon_p(i,j)       = lonCell(i)/degrad
           sfc_emiss_p(i,j)  = sfc_emiss(i)
 
           olrtoa_p(i,j)     = 0.0_RKIND
