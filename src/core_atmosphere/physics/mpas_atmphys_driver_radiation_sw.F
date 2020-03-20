@@ -729,8 +729,6 @@
  call mpas_pool_get_config(configs,'config_radt_sw_scheme' ,radt_sw_scheme      )
  call mpas_pool_get_config(configs,'config_radt_cldoverlap',cldoverlap          )
 
- xtime_m = xtime_s/60.
-
 !copy MPAS arrays to local arrays:
  call radiation_sw_from_MPAS(configs,mesh,state,time_lev,diag_physics,atm_input,sfc_input,xtime_s,its,ite)
 
@@ -738,15 +736,12 @@
 !call mpas_log_write('     YEAR        = $i', intArgs=(/year/))
 !call mpas_log_write('     JULDAY      = $i', intArgs=(/julday/))
 !call mpas_log_write('     GMT         = $r', realArgs=(/gmt/))
-!call mpas_log_write('     XTIME_M     = $r', realArgs=(/xtime_m/))
+!call mpas_log_write('     XTIME_S     = $r', realArgs=(/xtime_s/))
 !call mpas_log_write('     CURR_JULDAY = $r', realArgs=(/curr_julday/))
 !call mpas_log_write('     SOLCON      = $r', realArgs=(/solcon/))
 !call mpas_log_write('     DECLIN      = $r', realArgs=(/declin/))
 !$OMP END SINGLE
 
-!... convert the radiation time_step to minutes:
- radt = dt_radtsw/60.
-    
 !call to shortwave radiation scheme:
  radiation_sw_select: select case (trim(radt_sw_scheme))
 
@@ -764,7 +759,7 @@
               tsk        = tsk_p         , albedo     = sfc_albedo_p , xland      = xland_p       , &
               xice       = xice_p        , snow       = snow_p       , coszr      = coszr_p       , &
               xtime_s    = xtime_s       , gmt        = gmt          , julday     = julday        , &
-              julian     = curr_julday   , radt       = radt         , degrad     = degrad        , &
+              julian     = curr_julday   , dt_radtsw  = dt_radtsw    , degrad     = degrad        , &
               dpd        = dpd           , solcon_0   = solcon_0     , xlat       = xlat_p        , &
               xlon       = xlon_p        , icloud     = icloud       , o3input    = o3input       , &
               noznlevels = num_oznlevels , pin        = pin_p        , o3clim     = o3clim_p      , &
@@ -788,6 +783,10 @@
        !--- calculates solar declination:
        call radconst(declin,solcon,curr_julday,degrad,dpd,solcon_0)
 !$OMP END SINGLE
+
+       !--- convert the MPAS run time and radiation time_step to minutes:
+       radt    = dt_radtsw/60.
+       xtime_m = xtime_s/60.
 
        call mpas_timer_start('CAMRAD_sw')
        call camrad( dolw = .false. , dosw = .true. ,                                         &

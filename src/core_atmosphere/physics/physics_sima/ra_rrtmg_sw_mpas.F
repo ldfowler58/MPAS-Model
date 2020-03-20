@@ -37,7 +37,7 @@
                    nbndsw     , ngptsw     , naerec     , f_qc       , f_qr     , &
                    f_qi       , f_qs       , icloud     , has_reqc   , has_reqi , &
                    has_reqs   , icld       , gravity    , gmt        , julian   , &
-                   degrad     , dpd        , solcon_0   , radt       , xtime_s  , &
+                   degrad     , dpd        , solcon_0   , dt_radtsw  , xtime_s  , &
                    xlat       , xlon       , albedo     , xland      , xice     , &
                    snow       , p2d        , t2d        , qv2d       , qc2d     , &
                    qr2d       , qi2d       , qs2d       , cldfra2d   , re_cloud , &
@@ -87,7 +87,7 @@
     gmt,        &! GMT time.
     gravity,    &! acceleration due to gravity (m/s2).
     julian,     &! current julian day (-).
-    radt,       &! shortwave radiation timestep (s).
+    dt_radtsw,  &! shortwave radiation timestep (s).
     solcon_0,   &! initial solar constant (W/m2).
     xtime_s      ! MPAS run time (seconds).
 
@@ -211,7 +211,7 @@
  integer:: idx_rei
  integer:: iplon,irng,permuteseed
 
- real(kind=kind_phys):: xtime
+ real(kind=kind_phys):: radt,xtime
  real(kind=kind_phys):: coszrs,declin,hrang,tloctm,xt24,xxlat
  real(kind=kind_phys):: dz,dzsum
  real(kind=kind_phys):: corr
@@ -284,7 +284,8 @@
  adjes  = 1.0
  call radconst(declin,scon,julian,degrad,dpd,solcon_0)
 
-!--- convert MPAS run time to minutes:
+!--- convert radiation timestep and MPAS run time to minutes:
+ radt  = dt_radtsw/60.
  xtime = xtime_s/60.
 
 !--- calculation of the local input soundings for daytime columns:
