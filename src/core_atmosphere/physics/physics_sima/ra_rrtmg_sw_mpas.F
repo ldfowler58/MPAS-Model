@@ -37,7 +37,7 @@
                    nbndsw     , ngptsw     , naerec     , f_qc       , f_qr     , &
                    f_qi       , f_qs       , icloud     , has_reqc   , has_reqi , &
                    has_reqs   , icld       , gravity    , gmt        , julian   , &
-                   degrad     , dpd        , solcon_0   , radt       , xtime    , &
+                   degrad     , dpd        , solcon_0   , radt       , xtime_s  , &
                    xlat       , xlon       , albedo     , xland      , xice     , &
                    snow       , p2d        , t2d        , qv2d       , qc2d     , &
                    qr2d       , qi2d       , qs2d       , cldfra2d   , re_cloud , &
@@ -89,7 +89,7 @@
     julian,     &! current julian day (-).
     radt,       &! shortwave radiation timestep (s).
     solcon_0,   &! initial solar constant (W/m2).
-    xtime        ! MPAS run time.
+    xtime_s      ! MPAS run time (seconds).
 
  real(kind=kind_phys),intent(in),dimension(its:ite):: &
     xlat,       &! latitude (radian).
@@ -211,6 +211,7 @@
  integer:: idx_rei
  integer:: iplon,irng,permuteseed
 
+ real(kind=kind_phys):: xtime
  real(kind=kind_phys):: coszrs,declin,hrang,tloctm,xt24,xxlat
  real(kind=kind_phys):: dz,dzsum
  real(kind=kind_phys):: corr
@@ -259,8 +260,6 @@
  data amdo /  0.603461 /
  data amdo2 / 0.905190 /
 
-!---
- real(kind=kind_phys):: scon0
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -283,8 +282,10 @@
 !--- calculate solar declination and set solar constant:
  dyofyr = 0
  adjes  = 1.0
-
  call radconst(declin,scon,julian,degrad,dpd,solcon_0)
+
+!--- convert MPAS run time to minutes:
+ xtime = xtime_s/60.
 
 !--- calculation of the local input soundings for daytime columns:
  i_loop: do i = its,ite

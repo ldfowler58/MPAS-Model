@@ -23,7 +23,7 @@
                   (ims       , ime        , jms        , jme        , kms        , kme        , &
                    its       , ite        , jts        , jte        , kts        , kte        , &
                    f_qc      , f_qr       , f_qi       , f_qs       , icloud     , icld       , &
-                   has_reqc  , has_reqi   , has_reqs   , noznlevels , o3input    , xtime      , &
+                   has_reqc  , has_reqi   , has_reqs   , noznlevels , o3input    , xtime_s    , &
                    gmt       , julday     , julian     , radt       , degrad     , dpd        , &
                    solcon_0  , xland      , xice       , snow       , xlat       , xlon       , &
                    tsk       , albedo     , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
@@ -65,7 +65,7 @@
     julian,     &! current julian day.
     radt,       &! shortwave radiation timestep (s).
     solcon_0,   &! initial solar constant (W/m2).
-    xtime        ! MPAS run time.
+    xtime_s       ! MPAS run time (seconds).
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: &
     xlat,       &! latitude (radian).
@@ -347,7 +347,7 @@
              nbndsw        , ngptsw        , naerec        , f_qc          , f_qr        , &
              f_qi          , f_qs          , icloud        , has_reqc      , has_reqi    , &
              has_reqs      , icld          , gravity       , gmt           , julian      , &
-             degrad        , dpd           , solcon_0      , radt          , xtime       , &
+             degrad        , dpd           , solcon_0      , radt          , xtime_s     , &
              xlat_hv       , xlon_hv       , albedo_hv     , xland_hv      , xice_hv     , &
              snow_hv       , p3d_hv        , t3d_hv        , qv3d_hv       , qc3d_hv     , &
              qr3d_hv       , qi3d_hv       , qs3d_hv       , cldfra3d_hv   , re_cloud_hv , &

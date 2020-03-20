@@ -94,6 +94,9 @@
 ! * moved the call to the subroutine radconst inside subroutine rrtmg_swrad. added the call to subroutine
 !   radconst just above the call to subroutine camrad.
 !   Laura D. Fowler (laura@ucar.edu) / 2020-03-19.
+! * in the call to subroutine rrtmg_swrad, changed the variable xtime (in minutes) with xtime_s (in seconds).
+!   conversion of xtime_s to xtime is done in subroutine rrtmg_sw_mpas_timestep_init.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-03-19.
 
 
  contains
@@ -760,7 +763,7 @@
               f_qr       = f_qr          , f_qi       = f_qi         , f_qs       = f_qs          , &
               tsk        = tsk_p         , albedo     = sfc_albedo_p , xland      = xland_p       , &
               xice       = xice_p        , snow       = snow_p       , coszr      = coszr_p       , &
-              xtime      = xtime_m       , gmt        = gmt          , julday     = julday        , &
+              xtime_s    = xtime_s       , gmt        = gmt          , julday     = julday        , &
               julian     = curr_julday   , radt       = radt         , degrad     = degrad        , &
               dpd        = dpd           , solcon_0   = solcon_0     , xlat       = xlat_p        , &
               xlon       = xlon_p        , icloud     = icloud       , o3input    = o3input       , &
