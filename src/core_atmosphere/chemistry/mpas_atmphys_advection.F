@@ -53,20 +53,7 @@
  integer,dimension(:),pointer:: bdyMaskCell,bdyMaskEdge
  integer,dimension(:,:),pointer:: advCellsForEdge,cellsOnCell,cellsOnEdge,edgesOnCell
 
- integer:: i,k,iEdge,ithread,n,rk_step
-
- real(kind=RKIND),dimension(:,:),allocatable:: scalar_old_arr,     &
-                                               scalar_new_arr,     &
-                                               s_max_arr,          &
-                                               s_min_arr,          &
-                                               flux_array,         &
-                                               wdtn_arr,           &
-                                               flux_tmp_arr,       &
-                                               flux_upwind_tmp_arr
-
- real(kind=RKIND),dimension(:,:,:),allocatable:: scale_array,       &
-                                                 scalar_tend_array, &
-                                                 horiz_flux_arr
+ integer:: ithread,rk_step
 
  real(kind=RKIND),pointer:: dt
  real(kind=RKIND),pointer:: coef_3rd_order
@@ -78,6 +65,8 @@
  real(kind=RKIND),dimension(:,:),pointer:: uhAvg,wwAvg
 
  real(kind=RKIND),dimension(:,:,:),pointer:: scalar_old,scalar_new,scalar_tend
+
+ real(kind=RKIND),dimension(:,:,:),allocatable:: horiz_flux_arr
 
  type(field3DReal),pointer:: scalar_old_field
  type(field3DReal),pointer:: scalar_field
@@ -158,37 +147,13 @@
 
        call mpas_pool_get_array(tend,'scalars_tend',scalar_tend)
 
-!--- allocate local arrays:
-       allocate(scalar_old_arr(nVertLevels,nCells+1))
-       allocate(scalar_new_arr(nVertLevels,nCells+1))
-       allocate(s_max_arr(nVertLevels,nCells+1))
-       allocate(s_min_arr(nVertLevels,nCells+1))
-       allocate(scale_array(nVertLevels,2,nCells+1))
-       allocate(flux_array(nVertLevels,nEdges+1))
-       allocate(wdtn_arr(nVertLevels+1,nCells+1))
-       allocate(scalar_tend_array(num_scalars,nVertLevels,nCells+1))
-
-       scalar_old_arr(:,nCells+1)      = 0.0_RKIND
-       scalar_new_arr(:,nCells+1)      = 0.0_RKIND
-       s_max_arr(:,nCells+1)           = 0.0_RKIND
-       s_min_arr(:,nCells+1)           = 0.0_RKIND
-       scale_array(:,:,nCells+1)       = 0.0_RKIND
-       flux_array(:,nEdges+1)          = 0.0_RKIND
-       wdtn_arr(:,nCells+1)            = 0.0_RKIND
-       scalar_tend_array(:,:,nCells+1) = 0.0_RKIND
-
+!---
+!$OMP PARALLEL DO
        if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
           allocate(horiz_flux_arr(num_scalars,nVertLevels,nEdges+1))
           horiz_flux_arr(:,:,nEdges+1) = 0.0_RKIND
-       else
-          allocate(flux_upwind_tmp_arr(nVertLevels,nEdges+1))
-          flux_upwind_tmp_arr(:,nEdges+1) = 0.0_RKIND
-          allocate(flux_tmp_arr(nVertLevels,nEdges+1))
-          flux_tmp_arr(:,nEdges+1) = 0.0_RKIND
        endif
 
-!---
-!$OMP PARALLEL DO
        do ithread = 1,nThreads
           if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
 
@@ -220,24 +185,10 @@
 
           endif
        enddo
-!$OMP END PARALLEL DO
-
-!--- deallocate local arrays:
-       deallocate(scalar_old_arr)
-       deallocate(scalar_new_arr)
-       deallocate(s_max_arr)
-       deallocate(s_min_arr)
-       deallocate(scale_array)
-       deallocate(flux_array)
-       deallocate(wdtn_arr)
-       deallocate(scalar_tend_array)
-
        if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
           deallocate(horiz_flux_arr)
-       else
-          deallocate(flux_upwind_tmp_arr)
-          deallocate(flux_tmp_arr)
        endif
+!$OMP END PARALLEL DO
 
        if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
           call mpas_timer_stop('atm_advance_chemistry')
