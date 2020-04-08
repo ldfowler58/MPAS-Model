@@ -66,8 +66,6 @@
 
  real(kind=RKIND),dimension(:,:,:),pointer:: scalar_old,scalar_new,scalar_tend
 
- real(kind=RKIND),dimension(:,:,:),allocatable:: horiz_flux_arr
-
  type(field3DReal),pointer:: scalar_old_field
  type(field3DReal),pointer:: scalar_field
 
@@ -149,11 +147,6 @@
 
 !---
 !$OMP PARALLEL DO
-       if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
-          allocate(horiz_flux_arr(num_scalars,nVertLevels,nEdges+1))
-          horiz_flux_arr(:,:,nEdges+1) = 0.0_RKIND
-       endif
-
        do ithread = 1,nThreads
           if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
 
@@ -166,7 +159,7 @@
                       apply_lbcs,fnm,fnp,rdnw,adv_coefs,adv_coefs_3rd,invAreaCell,        &
                       edgesOnCell_sign,dvEdge,coef_3rd_order,rk_timestep(rk_step),        &
                       uhAvg,wwAvg,rho_zz_old,rho_zz_new,scalar_old,scalar_new,            &
-                      scalar_tend,horiz_flux_arr,advance_density=.true.)
+                      scalar_tend,advance_density=.true.)
 
           else
 
@@ -185,9 +178,6 @@
 
           endif
        enddo
-       if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
-          deallocate(horiz_flux_arr)
-       endif
 !$OMP END PARALLEL DO
 
        if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
@@ -211,14 +201,13 @@ call mpas_log_write(' ')
  end subroutine atmphys_advection
 
 !=================================================================================================================
- subroutine atm_advance_chemistry(num_scalars,nCells,nEdges,nVertLevels,              &
-                   cellSolveStart,cellSolveEnd,edgeStart,edgeEnd,                     &
-                   nEdgesOnCell,nAdvCellsForEdge,bdyMaskCell,bdyMaskEdge,cellsOnEdge, &
-                   edgesOnCell,advCellsForEdge,rk_step,time_integration_order,        &
-                   apply_lbcs,fnm,fnp,rdnw,adv_coefs,adv_coefs_3rd,invAreaCell,       &
-                   edgesOnCell_sign,dvEdge,coef_3rd_order,dt,uhAvg,wwAvg,rho_zz_old,  &
-                   rho_zz_new,scalar_old,scalar_new,scalar_tend,horiz_flux_arr,       &
-                   advance_density)
+ subroutine atm_advance_chemistry(num_scalars,nCells,nEdges,nVertLevels,           &
+                cellSolveStart,cellSolveEnd,edgeStart,edgeEnd,                     &
+                nEdgesOnCell,nAdvCellsForEdge,bdyMaskCell,bdyMaskEdge,cellsOnEdge, &
+                edgesOnCell,advCellsForEdge,rk_step,time_integration_order,        &
+                apply_lbcs,fnm,fnp,rdnw,adv_coefs,adv_coefs_3rd,invAreaCell,       &
+                edgesOnCell_sign,dvEdge,coef_3rd_order,dt,uhAvg,wwAvg,rho_zz_old,  &
+                rho_zz_new,scalar_old,scalar_new,scalar_tend,advance_density)
 !=================================================================================================================
 
 !input arguments:
@@ -247,23 +236,23 @@ call mpas_log_write(' ')
  real(kind=RKIND),intent(in),dimension(:,:):: rho_zz_old,rho_zz_new
 
  real(kind=RKIND),intent(in),dimension(:,:,:):: scalar_old
+ real(kind=RKIND),intent(in),dimension(num_scalars,nVertLevels,nCells+1):: scalar_tend
 
 !inout arguments:
  real(kind=RKIND),intent(inout),dimension(:,:,:):: scalar_new
- real(kind=RKIND),intent(inout),dimension(num_scalars,nVertLevels,nCells+1):: scalar_tend
- real(kind=RKIND),intent(inout),dimension(num_scalars,nVertLevels,nEdges+1):: horiz_flux_arr
 
 !local variables and arrays:
  logical:: local_advance_density
 
- integer:: iAdvCell,iCell,iEdge,iScalar,cell1,cell2,i,j,k,kk
+ integer:: iAdvCell,iCell,iEdge,iScalar,cell1,cell2,i,j,k
  integer,dimension(10):: ica
 
  real(kind=RKIND):: u_direction,u_negative,u_positive
  real(kind=RKIND):: rho_zz_new_inv,scalar_weight,weight_time_old,weight_time_new
  real(kind=RKIND),dimension(nVertLevels,10):: scalar_weight2
- real(kind=RKIND),dimension(num_scalars,nVertLevels):: scalar_tend_column! local storage to accumulate tendencies
- real(kind=RKIND),dimension(num_scalars,nVertLevels+1 ):: wdtn
+ real(kind=RKIND),dimension(num_scalars,nVertLevels  ):: scalar_tend_column! local storage to accumulate tendencies
+ real(kind=RKIND),dimension(num_scalars,nVertLevels+1):: wdtn
+ real(kind=RKIND),dimension(num_scalars,nVertLevels,nEdges+1):: horiz_flux_arr
 
  real(kind=RKIND):: flux3,flux4
  real(kind=RKIND):: q_im2,q_im1,q_i,q_ip1,ua,coef3
@@ -271,13 +260,18 @@ call mpas_log_write(' ')
  flux3(q_im2,q_im1,q_i,q_ip1,ua,coef3) = flux4(q_im2,q_im1,q_i,q_ip1, ua) &
                                        + coef3*abs(ua)*((q_ip1-q_im2)-3.*(q_i-q_im1))/12.0
 
-
 !-----------------------------------------------------------------------------------------------------------------
  if(present(advance_density)) then
     local_advance_density = advance_density
  else
     local_advance_density = .true.
  endif
+
+ do iScalar = 1,num_scalars
+    do k = 1,nVertLevels
+       horiz_flux_arr(iScalar,k,nEdges+1) = 0._RKIND
+    enddo
+ enddo
 
 !weights for the time interpolation of the input density:
 !
@@ -442,17 +436,13 @@ call mpas_log_write(' ')
  end subroutine atm_advance_chemistry
 
 !=================================================================================================================
- subroutine atm_advance_chemistry_mono(block,num_scalars,nCells,nCellsSolve,nEdges,nVertLevels, &
-                   cellStart,cellEnd,                                                     &
-                   cellSolveStart,cellSolveEnd,                                           &
-                   edgeStart,edgeEnd,                                                     &
-                   nEdgesOnCell,nAdvCellsForEdge,bdyMaskCell,bdyMaskEdge,cellsOnCell,     &
-                   cellsOnEdge,     &
-                   edgesOnCell,advCellsForEdge,adv_coefs,adv_coefs_3rd,                   &
-                   apply_lbcs,dt,fnm,fnp,                                                 &
-                   edgesOnCell_sign,dvEdge,coef_3rd_order,invAreaCell,rdnw,               &
-                   uhAvg,wwAvg,rho_zz_old,rho_zz_new,scalar_old,scalar_new,scalar_tend,   &
-                   scalar_old_field,advance_density)
+ subroutine atm_advance_chemistry_mono(block,num_scalars,nCells,nCellsSolve,nEdges,         &
+                nVertLevels,cellStart,cellEnd,cellSolveStart,cellSolveEnd,edgeStart,        &
+                edgeEnd,nEdgesOnCell,nAdvCellsForEdge,bdyMaskCell,bdyMaskEdge,cellsOnCell,  &
+                cellsOnEdge,edgesOnCell,advCellsForEdge,adv_coefs,adv_coefs_3rd,apply_lbcs, &
+                dt,fnm,fnp,edgesOnCell_sign,dvEdge,coef_3rd_order,invAreaCell,rdnw,uhAvg,   &
+                wwAvg,rho_zz_old,rho_zz_new,scalar_old,scalar_new,scalar_tend,              &
+                scalar_old_field,advance_density)
 !=================================================================================================================
 
 !input arguments:
