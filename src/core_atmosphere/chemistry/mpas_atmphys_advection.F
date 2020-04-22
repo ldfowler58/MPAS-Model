@@ -12,17 +12,68 @@
  implicit none
  private
 
- public:: atmphys_advection
+ public:: atmphys_advection, &
+          atmphys_advection_intro
 
 
  contains
 
 
 !=================================================================================================================
- subroutine atmphys_advection(domain,rk_timestep)
+ subroutine atmphys_advection_intro(domain,rk_timestep,string_in)
 !=================================================================================================================
 
 !input arguments:
+ character(len=*),intent(in):: string_in
+ real(kind=RKIND),intent(in),dimension(3):: rk_timestep
+
+!inout arguments:
+ type(domain_type),intent(inout):: domain
+
+!local variables and arrays:
+ type(block_type),pointer:: block
+ type(mpas_pool_type),pointer:: state
+ type(mpas_pool_type),pointer:: tend
+
+ character(len=StrKind):: num_string,tend_string
+
+ integer,pointer:: num_species
+ real(kind=RKIND),dimension(:,:,:),pointer:: species_old,species_new
+ real(kind=RKIND),dimension(:,:,:),pointer:: species_tend
+
+!-----------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine atmphys_advection_intro:')
+
+ block => domain%blocklist
+ do while(associated(block))
+    num_string  = 'num_'//trim(string_in)
+    tend_string = trim(string_in)//'_tend'
+
+    call mpas_pool_get_subpool(block%structs,'state',state)
+    call mpas_pool_get_subpool(block%structs,'tend' ,tend )
+
+    call mpas_pool_get_dimension(state,trim(num_string),num_species)
+    call mpas_log_write('--- num_species = $i',intArgs=(/num_species/))
+
+    call mpas_pool_get_array(state,trim(string_in),species_old,1)
+    call mpas_pool_get_array(state,trim(string_in),species_new,2)
+
+    call mpas_pool_get_array(tend,trim(tend_string),species_tend)
+
+    block => block % next
+ end do
+
+ call mpas_log_write('--- end subroutine atmphys_advection_intro:')
+
+ end subroutine atmphys_advection_intro
+
+!=================================================================================================================
+ subroutine atmphys_advection(domain,rk_timestep,string_in)
+!=================================================================================================================
+
+!input arguments:
+ character(len=*),intent(in):: string_in
  real(kind=RKIND),intent(in),dimension(3):: rk_timestep
 
 !inout arguments:
@@ -41,10 +92,13 @@
                    monotonic,                &
                    positive_definite
 
+ character(len=StrKind):: num_string,tend_string
+
  integer,pointer:: nThreads
  integer,pointer:: nCells,nCellsSolve,nEdges,nVertLevels
  integer,pointer:: time_integration_order
- integer,pointer:: num_scalars
+!integer,pointer:: num_scalars
+ integer,pointer:: num_species
  integer,dimension(:),pointer:: cellThreadEnd,cellThreadStart,           &
                                 cellSolveThreadEnd,cellSolveThreadStart, &
                                 edgeThreadEnd,edgeThreadStart,           &
@@ -54,6 +108,7 @@
  integer,dimension(:,:),pointer:: advCellsForEdge,cellsOnCell,cellsOnEdge,edgesOnCell
 
  integer:: ithread,rk_step
+ integer:: i,k,n
 
  real(kind=RKIND),pointer:: dt
  real(kind=RKIND),pointer:: coef_3rd_order
@@ -64,14 +119,22 @@
  real(kind=RKIND),dimension(:,:),pointer:: rho_zz_old,rho_zz_new
  real(kind=RKIND),dimension(:,:),pointer:: uhAvg,wwAvg
 
- real(kind=RKIND),dimension(:,:,:),pointer:: scalar_old,scalar_new,scalar_tend
+!real(kind=RKIND),dimension(:,:,:),pointer:: scalar_old,scalar_new,scalar_tend
 
- type(field3DReal),pointer:: scalar_old_field
- type(field3DReal),pointer:: scalar_field
+!type(field3DReal),pointer:: scalar_old_field
+!type(field3DReal),pointer:: scalar_field
+
+ real(kind=RKIND),dimension(:,:,:),pointer:: species_old,species_new
+ real(kind=RKIND),dimension(:,:,:),pointer:: species_tend
+ type(field3DReal),pointer:: species_old_field
+ type(field3DReal),pointer:: species_field
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine atmphys_advection:')
+
+ num_string  = 'num_'//trim(string_in)
+ tend_string = trim(string_in)//'_tend'
 
  RK3_SPLIT_TRANSPORT : do rk_step = 1,3
     call mpas_log_write('--- rk_step = $i',intArgs=(/rk_step/))
@@ -103,7 +166,7 @@
        call mpas_pool_get_dimension(mesh ,'nEdges'     ,nEdges     )
        call mpas_pool_get_dimension(mesh ,'nVertLevels',nVertLevels)
 
-       call mpas_pool_get_dimension(state,'num_scalars',num_scalars)
+!      call mpas_pool_get_dimension(state,'num_scalars',num_scalars)
 
        call mpas_pool_get_dimension(block%dimensions,'nThreads',nThreads)
        call mpas_pool_get_dimension(block%dimensions,'cellThreadStart'     ,cellThreadStart     )
@@ -137,35 +200,73 @@
 
        call mpas_pool_get_array(state,'rho_zz' ,rho_zz_old,1)
        call mpas_pool_get_array(state,'rho_zz' ,rho_zz_new,2)
-       call mpas_pool_get_array(state,'scalars',scalar_old,1)
-       call mpas_pool_get_array(state,'scalars',scalar_new,2)
+!      call mpas_pool_get_array(state,'scalars',scalar_old,1)
+!      call mpas_pool_get_array(state,'scalars',scalar_new,2)
 
-       call mpas_pool_get_array(diag,'ruAvg'   ,uhAvg   )
-       call mpas_pool_get_array(diag,'wwAvg'   ,wwAvg   )
+       call mpas_pool_get_array(diag,'ruAvg',uhAvg)
+       call mpas_pool_get_array(diag,'wwAvg',wwAvg)
 
-       call mpas_pool_get_array(tend,'scalars_tend',scalar_tend)
+!      call mpas_pool_get_array(tend,'scalars_tend',scalar_tend)
+
+       call mpas_pool_get_dimension(state,trim(num_string),num_species)
+       call mpas_pool_get_array(state,trim(string_in),species_old,1 )
+       call mpas_pool_get_array(state,trim(string_in),species_new,2 )
+       call mpas_pool_get_array(tend ,trim(tend_string),species_tend)
 
 !---
 !$OMP PARALLEL DO
        do ithread = 1,nThreads
           if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
 
-             call mpas_log_write('--- before subroutine atm_advance_chemistry:')
-             call atm_advance_chemistry(num_scalars,nCells,nEdges,nVertLevels,            &
+!            call mpas_log_write('--- before subroutine atm_advance_chemistry:')
+!            call atm_advance_chemistry(num_scalars,nCells,nEdges,nVertLevels,            &
+!                     cellSolveThreadStart(ithread),cellSolveThreadEnd(ithread),          &
+!                     edgeThreadStart(ithread),edgeThreadEnd(ithread),                    &
+!                     nEdgesOnCell,nAdvCellsForEdge,bdyMaskCell,bdyMaskEdge,cellsOnEdge,  &
+!                     edgesOnCell,advCellsForEdge,rk_step,time_integration_order,         &
+!                     apply_lbcs,fnm,fnp,rdnw,adv_coefs,adv_coefs_3rd,invAreaCell,        &
+!                     edgesOnCell_sign,dvEdge,coef_3rd_order,rk_timestep(rk_step),        &
+!                     uhAvg,wwAvg,rho_zz_old,rho_zz_new,scalar_old,scalar_new,            &
+!                     scalar_tend,advance_density=.true.)
+             call atm_advance_chemistry(num_species,nCells,nEdges,nVertLevels,            &
                       cellSolveThreadStart(ithread),cellSolveThreadEnd(ithread),          &
                       edgeThreadStart(ithread),edgeThreadEnd(ithread),                    &
                       nEdgesOnCell,nAdvCellsForEdge,bdyMaskCell,bdyMaskEdge,cellsOnEdge,  &
                       edgesOnCell,advCellsForEdge,rk_step,time_integration_order,         &
                       apply_lbcs,fnm,fnp,rdnw,adv_coefs,adv_coefs_3rd,invAreaCell,        &
                       edgesOnCell_sign,dvEdge,coef_3rd_order,rk_timestep(rk_step),        &
-                      uhAvg,wwAvg,rho_zz_old,rho_zz_new,scalar_old,scalar_new,            &
-                      scalar_tend,advance_density=.true.)
+                      uhAvg,wwAvg,rho_zz_old,rho_zz_new,species_old,species_new,          &
+                      species_tend,advance_density=.true.)
 
           else
 
              call mpas_log_write('--- before subroutine atm_advance_chemistry_mono:')
-             call mpas_pool_get_field(state,'scalars',scalar_old_field,1)
-             call atm_advance_chemistry_mono(block,num_scalars,nCells,nCellsSolve,        &
+!            call mpas_pool_get_field(state,'scalars',scalar_old_field,1)
+!            call atm_advance_chemistry_mono(block,num_scalars,nCells,nCellsSolve,        &
+!                     nEdges,nVertLevels,cellThreadStart(ithread),cellThreadEnd(ithread), &
+!                     cellSolveThreadStart(ithread),cellSolveThreadEnd(ithread),          &
+!                     edgeThreadStart(ithread),edgeThreadEnd(ithread),                    &
+!                     nEdgesOnCell,nAdvCellsForEdge,bdyMaskCell,bdyMaskEdge,cellsOnCell,  &
+!                     cellsOnEdge,edgesOnCell,advCellsForEdge,adv_coefs,adv_coefs_3rd,    &
+!                     apply_lbcs,rk_timestep(rk_step),fnm,fnp,edgesOnCell_sign,dvEdge,    &
+!                     coef_3rd_order,invAreaCell,rdnw,uhAvg,wwAvg,rho_zz_old,rho_zz_new,  &
+!                     scalar_old,scalar_new,scalar_tend,scalar_old_field,                 &
+!                     advance_density=.true.)
+
+!            if(trim(string_in) .eq. 'tracers') then
+!               do i = 1, nCellsSolve
+!                  do k = 1, nVertLevels
+!                     call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/), &
+!                               realArgs=(/(species_old(n,k,i),n=1,num_species), &
+!                                          (species_new(n,k,i),n=1,num_species), &
+!                                          (species_tend(n,k,i),n=1,num_species)/))
+!                  enddo
+!                  call mpas_log_write(' ')
+!               enddo
+!            endif
+
+             call mpas_pool_get_field(state,trim(string_in),species_old_field,1)
+             call atm_advance_chemistry_mono(block,num_species,nCells,nCellsSolve,        &
                       nEdges,nVertLevels,cellThreadStart(ithread),cellThreadEnd(ithread), &
                       cellSolveThreadStart(ithread),cellSolveThreadEnd(ithread),          &
                       edgeThreadStart(ithread),edgeThreadEnd(ithread),                    &
@@ -173,7 +274,7 @@
                       cellsOnEdge,edgesOnCell,advCellsForEdge,adv_coefs,adv_coefs_3rd,    &
                       apply_lbcs,rk_timestep(rk_step),fnm,fnp,edgesOnCell_sign,dvEdge,    &
                       coef_3rd_order,invAreaCell,rdnw,uhAvg,wwAvg,rho_zz_old,rho_zz_new,  &
-                      scalar_old,scalar_new,scalar_tend,scalar_old_field,                 &
+                      species_old,species_new,species_tend,species_old_field,             &
                       advance_density=.true.)
 
           endif
@@ -185,18 +286,20 @@
        else
           call mpas_timer_stop('atm_advance_chemistry')
        endif
-    block => block % next
+    block => block%next
     end do
 
     if(rk_step < 3) then
-       call mpas_pool_get_field(state,'scalars',scalar_field,2)
-       call mpas_dmpar_exch_halo_field(scalar_field)
+!      call mpas_pool_get_field(state,'scalars',scalar_field,2)
+!      call mpas_dmpar_exch_halo_field(scalar_field)
+       call mpas_pool_get_field(state,trim(string_in),species_field,2)
+       call mpas_dmpar_exch_halo_field(species_field)
     endif
 
  enddo RK3_SPLIT_TRANSPORT
 
-call mpas_log_write('--- end subroutine atmphys_advection:')
-call mpas_log_write(' ')
+ call mpas_log_write('--- end subroutine atmphys_advection:')
+!call mpas_log_write(' ')
 
  end subroutine atmphys_advection
 
@@ -489,6 +592,7 @@ call mpas_log_write(' ')
  integer,dimension(10):: ica
 
  real(kind=RKIND),parameter:: eps=1.e-20
+!real(kind=RKIND),parameter:: eps=1.e-15
 
  real(kind=RKIND):: scale_factor,scalar_weight
  real(kind=RKIND):: scmax,scmin
@@ -513,12 +617,16 @@ call mpas_log_write(' ')
  type(field3DReal),pointer:: tempField
  type(field3DReal),target :: tempFieldTarget
 
+ real(kind=RKIND):: tem1,tem2,tem3,tem4
+
 !-----------------------------------------------------------------------------------------------------------------
  if(present(advance_density)) then
     local_advance_density = advance_density
  else
     local_advance_density = .true.
  endif
+!call mpas_log_write('--- enter subroutine atm_advance_chemistry_mono:')
+!call mpas_log_write('--- local_advance_density = $l',logicArgs=(/local_advance_density/))
 
 !initialization:
  do k = 1,nVertLevels
@@ -609,6 +717,7 @@ call mpas_log_write(' ')
 !next, do one scalar at a time:
 !
  do iScalar = 1,num_scalars
+    call mpas_log_write(' ')
     do iCell = cellStart,cellEnd
 !DIR$ IVDEP
        do k = 1,nVertLevels
@@ -631,7 +740,6 @@ call mpas_log_write(' ')
           scmax = max(scmax,temp_old(k,iCell))
        enddo
     enddo
-    call mpas_log_write(' scmin, scmin old in $r $r', realArgs=(/scmin,scmax/))
 
     scmin = temp_new(1,1)
     scmax = temp_new(1,1)
@@ -641,7 +749,6 @@ call mpas_log_write(' ')
           scmax = max(scmax,temp_new(k,iCell))
        enddo
     enddo
-    call mpas_log_write(' scmin, scmin new in $r $r', realArgs=(/scmin,scmax/))
 #endif
 
     !
@@ -675,6 +782,7 @@ call mpas_log_write(' ')
        wdtn(k,iCell) = wwAvg(k,iCell)*(fnm(k)*temp_new(k,iCell)+fnp(k)*temp_new(k-1,iCell))
        s_max(k,iCell) = max(temp_old(k,iCell),temp_old(k-1,iCell))
        s_min(k,iCell) = min(temp_old(k,iCell),temp_old(k-1,iCell))
+!      call mpas_log_write('--- end calculate s_min, smax - iCell = $i',intArgs=(/iCell/))
 
        !
        !pull s_min and s_max from the (horizontal) surrounding cells:
@@ -684,6 +792,7 @@ call mpas_log_write(' ')
        !original code retained in select "default" case
        select case(nEdgesOnCell(iCell))
           case(6)
+!            call mpas_log_write('--- case(6):')
 !DIR$ IVDEP
              do k = 1,nVertLevels
                 s_max(k,iCell) = max(s_max(k,iCell), &
@@ -703,6 +812,7 @@ call mpas_log_write(' ')
              enddo
 
           case default
+!            call mpas_log_write('--- default:')
              do i = 1,nEdgesOnCell(iCell)
 !DIR$ IVDEP
                 do k = 1,nVertLevels
@@ -793,8 +903,18 @@ call mpas_log_write(' ')
        do k = 1,nVertLevels
           scale_arr(k,scale_in, iCell) = - rdnw(k)*(min(0.0_RKIND,wdtn(k+1,iCell))-max(0.0_RKIND,wdtn(k,iCell)))
           scale_arr(k,scale_out,iCell) = - rdnw(k)*(max(0.0_RKIND,wdtn(k+1,iCell))-min(0.0_RKIND,wdtn(k,iCell)))
+!         if(iCell.eq.2 .and. k.le.8) then
+!            tem1 = min(0.0_RKIND,wdtn(k+1,iCell))
+!            tem2 = max(0.0_RKIND,wdtn(k,iCell))
+!            tem3 = max(0.0_RKIND,wdtn(k+1,iCell))
+!            tem4 = -min(0.0_RKIND,wdtn(k,iCell))
+!            call mpas_log_write('$i $i $r $r $r $r $r $r $r $r',intArgs=(/iCell,k/), &
+!                               realArgs=(/rdnw(k),wdtn(k,iCell),tem1,tem2,tem3,tem4, &
+!                               scale_arr(k,scale_in,iCell),scale_arr(k,scale_out,iCell)/))
+!         endif
        enddo
     enddo
+!   call mpas_log_write('--- end vertical flux divergence for upwind update:')
 
     !
     !horizontal flux divergence for upwind update:
@@ -831,9 +951,15 @@ call mpas_log_write(' ')
                                - max(0.0_RKIND,edgesOnCell_sign(i,iCell)*flux_tmp(k,iEdge))*invAreaCell(iCell)
              scale_arr(k,scale_in, iCell) = scale_arr(k,scale_in, iCell) &
                                - min(0.0_RKIND,edgesOnCell_sign(i,iCell)*flux_tmp(k,iEdge))*invAreaCell(iCell)
+!            if(iCell.eq.2 .and. k.eq.4) then
+!               call mpas_log_write('$i $i $i $i $r $r $r $r',intArgs=(/iCell,i,iEdge,k/), &
+!                    realArgs=(/edgesOnCell_sign(i,iCell),flux_tmp(k,iEdge)*invAreaCell(iCell), &
+!                    scale_arr(k,scale_in,iCell),scale_arr(k,scale_out,iCell)/))
+!            endif
           enddo
        enddo
     enddo
+    call mpas_log_write('--- end horizontal flux divergence for upwind update:')
 
     !
     ! next, the limiter:
@@ -846,10 +972,32 @@ call mpas_log_write(' ')
        do iCell = cellSolveStart,cellSolveEnd
 !DIR$ IVDEP
           do k = 1,nVertLevels
+!            if(iCell.eq.2) then
+!               call mpas_log_write('$i $i',intArgs=(/iCell,k/))
+!               call mpas_log_write('--- IN $i $i $r $r $r $r $r',intArgs=(/iCell,k/), &
+!                             realArgs=(/rho_zz_int(k,iCell),s_max(k,iCell),    &
+!                             temp_new(k,iCell),scale_arr(k,SCALE_IN,iCell),    &
+!                             scale_arr(k,SCALE_IN,iCell)+eps/))
+!            endif
              scale_factor = (s_max(k,iCell)*rho_zz_int(k,iCell) - temp_new(k,iCell)) &
                           / (scale_arr(k,SCALE_IN,iCell)  + eps)
              scale_arr(k,SCALE_IN,iCell) = min( 1.0_RKIND, max( 0.0_RKIND, scale_factor))
+!            if(iCell.eq.2) then
+!               call mpas_log_write('--- IN $i $i $r $r',intArgs=(/iCell,k/),  &
+!                         realArgs=(/scale_factor,scale_arr(k,SCALE_IN,iCell)/))
+!            endif
 
+!            if(iCell.eq.2) then
+!               call mpas_log_write('--- OUT $i $i $r $r $r $r $r',intArgs=(/iCell,k/), &
+!                             realArgs=(/rho_zz_int(k,iCell),s_min(k,iCell),     &
+!                             temp_new(k,iCell),scale_arr(k,SCALE_OUT,iCell),    &
+!                             scale_arr(k,SCALE_OUT,iCell)-eps/))
+!            endif
+!            if(iCell.eq. 2) then
+!               tem1 = s_min(k,iCell)*rho_zz_int(k,iCell) - temp_new(k,iCell)
+!               call mpas_log_write('--- OUT $i $i $r $r $r',intArgs=(/iCell,k/),  &
+!                        realArgs=(/temp_new(k,iCell),tem1,scale_arr(k,SCALE_OUT,iCell)-eps/))
+!            endif
              scale_factor = (s_min(k,iCell)*rho_zz_int(k,iCell) - temp_new(k,iCell)) &
                           / (scale_arr(k,SCALE_OUT,iCell) - eps)
              scale_arr(k,SCALE_OUT,iCell) = min( 1.0_RKIND, max( 0.0_RKIND, scale_factor) )
@@ -895,101 +1043,101 @@ call mpas_log_write(' ')
 !$OMP BARRIER
 
     do iEdge = edgeStart,edgeEnd
-         cell1 = cellsOnEdge(1,iEdge)
-         cell2 = cellsOnEdge(2,iEdge)
-         if(cell1 <= nCellsSolve .or. cell2 <= nCellsSolve) then  ! only for owned cells
+       cell1 = cellsOnEdge(1,iEdge)
+       cell2 = cellsOnEdge(2,iEdge)
+       if(cell1 <= nCellsSolve .or. cell2 <= nCellsSolve) then  ! only for owned cells
 !DIR$ IVDEP
-            do k = 1,nVertLevels
-               flux_upwind = dvEdge(iEdge)*dt &
-                           * (max(0.0_RKIND,uhAvg(k,iEdge))*temp_old(k,cell1) &
-                           +  min(0.0_RKIND,uhAvg(k,iEdge))*temp_old(k,cell2))
-               flux_arr(k,iEdge) = dt*flux_arr(k,iEdge) - flux_upwind
-            enddo
+          do k = 1,nVertLevels
+             flux_upwind = dvEdge(iEdge)*dt &
+                         * (max(0.0_RKIND,uhAvg(k,iEdge))*temp_old(k,cell1) &
+                         +  min(0.0_RKIND,uhAvg(k,iEdge))*temp_old(k,cell2))
+             flux_arr(k,iEdge) = dt*flux_arr(k,iEdge) - flux_upwind
+          enddo
 
-            if(apply_lbcs .and. (bdyMaskEdge(iEdge) == nRelaxZone) .or. &
-               (bdyMaskEdge(iEdge) == nRelaxZone-1) ) then
-               flux_arr(:,iEdge) = 0.
-            endif
-         endif
-      enddo
+          if(apply_lbcs .and. (bdyMaskEdge(iEdge) == nRelaxZone) .or. &
+             (bdyMaskEdge(iEdge) == nRelaxZone-1) ) then
+             flux_arr(:,iEdge) = 0.
+          endif
+       endif
+    enddo
 
-      !
-      ! rescale the fluxes:
-      !
+    !
+    ! rescale the fluxes:
+    !
 
-      ! moved assignment to temp_new from separate loop (see commented code below)
-      ! into the following loops. Avoids having to save elements of flux array
-      do iEdge = edgeStart,edgeEnd
-         cell1 = cellsOnEdge(1,iEdge)
-         cell2 = cellsOnEdge(2,iEdge)
-         if(cell1 <= nCellsSolve .or. cell2 <= nCellsSolve) then
+    ! moved assignment to temp_new from separate loop (see commented code below)
+    ! into the following loops. Avoids having to save elements of flux array
+    do iEdge = edgeStart,edgeEnd
+       cell1 = cellsOnEdge(1,iEdge)
+       cell2 = cellsOnEdge(2,iEdge)
+       if(cell1 <= nCellsSolve .or. cell2 <= nCellsSolve) then
 !DIR$ IVDEP
-            do k = 1,nVertLevels
-               flux = flux_arr(k,iEdge)
-               flux = max(0.0_RKIND,flux) * min(scale_arr(k,SCALE_OUT,cell1), scale_arr(k,SCALE_IN, cell2)) &
-                    + min(0.0_RKIND,flux) * min(scale_arr(k,SCALE_IN, cell1), scale_arr(k,SCALE_OUT,cell2))
-               flux_arr(k,iEdge) = flux
-            enddo
-         endif
-      enddo
+          do k = 1,nVertLevels
+             flux = flux_arr(k,iEdge)
+             flux = max(0.0_RKIND,flux) * min(scale_arr(k,SCALE_OUT,cell1), scale_arr(k,SCALE_IN, cell2)) &
+                  + min(0.0_RKIND,flux) * min(scale_arr(k,SCALE_IN, cell1), scale_arr(k,SCALE_OUT,cell2))
+             flux_arr(k,iEdge) = flux
+          enddo
+       endif
+    enddo
 
-      !
-      ! rescale the vertical flux
-      !
+    !
+    ! rescale the vertical flux
+    !
 !$OMP BARRIER
-      do iCell = cellSolveStart,cellSolveEnd
+    do iCell = cellSolveStart,cellSolveEnd
 !DIR$ IVDEP
-         do k = 2,nVertLevels
-            flux = wdtn(k,iCell)
-            flux = max(0.0_RKIND,flux)*min(scale_arr(k-1,SCALE_OUT,iCell),scale_arr(k  ,SCALE_IN,iCell)) &
-                 + min(0.0_RKIND,flux)*min(scale_arr(k  ,SCALE_OUT,iCell),scale_arr(k-1,SCALE_IN,iCell))
-               wdtn(k,iCell) = flux
-         enddo
-      enddo
+       do k = 2,nVertLevels
+          flux = wdtn(k,iCell)
+          flux = max(0.0_RKIND,flux)*min(scale_arr(k-1,SCALE_OUT,iCell),scale_arr(k  ,SCALE_IN,iCell)) &
+               + min(0.0_RKIND,flux)*min(scale_arr(k  ,SCALE_OUT,iCell),scale_arr(k-1,SCALE_IN,iCell))
+          wdtn(k,iCell) = flux
+       enddo
+    enddo
 
-      !
-      ! do the scalar update now that we have the fluxes:
-      !
-      do iCell = cellSolveStart,cellSolveEnd
-         do i = 1,nEdgesOnCell(iCell)
-            iEdge = edgesOnCell(i,iCell)
+    !
+    ! do the scalar update now that we have the fluxes:
+    !
+    do iCell = cellSolveStart,cellSolveEnd
+       do i = 1,nEdgesOnCell(iCell)
+          iEdge = edgesOnCell(i,iCell)
 !DIR$ IVDEP
-            do k = 1,nVertLevels
-               temp_new(k,iCell) = temp_new(k,iCell) - edgesOnCell_sign(i,iCell)*flux_arr(k,iEdge) &
-                                 * invAreaCell(iCell)
-            enddo
-         enddo
+          do k = 1,nVertLevels
+             temp_new(k,iCell) = temp_new(k,iCell) - edgesOnCell_sign(i,iCell)*flux_arr(k,iEdge) &
+                               * invAreaCell(iCell)
+          enddo
+       enddo
 
-         if(local_advance_density) then
+       if(local_advance_density) then
 !DIR$ IVDEP
-            do k = 1,nVertLevels
-               temp_new(k,iCell) = (temp_new(k,iCell) + (-rdnw(k)*(wdtn(k+1,iCell)-wdtn(k,iCell)))) &
-                                 / rho_zz_int(k,iCell)
-            enddo
-         else
+          do k = 1,nVertLevels
+             temp_new(k,iCell) = (temp_new(k,iCell) + (-rdnw(k)*(wdtn(k+1,iCell)-wdtn(k,iCell)))) &
+                               / rho_zz_int(k,iCell)
+          enddo
+       else
 !DIR$ IVDEP
-            do k = 1,nVertLevels
-               temp_new(k,iCell) = (temp_new(k,iCell) + (-rdnw(k)*(wdtn(k+1,iCell)-wdtn(k,iCell)))) &
-                                 /  rho_zz_new(k,iCell)
-            enddo
-         endif
-      enddo
+          do k = 1,nVertLevels
+             temp_new(k,iCell) = (temp_new(k,iCell) + (-rdnw(k)*(wdtn(k+1,iCell)-wdtn(k,iCell)))) &
+                               /  rho_zz_new(k,iCell)
+          enddo
+       endif
+    enddo
 
 #ifdef DEBUG_TRANSPORT
-      scmin = scalar_new(1,1)
-      scmax = scalar_new(1,1)
-      do iCell = 1,nCellsSolve
-         do k =1,nVertLevels
-            scmax = max(scmax,scalar_new(k,iCell))
-            scmin = min(scmin,scalar_new(k,iCell))
-            if(s_max(k,iCell) < scalar_new(k,iCell)) then
-               call mpas_log_write(' over - k,iCell,s_min,s_max,scalar_new ',intArgs=(/k,iCell/), &
-                         realArgs=(/s_min(k,iCell),s_max(k,iCell),scalar_new(k,iCell)/))
-            endif
-            if(s_min(k,iCell) > scalar_new(k,iCell)) then
-               call mpas_log_write(' under - k,iCell,s_min,s_max,scalar_new ',intArgs=(/k,iCell/), &
-                         realArgs=(/s_min(k,iCell),s_max(k,iCell),scalar_new(k,iCell)/))
-            endif
+    scmin = scalar_new(1,1)
+    scmax = scalar_new(1,1)
+    do iCell = 1,nCellsSolve
+       do k =1,nVertLevels
+          scmax = max(scmax,scalar_new(k,iCell))
+          scmin = min(scmin,scalar_new(k,iCell))
+          if(s_max(k,iCell) < scalar_new(k,iCell)) then
+             call mpas_log_write(' over - k,iCell,s_min,s_max,scalar_new ',intArgs=(/k,iCell/), &
+                       realArgs=(/s_min(k,iCell),s_max(k,iCell),scalar_new(k,iCell)/))
+          endif
+          if(s_min(k,iCell) > scalar_new(k,iCell)) then
+             call mpas_log_write(' under - k,iCell,s_min,s_max,scalar_new ',intArgs=(/k,iCell/), &
+                       realArgs=(/s_min(k,iCell),s_max(k,iCell),scalar_new(k,iCell)/))
+          endif
        enddo
     enddo
     call mpas_log_write(' scmin, scmax new out $r $r',realArgs=(/scmin,scmax/))
