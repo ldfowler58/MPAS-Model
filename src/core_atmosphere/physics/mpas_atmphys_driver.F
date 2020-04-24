@@ -7,6 +7,7 @@
 !
 !=================================================================================================================
  module mpas_atmphys_driver
+ use mpas_dmpar
  use mpas_kind_types
  use mpas_pool_routines
 
@@ -24,6 +25,14 @@
  use mpas_atmphys_update
  use mpas_atmphys_vars, only: l_conv,l_radtlw,l_radtsw
  use mpas_timer
+
+#ifdef ATM_CHEMISTRY
+ use mpas_atmphys_chems
+ use mpas_atmphys_chems_physics
+ use mpas_atmphys_tracers
+ use mpas_atmphys_tracers_physics
+#endif
+
 
  implicit none
  private
@@ -149,6 +158,15 @@
  integer,pointer:: nThreads
  integer,dimension(:),pointer:: cellSolveThreadStart, cellSolveThreadEnd
 
+
+#ifdef ATM_CHEMISTRY
+ type(chems_physics)  :: mpas_chems
+ type(tracers_physics):: mpas_tracers
+
+ type(mpas_pool_type),pointer:: tend_chems
+ type(mpas_pool_type),pointer:: tend_tracers
+#endif
+
 !=================================================================================================================
 !call mpas_log_write('')
 !call mpas_log_write('--- enter subroutine mpas_atmphys_driver:')
@@ -196,6 +214,23 @@
 
     !physics prep step:
     time_lev = 1
+
+
+#ifdef ATM_CHEMISTRY
+    call mpas_pool_get_subpool(block%structs,'tend_chems'  ,tend_chems  )
+    call mpas_pool_get_subpool(block%structs,'tend_tracers',tend_tracers)
+
+    !update chemical species and boundary layer passive tracers:
+    call update_chems(itimestep,block%configs,mesh,state,time_lev)
+    call update_tracers(itimestep,block%configs,mesh,state,time_lev,diag,diag_physics,sfc_input)
+
+    !initialize chemical species and boundary layer passive tracers:
+    call mpas_chems%allocate_mem(state)
+    call mpas_chems%chems_to_physics(state,time_lev)
+    call mpas_tracers%allocate_mem(state)
+    call mpas_tracers%tracers_to_physics(state,time_lev)
+#endif
+
 
 !$OMP PARALLEL DO
     do thread=1,nThreads
@@ -288,10 +323,18 @@
     if(config_pbl_scheme .ne. 'off' .and. config_sfclayer_scheme .ne. 'off') then
        call allocate_pbl(block%configs)
 !$OMP PARALLEL DO
+#ifdef ATM_CHEMISTRY
        do thread=1,nThreads
-          call driver_pbl(itimestep,block%configs,mesh,sfc_input,diag_physics,tend_physics, &
+          call driver_pbl(itimestep,block%configs,mesh,sfc_input,diag_physics,tend_physics,   &
+                          cellSolveThreadStart(thread),cellSolveThreadEnd(thread),mpas_chems, &
+                          mpas_tracers)
+       end do
+#else
+       do thread=1,nThreads
+          call driver_pbl(itimestep,block%configs,mesh,sfc_input,diag_physics,tend_physics,   &
                           cellSolveThreadStart(thread),cellSolveThreadEnd(thread))
        end do
+#endif
 !$OMP END PARALLEL DO
        call deallocate_pbl(block%configs)
 
@@ -338,6 +381,15 @@
 
     !deallocate arrays shared by all physics parameterizations:
     call deallocate_forall_physics
+
+
+#ifdef ATM_CHEMISTRY
+    call mpas_chems%chems_from_physics(tend_chems)
+    call mpas_chems%deallocate_mem
+    call mpas_tracers%tracers_from_physics(tend_tracers)
+    call mpas_tracers%deallocate_mem
+#endif
+
 
     block => block % next
  end do 

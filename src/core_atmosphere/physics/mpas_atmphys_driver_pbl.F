@@ -14,6 +14,11 @@
  use mpas_atmphys_constants
  use mpas_atmphys_vars
 
+#ifdef ATM_CHEMISTRY
+ use mpas_atmphys_chems_physics
+ use mpas_atmphys_tracers_physics
+#endif
+
 !wrf physics:
  use module_bl_mynn
  use module_bl_ysu
@@ -676,7 +681,7 @@
  end subroutine pbl_to_MPAS
  
 !=================================================================================================================
- subroutine driver_pbl(itimestep,configs,mesh,sfc_input,diag_physics,tend_physics,its,ite)
+ subroutine driver_pbl(itimestep,configs,mesh,sfc_input,diag_physics,tend_physics,its,ite,mpas_chems,mpas_tracers)
 !=================================================================================================================
 
 !input arguments:
@@ -691,14 +696,22 @@
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: tend_physics
 
+ type(chems_physics),intent(inout),optional  :: mpas_chems
+ type(tracers_physics),intent(inout),optional:: mpas_tracers
+
 !local pointers:
  logical,pointer:: config_do_restart
  character(len=StrKIND),pointer:: pbl_scheme
- integer,pointer:: bl_mynn_cloudpdf,bl_mynn_edmf,bl_mynn_closure,bl_mynn_mixscalars
+ integer,pointer:: bl_mynn_cloudpdf,   &
+                   bl_mynn_edmf,       &
+                   bl_mynn_closure,    &
+                   bl_mynn_mixscalars, &
+                   bl_mynn_cloudmix,   &
+                   bl_mynn_mixchem
 
 !local variables:
  integer:: initflag
- integer:: i,k,j
+ integer:: i,k,j,n
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write('')
@@ -748,6 +761,7 @@
       call mpas_pool_get_config(configs,'config_mynn_edmf'      ,bl_mynn_edmf      )
       call mpas_pool_get_config(configs,'config_mynn_closure'   ,bl_mynn_closure   )
       call mpas_pool_get_config(configs,'config_mynn_mixscalars',bl_mynn_mixscalars)
+      call mpas_pool_get_config(configs,'config_mynn_mixclouds' ,bl_mynn_cloudmix  )
 
       call mpas_log_write(' ')
       call mpas_log_write('--- enter subroutine mynn_bl_driver:')
@@ -755,52 +769,66 @@
       call mpas_log_write('--- config_mynn_edmf       = $i',intArgs=(/bl_mynn_edmf/))
       call mpas_log_write('--- config_mynn_closure    = $i',intArgs=(/bl_mynn_closure/))
       call mpas_log_write('--- config_mynn_mixscalars = $i',intArgs=(/bl_mynn_mixscalars/))
+      call mpas_log_write('--- config_mynn_mixclouds  = $i',intArgs=(/bl_mynn_cloudmix/))
+
+#ifdef ATM_CHEMISTRY
+      call mpas_pool_get_config(configs,'config_mynn_mixchems' ,bl_mynn_mixchem)
+      call mpas_log_write('--- config_mynn_mixchems   = $i',intArgs=(/bl_mynn_mixchem/))
+#endif
 
       call mpas_timer_start('bl_mynn')
       call mynn_bl_driver ( &
-                 p           = pres_hyd_p   , exner        = pi_p           , ps           = psfc_p         , &
-                 th          = th_p         , t3d          = t_p            , dz           = dz_p           , &
-                 dx          = dx_p         , u            = u_p            , v            = v_p            , &
-                 w           = w_p          , qv           = qv_p           , qc           = qc_p           , &
-                 qi          = qi_p         , qnc          = nc_p           , qni          = ni_p           , &
-                 qnifa       = nifa_p       , qnwfa        = nwfa_p         , rho          = rho_p          , &
-                 rublten     = rublten_p    , rvblten      = rvblten_p      , rthblten     = rthblten_p     , &
-                 rqvblten    = rqvblten_p   , rqcblten     = rqcblten_p     , rqiblten     = rqiblten_p     , &
-                 rqncblten   = rncblten_p   , rqniblten    = rniblten_p     , rqnifablten  = rnifablten_p   , &
-                 rqnwfablten = rnwfablten_p , rthraten     = rthraten_p     , flag_qc      = f_qc           , &
-                 flag_qi     = f_qi         , flag_qnc     = f_qnc          , flag_qni     = f_qni          , &
-                 flag_qnifa  = f_qnifa      , flag_qnwfa   = f_qnwfa        , icloud_bl    = icloud_bl      , &
-                 kpbl        = kpbl_p       , pblh         = hpbl_p         , xland        = xland_p        , &
-                 ts          = tsk_p        , hfx          = hfx_p          , qfx          = qfx_p          , &
-                 ch          = ch_p         , znt          = znt_p          , sh3d         = sh3d_p         , &
-                 tsq         = tsq_p        , qsq          = qsq_p          , cov          = cov_p          , &
-                 el_pbl      = elpbl_p      , qsfc         = qsfc_p         , qcg          = qcg_p          , &
-                 ust         = ust_p        , rmol         = rmol_p         , wspd         = wspd_p         , &
-                 wstar       = wstar_p      , delta        = delta_p        , delt         = dt_pbl         , &
-                 exch_h      = kzh_p        , exch_m       = kzm_p          , uoce         = uoce_p         , &
-                 voce        = voce_p       , qke          = qke_p          , qke_adv      = qkeadv_p       , &
-                 vdfg        = vdfg_p       , tke_pbl      = tkepbl_p       , dqke         = dqke_p         , &
-                 qwt         = qwt_p        , qshear       = qshear_p       , qbuoy        = qbuoy_p        , &
-                 qdiss       = qdiss_p      , qc_bl        = qcbl_p         , cldfra_bl    = cldfrabl_p     , &
-                 spp_pbl     = spp_pbl      , nupdraft     = nupdraft_p     , ktop_shallow = ktopbl_shalc_p , &
-                 maxmf       = maxmfbl_p    , edmf_a       = edmfa_p        , edmf_w       = edmfw_p        , &
-                 edmf_qt     = edmfqt_p     , edmf_thl     = edmfthl_p      , edmf_ent     = edmfent_p      , &
-                 edmf_qc     = edmfqc_p     , initflag     = initflag       ,                                 &
-                 grav_settling      = grav_settling       ,                                                   &
-                 bl_mynn_closure    = bl_mynn_closure     ,                                                   &
-                 bl_mynn_cloudpdf   = bl_mynn_cloudpdf    ,                                                   &
-                 bl_mynn_cloudmix   = bl_mynn_cloudmix    ,                                                   &
-                 bl_mynn_mixlength  = bl_mynn_mixlength   ,                                                   &
-                 bl_mynn_mixscalars = bl_mynn_mixscalars  ,                                                   &
-                 bl_mynn_mixqt      = bl_mynn_mixqt       ,                                                   &
-                 bl_mynn_tkeadvect  = bl_mynn_tkeadvect   ,                                                   &
-                 bl_mynn_tkebudget  = bl_mynn_tkebudget   ,                                                   &
-                 bl_mynn_edmf       = bl_mynn_edmf        ,                                                   &
-                 bl_mynn_edmf_mom   = bl_mynn_edmf_mom    ,                                                   &
-                 bl_mynn_edmf_tke   = bl_mynn_edmf_tke    ,                                                   &
-                 ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde      , &
-                 ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme      , &
-                 its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte        &
+                 p           = pres_hyd_p    , exner        = pi_p          , ps           = psfc_p          , &
+                 th          = th_p          , t3d          = t_p           , dz           = dz_p            , &
+                 dx          = dx_p          , u            = u_p           , v            = v_p             , &
+                 w           = w_p           , qv           = qv_p          , qc           = qc_p            , &
+                 qi          = qi_p          , qnc          = nc_p          , qni          = ni_p            , &
+                 qnifa       = nifa_p        , qnwfa        = nwfa_p        , rho          = rho_p           , &
+                 rublten     = rublten_p     , rvblten      = rvblten_p     , rthblten     = rthblten_p      , &
+                 rqvblten    = rqvblten_p    , rqcblten     = rqcblten_p    , rqiblten     = rqiblten_p      , &
+                 rqncblten   = rncblten_p    , rqniblten    = rniblten_p    , rqnifablten  = rnifablten_p    , &
+                 rqnwfablten = rnwfablten_p  , rthraten     = rthraten_p    , flag_qc      = f_qc            , &
+                 flag_qi     = f_qi          , flag_qnc     = f_qnc         , flag_qni     = f_qni           , &
+                 flag_qnifa  = f_qnifa       , flag_qnwfa   = f_qnwfa       , icloud_bl    = icloud_bl       , &
+                 kpbl        = kpbl_p        , pblh         = hpbl_p        , xland        = xland_p         , &
+                 ts          = tsk_p         , hfx          = hfx_p         , qfx          = qfx_p           , &
+                 ch          = ch_p          , znt          = znt_p         , sh3d         = sh3d_p          , &
+                 tsq         = tsq_p         , qsq          = qsq_p         , cov          = cov_p           , &
+                 el_pbl      = elpbl_p       , qsfc         = qsfc_p        , qcg          = qcg_p           , &
+                 ust         = ust_p         , rmol         = rmol_p        , wspd         = wspd_p          , &
+                 wstar       = wstar_p       , delta        = delta_p       , delt         = dt_pbl          , &
+                 exch_h      = kzh_p         , exch_m       = kzm_p         , uoce         = uoce_p          , &
+                 voce        = voce_p        , qke          = qke_p         , qke_adv      = qkeadv_p        , &
+                 vdfg        = vdfg_p        , tke_pbl      = tkepbl_p      , dqke         = dqke_p          , &
+                 qwt         = qwt_p         , qshear       = qshear_p      , qbuoy        = qbuoy_p         , &
+                 qdiss       = qdiss_p       , qc_bl        = qcbl_p        , cldfra_bl    = cldfrabl_p      , &
+                 spp_pbl     = spp_pbl       , nupdraft     = nupdraft_p    , ktop_shallow = ktopbl_shalc_p  , &
+                 maxmf       = maxmfbl_p     , edmf_a       = edmfa_p       , edmf_w       = edmfw_p         , &
+                 edmf_qt     = edmfqt_p      , edmf_thl     = edmfthl_p     , edmf_ent     = edmfent_p       , &
+                 edmf_qc     = edmfqc_p      , initflag     = initflag      ,                                  &
+                 grav_settling      = grav_settling            ,                                               &
+                 bl_mynn_closure    = bl_mynn_closure          ,                                               &
+                 bl_mynn_cloudpdf   = bl_mynn_cloudpdf         ,                                               &
+                 bl_mynn_cloudmix   = bl_mynn_cloudmix         ,                                               &
+                 bl_mynn_mixlength  = bl_mynn_mixlength        ,                                               &
+                 bl_mynn_mixscalars = bl_mynn_mixscalars       ,                                               &
+                 bl_mynn_mixqt      = bl_mynn_mixqt            ,                                               &
+                 bl_mynn_tkeadvect  = bl_mynn_tkeadvect        ,                                               &
+                 bl_mynn_tkebudget  = bl_mynn_tkebudget        ,                                               &
+                 bl_mynn_edmf       = bl_mynn_edmf             ,                                               &
+                 bl_mynn_edmf_mom   = bl_mynn_edmf_mom         ,                                               &
+                 bl_mynn_edmf_tke   = bl_mynn_edmf_tke         ,                                               &
+#ifdef ATM_CHEMISTRY
+                 bl_mynn_mixchem    = bl_mynn_mixchem          ,                                               &
+                 kdvel              = mpas_chems%kdepvel       , ndvel        = mpas_chems%ndepvel           , &
+                 num_vert_mix       = mpas_chems%nchems_mix    , nchem        = mpas_chems%nchems            , &
+                 chem3d             = mpas_chems%chems_p       , vdchem3d     = mpas_chems%depvels_p         , &
+                 rchemblten         = mpas_chems%rchemsblten_p , ntracer      = mpas_tracers%ntracers        , &
+                 tracer3d           = mpas_tracers%tracers_p   , rtracerblten = mpas_tracers%rtracersblten_p , &
+#endif
+                 ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde ,                       &
+                 ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,                       &
+                 its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte                         &
                             )
        call mpas_timer_stop('bl_mynn')
        call mpas_log_write('--- exit subroutine mynn_bl_driver:')
