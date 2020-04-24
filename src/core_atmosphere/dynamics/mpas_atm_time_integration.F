@@ -231,6 +231,16 @@ module atm_time_integration
       type (field2DReal), pointer :: rho_edge_field
       type (field2DReal), pointer :: exner_field
 
+!--- LDF:
+      type(field3DReal),pointer:: scalars_field2
+      type(field3DReal),pointer:: tracers_field
+      type(field3DReal),pointer:: tracers_field2
+      real(kind=RKIND),dimension(:,:,:),pointer:: scalars_array1
+      real(kind=RKIND),dimension(:,:,:),pointer:: scalars_array2
+      real(kind=RKIND),dimension(:,:,:),pointer:: tracers_array1
+      real(kind=RKIND),dimension(:,:,:),pointer:: tracers_array2
+!--- end LDF:
+
       real (kind=RKIND), dimension(:,:), pointer :: w
       real (kind=RKIND), dimension(:,:), pointer :: u, uReconstructZonal, uReconstructMeridional, uReconstructX, uReconstructY, uReconstructZ
       real (kind=RKIND), dimension(:,:,:), pointer :: scalars, scalars_1, scalars_2
@@ -1390,9 +1400,7 @@ module atm_time_integration
       !
       !  split transport, at present RK3
       !
-
-      if (config_scalar_advection .and. config_split_dynamics_transport) then
-
+      if(config_scalar_advection .and. config_split_dynamics_transport) then
          rk_timestep(1) = dt/3.
          rk_timestep(2) = dt/2.
          rk_timestep(3) = dt
@@ -1405,12 +1413,29 @@ module atm_time_integration
          call mpas_log_write('--- rk_timestep(1) = $r',realArgs=(/rk_timestep(1)/))
          call mpas_log_write('--- rk_timestep(2) = $r',realArgs=(/rk_timestep(2)/))
          call mpas_log_write('--- rk_timestep(3) = $r',realArgs=(/rk_timestep(3)/))
+         call mpas_log_write(' ')
 
+         call mpas_timer_start('--- advection scalars:')
+         call mpas_log_write('--- start advection scalars:')
+         call atmphys_advection(domain,rk_timestep,'scalars')
+         call mpas_log_write('--- end advection scalars:')
+         call mpas_timer_stop('--- advection scalars:')
 #ifdef ATM_CHEMISTRY
-      call atmphys_advection(domain,rk_timestep)
-#endif
+         call mpas_log_write(' ')
+         call mpas_timer_start('--- advection chems:')
+         call mpas_log_write('--- start advection chems:')
+         call atmphys_advection(domain,rk_timestep,'chems')
+         call mpas_log_write('--- end advection chems:')
+         call mpas_timer_stop('--- advection chems:')
 
-      end if
+         call mpas_log_write(' ')
+         call mpas_timer_start('--- advection tracers:')
+         call mpas_log_write('--- start advection tracers:')
+         call atmphys_advection(domain,rk_timestep,'tracers')
+         call mpas_log_write('--- end advection tracers:')
+         call mpas_timer_stop('--- advection tracers:')
+#endif
+      endif
 
       !
       ! reconstruct full velocity vectors at cell centers:
@@ -3069,16 +3094,6 @@ module atm_time_integration
       call mpas_pool_get_array(mesh, 'bdyMaskCell', bdyMaskCell)
       call mpas_pool_get_array(mesh, 'bdyMaskEdge', bdyMaskEdge)
 
-      call mpas_log_write('--- before subroutine atm_advance_scalars_work - local_advance_density = $l', &
-                           logicArgs=(/local_advance_density/))
-      do i = 1,1
-         do k = 1,nVertLevels
-            call mpas_log_write('$i $i $r $r',intArgs=(/i,k/),realArgs= &
-                          (/scalar_old(1,k,i),scalar_new(1,k,i)/))
-         enddo
-         call mpas_log_write(' ')
-      enddo
-
       if (local_advance_density) then
       call atm_advance_scalars_work(num_scalars, nCells, nVertLevels, dt, &
              cellStart, cellEnd, vertexStart, vertexEnd, edgeStart, edgeEnd, &
@@ -3216,8 +3231,6 @@ module atm_time_integration
 
       !  weights for the time interpolation of the input density
       !
-      call mpas_log_write(' ')
-      call mpas_log_write('--- enter subroutine advance_scalars_work:')
       if (.not. advance_density ) then
          weight_time_new = 1.
       else
@@ -3227,9 +3240,6 @@ module atm_time_integration
          if(rk_step == 3) weight_time_new = 1.
       end if
       weight_time_old = 1. - weight_time_new
-      call mpas_log_write('--- local_advance_density = $l',logicArgs=(/local_advance_density/))
-      call mpas_log_write('--- weight_time_new = $r',realArgs=(/weight_time_new/))
-      call mpas_log_write('--- weight_time_old = $r',realArgs=(/weight_time_old/))
 
       do iEdge=edgeStart,edgeEnd
 
