@@ -524,6 +524,8 @@
 			<var name="ol4"/>
 			<var name="h_oml_initial"/>
 #ifdef ATM_CHEMISTRY
+			<var_array name="CO"/>
+			<var_array name="chems"/>
 			<var_array name="tracers"/>
 #endif
 		</stream>
@@ -978,6 +980,15 @@
 			<var name="h_oml_initial"/>
 			<var name="hu_oml"/>
 			<var name="hv_oml"/>
+#ifdef ATM_CHEMISTRY
+			<var_array name="CO"/>
+			<var_array name="chems"/>
+			<var_array name="tracers"/>
+			<var_array name="bl_chems"/>
+			<var_array name="cu_chems"/>
+			<var_array name="bl_tracers"/>
+			<avr_array name="cu_tracers"/>
+#endif
 		</stream>
 
 		<stream name="output" 
@@ -2173,6 +2184,16 @@
                 <nml_option name="config_mynn_mixscalars" type="integer" default_value="1" in_defaults="false"
                      units="-"
                      description="option to mix scalars in the mynn PBL scheme""
+                     possible_values="0,1"/>
+
+                <nml_option name="config_mynn_mixclouds" type="integer" default_value="1" in_defaults="false"
+                     units="-"
+                     description="option to mix cloud condensates in the mynn PBL scheme""
+                     possible_values="0,1"/>
+
+                <nml_option name="config_mynn_mixchems" type="integer" default_value="0" in_defaults="false"
+                     units="-"
+                     description="option to mix chemical species/passive tracers in the mynn PBL scheme""
                      possible_values="0,1"/>
 
                 <nml_option name="config_bucket_radt" type="real" default_value="1.0e9" in_defaults="false"
@@ -3651,6 +3672,7 @@
 
 #include "diagnostics/Registry_diagnostics.xml"
 #ifdef ATM_CHEMISTRY
+#include "chemistry/Registry_chems.xml"
 #include "chemistry/Registry_tracers.xml"
 #endif
 
