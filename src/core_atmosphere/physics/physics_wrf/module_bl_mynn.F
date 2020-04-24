@@ -115,6 +115,7 @@
 
 MODULE module_bl_mynn
 #if defined(mpas)
+  use mpas_log
   use mpas_atmphys_constants, only: &
         karman,          &
         g => gravity,    &
@@ -3590,7 +3591,110 @@ ENDIF
 
   END SUBROUTINE mynn_tendencies
 
-! ==================================================================
+!=================================================================================================================
+ subroutine mynn_mixchem(ii,kts,kte,nchem,ntracer,delt,dfh,dz,vdchem,chem,vdtracer,tracer,s_aw, &
+                         s_awchem,s_awtracer,dchem,dtracer)
+!=================================================================================================================
+
+!input arguments:
+ integer,intent(in):: ii,kts,kte,nchem,ntracer
+
+ real,intent(in):: delt
+
+ real,intent(in),dimension(kts:kte)  :: dz,dfh
+ real,intent(in),dimension(kts:kte+1):: s_aw
+
+ real,intent(in),dimension(nchem)            :: vdchem
+ real,intent(in),dimension(kts:kte,nchem)    :: chem
+ real,intent(in),dimension(kts:kte+1,nchem)  :: s_awchem
+
+ real,intent(in),dimension(ntracer)          :: vdtracer
+ real,intent(in),dimension(kts:kte,ntracer)  :: tracer
+ real,intent(in),dimension(kts:kte+1,ntracer):: s_awtracer
+
+!output arguments:
+ real,intent(out),dimension(kts:kte,nchem)   :: dchem
+ real,intent(out),dimension(kts:kte,ntracer) :: dtracer
+
+!local variables and arrays:
+ integer:: ic,it,k
+
+ real:: delti,rhs
+ real,dimension(kts:kte):: dtz,stemp
+ real,dimension(1:kte-kts+1):: a,b,c,d
+
+ real,dimension(kts:kte,nchem)  :: chem2
+ real,dimension(kts:kte,ntracer):: tracer2
+
+!-----------------------------------------------------------------------------------------------------------------
+ delti = 1./delt
+ rhs   = 0.
+
+ do k = kts,kte
+    dtz(k) = delt/dz(k)
+ enddo
+
+ if(nchem > 0) then
+    do ic = 1,nchem
+       k = kts
+       a(k) = 0.
+       b(k) = 1. + dtz(k)*dfh(k+1) - 0.5*dtz(k)*s_aw(k+1)
+       c(k) =    - dtz(k)*dfh(k+1) - 0.5*dtz(k)*s_aw(k+1)
+       d(k) = chem(k,ic) + dtz(k)*(-vdchem(ic)*chem(k,ic)) - dtz(k)*s_awchem(k+1,ic)
+
+       do k = kts+1,kte-1
+          a(k) =    - dtz(k)*dfh(k)            + 0.5*dtz(k)*s_aw(k)
+          b(k) = 1. + dtz(k)*(dfh(k)+dfh(k+1)) + 0.5*dtz(k)*(s_aw(k)-s_aw(k+1))
+          c(k) =    - dtz(k)*dfh(k+1)          - 0.5*dtz(k)*s_aw(k+1)
+          d(k) = chem(k,ic) + rhs*delt + dtz(k)*(s_awchem(k,ic)-s_awchem(k+1,ic))
+       enddo
+
+       a(kte) = 0.
+       b(kte) = 1.
+       c(kte) = 0.
+       d(kte) = chem(kte,ic)
+
+       call tridiag2(kte,a,b,c,d,stemp)
+
+       !tendency:
+       do k = kts,kte
+          dchem(k,ic) = (stemp(k)-chem(k,ic))*delti
+       enddo
+    enddo
+ endif
+
+ if(ntracer > 0) then
+    do it = 1,ntracer
+       k = kts
+       a(k) = 0.
+       b(k) = 1. + dtz(k)*dfh(k+1) - 0.5*dtz(k)*s_aw(k+1)
+       c(k) =    - dtz(k)*dfh(k+1) - 0.5*dtz(k)*s_aw(k+1)
+       d(k) = tracer(k,it) + dtz(k)*(-vdtracer(it)*tracer(k,it)) - dtz(k)*s_awtracer(k+1,it)
+
+       do k = kts+1,kte-1
+          a(k) =    - dtz(k)*dfh(k)            + 0.5*dtz(k)*s_aw(k)
+          b(k) = 1. + dtz(k)*(dfh(k)+dfh(k+1)) + 0.5*dtz(k)*(s_aw(k)-s_aw(k+1))
+          c(k) =    - dtz(k)*dfh(k+1)          - 0.5*dtz(k)*s_aw(k+1)
+          d(k) = tracer(k,it) + rhs*delt + dtz(k)*(s_awtracer(k,it)-s_awtracer(k+1,it))
+       enddo
+
+       a(kte) = 0.
+       b(kte) = 1.
+       c(kte) = 0.
+       d(kte) = tracer(kte,it)
+
+       call tridiag2(kte,a,b,c,d,stemp)
+
+       !tendency:
+       do k = kts,kte
+          dtracer(k,it) = (stemp(k)-tracer(k,it))*delti
+       enddo
+    enddo
+ endif
+
+ end subroutine mynn_mixchem
+
+!=================================================================================================================
 #if (WRF_CHEM == 1)
   SUBROUTINE mynn_mix_chem(kts,kte,       &
        levflag,grav_settling,             &
@@ -3825,9 +3929,11 @@ ENDIF
        &vdfg,                           & !Katata-added for fog dep
        &Qke,tke_pbl,                    &
        &qke_adv,bl_mynn_tkeadvect,      & !ACF for QKE advection
-#if (WRF_CHEM == 1)
-       chem3d, vd3d, nchem,             & ! WA 7/29/15 For WRF-Chem
-       kdvel, ndvel, num_vert_mix,      &
+#ifdef ATM_CHEMISTRY
+       bl_mynn_mixchem,                          &
+       kdvel,ndvel,num_vert_mix,                 &
+       nchem,chem3d,vdchem3d,rchemblten,         &
+       ntracer,tracer3d,vdtracer3d,rtracerblten, &
 #endif
        &Tsq,Qsq,Cov,                    &
        &RUBLTEN,RVBLTEN,RTHBLTEN,       &
@@ -3950,14 +4056,33 @@ ENDIF
                             qc_bl1D_old,cldfra_bl1D_old
 
 ! WA 7/29/15 Mix chemical arrays
-#if (WRF_CHEM == 1)
-    INTEGER, INTENT(IN   ) ::   nchem, kdvel, ndvel, num_vert_mix
-    REAL,    DIMENSION( ims:ime, kms:kme, jms:jme, nchem ), INTENT(INOUT), OPTIONAL :: chem3d
-    REAL,    DIMENSION( ims:ime, kdvel, jms:jme, ndvel ), INTENT(IN), OPTIONAL :: vd3d
-    REAL,    DIMENSION( kts:kte, nchem ) :: chem1
-    REAL,    DIMENSION( kts:kte+1, nchem ) :: s_awchem1
-    REAL,    DIMENSION( ndvel ) :: vd1
-    INTEGER ic
+#ifdef ATM_CHEMISTRY
+    !--- input arguments:
+    integer,intent(in):: bl_mynn_mixchem
+    integer,intent(in):: nchem,kdvel,ndvel,num_vert_mix
+    real,intent(in),dimension(ims:ime,kdvel,jms:jme,ndvel),optional  :: vdchem3d
+    real,intent(in),dimension(ims:ime,kms:kme,jms:jme,nchem),optional:: chem3d
+
+    integer,intent(in):: ntracer
+    real,intent(in),dimension(ims:ime,kdvel,jms:jme,ndvel),optional    :: vdtracer3d
+    real,intent(in),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: tracer3d
+
+    !--- output arguments:
+    real,intent(out),dimension(ims:ime,kms:kme,jms:jme,nchem),optional  :: rchemblten
+    real,intent(out),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: rtracerblten
+
+    !--- local variables and arrays:
+    integer:: ic
+    real,dimension(ndvel):: vdchem1d
+    real,dimension(kts:kte,nchem)  :: chem1d,dchem1d
+    real,dimension(kts:kte,nchem)  :: edmf_chem1d
+    real,dimension(kts:kte+1,nchem):: s_awchem1d
+
+    integer:: it
+    real,dimension(ndvel):: vdtracer1d
+    real,dimension(kts:kte,ntracer):: tracer1d,dtracer1d
+    real,dimension(kts:kte,ntracer):: edmf_tracer1d
+    real,dimension(kts:kte+1,ntracer):: s_awtracer1d
 #endif
 
 !local vars
@@ -4303,33 +4428,6 @@ ENDIF
              s_awqnwfa1(k)=0.
              s_awqnifa1(k)=0.
 
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-      IF (PRESENT(chem3d) .AND. PRESENT(vd3d)) THEN
-             ! WA 7/29/15 Set up chemical arrays
-             DO ic = 1,nchem
-                chem1(k,ic) = chem3d(i,k,j,ic)
-                s_awchem1(k,ic)=0.
-             ENDDO
-             DO ic = 1,ndvel
-                IF (k == KTS) THEN
-                   vd1(ic) = vd3d(i,1,j,ic)
-                ENDIF
-             ENDDO
-      ELSE
-             DO ic = 1,nchem
-                chem1(k,ic) = 0.
-                s_awchem1(k,ic)=0.
-             ENDDO
-             DO ic = 1,ndvel
-                IF (k == KTS) THEN
-                   vd1(ic) = 0.
-                ENDIF
-             ENDDO
-      ENDIF
-    ENDIF
-#endif
-
              IF (k==kts) THEN
                 zw(k)=0.
              ELSE
@@ -4351,10 +4449,75 @@ ENDIF
           s_awqni1(kte+1)=0.
           s_awqnwfa1(kte+1)=0.
           s_awqnifa1(kte+1)=0.
-#if (WRF_CHEM == 1)
-          DO ic = 1,nchem
-             s_awchem1(kte+1,ic)=0.
-          ENDDO
+
+#ifdef ATM_CHEMISTRY
+          if(present(chem3d) .and. present(vdchem3d)) then
+             do ic = 1,nchem
+                do k = kts,kte
+                   chem1d(k,ic)      = chem3d(i,k,j,ic)
+                   dchem1d(k,ic)     = 0.
+                   edmf_chem1d(k,ic) = 0.
+                   s_awchem1d(k,ic)  = 0.
+                enddo
+                k = kts+1
+                s_awchem1d(k,ic) = 0.
+
+                k = kts
+                vdchem1d(ic) = vdchem3d(i,k,j,ic)
+             enddo
+          else
+             do ic = 1,nchem
+                do k = kts,kte
+                   chem1d(k,ic)      = 0.
+                   dchem1d(k,ic)     = 0.
+                   edmf_chem1d(k,ic) = 0.
+                   s_awchem1d(k,ic)  = 0.
+                enddo
+                k = kts+1
+                s_awchem1d(k,ic) = 0.
+
+                k = kts
+                vdchem1d(ic) = 0.
+             enddo
+          endif
+
+          if(present(tracer3d)) then
+             do it = 1,ntracer
+                do k = kts,kte
+                   tracer1d(k,it)     = tracer3d(i,k,j,it)
+                   dtracer1d(k,it)    = 0.
+                   edmf_chem1d(k,it)  = 0.
+                   s_awtracer1d(k,it) = 0.
+                enddo
+                k = kts+1
+                s_awtracer1d(k,it) = 0.
+             enddo
+             if(present(vdtracer3d)) then
+                k = kts
+                do it = 1,ntracer
+                   vdtracer1d(it) = vdtracer3d(i,k,j,it)
+                enddo
+             else
+                k = kts
+                do it = 1,ntracer
+                   vdtracer1d(it) = 0.
+                enddo
+             endif
+          else
+             do it = 1,ntracer
+                do k = kts,kte
+                   tracer1d(k,it)     = 0.
+                   dtracer1d(k,it)    = 0.
+                   edmf_chem1d(k,it)  = 0.
+                   s_awtracer1d(k,it) = 0.
+                enddo
+                k = kts+1
+                s_awtracer1d(k,it) = 0.
+
+                k = kts
+                vdtracer1d(it) = 0.
+             enddo
+          endif
 #endif
 
 !          CALL GET_PBLH(KTS,KTE,PBLH(i,j),thetav,&
@@ -4515,7 +4678,7 @@ ENDIF
 
           IF (bl_mynn_edmf == 1) THEN
             !PRINT*,"Calling DMP Mass-Flux: i= ",i," j=",j
-            CALL DMP_mf(                         &
+            CALL DMP_mf(i,                        &
                &kts,kte,delt,zw,dz1,p1,           &
                &bl_mynn_edmf_mom,                 &
                &bl_mynn_edmf_tke,                 &
@@ -4538,8 +4701,10 @@ ENDIF
                & s_awu1,s_awv1,s_awqke1,          &
                & s_awqnc1,s_awqni1,               &
                & s_awqnwfa1,s_awqnifa1,           &
-#if (WRF_CHEM == 1)
-               & nchem,chem1,s_awchem1,           &
+#ifdef ATM_CHEMISTRY
+               & bl_mynn_mixchem,                           &
+               & nchem,chem1d,s_awchem1d,edmf_chem1d,       &
+               & ntracer,tracer1d,s_awtracer1d,edmf_chem1d, &
 #endif
                & qc_bl1D,cldfra_bl1D,             &
                & FLAG_QC,FLAG_QI,                 &
@@ -4623,7 +4788,7 @@ ENDIF
                levflag,grav_settling,           &
                delt, dz1,                       &
                nchem, kdvel, ndvel, num_vert_mix, &
-               chem1, vd1,                      &
+               chem1d, vd1,                     &
                qnc1,qni1,                       &
                p1, ex1, thl, sqv, sqc, sqi, sqw,&
                ust(i,j),flt,flq,flqv,flqc,      &
@@ -4634,11 +4799,30 @@ ENDIF
                &dfm, dfh, dfq,                  &
                ! mass flux components
                & s_aw1,                         &
-               & s_awchem1,                     &
+               & s_awchem1d,                    &
                &bl_mynn_cloudmix)
     ENDIF
 #endif
 
+#ifdef ATM_CHEMISTRY
+          call mynn_mixchem(i,kts,kte,nchem,ntracer,delt,dfh,dz1,vdchem1d,chem1d,vdtracer1d,tracer1d,s_aw1, &
+                            s_awchem1d,s_awtracer1d,dchem1d,dtracer1d)
+
+          if(present(rchemblten)) then
+             do ic = 1,nchem
+                do k = kts,kte
+                   rchemblten(i,k,j,ic) = dchem1d(k,ic)
+                enddo
+             enddo
+          endif
+          if(present(rtracerblten)) then
+             do it = 1,ntracer
+                do k = kts,kte
+                   rtracerblten(i,k,j,it) = dtracer1d(k,it)
+                enddo
+             enddo
+          endif
+#endif
  
           CALL retrieve_exchange_coeffs(kts,kte,&
                &dfm, dfh, dz1, K_m1, K_h1)
@@ -5016,7 +5200,7 @@ ENDIF
 !  4) some extra limits for numerical stability
 ! This scheme remains under development, so consider it experimental code. 
 !
-  SUBROUTINE DMP_mf(                       &
+  SUBROUTINE DMP_mf(ii,                     &
                  & kts,kte,dt,zw,dz,p,      &
                  & momentum_opt,            &
                  & tke_opt,                 &
@@ -5037,8 +5221,10 @@ ENDIF
                  & s_awu,s_awv,s_awqke,     &
                  & s_awqnc,s_awqni,         &
                  & s_awqnwfa,s_awqnifa,     &
-#if (WRF_CHEM == 1)
-                 & nchem,chem,s_awchem,     &
+#ifdef ATM_CHEMISTRY
+                 & bl_mynn_mixchem,                       &
+                 & nchem,chem,s_awchem,edmf_chem,         &
+                 & ntracer,tracer,s_awtracer,edmf_tracer, &
 #endif
             ! in/outputs - subgrid scale clouds
                  & qc_bl1d,cldfra_bl1d,     &
@@ -5053,7 +5239,7 @@ ENDIF
                  &spp_pbl,rstoch_col) 
 
   ! inputs:
-     INTEGER, INTENT(IN) :: KTS,KTE,KPBL,momentum_opt,tke_opt,scalar_opt
+     INTEGER, INTENT(IN) :: ii,KTS,KTE,KPBL,momentum_opt,tke_opt,scalar_opt
 
 #ifdef HARDCODE_VERTICAL
 # define kts 1
@@ -5135,16 +5321,6 @@ ENDIF
           ! Note that changing d to -1.7 doubles the area coverage of the largest plumes relative to the smallest plumes.
      REAL :: cn,c,l,n,an2,hux,maxwidth,wspd_pbl,cloud_base,width_flx
 
-#if (WRF_CHEM == 1)
-     INTEGER, INTENT(IN) :: nchem
-     REAL,DIMENSION(kts:kte, nchem) :: chem
-     REAL,DIMENSION(kts:kte+1, nchem) :: s_awchem
-     REAL,DIMENSION(nchem) :: chemn
-     REAL,DIMENSION(KTS:KTE+1,1:NUP, nchem) :: UPCHEM
-     INTEGER :: ic
-     REAL,DIMENSION(KTS:KTE+1, nchem) :: edmf_chem
-#endif
-
   !JOE: add declaration of ERF
    REAL :: ERF
 
@@ -5171,6 +5347,56 @@ ENDIF
    REAL :: adjustment, flx1
    REAL, PARAMETER :: fluxportion=0.75 ! set liberally, so has minimal impact. 0.5 starts to have a noticeable impact
                                        ! over land (decrease maxMF by 10-20%), but no impact over water.
+
+#ifdef ATM_CHEMISTRY
+   integer,intent(in):: bl_mynn_mixchem
+   integer,intent(in):: nchem
+   real,intent(in),dimension(kts:kte,nchem)   :: chem
+   real,intent(out),dimension(kts:kte+1,nchem):: s_awchem
+   integer:: ic,nn
+   real,dimension(nchem):: chemn
+   real,dimension(kts:kte+1,nchem)    :: edmf_chem
+   real,dimension(kts:kte+1,nup,nchem):: upchem
+
+   integer,intent(in):: ntracer
+   real,intent(in),dimension(kts:kte,ntracer)   :: tracer
+   real,intent(out),dimension(kts:kte+1,ntracer):: s_awtracer
+   integer:: it
+   real,dimension(ntracer):: tracern
+   real,dimension(kts:kte+1,ntracer)    :: edmf_tracer
+   real,dimension(kts:kte+1,nup,ntracer):: uptracer
+
+   real,dimension(kts:kte):: edf
+
+!--- initialization of chemical species and passive tracers:
+   do k = kts,kte
+      edf(k) = 0.
+   enddo
+   do ic = 1,nchem
+      do nn = 1,nup
+         do k = kts,kte+1
+            upchem(k,nn,ic) = 0.
+         enddo
+      enddo
+      do k = kts,kte+1
+         edmf_chem(k,ic) = 0.
+         s_awchem(k,ic)  = 0.
+      enddo
+   enddo
+   do it = 1,ntracer
+      do nn = 1,nup
+         do k = kts,kte+1
+            uptracer(k,nn,it) = 0.
+         enddo
+      enddo
+      do k = kts,kte+1
+         edmf_tracer(k,it) = 0.
+         s_awtracer(k,it)  = 0.
+      enddo
+   enddo
+#endif
+
+
 ! check the inputs
 !     print *,'dt',dt
 !     print *,'dz',dz
@@ -5198,11 +5424,6 @@ ENDIF
   UPQNI=0.
   UPQNWFA=0.
   UPQNIFA=0.
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-      UPCHEM(KTS:KTE+1,1:NUP,1:nchem)=0.0
-    ENDIF
-#endif
   ENT=0.001
 ! Initialize mean updraft properties
   edmf_a  =0.
@@ -5211,11 +5432,6 @@ ENDIF
   edmf_thl=0.
   edmf_ent=0.
   edmf_qc =0.
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-      edmf_chem(kts:kte+1,1:nchem) = 0.0
-    ENDIF
-#endif
 ! Initialize the variables needed for implicit solver
   s_aw=0.
   s_awthl=0.
@@ -5229,11 +5445,6 @@ ENDIF
   s_awqni=0.
   s_awqnwfa=0.
   s_awqnifa=0.
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-      s_awchem(kts:kte+1,1:nchem) = 0.0
-    ENDIF
-#endif
 
 
   ! Taper off MF scheme when significant resolved-scale motions
@@ -5307,6 +5518,7 @@ ENDIF
   !   (5) land-only limit to reduce plume sizes in weakly forced conditions
   ! Criteria (1)
   NUP2 = max(1,min(NUP,INT(dx*dcut/dl)))
+
   ! Criteria (2) and (4)
   !wspd_pbl=SQRT(MAX(u(kpbl)**2 + v(kpbl)**2, 0.01))
   maxwidth = 1.1*PBLH !- MIN(15.*MAX(wspd_pbl - 7.5, 0.), 0.3*PBLH)
@@ -5333,6 +5545,7 @@ ENDIF
   maxmf= 0.0
 
   IF ( fltv > 0.002 .AND. NUP2 .GE. 1 .AND. superadiabatic) then
+    
     !PRINT*," Conditions met to run mass-flux scheme",fltv,pblh
 
     ! Find coef C for number size density N
@@ -5419,15 +5632,22 @@ ENDIF
        UPQNI(1,I)=(QNI(KTS)*DZ(KTS+1)+QNI(KTS+1)*DZ(KTS))/(DZ(KTS)+DZ(KTS+1))
        UPQNWFA(1,I)=(QNWFA(KTS)*DZ(KTS+1)+QNWFA(KTS+1)*DZ(KTS))/(DZ(KTS)+DZ(KTS+1))
        UPQNIFA(1,I)=(QNIFA(KTS)*DZ(KTS+1)+QNIFA(KTS+1)*DZ(KTS))/(DZ(KTS)+DZ(KTS+1))
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-       do ic = 1,nchem
-          UPCHEM(1,I,ic)= (CHEM(KTS,ic)*DZ(KTS+1)+CHEM(KTS+1,ic)*DZ(KTS))/(DZ(KTS)+DZ(KTS+1))
-       enddo
-    ENDIF
-#endif
-
     ENDDO
+
+#ifdef ATM_CHEMISTRY
+    !--- specify surface updraft properties at model interface between k=1 & 2:
+    if(bl_mynn_mixchem == 1) then
+       do i = 1,nup !nup2
+          if(i > nup2) exit
+          do ic = 1,nchem
+             upchem(1,i,ic)= (chem(kts,ic)*dz(kts+1)+chem(kts+1,ic)*dz(kts))/(dz(kts)+dz(kts+1))
+          enddo
+          do it = 1,ntracer
+             uptracer(1,i,it) = (tracer(kts,it)*dz(kts+1)+tracer(kts+1,it)*dz(kts))/(dz(kts)+dz(kts+1))
+          enddo
+       enddo
+    endif
+#endif
 
   EntThrottle = 0.001  !MAX(0.02/MAX((flt*1.25*1004.)-25.,5.),0.0002)
   !QCn = 0.
@@ -5477,15 +5697,16 @@ ENDIF
           !Vn  =V(K)  *(1-EntExp)+UPV(K-1,I)*EntExp
           !QKEn=QKE(k)*(1-EntExp)+UPQKE(K-1,I)*EntExp
 
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-          do ic = 1,nchem
-             ! Exponential Entrainment:
-             !chemn(ic) = chem(k,ic)*(1-EntExp)+UPCHEM(K-1,I,ic)*EntExp
-             ! Linear entrainment:
-             chemn(ic)=UPCHEM(k-1,i,ic)*(1.-EntExp) + chem(k,ic)*EntExp
-         enddo
-    ENDIF
+#ifdef ATM_CHEMISTRY
+         if(bl_mynn_mixchem == 1) then
+            !--- linear entrainment:
+            do ic = 1,nchem
+                chemn(ic) = upchem(k-1,i,ic)*(1.-entexp) + chem(k,ic)*entexp
+             enddo
+             do it = 1,ntracer
+                tracern(it) = uptracer(k-1,i,it)*(1.-entexp) + tracer(k,it)*entexp
+             enddo
+          endif
 #endif
 
           ! Define pressure at model interface
@@ -5578,12 +5799,16 @@ ENDIF
              UPQNWFA(K,I)=QNWFAn
              UPQNIFA(K,I)=QNIFAn
              UPA(K,I)=UPA(K-1,I)
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-             do ic = 1,nchem
-                UPCHEM(k,I,ic) = chemn(ic)
-             enddo
-    ENDIF
+
+#ifdef ATM_CHEMISTRY
+             if(bl_mynn_mixchem == 1) then
+                do ic = 1,nchem
+                   upchem(k,i,ic) = chemn(ic)
+                enddo
+                do it = 1,ntracer
+                   uptracer(k,i,it) = tracern(it)
+                enddo
+             endif
 #endif
              ktop = MAX(ktop,k)
           ELSE
@@ -5639,13 +5864,6 @@ ENDIF
         IF (tke_opt > 0) THEN
           s_awqke(k+1)= s_awqke(k+1) + UPA(K,i)*UPW(K,i)*UPQKE(K,i)*Psig_w
         ENDIF
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-        do ic = 1,nchem
-          s_awchem(k+1,ic) = s_awchem(k+1,ic) + UPA(K,i)*UPW(K,i)*UPCHEM(K,i,ic)*Psig_w
-        enddo
-    ENDIF
-#endif
       ENDDO
       s_awqv(k+1) = s_awqt(k+1)  - s_awqc(k+1)
     ENDDO
@@ -5697,11 +5915,6 @@ ENDIF
        IF (tke_opt > 0) THEN
           s_awqke= s_awqke*adjustment
        ENDIF
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-       s_awchem = s_awchem*adjustment
-    ENDIF
-#endif
        UPA = UPA*adjustment
     ENDIF
     !Print*,"adjustment=",adjustment," fluxportion=",fluxportion," flt=",flt
@@ -5717,13 +5930,6 @@ ENDIF
         edmf_thl(K)=edmf_thl(K)+UPA(K,i)*UPTHL(K,i)
         edmf_ent(K)=edmf_ent(K)+UPA(K,i)*ENT(K,i)
         edmf_qc(K) =edmf_qc(K) +UPA(K,i)*UPQC(K,i)
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-        do ic = 1,nchem
-          edmf_chem(k,ic) = edmf_chem(k,ic) + UPA(K,I)*UPCHEM(k,i,ic)
-        enddo
-    ENDIF
-#endif
       ENDDO
 
       IF (edmf_a(k)>0.) THEN
@@ -5732,19 +5938,54 @@ ENDIF
         edmf_thl(k)=edmf_thl(k)/edmf_a(k)
         edmf_ent(k)=edmf_ent(k)/edmf_a(k)
         edmf_qc(k)=edmf_qc(k)/edmf_a(k)
-#if (WRF_CHEM == 1)
-    IF (bl_mynn_mixchem == 1) THEN
-        do ic = 1,nchem
-          edmf_chem(k,ic) = edmf_chem(k,ic)/edmf_a(k)
-        enddo
-    ENDIF
-#endif
         edmf_a(k)=edmf_a(k)*Psig_w
 
         !FIND MAXIMUM MASS-FLUX IN THE COLUMN:
         IF(edmf_a(k)*edmf_w(k) > maxmf) maxmf = edmf_a(k)*edmf_w(k)
       ENDIF
     ENDDO
+
+
+#ifdef ATM_CHEMISTRY
+    if(bl_mynn_mixchem == 1) then
+       do k = kts,kte-1
+          if(k > ktop) exit
+          do i = 1,nup !nup2
+             if(i > nup2) exit
+             edf(k) = edf(k) + upa(k,i)
+             do ic = 1,nchem
+                edmf_chem(k,ic) = edmf_chem(k,ic) + upa(k,i)*upchem(k,i,ic)
+             enddo
+             do it = 1,ntracer
+                edmf_tracer(k,it) = edmf_tracer(k,it) + upa(k,i)*uptracer(k,i,it)
+             enddo
+          enddo
+          if(edf(k) > 0.) then
+             do ic = 1,nchem
+                edmf_chem(k,ic) = edmf_chem(k,ic)/edf(k)
+             enddo
+             do it = 1,ntracer
+                edmf_tracer(k,it) = edmf_tracer(k,it)/edf(k)
+             enddo
+          endif
+       enddo
+       do k = kts,kte
+          if(k > ktop) exit
+          do i = 1,nup !nup2
+             if(i > nup2) exit
+             do ic = 1,nchem
+                s_awchem(k+1,ic) = s_awchem(k+1,ic) + upa(k,i)*upw(k,i)*upchem(k,i,ic)*psig_w
+                s_awchem(k+1,ic) = adjustment*s_awchem(k+1,ic)
+             enddo
+             do it = 1,ntracer
+                s_awtracer(k+1,it) = s_awtracer(k+1,it) + upa(k,i)*upw(k,i)*uptracer(k,i,it)*psig_w
+                s_awtracer(k+1,it) = adjustment*s_awtracer(k+1,it)
+             enddo
+          enddo
+       enddo
+    endif
+#endif
+
 
     !First, compute exner, plume theta, and dz centered at interface
     !Here, k=1 is the top of the first model layer. These values do not 
