@@ -41,14 +41,16 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: species_old,species_new
  real(kind=RKIND),dimension(:,:,:),pointer:: species_tend
 
+ integer:: iCell
+
 !-----------------------------------------------------------------------------------------------------------------
-!call mpas_log_write(' ')
+ call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine atmphys_advection_intro:')
 
  block => domain%blocklist
  do while(associated(block))
     num_string  = 'num_'//trim(string_in)
-    tend_string = trim(string_in)//'_tend'
+    tend_string = trim(string_in)//'_tend' 
 
     call mpas_pool_get_subpool(block%structs,'state',state)
     call mpas_pool_get_subpool(block%structs,'tend' ,tend )
@@ -130,14 +132,12 @@
  type(field3DReal),pointer:: species_field
 
 !-----------------------------------------------------------------------------------------------------------------
-!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine atmphys_advection:')
 
  num_string  = 'num_'//trim(string_in)
  tend_string = trim(string_in)//'_tend'
 
  RK3_SPLIT_TRANSPORT : do rk_step = 1,3
-    call mpas_log_write('--- rk_step = $i',intArgs=(/rk_step/))
     block => domain%blocklist
     do while(associated(block))
        call mpas_pool_get_config(block%configs,'config_scalar_advection'        ,scalar_advection        )
@@ -216,6 +216,7 @@
 !---
 !$OMP PARALLEL DO
        do ithread = 1,nThreads
+          call mpas_log_write('--- rk_step = $i',intArgs=(/rk_step/))
           if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
 
 !            call mpas_log_write('--- before subroutine atm_advance_chemistry:')
@@ -240,7 +241,7 @@
 
           else
 
-             call mpas_log_write('--- before subroutine atm_advance_chemistry_mono:')
+!            call mpas_log_write('--- before subroutine atm_advance_chemistry_mono:')
 !            call mpas_pool_get_field(state,'scalars',scalar_old_field,1)
 !            call atm_advance_chemistry_mono(block,num_scalars,nCells,nCellsSolve,        &
 !                     nEdges,nVertLevels,cellThreadStart(ithread),cellThreadEnd(ithread), &
@@ -252,19 +253,6 @@
 !                     coef_3rd_order,invAreaCell,rdnw,uhAvg,wwAvg,rho_zz_old,rho_zz_new,  &
 !                     scalar_old,scalar_new,scalar_tend,scalar_old_field,                 &
 !                     advance_density=.true.)
-
-!            if(trim(string_in) .eq. 'tracers') then
-!               do i = 1, nCellsSolve
-!                  do k = 1, nVertLevels
-!                     call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/), &
-!                               realArgs=(/(species_old(n,k,i),n=1,num_species), &
-!                                          (species_new(n,k,i),n=1,num_species), &
-!                                          (species_tend(n,k,i),n=1,num_species)/))
-!                  enddo
-!                  call mpas_log_write(' ')
-!               enddo
-!            endif
-
              call mpas_pool_get_field(state,trim(string_in),species_old_field,1)
              call atm_advance_chemistry_mono(block,num_species,nCells,nCellsSolve,        &
                       nEdges,nVertLevels,cellThreadStart(ithread),cellThreadEnd(ithread), &
@@ -286,6 +274,7 @@
        else
           call mpas_timer_stop('atm_advance_chemistry')
        endif
+
     block => block%next
     end do
 
@@ -299,7 +288,6 @@
  enddo RK3_SPLIT_TRANSPORT
 
  call mpas_log_write('--- end subroutine atmphys_advection:')
-!call mpas_log_write(' ')
 
  end subroutine atmphys_advection
 
@@ -571,7 +559,8 @@
  real(kind=RKIND),intent(in),dimension(:,:):: adv_coefs,adv_coefs_3rd
  real(kind=RKIND),intent(in),dimension(:,:):: edgesOnCell_sign
  real(kind=RKIND),intent(in),dimension(:,:):: uhAvg,wwAvg
- real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rho_zz_old,rho_zz_new
+ real(kind=RKIND),intent(in),dimension(:,:):: rho_zz_old,rho_zz_new
+!real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rho_zz_old,rho_zz_new
 
 !inout arguments:
  type(block_type),intent(inout),target:: block
@@ -601,6 +590,7 @@
  real(kind=RKIND),dimension(nVertLevels):: flux_upwind_arr
  real(kind=RKIND),dimension(nVertLevels,nCells+1)  :: s_min,s_max
  real(kind=RKIND),dimension(nVertLevels,nCells+1)  :: rho_zz_int
+
  real(kind=RKIND),dimension(nVertLevels,nCells+1)  :: temp_old,temp_new
  real(kind=RKIND),dimension(nVertLevels,2,nCells+1),target:: scale_arr
  real(kind=RKIND),dimension(nVertLevels+1,nCells+1):: wdtn
@@ -617,16 +607,14 @@
  type(field3DReal),pointer:: tempField
  type(field3DReal),target :: tempFieldTarget
 
- real(kind=RKIND):: tem1,tem2,tem3,tem4
-
 !-----------------------------------------------------------------------------------------------------------------
+!call mpas_log_write('--- enter subroutine atm_advance_chemistry_mono: dt = $r',realArgs=(/dt/))
+
  if(present(advance_density)) then
     local_advance_density = advance_density
  else
     local_advance_density = .true.
  endif
-!call mpas_log_write('--- enter subroutine atm_advance_chemistry_mono:')
-!call mpas_log_write('--- local_advance_density = $l',logicArgs=(/local_advance_density/))
 
 !initialization:
  do k = 1,nVertLevels
@@ -634,7 +622,7 @@
        s_min(k,iCell)      = 0._RKIND
        s_max(k,iCell)      = 0._RKIND
        temp_old(k,iCell)   = 0._RKIND
-        temp_new(k,iCell)  = 0._RKIND
+       temp_new(k,iCell)   = 0._RKIND
        rho_zz_int(k,iCell) = 0._RKIND
        do kk = 1,2
           scale_arr(k,kk,iCell) = 0._RKIND
@@ -717,7 +705,6 @@
 !next, do one scalar at a time:
 !
  do iScalar = 1,num_scalars
-    call mpas_log_write(' ')
     do iCell = cellStart,cellEnd
 !DIR$ IVDEP
        do k = 1,nVertLevels
@@ -740,6 +727,7 @@
           scmax = max(scmax,temp_old(k,iCell))
        enddo
     enddo
+    call mpas_log_write(' scmin, scmin old in $r $r', realArgs=(/scmin,scmax/))
 
     scmin = temp_new(1,1)
     scmax = temp_new(1,1)
@@ -749,6 +737,7 @@
           scmax = max(scmax,temp_new(k,iCell))
        enddo
     enddo
+    call mpas_log_write(' scmin, scmin new in $r $r', realArgs=(/scmin,scmax/))
 #endif
 
     !
@@ -782,7 +771,6 @@
        wdtn(k,iCell) = wwAvg(k,iCell)*(fnm(k)*temp_new(k,iCell)+fnp(k)*temp_new(k-1,iCell))
        s_max(k,iCell) = max(temp_old(k,iCell),temp_old(k-1,iCell))
        s_min(k,iCell) = min(temp_old(k,iCell),temp_old(k-1,iCell))
-!      call mpas_log_write('--- end calculate s_min, smax - iCell = $i',intArgs=(/iCell/))
 
        !
        !pull s_min and s_max from the (horizontal) surrounding cells:
@@ -792,7 +780,6 @@
        !original code retained in select "default" case
        select case(nEdgesOnCell(iCell))
           case(6)
-!            call mpas_log_write('--- case(6):')
 !DIR$ IVDEP
              do k = 1,nVertLevels
                 s_max(k,iCell) = max(s_max(k,iCell), &
@@ -812,7 +799,6 @@
              enddo
 
           case default
-!            call mpas_log_write('--- default:')
              do i = 1,nEdgesOnCell(iCell)
 !DIR$ IVDEP
                 do k = 1,nVertLevels
@@ -901,20 +887,10 @@
        !
 !DIR$ IVDEP
        do k = 1,nVertLevels
-          scale_arr(k,scale_in, iCell) = - rdnw(k)*(min(0.0_RKIND,wdtn(k+1,iCell))-max(0.0_RKIND,wdtn(k,iCell)))
-          scale_arr(k,scale_out,iCell) = - rdnw(k)*(max(0.0_RKIND,wdtn(k+1,iCell))-min(0.0_RKIND,wdtn(k,iCell)))
-!         if(iCell.eq.2 .and. k.le.8) then
-!            tem1 = min(0.0_RKIND,wdtn(k+1,iCell))
-!            tem2 = max(0.0_RKIND,wdtn(k,iCell))
-!            tem3 = max(0.0_RKIND,wdtn(k+1,iCell))
-!            tem4 = -min(0.0_RKIND,wdtn(k,iCell))
-!            call mpas_log_write('$i $i $r $r $r $r $r $r $r $r',intArgs=(/iCell,k/), &
-!                               realArgs=(/rdnw(k),wdtn(k,iCell),tem1,tem2,tem3,tem4, &
-!                               scale_arr(k,scale_in,iCell),scale_arr(k,scale_out,iCell)/))
-!         endif
+          scale_arr(k,SCALE_IN,iCell)  = - rdnw(k)*(min(0.0_RKIND,wdtn(k+1,iCell))-max(0.0_RKIND,wdtn(k,iCell)))
+          scale_arr(k,SCALE_OUT,iCell) = - rdnw(k)*(max(0.0_RKIND,wdtn(k+1,iCell))-min(0.0_RKIND,wdtn(k,iCell)))
        enddo
     enddo
-!   call mpas_log_write('--- end vertical flux divergence for upwind update:')
 
     !
     !horizontal flux divergence for upwind update:
@@ -947,19 +923,13 @@
              temp_new(k,iCell) = temp_new(k,iCell) - edgesOnCell_sign(i,iCell) &
                                * flux_upwind_tmp(k,iEdge)*invAreaCell(iCell)
 
-             scale_arr(k,scale_out,iCell) = scale_arr(k,scale_out,iCell) &
+             scale_arr(k,SCALE_OUT,iCell) = scale_arr(k,scale_out,iCell) &
                                - max(0.0_RKIND,edgesOnCell_sign(i,iCell)*flux_tmp(k,iEdge))*invAreaCell(iCell)
-             scale_arr(k,scale_in, iCell) = scale_arr(k,scale_in, iCell) &
+             scale_arr(k,SCALE_IN, iCell) = scale_arr(k,scale_in, iCell) &
                                - min(0.0_RKIND,edgesOnCell_sign(i,iCell)*flux_tmp(k,iEdge))*invAreaCell(iCell)
-!            if(iCell.eq.2 .and. k.eq.4) then
-!               call mpas_log_write('$i $i $i $i $r $r $r $r',intArgs=(/iCell,i,iEdge,k/), &
-!                    realArgs=(/edgesOnCell_sign(i,iCell),flux_tmp(k,iEdge)*invAreaCell(iCell), &
-!                    scale_arr(k,scale_in,iCell),scale_arr(k,scale_out,iCell)/))
-!            endif
           enddo
        enddo
     enddo
-    call mpas_log_write('--- end horizontal flux divergence for upwind update:')
 
     !
     ! next, the limiter:
@@ -972,32 +942,10 @@
        do iCell = cellSolveStart,cellSolveEnd
 !DIR$ IVDEP
           do k = 1,nVertLevels
-!            if(iCell.eq.2) then
-!               call mpas_log_write('$i $i',intArgs=(/iCell,k/))
-!               call mpas_log_write('--- IN $i $i $r $r $r $r $r',intArgs=(/iCell,k/), &
-!                             realArgs=(/rho_zz_int(k,iCell),s_max(k,iCell),    &
-!                             temp_new(k,iCell),scale_arr(k,SCALE_IN,iCell),    &
-!                             scale_arr(k,SCALE_IN,iCell)+eps/))
-!            endif
              scale_factor = (s_max(k,iCell)*rho_zz_int(k,iCell) - temp_new(k,iCell)) &
                           / (scale_arr(k,SCALE_IN,iCell)  + eps)
              scale_arr(k,SCALE_IN,iCell) = min( 1.0_RKIND, max( 0.0_RKIND, scale_factor))
-!            if(iCell.eq.2) then
-!               call mpas_log_write('--- IN $i $i $r $r',intArgs=(/iCell,k/),  &
-!                         realArgs=(/scale_factor,scale_arr(k,SCALE_IN,iCell)/))
-!            endif
 
-!            if(iCell.eq.2) then
-!               call mpas_log_write('--- OUT $i $i $r $r $r $r $r',intArgs=(/iCell,k/), &
-!                             realArgs=(/rho_zz_int(k,iCell),s_min(k,iCell),     &
-!                             temp_new(k,iCell),scale_arr(k,SCALE_OUT,iCell),    &
-!                             scale_arr(k,SCALE_OUT,iCell)-eps/))
-!            endif
-!            if(iCell.eq. 2) then
-!               tem1 = s_min(k,iCell)*rho_zz_int(k,iCell) - temp_new(k,iCell)
-!               call mpas_log_write('--- OUT $i $i $r $r $r',intArgs=(/iCell,k/),  &
-!                        realArgs=(/temp_new(k,iCell),tem1,scale_arr(k,SCALE_OUT,iCell)-eps/))
-!            endif
              scale_factor = (s_min(k,iCell)*rho_zz_int(k,iCell) - temp_new(k,iCell)) &
                           / (scale_arr(k,SCALE_OUT,iCell) - eps)
              scale_arr(k,SCALE_OUT,iCell) = min( 1.0_RKIND, max( 0.0_RKIND, scale_factor) )
