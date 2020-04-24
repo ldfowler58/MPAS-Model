@@ -36,6 +36,7 @@
       <var_array name="bl_tracers" type="real" dimensions="nVertLevels nCells Time">
            <var name="bl_tr17_7" array_group="passive" units="dimensionless"
                      description=" "/>
+
            <var name="bl_tr17_8" array_group="passive" units="dimensionless"
                      description=" "/>
       </var_array>
@@ -43,7 +44,16 @@
       <var_array name="cu_tracers" type="real" dimensions="nVertLevels nCells Time">
            <var name="cu_tr17_7" array_group="passive" units="dimensionless"
                      description=" "/>
+
            <var name="cu_tr17_8" array_group="passive" units="dimensionless"
+                     description=" "/>
+      </var_array>
+
+      <var_array name="dyn_tracers" type="real" dimensions="nVertLevels nCells Time">
+           <var name="dyn_tr17_7" array_group="passive" units="dimensionless"
+                     description=" "/>
+
+           <var name="dyn_tr17_8" array_group="passive" units="dimensionless"
                      description=" "/>
       </var_array>
 
