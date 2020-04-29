@@ -53,6 +53,10 @@
                pratec,pratecd,pratecm,pratecs,raincv,        &
                raincvd,raincvm,raincvs,nclos,weights_clos,   &
                nc,ni,nifa,nwfa,                              &
+#ifdef ATM_CHEMISTRY
+               nchem,chem3d,rchemcuten,                      &
+               ntracer,tracer3d,rtracercuten,                &
+#endif
                ids,ide,jds,jde,kds,kde,                      &
                ims,ime,jms,jme,kms,kme,                      &
                its,ite,jts,jte,kts,kte                       &
@@ -101,8 +105,6 @@
 !local variables:
  character(len=50),dimension(its:ite):: ierrc,ierrcm,ierrcs
 
- integer,parameter:: ntrans=2
-
  integer:: i,ipr,k,j,n
  integer:: itf,ktf,jtf
  integer:: kb,kt
@@ -136,9 +138,6 @@
  real,dimension(its:ite,kts:kte):: outncm,outnim,outnifam,outnwfam
  real,dimension(its:ite,kts:kte):: outncs,outnis,outnifas,outnwfas
 
- real,dimension(its:ite,kts:kte,ntrans):: qtrans2d
- real,dimension(its:ite,kts:kte,ntrans):: outqtrans,outqtransm,outqtranss
-
  real,dimension(its:ite,1:nclos):: xf_ens
 
 !local variables for stochastic parameterization:
@@ -155,6 +154,24 @@
  real,parameter:: aodccn = 0.1
  real,parameter:: tcrit  = 258.
  real,parameter:: ccn0   = 150.
+
+#ifdef ATM_CHEMISTRY
+    !--- input arguments:
+    integer,intent(in):: nchem
+    real,intent(in),dimension(ims:ime,kms:kme,jms:jme,nchem),optional:: chem3d
+
+    integer,intent(in):: ntracer
+    real,intent(in),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: tracer3d
+
+    !--- output arguments:
+    real,intent(out),dimension(ims:ime,kms:kme,jms:jme,nchem),optional  :: rchemcuten
+    real,intent(out),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: rtracercuten
+
+    !--- local variables and arrays:
+    integer:: ic,it
+    real,dimension(its:ite,kts:kte,nchem)  :: chem2d,outchemm,outchem
+    real,dimension(its:ite,kts:kte,ntracer):: tracer2d,outtracerm,outtracer
+#endif
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -271,15 +288,6 @@
           enddo
        enddo
     endif
-!   if(present(rqtranscuten)) then
-!      do k = kts, kte
-!         do i = its, ite
-!            do n = 1, ntrans
-!               rqtranscuten(i,k,j,n) = 0.
-!            enddo
-!         enddo
-!      enddo
-!   endif
 
     if(present(weights_clos)) then
        do k = 1, nclos
@@ -363,9 +371,6 @@
           cnvwt(i,k)    = 0.
           zd(i,k)       = 0.
           zu(i,k)       = 0.
-          do n = 1, ntrans
-             outqtrans(i,k,n)  = 0.
-          enddo
 
           !mid-level convection:
           outtm(i,k)    = 0.
@@ -381,9 +386,6 @@
           cnvwtm(i,k)   = 0.
           zdm(i,k)      = 0.
           zum(i,k)      = 0.
-          do n = 1, ntrans
-             outqtransm(i,k,n) = 0.
-          enddo
 
           !shallow convection:
           outts(i,k)    = 0.
@@ -397,9 +399,6 @@
           outnifas(i,k) = 0.
           outnwfas(i,k) = 0.
           zus(i,k)      = 0.
-          do n = 1, ntrans
-             outqtranss(i,k,n) = 0.
-          enddo
        enddo
     enddo
 
@@ -493,23 +492,61 @@
           enddo
        enddo
     endif
-!   if(present(qtrans)) then
-!      do n = 1, ntrans
-!         do k = kts, ktf
-!            do i = its, ite
-!               qtrans2d(i,k,n) = qtrans(i,k,j,n)
-!            enddo
-!         enddo
-!      enddo
-!   else
-       do n = 1, ntrans
-          do k = kts, ktf
-             do i = its, ite
-                qtrans2d(i,k,n) = 0.
+
+#ifdef ATM_CHEMISTRY
+    if(present(chem3d)) then
+       do ic = 1,nchem
+          do k = kts,kte
+             do i = its,ite
+                chem2d(i,k,ic) = chem3d(i,k,j,ic)
              enddo
           enddo
        enddo
-!   endif
+    endif
+    if(present(rchemcuten)) then
+       do ic = 1,nchem
+          do k = kts,kte
+             do i = its,ite
+                rchemcuten(i,k,j,ic) = 0.
+             enddo
+          enddo
+       enddo
+    endif
+
+    if(present(tracer3d)) then
+       do it = 1,ntracer
+          do k = kts,kte
+             do i = its,ite
+                tracer2d(i,k,it) = tracer3d(i,k,j,it)
+             enddo
+          enddo
+       enddo
+    endif
+    if(present(rtracercuten)) then
+       do it = 1,ntracer
+          do k = kts,kte
+             do i = its,ite
+                rtracercuten(i,k,j,it) = 0.
+             enddo
+          enddo
+       enddo
+    endif
+#else
+    do ic = 1,nchem
+       do k = kts,kte
+          do i = its,ite
+             chem2d(i,k,ic) = 0.
+          enddo
+       enddo
+    enddo
+    do it = 1,ntracer
+       do k = kts,kte
+          do i = its,ite
+             tracer2d(i,k,it) = 0.
+          enddo
+       enddo
+    enddo
+#endif
 
     !--- calculation of the moisture convergence: we do not need to calculate
     !the moisture convergence since it is initialized to zero and calculated
@@ -576,10 +613,14 @@
                 psur,us,vs,rhoi,hfxi,qfxi,areai,dxi,mconv,omeg,cactiv,         &
                 cnvwtm,zum,zdm,dummy,edtm,dummy,xmbm,dummy,xmbs,pretm,         &
                 outum,outvm,outtm,outqm,outqcm,kbconm,ktopm,k22m,cupclwm,      &
-                ierrm,ierrcm,nc2d,ni2d,nifa2d,nwfa2d,ntrans,qtrans2d,          &
-                outncm,outnim,outnifam,outnwfam,outqtransm,rand_mom,rand_vmas, &
+                ierrm,ierrcm,nc2d,ni2d,nifa2d,nwfa2d,                          &
+                outncm,outnim,outnifam,outnwfam,rand_mom,rand_vmas,            &
                 rand_clos,nranflag,jminm,tropics                               &
-                  )
+#ifdef ATM_CHEMISTRY
+               ,nchem,chem2d,outchemm       &
+               ,ntracer,tracer2d,outtracerm &
+#endif
+                          )
 
        do k = kts, ktf
           do i = its, itf
@@ -619,10 +660,14 @@
                 psur,us,vs,rhoi,hfxi,qfxi,areai,dxi,mconv,omeg,cactiv,    &
                 cnvwt,zu,zd,zdm,edt,edtm,xmb,xmbm,xmbs,pret,              &
                 outu,outv,outt,outq,outqc,kbcon,ktop,k22,cupclw,          &
-                ierr,ierrc,nc2d,ni2d,nifa2d,nwfa2d,ntrans,qtrans2d,       &
-                outnc,outni,outnifa,outnwfa,outqtrans,rand_mom,rand_vmas, &
+                ierr,ierrc,nc2d,ni2d,nifa2d,nwfa2d,                       &
+                outnc,outni,outnifa,outnwfa,rand_mom,rand_vmas,           &
                 rand_clos,nranflag,jmin,tropics                           &
-                  )
+#ifdef ATM_CHEMISTRY
+               ,nchem,chem2d,outchem        &
+               ,ntracer,tracer2d,outtracer  &
+#endif
+                          )
 
        do k = kts, ktf
           do i = its, itf
@@ -753,15 +798,27 @@
           enddo
        enddo
     endif
-!   if(present(rqtranscuten)) then
-!      do k = kts, ktf
-!         do i = its, itf
-!            do n = 1, ntrans
-!               rqtranscuten(i,k,j,n) = cuten(i)*outqtrans(i,k,n) + cutenm(i)*outqtransm(i,k,n)
-!            enddo
-!         enddo
-!      enddo
-!   endif
+
+#ifdef ATM_CHEMISTRY
+    if(present(rchemcuten)) then
+       do ic = 1, nchem
+          do k = kts, ktf
+             do i = its, itf
+                rchemcuten(i,k,j,ic) = cuten(i)*outchem(i,k,ic) + cutenm(i)*outchemm(i,k,ic)
+             enddo
+          enddo
+       enddo
+    endif
+    if(present(rtracercuten)) then
+       do it = 1, ntracer
+          do k = kts, ktf
+             do i = its, itf
+                rtracercuten(i,k,j,it) = cuten(i)*outtracer(i,k,it) + cutenm(i)*outtracerm(i,k,it)
+             enddo
+          enddo
+       enddo
+    endif
+#endif
 
  enddo j_loop
 

@@ -15,6 +15,11 @@
  use mpas_atmphys_utilities
  use mpas_atmphys_vars
 
+#ifdef ATM_CHEMISTRY
+ use mpas_atmphys_chems_physics
+ use mpas_atmphys_tracers_physics
+#endif
+
 !wrf physics:
  use module_cu_gf
  use module_cu_gf_wrf390
@@ -584,7 +589,8 @@
  end subroutine init_convection
 
 !=================================================================================================================
- subroutine driver_convection(itimestep,configs,mesh,sfc_input,diag_physics,diag_physics_cu,tend_physics,its,ite)
+ subroutine driver_convection(itimestep,configs,mesh,sfc_input,diag_physics,diag_physics_cu,tend_physics, &
+                              its,ite,mpas_chems,mpas_tracers)
 !=================================================================================================================
 
 !input arguments:
@@ -600,10 +606,13 @@
  type(mpas_pool_type),intent(inout):: diag_physics_cu
  type(mpas_pool_type),intent(inout):: tend_physics
 
+ type(chems_physics),intent(inout),optional  :: mpas_chems
+ type(tracers_physics),intent(inout),optional:: mpas_tracers
+
 !local variables and arrays:
  logical:: log_convection
 
- integer:: i,j,k
+ integer:: i,ic,it,j,k
  integer:: icount,initflag
 
  real(kind=RKIND):: dx
@@ -721,52 +730,68 @@
 
        call mpas_timer_start('cu_grell_freitas_wrf390')
        call cu_grell_freitas_wrf390( &
-               dt           = dt_dyn               , dx           = dx_p                 , &
-               area         = area_p               , u            = u_p                  , &
-               v            = v_p                  , w            = w_p                  , &
-               t            = t_p                  , q            = qv_p                 , &
-               nifa         = nifa_p               , nwfa         = nwfa_p               , &
-               rho          = rho_p                , p            = pres_hyd_p           , &
-               pi           = pi_p                 , p8w          = pres2_hyd_p          , &
-               dz8w         = dz_p                 , ht           = ht_p                 , &
-               xland        = xland_p              , hfx          = hfx_p                , &
-               qfx          = qfx_p                , kpbl         = kpbl_p               , &
-               rthraten     = rthraten_p           , rthften      = rthdynten_p          , &
-               rqvften      = rqvdynten_p          , rqvblten     = rqvblten_p           , &
-               rthblten     = rthblten_p           , do_deepc     = gfconv_deepc         , &
-               do_midlc     = gfconv_midlc         , do_shalc     = gfconv_shalc         , &
-               ichoice      = gfconv_closure_deepc , ichoice_m    = gfconv_closure_midlc , &
-               ichoice_s    = gfconv_closure_shalc , kbcon_deepc  = kbcon_deepc_p        , &
-               ktop_deepc   = ktop_deepc_p         , k22_deepc    = k22_deepc_p          , &
-               kbcon_midlc  = kbcon_midlc_p        , ktop_midlc   = ktop_midlc_p         , &
-               k22_midlc    = k22_midlc_p          , kbcon_shalc  = kbcon_shalc_p        , &
-               ktop_shalc   = ktop_shalc_p         , k22_shalc    = k22_shalc_p          , &
-               xmb_deepc    = xmb_deepc_p          , xmb_midlc    = xmb_midlc_p          , &
-               xmb_shalc    = xmb_shalc_p          , zu_deepc     = zu_deepc_p           , &
-               zd_deepc     = zd_deepc_p           , zu_midlc     = zu_midlc_p           , &
-               zd_midlc     = zd_midlc_p           , zu_shalc     = zu_shalc_p           , &
-               raincv       = raincv_p             , raincvd      = raincvd_p            , &
-               raincvm      = raincvm_p            , raincvs      = raincvs_p            , &
-               pratec       = pratec_p             , pratecd      = pratecd_p            , &
-               pratecm      = pratecm_p            , pratecs      = pratecs_p            , &
-               rthcuten     = rthcuten_p           , rqvcuten     = rqvcuten_p           , &
-               rqccuten     = rqccuten_p           , rqicuten     = rqicuten_p           , &
-               rucuten      = rucuten_p            , rvcuten      = rvcuten_p            , &
-               rthcuten_deepc = rthcuten_deepc_p   , rqvcuten_deepc = rqvcuten_deepc_p   , &
-               rqccuten_deepc = rqccuten_deepc_p   , rqicuten_deepc = rqicuten_deepc_p   , &
-               rthcuten_midlc = rthcuten_midlc_p   , rqvcuten_midlc = rqvcuten_midlc_p   , &
-               rqccuten_midlc = rqccuten_midlc_p   , rqicuten_midlc = rqicuten_midlc_p   , &
-               rthcuten_shalc = rthcuten_shalc_p   , rqvcuten_shalc = rqvcuten_shalc_p   , &
-               rqccuten_shalc = rqccuten_shalc_p   , rqicuten_shalc = rqicuten_shalc_p   , &
-               rnifacuten   = rnifacuten_p         , rnwfacuten     = rnwfacuten_p       , &
-               gdc          = qccu_p               , gdc2         = qicu_p               , &
-               nclos        = nclosures            , weights_clos = weights_clos_p       , &
+               dt           = dt_dyn                   , dx           = dx_p                  , &
+               area         = area_p                   , u            = u_p                   , &
+               v            = v_p                      , w            = w_p                   , &
+               t            = t_p                      , q            = qv_p                  , &
+               nifa         = nifa_p                   , nwfa         = nwfa_p                , &
+               rho          = rho_p                    , p            = pres_hyd_p            , &
+               pi           = pi_p                     , p8w          = pres2_hyd_p           , &
+               dz8w         = dz_p                     , ht           = ht_p                  , &
+               xland        = xland_p                  , hfx          = hfx_p                 , &
+               qfx          = qfx_p                    , kpbl         = kpbl_p                , &
+               rthraten     = rthraten_p               , rthften      = rthdynten_p           , &
+               rqvften      = rqvdynten_p              , rqvblten     = rqvblten_p            , &
+               rthblten     = rthblten_p               , do_deepc     = gfconv_deepc          , &
+               do_midlc     = gfconv_midlc             , do_shalc     = gfconv_shalc          , &
+               ichoice      = gfconv_closure_deepc     , ichoice_m    = gfconv_closure_midlc  , &
+               ichoice_s    = gfconv_closure_shalc     , kbcon_deepc  = kbcon_deepc_p         , &
+               ktop_deepc   = ktop_deepc_p             , k22_deepc    = k22_deepc_p           , &
+               kbcon_midlc  = kbcon_midlc_p            , ktop_midlc   = ktop_midlc_p          , &
+               k22_midlc    = k22_midlc_p              , kbcon_shalc  = kbcon_shalc_p         , &
+               ktop_shalc   = ktop_shalc_p             , k22_shalc    = k22_shalc_p           , &
+               xmb_deepc    = xmb_deepc_p              , xmb_midlc    = xmb_midlc_p           , &
+               xmb_shalc    = xmb_shalc_p              , zu_deepc     = zu_deepc_p            , &
+               zd_deepc     = zd_deepc_p               , zu_midlc     = zu_midlc_p            , &
+               zd_midlc     = zd_midlc_p               , zu_shalc     = zu_shalc_p            , &
+               raincv       = raincv_p                 , raincvd      = raincvd_p             , &
+               raincvm      = raincvm_p                , raincvs      = raincvs_p             , &
+               pratec       = pratec_p                 , pratecd      = pratecd_p             , &
+               pratecm      = pratecm_p                , pratecs      = pratecs_p             , &
+               rthcuten     = rthcuten_p               , rqvcuten     = rqvcuten_p            , &
+               rqccuten     = rqccuten_p               , rqicuten     = rqicuten_p            , &
+               rucuten      = rucuten_p                , rvcuten      = rvcuten_p             , &
+               rthcuten_deepc = rthcuten_deepc_p       , rqvcuten_deepc = rqvcuten_deepc_p    , &
+               rqccuten_deepc = rqccuten_deepc_p       , rqicuten_deepc = rqicuten_deepc_p    , &
+               rthcuten_midlc = rthcuten_midlc_p       , rqvcuten_midlc = rqvcuten_midlc_p    , &
+               rqccuten_midlc = rqccuten_midlc_p       , rqicuten_midlc = rqicuten_midlc_p    , &
+               rthcuten_shalc = rthcuten_shalc_p       , rqvcuten_shalc = rqvcuten_shalc_p    , &
+               rqccuten_shalc = rqccuten_shalc_p       , rqicuten_shalc = rqicuten_shalc_p    , &
+               rnifacuten   = rnifacuten_p             , rnwfacuten     = rnwfacuten_p        , &
+               gdc          = qccu_p                   , gdc2         = qicu_p                , &
+               nclos        = nclosures                , weights_clos = weights_clos_p        , &
+#ifdef ATM_CHEMISTRY
+               nchem        = mpas_chems%nchems        , chem3d       = mpas_chems%chems_p           , &
+               rchemcuten   = mpas_chems%rchemscuten_p , ntracer      = mpas_tracers%ntracers        , &
+               tracer3d     = mpas_tracers%tracers_p   , rtracercuten = mpas_tracers%rtracerscuten_p , &
+#endif
                ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde     , &
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme     , &
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
                                    )
        call mpas_timer_stop('cu_grell_freitas_wrf390')
-
+!      do j = jts,jte
+!         do i = its,ite
+!            if(raincv_p(i,j).gt.0.) then
+!               do k = kts,kte
+!                  call mpas_log_write('$i $i $r $r $r $r $r',intArgs=(/i,k/),realArgs= &
+!                          (/(mpas_chems%rchemscuten_p(i,k,j,ic),ic=1,mpas_chems%nchems), &
+!                            (mpas_tracers%rtracerscuten_p(i,k,j,it),it=1,mpas_tracers%ntracers)/))
+!               enddo
+!               call mpas_log_write(' ')
+!            endif
+!         enddo
+!      enddo
        call mpas_log_write('--- end subroutine cu_grell_freitas_wrf390.')
        call mpas_log_write('')
 
