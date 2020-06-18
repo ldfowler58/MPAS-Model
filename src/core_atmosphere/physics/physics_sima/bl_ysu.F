@@ -114,7 +114,7 @@
 
    integer,  intent(in)      ::     ysu_topdown_pblmix 
 !
-   integer,  intent(in)      ::     nmix
+   integer,  intent(in), optional      ::     nmix
 !
    real(kind=kind_phys),     intent(in   )   ::     dt,cp,g,rovcp,rovg,rd,xlv,rv
 !
@@ -132,7 +132,7 @@
                                                                           qcx, &
                                                                           qix
 !
-   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix )             , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix ), optional   , &
              intent(in   )   ::                                          qmix
 !
    real(kind=kind_phys),     dimension( its:ite, kts:kte )                   , &
@@ -143,7 +143,7 @@
                                                                         qctnp, &
                                                                         qitnp
 !
-   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix )             , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix ), optional   , &
              intent(out  )   ::                                       qmixtnp
 !
    real(kind=kind_phys),     dimension( its:ite, kms:kme )                   , &
@@ -269,7 +269,6 @@
                                                                zfacent,entfac
    real(kind=kind_phys), dimension( its:ite, kts:kte )     ::            qcxl, &
                                                                          qixl
-   real(kind=kind_phys), dimension( its:ite, kts:kte, nmix ) ::         qmixl
    real(kind=kind_phys), dimension( its:ite )              ::            ust3, &
                                                                        wstar3, &
                                                                      wstar3_2, &
@@ -1052,7 +1051,7 @@
 
    !--- chemical species and/or passive tracers, meaning all variables that we want to
    !    be vertically-mixed:
-   if(nmix > 0) then
+   if ( present(qmix) .and. present(qmixtnp) .and. present(nmix) ) then
       do n = 1, nmix
          do i = its,ite
             do k = kts,kte
@@ -1069,7 +1068,7 @@
             enddo
          enddo
       enddo
-   endif
+endif
 
 !
 !     compute tridiagonal matrix elements for momentum
