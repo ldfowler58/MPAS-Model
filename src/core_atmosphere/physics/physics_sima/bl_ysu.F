@@ -132,7 +132,7 @@
                                                                           qcx, &
                                                                           qix
 !
-   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix ), optional   , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte, : ), optional      , &
              intent(in   )   ::                                          qmix
 !
    real(kind=kind_phys),     dimension( its:ite, kts:kte )                   , &
@@ -143,7 +143,7 @@
                                                                         qctnp, &
                                                                         qitnp
 !
-   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix ), optional   , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte, : ), optional      , &
              intent(out  )   ::                                       qmixtnp
 !
    real(kind=kind_phys),     dimension( its:ite, kms:kme )                   , &
