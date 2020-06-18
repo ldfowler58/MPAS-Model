@@ -210,8 +210,8 @@
   intent = in
   optional = F
 [ep1]
-  standard_name = ratio_of_vapor_to_dry_air_gas_constants_minus_one
-  long_name = ratio of vapor to dry air gas constants minus one
+  standard_name = ratio_of_water_vapor_to_dry_air_gas_constants_minus_one
+  long_name = ratio of water vapor to dry air gas constants minus one
   units = none
   dimensions = ()
   type = real | kind = kind_phys
