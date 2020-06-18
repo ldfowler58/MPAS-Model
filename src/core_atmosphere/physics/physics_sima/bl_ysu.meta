@@ -416,7 +416,7 @@
   dimensions = (horizontal_loop_start:horizontal_loop_end)
   type = real | kind = kind_phys
   intent = in
-  optional = F
+  optional = T
 [vox]
   standard_name = y_ocean_surface_current_speed
   long_name = y ocean surface current speed
@@ -424,7 +424,7 @@
   dimensions = (horizontal_loop_start:horizontal_loop_end)
   type = real | kind = kind_phys
   intent = in
-  optional = F
+  optional = T
 [rthraten]
   standard_name = tendency_of_potential_temperature_from_radiation
   long_name = tendency of potential temperature from radiation

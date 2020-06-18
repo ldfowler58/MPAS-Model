@@ -231,9 +231,11 @@
    real(kind=kind_phys),    dimension( its:ite )                             , &
             intent(inout)    ::                                           u10, &
                                                                           v10
-   real(kind=kind_phys),    dimension( its:ite )                             , &
+   real(kind=kind_phys),    dimension( its:ite ), optional                   , &
             intent(in  )    ::                                            uox, &
                                                                           vox
+   real(kind=kind_phys),    dimension( its:ite )    ::                   uoxl, &
+                                                                         voxl
    real(kind=kind_phys),    dimension( its:ite )    ::                         &
                                                                          brcr, &
                                                                         sflux, &
@@ -348,6 +350,18 @@
      enddo
    enddo
 !
+   if ( present(uox) .and. present(vox) ) then
+      do i =its,ite
+         uoxl(i) = uox(i)
+         voxl(i) = vox(i)
+      enddo
+   else
+      do i =its,ite
+         uoxl(i) = 0
+         voxl(i) = 0
+      enddo
+   endif
+!
    do i = its,ite
      tvcon = (1.+ep1*qvx(i,1))
      rhox(i) = psfcpa(i)/(rd*tx(i,1)*tvcon)
@@ -401,7 +415,7 @@
    enddo
 !
    do i = its,ite
-     wspd1(i) = sqrt( (ux(i,1)-uox(i))*(ux(i,1)-uox(i)) + (vx(i,1)-vox(i))*(vx(i,1)-vox(i)) )+1.e-9
+     wspd1(i) = sqrt( (ux(i,1)-uoxl(i))*(ux(i,1)-uoxl(i)) + (vx(i,1)-voxl(i))*(vx(i,1)-voxl(i)) )+1.e-9
    enddo
 !
 !---- compute vertical diffusion
@@ -1145,8 +1159,8 @@ endif
       else
        ad(i,1) = 1.+fric(i,1)
       endif
-     f1(i,1) = ux(i,1)+uox(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
-     f2(i,1) = vx(i,1)+vox(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
+     f1(i,1) = ux(i,1)+uoxl(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
+     f2(i,1) = vx(i,1)+voxl(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
    enddo
 !
    do k = kts,kte-1
