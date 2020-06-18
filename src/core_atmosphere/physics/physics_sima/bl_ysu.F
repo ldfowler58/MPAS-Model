@@ -1082,7 +1082,7 @@
             enddo
          enddo
       enddo
-endif
+   endif
 
 !
 !     compute tridiagonal matrix elements for momentum
