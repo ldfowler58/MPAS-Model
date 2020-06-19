@@ -318,7 +318,7 @@
          ctopo2_hv(i) = ctopo2(i,j)
       end do
 !
-      call bl_ysu_run(J=j,ux=u3d_hv,vx=v3d_hv                                  &
+      call bl_ysu_run(ux=u3d_hv,vx=v3d_hv                                      &
               ,tx=t3d_hv                                                       &
               ,qvx=qv3d_hv,qcx=qc3d_hv,qix=qi3d_hv                             &
               ,f_qc=flag_qc,f_qi=flag_qi                                       &

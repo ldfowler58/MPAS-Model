@@ -1,14 +1,6 @@
 [ccpp-arg-table]
   name = bl_ysu_run
   type = scheme
-[j]
-  standard_name = second_horiz_index
-  long_name = second horiz index
-  units = none
-  dimensions = ()
-  type = integer
-  intent = in
-  optional = F
 [ux]
   standard_name = x_wind
   long_name = x wind

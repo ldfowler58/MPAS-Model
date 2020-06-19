@@ -16,7 +16,7 @@
 !> \section arg_table_bl_ysu_run  Argument Table
 !! \htmlinclude arg_table_bl_ysu_run.html
 !!
-   subroutine bl_ysu_run(j,ux,vx,tx,qvx,qcx,qix,nmix,qmix,p2d,p2di,pi2d,       &
+   subroutine bl_ysu_run(ux,vx,tx,qvx,qcx,qix,nmix,qmix,p2d,p2di,pi2d,         &
                   f_qc,f_qi,                                                   &
                   utnp,vtnp,ttnp,qvtnp,qctnp,qitnp,qmixtnp,                    &
                   cp,g,rovcp,rd,rovg,ep1,ep2,karman,xlv,rv,                    &
@@ -111,7 +111,7 @@
    real(kind=kind_phys),parameter    ::  rcl = 1.0
    integer,parameter ::  kts=1, kms=1
 !
-   integer,  intent(in   )   ::     its,ite,kte,kme, j
+   integer,  intent(in   )   ::     its,ite,kte,kme
 
    integer,  intent(in)      ::     ysu_topdown_pblmix 
 !
