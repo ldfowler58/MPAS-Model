@@ -13,7 +13,7 @@
   standard_name = x_wind
   long_name = x wind
   units = m s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -21,7 +21,7 @@
   standard_name = y_wind
   long_name = y wind
   units =  m s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -29,7 +29,7 @@
   standard_name = air_temperature
   long_name = air temperature
   units =  K
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -37,7 +37,7 @@
   standard_name = water_vapor_mixing_ratio
   long_name = water vapor mixing ratio
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -45,7 +45,7 @@
   standard_name = cloud_condensed_water_mixing_ratio
   long_name = cloud condensed water mixing ratio
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -53,7 +53,7 @@
   standard_name = ice_water_mixing_ratio
   long_name = ice water mixing ratio
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -69,7 +69,7 @@
   standard_name = scalars
   long_name = scalars
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end,number_of_scalar_tracers)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension,number_of_scalar_tracers)
   type = real | kind = kind_phys
   intent = in
   optional = T
@@ -77,7 +77,7 @@
   standard_name = air_pressure
   long_name = air pressure
   units = Pa
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -85,7 +85,7 @@
   standard_name = air_pressure_at_interface
   long_name = air pressure at interface
   units = Pa 
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -93,7 +93,7 @@
   standard_name = dimensionless_exner_function
   long_name = dimensionless exner function
   units = none
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -117,7 +117,7 @@
   standard_name = tendency_of_x_wind_due_to_boundary_layer
   long_name = tendency of x wind due to boundary layer
   units = m s-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -125,7 +125,7 @@
   standard_name = tendency_of_y_wind_due_to_boundary_layer
   long_name = tendency of y wind due to boundary layer
   units = m s-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -133,7 +133,7 @@
   standard_name = tendency_of_potential_temperature_due_to_boundary_layer
   long_name = tendency of potential temperature due to boundary layer
   units =  K s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -141,7 +141,7 @@
   standard_name = tendency_of_water_vapor_mixing_ratio_due_to_boundary_layer
   long_name = tendency of water vapor mixing ratio due to boundary layer
   units = kg kg-1 s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -149,7 +149,7 @@
   standard_name = tendency_of_cloud_water_mixing_ratio_due_to_boundary_layer
   long_name = tendency of cloud water mixing ratio due to boundary layer
   units = kg kg-1 s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -157,7 +157,7 @@
   standard_name = tendency_of_ice_water_mixing_ratio_due_to_boundary_layer
   long_name = tendency of ice water mixing ratio due to boundary layer
   units = kg kg-1 s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -165,7 +165,7 @@
   standard_name = tendency_of_scalars_due_to_boundary_layer
   long_name = tendency of scalars due to boundary layer
   units = kg kg-1 s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end,number_of_scalar_tracers)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension,number_of_scalar_tracers)
   type = real | kind = kind_phys
   intent = out
   optional = T
@@ -253,7 +253,7 @@
   standard_name = layer_thickness
   long_name = layer thickness
   units = m
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -365,7 +365,7 @@
   standard_name = surface_exchange_coefficient_for_heat
   long_name = surface exchange coefficient for heat
   units = W m-2 K-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -373,7 +373,7 @@
   standard_name = surface_drag_wind_speed_for_momentum_in_air
   long_name = surface drag wind speed for momentum in air
   units =  m s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -429,7 +429,7 @@
   standard_name = tendency_of_potential_temperature_from_radiation
   long_name = tendency of potential temperature from radiation
   units = K s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -473,33 +473,17 @@
   type = integer
   intent = in
   optional = F
-[kts]
-  standard_name = vertical_layer_start
-  long_name = vertical layer start
-  units = none 
-  dimensions = ()
-  type = integer
-  intent = in
-  optional = F
 [kte]
-  standard_name = vertical_layer_end
-  long_name = vertical layer end
-  units = none 
-  dimensions = ()
-  type = integer
-  intent = in
-  optional = F
-[kms]
-  standard_name = vertical_interface_start
-  long_name = vertical interface start
+  standard_name = vertical_layer_dimension
+  long_name = vertical layer dimension
   units = none 
   dimensions = ()
   type = integer
   intent = in
   optional = F
 [kme]
-  standard_name = vertical_interface_end
-  long_name = vertical interface end
+  standard_name = vertical_interface_dimension
+  long_name = vertical interface dimension
   units = none 
   dimensions = ()
   type = integer

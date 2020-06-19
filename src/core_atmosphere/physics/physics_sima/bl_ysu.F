@@ -31,7 +31,7 @@
                   rthraten,                                                    &
                   ysu_topdown_pblmix,                                          &
                   ctopo,ctopo2,                                                &
-                  its,ite, kts,kte, kms,kme,                                   &
+                  its,ite,kte,kme,                                             &
                   errmsg,errflg                                                &
                    )
 !-------------------------------------------------------------------------------
@@ -109,8 +109,9 @@
    real(kind=kind_phys),parameter    ::  xka = 2.4e-5
    integer,parameter ::  imvdif = 1
    real(kind=kind_phys),parameter    ::  rcl = 1.0
+   integer,parameter ::  kts=1, kms=1
 !
-   integer,  intent(in   )   ::     its,ite, kts,kte, kms,kme, j
+   integer,  intent(in   )   ::     its,ite,kte,kme, j
 
    integer,  intent(in)      ::     ysu_topdown_pblmix 
 !

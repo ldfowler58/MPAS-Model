@@ -349,7 +349,7 @@
               ,rthraten=rthraten_hv                                            &
               ,ysu_topdown_pblmix=ysu_topdown_pblmix                           &
               ,ctopo=ctopo_hv,ctopo2=ctopo2_hv                                 &
-              ,its=its,ite=ite, kts=kts,kte=kte, kms=kms,kme=kme               &
+              ,its=its,ite=ite,kte=kte,kme=kme                                 &
               ,errmsg=errmsg,errflg=errflg                                     )
 !
       !  Assign local data back to full-sized arrays.
