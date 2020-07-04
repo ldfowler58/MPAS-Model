@@ -33,26 +33,25 @@
 
 !=================================================================================================================
  subroutine rrtmg_sw_mpas_timestep_init &
-                  (its        , ite        , kts        , kte        , kme      , &
-                   nbndsw     , ngptsw     , naerec     , f_qc       , f_qr     , &
-                   f_qi       , f_qs       , icloud     , has_reqc   , has_reqi , &
-                   has_reqs   , icld       , gravity    , gmt        , julian   , &
-                   degrad     , dpd        , solcon_0   , dt_radtsw  , xtime_s  , &
-                   xlat       , xlon       , albedo     , xland      , xice     , &
-                   snow       , p2d        , t2d        , qv2d       , qc2d     , &
-                   qr2d       , qi2d       , qs2d       , cldfra2d   , re_cloud , &
-                   re_ice     , re_snow    , dz8w2d     , p2di       , t2di     , &
-                   alswvisdir , alswvisdif , alswnirdir , alswnirdif , tsfc     , &
-                   o3input    , noznlevels , pin        , o3clim     , ncol     , &
-                   nlay       , inflgsw    , iceflgsw   , liqflgsw   , aer_opt  , &
-                   dyofyr     , adjes      , scon       , dorrsw     , coszen   , &
-                   asdir      , asdif      , aldir      , aldif      , play     , &
-                   tlay       , h2ovmr     , o3vmr      , co2vmr     , o2vmr    , &
-                   ch4vmr     , n2ovmr     , plev       , tlev       , cldfmcl  , &
-                   clwpmcl    , ciwpmcl    , cswpmcl    , relqmcl    , reicmcl  , &
-                   resnmcl    , taucmcl    , ssacmcl    , asmcmcl    , fsfcmcl  , &
-                   tauaer     , ssaaer     , asmaer     , ecaer      , errmsg   , &
-                   errflg)
+                  (its        , ite        , kte        , kme      , nbndsw     , &
+                   ngptsw     , naerec     , f_qc       , f_qr     , f_qi       , &
+                   f_qs       , icloud     , has_reqc   , has_reqi , has_reqs   , &
+                   icld       , gravity    , gmt        , julian   , degrad     , &
+                   dpd        , solcon_0   , dt_radtsw  , xtime_s  , xlat       , &
+                   xlon       , albedo     , xland      , xice     , snow       , &
+                   p2d        , t2d        , qv2d       , qc2d     , qr2d       , &
+                   qi2d       , qs2d       , cldfra2d   , re_cloud , re_ice     , &
+                   re_snow    , dz8w2d     , p2di       , t2di     , alswvisdir , &
+                   alswvisdif , alswnirdir , alswnirdif , tsfc     , o3input    , &
+                   noznlevels , pin        , o3clim     , ncol     , nlay       , &
+                   inflgsw    , iceflgsw   , liqflgsw   , aer_opt  , dyofyr     , &
+                   adjes      , scon       , dorrsw     , coszen   , asdir      , &
+                   asdif      , aldir      , aldif      , play     , tlay       , &
+                   h2ovmr     , o3vmr      , co2vmr     , o2vmr    , ch4vmr     , &
+                   n2ovmr     , plev       , tlev       , cldfmcl  , clwpmcl    , &
+                   ciwpmcl    , cswpmcl    , relqmcl    , reicmcl  , resnmcl    , &
+                   taucmcl    , ssacmcl    , asmcmcl    , fsfcmcl  , tauaer     , &
+                   ssaaer     , asmaer     , ecaer      , errmsg   , errflg)
 !=================================================================================================================
 
 !input arguments:
@@ -64,7 +63,7 @@
 
  integer,intent(in):: &
     its,ite,    &! first and last index for horizontal dimension.
-    kts,kte,    &! first and last index for vertical dimension.
+    kte,        &! index for vertical dimension.
     kme          ! defined as kte+1.
 
  integer,intent(in):: &
@@ -100,7 +99,7 @@
     albedo,     &! surface albedo (-).
     tsfc         ! surface temperature (K).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,1:kte):: &
     t2d,        &! temperature at middle of layers (K).
     p2d,        &! pressure at middle of layers (Pa).
     qv2d,       &! water vapor mixing ratio at middle of layers (kg/kg).
@@ -109,7 +108,7 @@
     re_ice,     &! effective radius of cloud ice crystals at middle of layers (m). 
     re_snow      ! effective radius of snow crystals at middle of layers (m).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kme):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,1:kme):: &
     p2di,       &! pressure at interface of layers (Pa).
     t2di         ! temperature at interface of layers (K).
 
@@ -119,7 +118,7 @@
     alswnirdir, &! near-IR direct component of surface albedo when using SIB LSM (-).
     alswnirdif   ! near-IR diffuse component of surface albedo when using SIB LSM (-).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte),optional:: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,1:kte),optional:: &
     cldfra2d,   &! cloud fraction at middle of layers (-).
     qc2d,       &! cloud liquid water mixing ratio at middle of layers (kg/kg).
     qr2d,       &! rain mixing ratio at middle of layers (kg/kg).
@@ -167,7 +166,7 @@
     aldir,      &! local near-IR direct surface albedo (-).
     aldif        ! local near-IR diffuse surface albedo (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,1:kme):: &
     play,       &! local pressure at middle of layers (hPa).
     tlay,       &! local temperature at middle of layers (K).
     h2ovmr,     &! local volume mixing ratio of water vapor ().
@@ -177,16 +176,16 @@
     ch4vmr,     &! local volume mixing ratio of methane ().
     n2ovmr       ! local volume mixing ratio of nitrous oxide ().
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,1:kme):: &
     relqmcl,    &! local cloud liquid water particle size (microns).
     reicmcl,    &! local cloud ice particle size (microns).
     resnmcl      ! local snow particle size (microns).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte+2):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,1:kte+2):: &
     plev,       &! local pressure at interface between layers (hPa).
     tlev         ! local temperature at interface between layers (K).
 
- real(kind=kind_phys),intent(out),dimension(ngptsw,its:ite,kts:kme):: &
+ real(kind=kind_phys),intent(out),dimension(ngptsw,its:ite,1:kme):: &
     cldfmcl,    &! in-cloud cloud fraction (-).
     clwpmcl,    &! in-cloud liquid water path (g/m2).
     ciwpmcl,    &! in-cloud ice water path (g/m2).
@@ -196,16 +195,17 @@
     asmcmcl,    &! in-cloud asymmetry factor (-).
     fsfcmcl      ! in-cloud forward scattering fraction (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme,nbndsw):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,1:kme,nbndsw):: &
     tauaer,     &! aerosol optical depth (-).
     ssaaer,     &! aerosol single scattering albedo (-).
     asmaer       ! aerosol asymmetry factor (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme,naerec):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,1:kme,naerec):: &
     ecaer        ! aerosol optical depth for ECMWF aerosols ().
 
 
 !local variables and arrays:
+ integer,parameter:: kts = 1
  integer:: i,k,n
  integer:: pcols,pver
  integer:: idx_rei
@@ -217,16 +217,16 @@
  real(kind=kind_phys):: corr
  real(kind=kind_phys):: gliqwp,gicewp,gsnowp,snow_mass_factor
  real(kind=kind_phys),dimension(1):: landfrac,landm,snowh,icefrac
- real(kind=kind_phys),dimension(kts:kte):: qc1d,qr1d,qi1d,qs1d
- real(kind=kind_phys),dimension(kts:kte+1):: o3mmr,p1dlay
- real(kind=kind_phys),dimension(kts:kte+2):: p1dlev
- real(kind=kind_phys),dimension(1,kts:kte):: t1d,rei1d,rel1d
+ real(kind=kind_phys),dimension(1:kte):: qc1d,qr1d,qi1d,qs1d
+ real(kind=kind_phys),dimension(1:kte+1):: o3mmr,p1dlay
+ real(kind=kind_phys),dimension(1:kte+2):: p1dlev
+ real(kind=kind_phys),dimension(1,1:kte):: t1d,rei1d,rel1d
  real(kind=kind_phys),dimension(1:noznlevels):: o3clim1d
 
- real(kind=kind_phys),dimension(its:ite,kts:kte):: pdel
- real(kind=kind_phys),dimension(its:ite,kts:kte+1):: hgt,cldfrac
- real(kind=kind_phys),dimension(its:ite,kts:kte+1):: ciwpth,clwpth,cswpth,rei,rel,res
- real(kind=kind_phys),dimension(nbndsw,its:ite,kts:kte+1):: taucld,ssacld,asmcld,fsfcld
+ real(kind=kind_phys),dimension(its:ite,1:kte):: pdel
+ real(kind=kind_phys),dimension(its:ite,1:kte+1):: hgt,cldfrac
+ real(kind=kind_phys),dimension(its:ite,1:kte+1):: ciwpth,clwpth,cswpth,rei,rel,res
+ real(kind=kind_phys),dimension(nbndsw,its:ite,1:kte+1):: taucld,ssacld,asmcld,fsfcld
 
 !--- set trace gas volume mixing ratios, 2005 values, IPCC (2007):
 !carbon dioxide (379 ppmv)
@@ -619,18 +619,18 @@
 
 !=================================================================================================================
  subroutine rrtmg_sw_mpas_timestep_final &
-                  (its        , ite       , kts        , kte        , kme        , &
-                   dorrsw     , pi2d      , alswvisdir , alswvisdif , alswnirdir , &
-                   alswnirdif , coszen    , swhr       , swhrc      , swuflx     , &
-                   swuflxc    , swdflx    , swdflxc    , swuflxcln  , swdflxcln  , &
-                   sibvisdir  , sibvisdif , sibnirdir  , sibnirdif  , swdkdir    , &
-                   swdkdirc   , swdkdif   , gsw        , rthratensw , swcf       , &
-                   swupt      , swuptc    , swdnt      , swdntc     , swupb      , &
-                   swupbc     , swdnb     , swdnbc     , swuptcln   , swdntcln   , &
-                   swupbcln   , swdnbcln  , swvisdir   , swvisdif   , swnirdir   , &
-                   swnirdif   , swddir    , swddni     , swddif     , swddirc    , &
-                   swddnic    , swdownc   , swupflx    , swupflxc   , swdnflx    , &
-                   swdnflxc   , errmsg    , errflg)
+                  (its       , ite        , kte        , kme        , dorrsw     , &
+                   pi2d      , alswvisdir , alswvisdif , alswnirdir , alswnirdif , &
+                   coszen    , swhr       , swhrc      , swuflx     , swuflxc    , &
+                   swdflx    , swdflxc    , swuflxcln  , swdflxcln  , sibvisdir  , &
+                   sibvisdif , sibnirdir  , sibnirdif  , swdkdir    , swdkdirc   , &
+                   swdkdif   , gsw        , rthratensw , swcf       , swupt      , &
+                   swuptc    , swdnt      , swdntc     , swupb      , swupbc     , &
+                   swdnb     , swdnbc     , swuptcln   , swdntcln   , swupbcln   , &
+                   swdnbcln  , swvisdir   , swvisdif   , swnirdir   , swnirdif   , &
+                   swddir    , swddni     , swddif     , swddirc    , swddnic    , &
+                   swdownc   , swupflx    , swupflxc   , swdnflx    , swdnflxc   , &
+                   errmsg    , errflg)
 !=================================================================================================================
 
 !input arguments:
@@ -639,38 +639,38 @@
 
  integer,intent(in):: &
     its,ite,    &! first and last index for horizontal dimension.
-    kts,kte,    &! first and last index for vertical dimension.
+    kte,        &! index for vertical dimension.
     kme          ! defined as kte+1.
 
  real(kind=kind_phys),intent(in),dimension(its:ite):: &
     coszen       ! local cosine of the solar zenith angle (-). 
 
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+1):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,1:kte+1):: &
     swhr,       &! local instantaneous all-sky shortwave heating rate (K/day).
     swhrc        ! local instantaneous clear-sky shortwave heating rate (K/day).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+2):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,1:kte+2):: &
     swuflx,     &! local instantaneous all-sky upward shortwave radiation flux (W/m2).
     swuflxc,    &! local instantaneous clear-sky upward shortwave radiation flux (W/m2)
     swdflx,     &! local instantaneous all-sky downward shortwave radiation flux (W/m2).
     swdflxc      ! local instantaneous clear-sky downward shortwave radiation flux (W/m2).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+2):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,1:kte+2):: &
     swuflxcln,  &! local instantaneous clean-sky upward shortwave radiation flux (W/m2).
     swdflxcln    ! local instantaneous clean-sky downward shortwave radiation flux (W/m2).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte+2):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,1:kte+2):: &
     sibvisdir,  &! local instantaneous direct visible shortwave radiation flux when using SIB LSM (W/m2).
     sibvisdif,  &! local instantaneous diffuse visible shortwave radiation flux when using SIB LSM (W/m2).
     sibnirdir,  &! local instantaneous direct near-IR shortwave radiation flux when using SIB LSM (W/m2).
     sibnirdif    ! local instantaneous diffuse near-IR shortwave radiation flux when using SIB LSM (W/m2).
 
- real(kind=kind_phys),dimension(its:ite,kts:kte+2):: &
+ real(kind=kind_phys),dimension(its:ite,1:kte+2):: &
     swdkdir,    &! local instantaneous all-sky downward direct shortwave irradiance (W/m2).
     swdkdirc,   &! local instantaneous clear-sky downward direct shortwave irradiance (W/m2).
     swdkdif      ! local instantaneous all-sky downward diffuse shortwave irradiance (W/m2).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,1:kte):: &
     pi2d         ! exner function (-).
 
  real(kind=kind_phys),intent(in),dimension(its:ite),optional:: &
@@ -721,10 +721,10 @@
     swddnic,    &! instantaneous direct clear-sky shortwave surface downward normal irradiance (W/m2).
     swdownc      ! instantaneous clear-sky shortwave surface downward radiation (W/m2).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,1:kte):: &
     rthratensw   ! all-sky shortwave radiation heating rate (K/s).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kme+1),optional:: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,1:kme+1),optional:: &
     swupflx,    &! instantaneous all-sky shortwave upward radiation flux profile (W/m2).
     swupflxc,   &! instantaneous clear-sky shortwave upward radiation flux profile (W/m2).
     swdnflx,    &! instantaneous all-sky shortwave downward radiation flux profile (W/m2).
@@ -732,6 +732,7 @@
 
 
 !local variables and arrays:
+ integer,parameter:: kts = 1
  integer:: i,k
 
 !-----------------------------------------------------------------------------------------------------------------

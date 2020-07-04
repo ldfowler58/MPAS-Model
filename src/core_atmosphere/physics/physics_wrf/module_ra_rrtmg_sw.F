@@ -343,26 +343,26 @@
 
 !--- initialization of all local variables needed to run rrtmg_sw_run:
  call rrtmg_sw_mpas_timestep_init &
-            (its           , ite           , kts           , kte           , kme         , &
-             nbndsw        , ngptsw        , naerec        , f_qc          , f_qr        , &
-             f_qi          , f_qs          , icloud        , has_reqc      , has_reqi    , &
-             has_reqs      , icld          , gravity       , gmt           , julian      , &
-             degrad        , dpd           , solcon_0      , dt_radtsw     , xtime_s     , &
-             xlat_hv       , xlon_hv       , albedo_hv     , xland_hv      , xice_hv     , &
-             snow_hv       , p3d_hv        , t3d_hv        , qv3d_hv       , qc3d_hv     , &
-             qr3d_hv       , qi3d_hv       , qs3d_hv       , cldfra3d_hv   , re_cloud_hv , &
-             re_ice_hv     , re_snow_hv    , dz8w_hv       , p8w_hv        , t8w_hv      , &
-             alswvisdir_hv , alswvisdif_hv , alswnirdir_hv , alswnirdif_hv , tsfc        , &
-             o3input       , noznlevels    , pin           , o3clim_hv     , ncol        , &
-             nlay          , inflgsw       , iceflgsw      , liqflgsw      , aer_opt     , &
-             dyofyr        , adjes         , scon          , dorrsw        , coszen      , &
-             asdir         , asdif         , aldir         , aldif         , play        , &
-             tlay          , h2ovmr        , o3vmr         , co2vmr        , o2vmr       , &
-             ch4vmr        , n2ovmr        , plev          , tlev          , cldfmcl     , &
-             clwpmcl       , ciwpmcl       , cswpmcl       , relqmcl       , reicmcl     , &
-             resnmcl       , taucmcl       , ssacmcl       , asmcmcl       , fsfcmcl     , &
-             tauaer        , ssaaer        , asmaer        , ecaer         , errmsg      , &
-             errflg)
+            (its           , ite           , kte           , kme         , nbndsw        , &
+             ngptsw        , naerec        , f_qc          , f_qr        , f_qi          , &
+             f_qs          , icloud        , has_reqc      , has_reqi    , has_reqs      , &
+             icld          , gravity       , gmt           , julian      , degrad        , &
+             dpd           , solcon_0      , dt_radtsw     , xtime_s     , xlat_hv       , &
+             xlon_hv       , albedo_hv     , xland_hv      , xice_hv     , snow_hv       , &
+             p3d_hv        , t3d_hv        , qv3d_hv       , qc3d_hv     , qr3d_hv       , &
+             qi3d_hv       , qs3d_hv       , cldfra3d_hv   , re_cloud_hv , re_ice_hv     , &
+             re_snow_hv    , dz8w_hv       , p8w_hv        , t8w_hv      , alswvisdir_hv , &
+             alswvisdif_hv , alswnirdir_hv , alswnirdif_hv , tsfc        , o3input       , &
+             noznlevels    , pin           , o3clim_hv     , ncol        , nlay          , &
+             inflgsw       , iceflgsw      , liqflgsw      , aer_opt     , dyofyr        , &
+             adjes         , scon          , dorrsw        , coszen      , asdir         , &
+             asdif         , aldir         , aldif         , play        , tlay          , &
+             h2ovmr        , o3vmr         , co2vmr        , o2vmr       , ch4vmr        , &
+             n2ovmr        , plev          , tlev          , cldfmcl     , clwpmcl       , &
+             ciwpmcl       , cswpmcl       , relqmcl       , reicmcl     , resnmcl       , &
+             taucmcl       , ssacmcl       , asmcmcl       , fsfcmcl     , tauaer        , &
+             ssaaer        , asmaer        , ecaer         , errmsg      , errflg)
+
 
 
 !--- initialize calc_clean_atm_diag:
@@ -394,18 +394,18 @@
 !--- output the all-sky shortwave heating rate, shortwave net surface radiation for land surface scheme, and
 !    optional shortwave surface and top-of-the-atmosphere all-sky and clear-sky fluxes (mainly diagnostics):
  call rrtmg_sw_mpas_timestep_final &
-            (its           , ite         , kts           , kte           , kme           , &
-             dorrsw        , pi3d_hv     , alswvisdir_hv , alswvisdif_hv , alswnirdir_hv , &
-             alswnirdif_hv , coszen      , swhr          , swhrc         , swuflx        , &
-             swuflxc       , swdflx      , swdflxc       , swuflxcln     , swdflxcln     , &
-             sibvisdir     , sibvisdif   , sibnirdir     , sibnirdif     , swdkdir       , &
-             swdkdirc      , swdkdif     , gsw_hv        , rthratensw_hv , swcf_hv       , &
-             swupt_hv      , swuptc_hv   , swdnt_hv      , swdntc_hv     , swupb_hv      , &
-             swupbc_hv     , swdnb_hv    , swdnbc_hv     , swuptcln_hv   , swdntcln_hv   , &
-             swupbcln_hv   , swdnbcln_hv , swvisdir_hv   , swvisdif_hv   , swnirdir_hv   , &
-             swnirdif_hv   , swddir_hv   , swddni_hv     , swddif_hv     , swddirc_hv    , &
-             swddnic_hv    , swdownc_hv  , swupflx_hv    , swupflxc_hv   , swdnflx_hv    , &
-             swdnflxc_hv   , errmsg      , errflg)
+            (its         , ite           , kte           , kme           , dorrsw        , &
+             pi3d_hv     , alswvisdir_hv , alswvisdif_hv , alswnirdir_hv , alswnirdif_hv , &
+             coszen      , swhr          , swhrc         , swuflx        , swuflxc       , &
+             swdflx      , swdflxc       , swuflxcln     , swdflxcln     , sibvisdir     , &
+             sibvisdif   , sibnirdir     , sibnirdif     , swdkdir       , swdkdirc      , &
+             swdkdif     , gsw_hv        , rthratensw_hv , swcf_hv       , swupt_hv      , &
+             swuptc_hv   , swdnt_hv      , swdntc_hv     , swupb_hv      , swupbc_hv     , &
+             swdnb_hv    , swdnbc_hv     , swuptcln_hv   , swdntcln_hv   , swupbcln_hv   , &
+             swdnbcln_hv , swvisdir_hv   , swvisdif_hv   , swnirdir_hv   , swnirdif_hv   , &
+             swddir_hv   , swddni_hv     , swddif_hv     , swddirc_hv    , swddnic_hv    , &
+             swdownc_hv  , swupflx_hv    , swupflxc_hv   , swdnflx_hv    , swdnflxc_hv   , &
+             errmsg      , errflg)
 
 
 !---
