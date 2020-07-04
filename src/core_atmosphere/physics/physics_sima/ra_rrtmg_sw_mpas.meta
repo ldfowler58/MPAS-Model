@@ -17,14 +17,6 @@
   type = integer
   intent = in
   optional = F
-[kts]
-  standard_name = vertical_layer_start
-  long_name = vertical layer start
-  units = none
-  dimensions = ()
-  type = integer
-  intent = in
-  optional = F
 [kte]
   standard_name = vertical_layer_end
   long_name = vertical layer end
@@ -254,7 +246,7 @@
   standard_name = air_pressure_at_layer
   long_name = air pressure at vertical layer
   units = Pa
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -262,7 +254,7 @@
   standard_name = air_temperature_at_layer
   long_name = air temperature at vertical layer
   units =  K
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -270,7 +262,7 @@
   standard_name = water_vapor_mixing_ratio_at_layer
   long_name = water vapor mixing ratio at vertical layer
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -278,7 +270,7 @@
   standard_name = cloud_liquid_water_mixing_ratio_at_layer
   long_name = cloud liquid water mixing ratio at vertical layer
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = T
@@ -286,7 +278,7 @@
   standard_name = rain_mixing_ratio_at_layer
   long_name = rain mixing ratio at vertical layer
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = T
@@ -294,7 +286,7 @@
   standard_name = cloud_ice_mixing_ratio_at_layer
   long_name = cloud ice mixing ratio at vertical layer
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = T
@@ -302,7 +294,7 @@
   standard_name = snow_mixing_ratio_at_layer
   long_name = snow mixing ratio at vertical layer
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = T
@@ -310,7 +302,7 @@
   standard_name = cloud_fraction_at_layer
   long_name = cloud fraction at vertical layer
   units = fraction
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = T
@@ -318,7 +310,7 @@
   standard_name = cloud_liquid_water_effective_radius_at_layer
   long_name = cloud liquid water effective radius at vertical layer
   units = m
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -326,7 +318,7 @@
   standard_name = cloud_ice_water_effective_radius_at_layer
   long_name = cloud ice water effective radius at vertical layer
   units = m
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -334,7 +326,7 @@
   standard_name = cloud_snow_effective_radius_at_layer
   long_name = cloud snow effective radius at vertical layer
   units = m
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -342,7 +334,7 @@
   standard_name = layer_thickness_at_layer
   long_name = layer thickness at vertical layer
   units = m
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -792,14 +784,6 @@
   type = integer
   intent = in
   optional = F
-[kts]
-  standard_name = vertical_layer_start
-  long_name = vertical layer start
-  units = none
-  dimensions = ()
-  type = integer
-  intent = in
-  optional = F
 [kte]
   standard_name = vertical_layer_end
   long_name = vertical layer end
@@ -828,7 +812,7 @@
   standard_name = dimensionless_exner_function_at_layer
   long_name = dimensionless exner function at vertical layer
   units = dimensionless
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -1004,7 +988,7 @@
   standard_name = instantaneous_all_sky_tendency_of_air_potential_temperature_due_to_sw_radiation
   long_name = instantaneous all sky tendency of air potential temperature due to shortwave radiation
   units = K s-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
