@@ -26,7 +26,7 @@
   intent = in
   optional = F
 [kme]
-  standard_name = vertical_interface_end
+  standard_name = vertical_interface_dimension
   long_name = vertical interface end
   units = none
   dimensions = ()
@@ -342,7 +342,7 @@
   standard_name = air_pressure_at_interface
   long_name = air pressure at interface
   units = Pa
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real
   kind = kind_phys
   intent = in
@@ -351,7 +351,7 @@
   standard_name = air_temperature_at_interface
   long_name = air temperature at interface
   units = K
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real
   kind = kind_phys
   intent = in
@@ -553,7 +553,7 @@
   standard_name = air_pressure_at_layer_for_radiation_in_hPa
   long_name = air pressure at vertical layer for radiation calculation
   units = hPa
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -561,7 +561,7 @@
   standard_name = air_temperature_at_layer_for_radiation
   long_name = air temperature at vertical layer for radiation calculation
   units = K
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -569,7 +569,7 @@
   standard_name = volume_mixing_ratio_h2o
   long_name = volume mixing ratio h2o
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -577,7 +577,7 @@
   standard_name = volume_mixing_ratio_o3
   long_name = volume mixing ratio o3
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -585,7 +585,7 @@
   standard_name = volume_mixing_ratio_co2
   long_name = volume mixing ratio co2
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -593,7 +593,7 @@
   standard_name = volume_mixing_ratio_o2
   long_name = volume mixing ratio o2
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -601,7 +601,7 @@
   standard_name = volume_mixing_ratio_ch4
   long_name = volume mixing ratio ch4
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -609,7 +609,7 @@
   standard_name = volume_mixing_ratio_n2o
   long_name = volume mixing ratio n2o
   units = kg kg-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -617,7 +617,7 @@
   standard_name = air_pressure_at_interface_for_radiation_in_hPa
   long_name = air pressure at vertical interface for radiation calculation
   units = hPa
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -625,7 +625,7 @@
   standard_name = air_temperature_at_interface_for_radiation
   long_name = air temperature at vertical interface for radiation calculation
   units = K
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -633,7 +633,7 @@
   standard_name = cloud_fraction_for_radiation
   long_name = cloud fraction for radiation calculation
   units = fraction
-  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -641,7 +641,7 @@
   standard_name = cloud_liquid_water_path_for_radiation
   long_name = cloud liquid water path for radiation
   units = g m-2
-  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -649,7 +649,7 @@
   standard_name = cloud_ice_water_path_for_radiation
   long_name = cloud ice water path for radiation
   units = g m-2
-  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -657,7 +657,7 @@
   standard_name = cloud_snow_water_path_for_radiation
   long_name = cloud snow water path for radiation
   units = g m-2
-  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -665,7 +665,7 @@
   standard_name = cloud_liquid_water_effective_radius_for radiation
   long_name = cloud liquid water effective radius for radiation
   units = microns
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -673,7 +673,7 @@
   standard_name = cloud_ice_water_effective_radius_for radiation
   long_name = cloud ice water effective radius for radiation
   units = microns
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -681,7 +681,7 @@
   standard_name = cloud_snow_effective_radius_for_radiation
   long_name = cloud snow effective radius for radiation
   units = microns
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -689,7 +689,7 @@
   standard_name = cloud_optical_depth_for_radiation
   long_name = cloud optical depth for radiation calculation
   units = dimensionless
-  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -697,7 +697,7 @@
   standard_name = cloud_single_scattering_albedo_for_radiation
   long_name = cloud single scattering albedo for radiation calculation
   units = dimensionless
-  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_end:vertical_interface_end)
+  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension:vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -705,7 +705,7 @@
   standard_name = cloud_asymmetry_factor_for_radiation
   long_name = cloud asymmetry factor for radiation calculation
   units = dimensionless
-  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_end:vertical_interface_end)
+  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension:vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -713,7 +713,7 @@
   standard_name = cloud_forward_scattering_function_for_radiation
   long_name = cloud forward scattering function for radiation
   units = dimensionless
-  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_end:vertical_interface_end)
+  dimensions = (nb_sw_g_intervals,horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension:vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -721,7 +721,7 @@
   standard_name = sw_spectral_aerosol_optical_depth_for_radiation
   long_name = shortwave spectral aerosol optical depth for radiation
   units = dimensionless
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end,nb_sw_spectral_bands)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension,nb_sw_spectral_bands)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -729,7 +729,7 @@
   standard_name = sw_spectral_aerosol_single_scattering_albedo_for_radiation
   long_name = shortwave spectral aerosol single scattering albedo for radiation
   units = dimensionless
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end,nb_sw_spectral_bands)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension,nb_sw_spectral_bands)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -737,7 +737,7 @@
   standard_name = sw_spectral_aerosol_asymmetry_factor_for_radiation
   long_name = shortwave spectral aerosol asymmetry factor for radiation
   units = none
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end,nb_sw_spectral_bands)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension,nb_sw_spectral_bands)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -745,7 +745,7 @@
   standard_name = ecmwf_sw_aerosol_optical_depth_for_radiation
   long_name = ecmwf shortwave aerosol optical depth for radiation
   units = dimensionless
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end,nb_aerosols_ecmwf_option)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension,nb_aerosols_ecmwf_option)
   type = real | kind = kind_phys
   intent = out
   optional = F
@@ -793,7 +793,7 @@
   intent = in
   optional = F
 [kme]
-  standard_name = vertical_interface_end
+  standard_name = vertical_interface_dimension
   long_name = vertical interface end
   units = none
   dimensions = ()
@@ -860,7 +860,7 @@
   standard_name = all_sky_tendency_of_air_temperature_due_to_sw_radiation_per_day
   long_name = all sky tendency of air temperature due to shortwave radiation per day
   units = K day-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -868,7 +868,7 @@
   standard_name = clear_sky_tendency_of_air_temperature_due_to_sw_radiation_per_day
   long_name = clear sky tendency of air temperature due to shortwave radiation per day
   units = K day-1
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -876,7 +876,7 @@
   standard_name = instantaneous_all_sky_upward_sw_radiation_flux
   long_name = instantaneous all-sky upward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -884,7 +884,7 @@
   standard_name = instantaneous_clear_sky_upward_sw_radiation_flux
   long_name = instantaneous clear-sky upward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -892,7 +892,7 @@
   standard_name = instantaneous_all_sky_downward_sw_radiation_flux
   long_name = instantaneous all-sky downward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -900,7 +900,7 @@
   standard_name = instantaneous_clear_sky_downward_sw_radiation_flux
   long_name = instantaneous clear-sky downward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -908,7 +908,7 @@
   standard_name = instantaneous_clean_air_upward_sw_radiation_flux
   long_name = instantaneous clean air upward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -916,7 +916,7 @@
   standard_name = instantaneous_clean_air_downward_sw_radiation_flux
   long_name = instantaneous clean air downward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -924,7 +924,7 @@
   standard_name = instantaneous_all_sky_UV_and_VIS_downward_direct_sw_radiation_flux 
   long_name = instantaneous all-sky UV+VIS downward direct shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -932,7 +932,7 @@
   standard_name = instantaneous_all_sky_UV_and_VIS_downward_diffuse_sw_radiation_flux 
   long_name = instantaneous all-sky UV+VIS downward diffuse shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -940,7 +940,7 @@
   standard_name = instantaneous_all_sky_near_IR_downward_direct_sw_radiation_flux 
   long_name = instantaneous all-sky near IR downward direct shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -948,7 +948,7 @@
   standard_name = instantaneous_all_sky_near_IR_downward_diffuse_sw_radiation_flux 
   long_name = instantaneous all-sky near IR downward diffuse shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -956,7 +956,7 @@
   standard_name = instantaneous_all_sky_downward_direct_sw_radiation_flux 
   long_name = instantaneous all-sky downward direct shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -964,7 +964,7 @@
   standard_name = instantaneous_clear_sky_downward_direct_sw_radiation_flux 
   long_name = instantaneous clear-sky downward direct shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -972,7 +972,7 @@
   standard_name = instantaneous_all_sky_downward_diffuse_sw_radiation_flux 
   long_name = instantaneous all-sky downward diffuse shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -1164,14 +1164,14 @@
   standard_name = instantaneous_surface_clear_sky_downward_normal_sw_irradiance
   long_name = instantaneous surface clear-sky downward normal shortwave irradiance
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
 [swdownc]
   standard_name = instantaneous_surface_clear_sky_downward_sw surface_radiation flux
   long_name = instantaneous surface clear-sky downward shortwave radiation flux
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -1179,7 +1179,7 @@
   standard_name = instantaneous_all_sky_upward_sw_radiation_flux
   long_name = instantaneous all-sky upward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -1187,7 +1187,7 @@
   standard_name = instantaneous_clear_sky_upward_sw_radiation_flux
   long_name = instantaneous clear-sky upward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -1195,7 +1195,7 @@
   standard_name = instantaneous_all_sky_downward_sw_radiation_flux
   long_name = instantaneous all-sky downward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
@@ -1203,7 +1203,7 @@
   standard_name = instantaneous_clear_sky_downward_sw_radiation_flux
   long_name = instantaneous clear-sky downward shortwave radiation flux
   units = W m-2
-  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_interface_end+1)
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_dimension+1)
   type = real | kind = kind_phys
   intent = in
   optional = F
