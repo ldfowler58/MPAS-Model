@@ -99,7 +99,7 @@
     albedo,     &! surface albedo (-).
     tsfc         ! surface temperature (K).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,1:kte):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kte):: &
     t2d,        &! temperature at middle of layers (K).
     p2d,        &! pressure at middle of layers (Pa).
     qv2d,       &! water vapor mixing ratio at middle of layers (kg/kg).
@@ -108,7 +108,7 @@
     re_ice,     &! effective radius of cloud ice crystals at middle of layers (m). 
     re_snow      ! effective radius of snow crystals at middle of layers (m).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,1:kme):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kme):: &
     p2di,       &! pressure at interface of layers (Pa).
     t2di         ! temperature at interface of layers (K).
 
@@ -118,17 +118,17 @@
     alswnirdir, &! near-IR direct component of surface albedo when using SIB LSM (-).
     alswnirdif   ! near-IR diffuse component of surface albedo when using SIB LSM (-).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,1:kte),optional:: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kte),optional:: &
     cldfra2d,   &! cloud fraction at middle of layers (-).
     qc2d,       &! cloud liquid water mixing ratio at middle of layers (kg/kg).
     qr2d,       &! rain mixing ratio at middle of layers (kg/kg).
     qi2d,       &! cloud ice mixing ratio at middle of layers (kg/kg).
     qs2d         ! snow mixing ratio (kg/kg).
 
- real(kind=kind_phys),intent(in),dimension(1:noznlevels),optional:: &
+ real(kind=kind_phys),intent(in),dimension(noznlevels),optional:: &
     pin          ! fixed pressures at which climatological ozone data are defined (hPa).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,1:noznlevels):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,noznlevels):: &
     o3clim       ! monthly-mean climatological ozone data at fixed pressure levels.
 
 
@@ -166,7 +166,7 @@
     aldir,      &! local near-IR direct surface albedo (-).
     aldif        ! local near-IR diffuse surface albedo (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,1:kme):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kme):: &
     play,       &! local pressure at middle of layers (hPa).
     tlay,       &! local temperature at middle of layers (K).
     h2ovmr,     &! local volume mixing ratio of water vapor ().
@@ -176,16 +176,16 @@
     ch4vmr,     &! local volume mixing ratio of methane ().
     n2ovmr       ! local volume mixing ratio of nitrous oxide ().
 
- real(kind=kind_phys),intent(out),dimension(its:ite,1:kme):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kme):: &
     relqmcl,    &! local cloud liquid water particle size (microns).
     reicmcl,    &! local cloud ice particle size (microns).
     resnmcl      ! local snow particle size (microns).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,1:kte+2):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kte+2):: &
     plev,       &! local pressure at interface between layers (hPa).
     tlev         ! local temperature at interface between layers (K).
 
- real(kind=kind_phys),intent(out),dimension(ngptsw,its:ite,1:kme):: &
+ real(kind=kind_phys),intent(out),dimension(ngptsw,its:ite,kme):: &
     cldfmcl,    &! in-cloud cloud fraction (-).
     clwpmcl,    &! in-cloud liquid water path (g/m2).
     ciwpmcl,    &! in-cloud ice water path (g/m2).
@@ -195,12 +195,12 @@
     asmcmcl,    &! in-cloud asymmetry factor (-).
     fsfcmcl      ! in-cloud forward scattering fraction (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,1:kme,nbndsw):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kme,nbndsw):: &
     tauaer,     &! aerosol optical depth (-).
     ssaaer,     &! aerosol single scattering albedo (-).
     asmaer       ! aerosol asymmetry factor (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,1:kme,naerec):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kme,naerec):: &
     ecaer        ! aerosol optical depth for ECMWF aerosols ().
 
 
@@ -217,16 +217,16 @@
  real(kind=kind_phys):: corr
  real(kind=kind_phys):: gliqwp,gicewp,gsnowp,snow_mass_factor
  real(kind=kind_phys),dimension(1):: landfrac,landm,snowh,icefrac
- real(kind=kind_phys),dimension(1:kte):: qc1d,qr1d,qi1d,qs1d
- real(kind=kind_phys),dimension(1:kte+1):: o3mmr,p1dlay
- real(kind=kind_phys),dimension(1:kte+2):: p1dlev
- real(kind=kind_phys),dimension(1,1:kte):: t1d,rei1d,rel1d
- real(kind=kind_phys),dimension(1:noznlevels):: o3clim1d
+ real(kind=kind_phys),dimension(kte):: qc1d,qr1d,qi1d,qs1d
+ real(kind=kind_phys),dimension(kte+1):: o3mmr,p1dlay
+ real(kind=kind_phys),dimension(kte+2):: p1dlev
+ real(kind=kind_phys),dimension(1,kte):: t1d,rei1d,rel1d
+ real(kind=kind_phys),dimension(noznlevels):: o3clim1d
 
- real(kind=kind_phys),dimension(its:ite,1:kte):: pdel
- real(kind=kind_phys),dimension(its:ite,1:kte+1):: hgt,cldfrac
- real(kind=kind_phys),dimension(its:ite,1:kte+1):: ciwpth,clwpth,cswpth,rei,rel,res
- real(kind=kind_phys),dimension(nbndsw,its:ite,1:kte+1):: taucld,ssacld,asmcld,fsfcld
+ real(kind=kind_phys),dimension(its:ite,kte):: pdel
+ real(kind=kind_phys),dimension(its:ite,kte+1):: hgt,cldfrac
+ real(kind=kind_phys),dimension(its:ite,kte+1):: ciwpth,clwpth,cswpth,rei,rel,res
+ real(kind=kind_phys),dimension(nbndsw,its:ite,kte+1):: taucld,ssacld,asmcld,fsfcld
 
 !--- set trace gas volume mixing ratios, 2005 values, IPCC (2007):
 !carbon dioxide (379 ppmv)
@@ -645,32 +645,32 @@
  real(kind=kind_phys),intent(in),dimension(its:ite):: &
     coszen       ! local cosine of the solar zenith angle (-). 
 
- real(kind=kind_phys),intent(in),dimension(its:ite,1:kte+1):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kte+1):: &
     swhr,       &! local instantaneous all-sky shortwave heating rate (K/day).
     swhrc        ! local instantaneous clear-sky shortwave heating rate (K/day).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,1:kte+2):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kte+2):: &
     swuflx,     &! local instantaneous all-sky upward shortwave radiation flux (W/m2).
     swuflxc,    &! local instantaneous clear-sky upward shortwave radiation flux (W/m2)
     swdflx,     &! local instantaneous all-sky downward shortwave radiation flux (W/m2).
     swdflxc      ! local instantaneous clear-sky downward shortwave radiation flux (W/m2).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,1:kte+2):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kte+2):: &
     swuflxcln,  &! local instantaneous clean-sky upward shortwave radiation flux (W/m2).
     swdflxcln    ! local instantaneous clean-sky downward shortwave radiation flux (W/m2).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,1:kte+2):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kte+2):: &
     sibvisdir,  &! local instantaneous direct visible shortwave radiation flux when using SIB LSM (W/m2).
     sibvisdif,  &! local instantaneous diffuse visible shortwave radiation flux when using SIB LSM (W/m2).
     sibnirdir,  &! local instantaneous direct near-IR shortwave radiation flux when using SIB LSM (W/m2).
     sibnirdif    ! local instantaneous diffuse near-IR shortwave radiation flux when using SIB LSM (W/m2).
 
- real(kind=kind_phys),dimension(its:ite,1:kte+2):: &
+ real(kind=kind_phys),dimension(its:ite,kte+2):: &
     swdkdir,    &! local instantaneous all-sky downward direct shortwave irradiance (W/m2).
     swdkdirc,   &! local instantaneous clear-sky downward direct shortwave irradiance (W/m2).
     swdkdif      ! local instantaneous all-sky downward diffuse shortwave irradiance (W/m2).
 
- real(kind=kind_phys),intent(in),dimension(its:ite,1:kte):: &
+ real(kind=kind_phys),intent(in),dimension(its:ite,kte):: &
     pi2d         ! exner function (-).
 
  real(kind=kind_phys),intent(in),dimension(its:ite),optional:: &
@@ -721,10 +721,10 @@
     swddnic,    &! instantaneous direct clear-sky shortwave surface downward normal irradiance (W/m2).
     swdownc      ! instantaneous clear-sky shortwave surface downward radiation (W/m2).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,1:kte):: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kte):: &
     rthratensw   ! all-sky shortwave radiation heating rate (K/s).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,1:kme+1),optional:: &
+ real(kind=kind_phys),intent(out),dimension(its:ite,kme+1),optional:: &
     swupflx,    &! instantaneous all-sky shortwave upward radiation flux profile (W/m2).
     swupflxc,   &! instantaneous clear-sky shortwave upward radiation flux profile (W/m2).
     swdnflx,    &! instantaneous all-sky shortwave downward radiation flux profile (W/m2).
