@@ -16,7 +16,7 @@
 !> \section arg_table_bl_ysu_run  Argument Table
 !! \htmlinclude arg_table_bl_ysu_run.html
 !!
-   subroutine bl_ysu_run(j,ux,vx,tx,qvx,qcx,qix,nmix,qmix,p2d,p2di,pi2d,       &
+   subroutine bl_ysu_run(ux,vx,tx,qvx,qcx,qix,nmix,qmix,p2d,p2di,pi2d,         &
                   f_qc,f_qi,                                                   &
                   utnp,vtnp,ttnp,qvtnp,qctnp,qitnp,qmixtnp,                    &
                   cp,g,rovcp,rd,rovg,ep1,ep2,karman,xlv,rv,                    &
@@ -31,7 +31,7 @@
                   rthraten,                                                    &
                   ysu_topdown_pblmix,                                          &
                   ctopo,ctopo2,                                                &
-                  its,ite, kts,kte, kms,kme,                                   &
+                  its,ite,kte,kme,                                             &
                   errmsg,errflg                                                &
                    )
 !-------------------------------------------------------------------------------
@@ -109,12 +109,13 @@
    real(kind=kind_phys),parameter    ::  xka = 2.4e-5
    integer,parameter ::  imvdif = 1
    real(kind=kind_phys),parameter    ::  rcl = 1.0
+   integer,parameter ::  kts=1, kms=1
 !
-   integer,  intent(in   )   ::     its,ite, kts,kte, kms,kme, j
+   integer,  intent(in   )   ::     its,ite,kte,kme
 
    integer,  intent(in)      ::     ysu_topdown_pblmix 
 !
-   integer,  intent(in)      ::     nmix
+   integer,  intent(in), optional      ::     nmix
 !
    real(kind=kind_phys),     intent(in   )   ::     dt,cp,g,rovcp,rovg,rd,xlv,rv
 !
@@ -132,7 +133,7 @@
                                                                           qcx, &
                                                                           qix
 !
-   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix )             , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte, : ), optional      , &
              intent(in   )   ::                                          qmix
 !
    real(kind=kind_phys),     dimension( its:ite, kts:kte )                   , &
@@ -143,7 +144,7 @@
                                                                         qctnp, &
                                                                         qitnp
 !
-   real(kind=kind_phys),     dimension( its:ite, kts:kte, nmix )             , &
+   real(kind=kind_phys),     dimension( its:ite, kts:kte, : ), optional      , &
              intent(out  )   ::                                       qmixtnp
 !
    real(kind=kind_phys),     dimension( its:ite, kms:kme )                   , &
@@ -231,9 +232,11 @@
    real(kind=kind_phys),    dimension( its:ite )                             , &
             intent(inout)    ::                                           u10, &
                                                                           v10
-   real(kind=kind_phys),    dimension( its:ite )                             , &
+   real(kind=kind_phys),    dimension( its:ite ), optional                   , &
             intent(in  )    ::                                            uox, &
                                                                           vox
+   real(kind=kind_phys),    dimension( its:ite )    ::                   uoxl, &
+                                                                         voxl
    real(kind=kind_phys),    dimension( its:ite )    ::                         &
                                                                          brcr, &
                                                                         sflux, &
@@ -269,7 +272,6 @@
                                                                zfacent,entfac
    real(kind=kind_phys), dimension( its:ite, kts:kte )     ::            qcxl, &
                                                                          qixl
-   real(kind=kind_phys), dimension( its:ite, kts:kte, nmix ) ::         qmixl
    real(kind=kind_phys), dimension( its:ite )              ::            ust3, &
                                                                        wstar3, &
                                                                      wstar3_2, &
@@ -349,6 +351,18 @@
      enddo
    enddo
 !
+   if ( present(uox) .and. present(vox) ) then
+      do i =its,ite
+         uoxl(i) = uox(i)
+         voxl(i) = vox(i)
+      enddo
+   else
+      do i =its,ite
+         uoxl(i) = 0
+         voxl(i) = 0
+      enddo
+   endif
+!
    do i = its,ite
      tvcon = (1.+ep1*qvx(i,1))
      rhox(i) = psfcpa(i)/(rd*tx(i,1)*tvcon)
@@ -402,7 +416,7 @@
    enddo
 !
    do i = its,ite
-     wspd1(i) = sqrt( (ux(i,1)-uox(i))*(ux(i,1)-uox(i)) + (vx(i,1)-vox(i))*(vx(i,1)-vox(i)) )+1.e-9
+     wspd1(i) = sqrt( (ux(i,1)-uoxl(i))*(ux(i,1)-uoxl(i)) + (vx(i,1)-voxl(i))*(vx(i,1)-voxl(i)) )+1.e-9
    enddo
 !
 !---- compute vertical diffusion
@@ -1052,7 +1066,7 @@
 
    !--- chemical species and/or passive tracers, meaning all variables that we want to
    !    be vertically-mixed:
-   if(nmix > 0) then
+   if ( present(qmix) .and. present(qmixtnp) .and. present(nmix) ) then
       do n = 1, nmix
          do i = its,ite
             do k = kts,kte
@@ -1146,8 +1160,8 @@
       else
        ad(i,1) = 1.+fric(i,1)
       endif
-     f1(i,1) = ux(i,1)+uox(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
-     f2(i,1) = vx(i,1)+vox(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
+     f1(i,1) = ux(i,1)+uoxl(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
+     f2(i,1) = vx(i,1)+voxl(i)*ust(i)**2*rhox(i)*g/del(i,1)*dt2/wspd1(i)*(wspd1(i)/wspd(i))**2
    enddo
 !
    do k = kts,kte-1

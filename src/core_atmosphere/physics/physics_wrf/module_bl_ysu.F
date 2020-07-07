@@ -318,7 +318,7 @@
          ctopo2_hv(i) = ctopo2(i,j)
       end do
 !
-      call bl_ysu_run(J=j,ux=u3d_hv,vx=v3d_hv                                  &
+      call bl_ysu_run(ux=u3d_hv,vx=v3d_hv                                      &
               ,tx=t3d_hv                                                       &
               ,qvx=qv3d_hv,qcx=qc3d_hv,qix=qi3d_hv                             &
               ,f_qc=flag_qc,f_qi=flag_qi                                       &
@@ -349,7 +349,7 @@
               ,rthraten=rthraten_hv                                            &
               ,ysu_topdown_pblmix=ysu_topdown_pblmix                           &
               ,ctopo=ctopo_hv,ctopo2=ctopo2_hv                                 &
-              ,its=its,ite=ite, kts=kts,kte=kte, kms=kms,kme=kme               &
+              ,its=its,ite=ite,kte=kte,kme=kme                                 &
               ,errmsg=errmsg,errflg=errflg                                     )
 !
       !  Assign local data back to full-sized arrays.
