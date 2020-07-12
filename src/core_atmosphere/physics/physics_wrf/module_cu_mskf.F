@@ -4011,8 +4011,6 @@ CONTAINS
               
             CALL MSKF_eta_PARA(                       &
                  U1D,V1D,T1D,QV1D,P1D,DZ1D,W0AVG1D, &
-                 tpart_h1D,tpart_v1D,               &
-                 trigger,                           &
                  DT,DX,DXSQ,RHO1D,                  &
                  XLV0,XLV1,XLS0,XLS1,CP,R,G,        &
                  EP2,SVP1,SVP2,SVP3,SVPT0,          &
@@ -4125,8 +4123,6 @@ CONTAINS
 
    SUBROUTINE MSKF_eta_PARA (                              &
                       U0,V0,T0,QV0,P0,DZQ,W0AVG1D,         &
-                      TPART_H0,TPART_V0,                   &
-                      trigger,                             &
                       DT,DX,DXSQ,rhoe,                     &
                       XLV0,XLV1,XLS0,XLS1,CP,R,G,          &
                       EP2,SVP1,SVP2,SVP3,SVPT0,            &
@@ -4158,8 +4154,6 @@ CONTAINS
 !-----------------------------------------------------------
       INTEGER, INTENT(IN   ) :: kts,kte   
 
-      INTEGER, INTENT(IN   ) ::  trigger
-
       LOGICAL, INTENT(IN   ) :: F_QI, F_QS
 
       LOGICAL, INTENT(IN   ) :: warm_rain
@@ -4167,8 +4161,6 @@ CONTAINS
       REAL, DIMENSION( kts:kte ),                          &
             INTENT(IN   ) ::                           U0, &
                                                        V0, &
-                                                 TPART_H0, &
-                                                 TPART_V0, &
                                                        T0, &
                                                       QV0, &
                                                        P0, &
