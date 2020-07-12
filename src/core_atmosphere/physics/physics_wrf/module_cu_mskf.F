@@ -61,10 +61,12 @@
  module module_cu_mp
 
 #if defined(mpas)
+use mpas_kind_types,only: r8=>R8KIND
 use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
 #define FATAL_ERROR(M) call physics_error_fatal( M )
 #define WRITE_MESSAGE(M) call physics_message( M )
 #else
+use shr_kind_mod,only: r8=>shr_kind_r8
 use module_wrf_error
 #define FATAL_ERROR(M) call wrf_error_fatal( M )
 #define WRITE_MESSAGE(M) call wrf_message( M )
@@ -88,8 +90,6 @@ use module_wrf_error
 ! Adapted to MSKF scheme: Kiran Alapaty at EPA March 2013 (WRF version)
 !
 !---------------------------------------------------------------------------------
-  use shr_kind_mod,  only: r8=>shr_kind_r8
-
   use error_function, only: erf,erfc
 
 !wrf  use rad_constituents, only: rad_cnst_get_clim_info,
@@ -3427,16 +3427,17 @@ subroutine mskf_nucleati(wbar, tair, pair, qv,  qc,  rhoair, & ! TWG add pair an
 MODULE module_cu_mskf
 
 #if defined(mpas)
+use mpas_kind_types,only: r8=>R8KIND
 use mpas_atmphys_utilities,only: physics_message,physics_error_fatal
 #define FATAL_ERROR(M) call physics_error_fatal( M )
 #define WRITE_MESSAGE(M) call physics_message( M )
 #else
 use module_wrf_error
+use shr_kind_mod,only: r8=>shr_kind_r8
 #define FATAL_ERROR(M) call wrf_error_fatal( M )
 #define WRITE_MESSAGE(M) call wrf_message( M )
 #endif
 
-use shr_kind_mod,only: r8=>shr_kind_r8
 use module_cu_mp
 !
 !--------------------------------------------------------------------
@@ -4316,7 +4317,6 @@ CONTAINS
    REAL :: eps1u, alatent, Qsu
    LOGICAL :: onetime
    Data onetime/.true./
-   integer, parameter :: r8 = 8
    integer, parameter :: naer_cu = 10
    integer, parameter :: pcols = 1
    REAL(r8) muu(pcols, KTS:KTE)
