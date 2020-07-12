@@ -3457,7 +3457,6 @@ CONTAINS
               ids,ide, jds,jde, kds,kde                      &
              ,ims,ime, jms,jme, kms,kme                      &
              ,its,ite, jts,jte, kts,kte                      &
-             ,trigger                                        &
              ,DT,KTAU,DX,CUDT,ADAPT_STEP_FLAG                &
              ,rho,RAINCV,PRATEC,NCA                          &
              ,U,V,TH,T,W,dz8w,Pcps,pi                        &
@@ -3492,7 +3491,6 @@ CONTAINS
                                   ims,ime, jms,jme, kms,kme, &
                                   its,ite, jts,jte, kts,kte
 
-   INTEGER,      INTENT(IN   ) :: trigger
    INTEGER,      INTENT(IN   ) :: STEPCU
    LOGICAL,      INTENT(IN   ) :: warm_rain
 
