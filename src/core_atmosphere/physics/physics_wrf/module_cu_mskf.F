@@ -3645,21 +3645,14 @@ CONTAINS
                                                       DQSDT, &
                                                        DTDT
 
-  REAL, DIMENSION (its-1:ite+1,kts:kte,jts-1:jte+1) ::  aveh_t, aveh_q
-  REAL, DIMENSION (its:ite,kts:kte,jts:jte) :: aveh_qmax, aveh_qmin
-  REAL, DIMENSION (its:ite,kts:kte,jts:jte) ::  avev_t, avev_q 
-  REAL, DIMENSION (its:ite,kts:kte,jts:jte) :: avev_qmax, avev_qmin
-  REAL, DIMENSION (its:ite,kts:kte,jts:jte) ::  coef_v, coef_h, tpart_h, tpart_v
   INTEGER :: ii,jj,kk
 
-  REAL :: ttop
   REAL, DIMENSION (kts:kte)  :: z0
 
    REAL    ::         TST,tv,PRS,RHOE,W0,SCR1,DXSQ,tmp
    integer :: ibegh,iendh,jbegh,jendh
    integer :: istart,iend,jstart,jend
    INTEGER :: i,j,k,NTST,ISP
-   REAL    :: lastdt = -1.0
    REAL    :: W0AVGfctr, W0fctr, W0den
    
 !JTR 06/26/19: Added tendency variables and CMT flag
@@ -3688,10 +3681,6 @@ CONTAINS
    IF ( PRESENT(F_QI) ) flag_qi = F_QI
    IF ( PRESENT(F_QS) ) flag_qs = F_QS
 !
-   if (lastdt < 0) then
-      lastdt = dt
-   endif
-   
    if (ADAPT_STEP_FLAG) then
       W0AVGfctr = 2 * MAX(CUDT*60,dt) - dt
       W0fctr = dt
@@ -3724,156 +3713,6 @@ CONTAINS
          ENDDO
       ENDDO
    ENDDO
-
-
-   lastdt = dt
-
-! New trigger function
-     IF (trigger.eq.2) THEN         
-!
-! calculate 9-point average of moisture advection and temperature using halo (Horizontal)
-!
-     aveh_t=-999   ! horizontal 9-point ave
-     aveh_q=-999
-     avev_t=0   ! vertical 3-level ave
-     avev_q=0
-     avev_qmax=0
-     avev_qmin=0
-     aveh_qmax=0
-     aveh_qmin=0
-     tpart_h=0
-     tpart_v=0
-     coef_h=0
-     coef_v=0
-     ibegh=max(its-1, ids+1)   ! start from 2
-     jbegh=max(jts-1, jds+1)
-     iendh=min(ite+1, ide-2)   ! end at ide-2
-     jendh=min(jte+1, jde-2)
-        DO J = jbegh,jendh
-        DO K = kts,kte
-        DO I = ibegh,iendh
-          aveh_t(i,k,j)=(T(i-1,k,j-1)+T(i-1,k,j)  +T(i-1,k,j+1)+ &
-                         T(i,k,j-1)   +T(i,k,j)   +T(i,k,j+1)+         &
-                         T(i+1,k,j-1) +T(i+1,k,j) +T(i+1,k,j+1))/9.
-          aveh_q(i,k,j)=(rqvften(i-1,k,j-1)+rqvften(i-1,k,j)  +rqvften(i-1,k,j+1)+ &
-                         rqvften(i,k,j-1)   +rqvften(i,k,j)   +rqvften(i,k,j+1)+         &
-                         rqvften(i+1,k,j-1) +rqvften(i+1,k,j) +rqvften(i+1,k,j+1))/9.
-        ENDDO
-        ENDDO
-        ENDDO
-! boundary value ( all processors will do the following? Or just those processsors handling sub-area including boundary)
-        DO K = kts,kte
-           DO J = jts-1,jte+1
-            DO I = its-1,ite+1
-
-            if(i.eq.ids) then
-            aveh_t(i,k,j)=aveh_t(i+1,k,j)
-            aveh_q(i,k,j)=aveh_q(i+1,k,j)
-            elseif(i.eq.ide-1) then
-            aveh_t(i,k,j)=aveh_t(i-1,k,j)
-            aveh_q(i,k,j)=aveh_q(i-1,k,j)
-            endif
-
-            if(j.eq.jds) then
-             aveh_t(i,k,j)=aveh_t(i,k,j+1)
-             aveh_q(i,k,j)=aveh_q(i,k,j+1)
-            elseif(j.eq.jde-1) then
-            aveh_t(i,k,j)=aveh_t(i,k,j-1)
-            aveh_q(i,k,j)=aveh_q(i,k,j-1)
-            endif
-
-            if(j.eq.jds.and.i.eq.ids) then
-            aveh_q(i,k,j)=aveh_q(i+1,k,j+1) 
-            aveh_t(i,k,j)=aveh_t(i+1,k,j+1) 
-            endif
-
-            if(j.eq.jde-1.and.i.eq.ids) then
-            aveh_q(i,k,j)=aveh_q(i+1,k,j-1) 
-            aveh_t(i,k,j)=aveh_t(i+1,k,j-1) 
-            endif
-
-            if(j.eq.jde-1.and.i.eq.ide-1) then
-            aveh_q(i,k,j)=aveh_q(i-1,k,j-1) 
-            aveh_t(i,k,j)=aveh_t(i-1,k,j-1) 
-            endif
-
-            if(j.eq.jds.and.i.eq.ide-1) then
-            aveh_q(i,k,j)=aveh_q(i-1,k,j+1) 
-            aveh_t(i,k,j)=aveh_t(i-1,k,j+1) 
-            endif
-
-            ENDDO
-           ENDDO
-        ENDDO
-! search for max/min moisture advection in 9-point range, calculate horizontal T-perturbation (tpart_h)
-     istart=max(its, ids+1)   ! start from 2
-     jstart=max(jts, jds+1)
-     iend=min(ite, ide-2)   ! end at ide-2
-     jend=min(jte, jde-2)
-        DO K = kts,kte
-        DO J = jstart,jend
-        DO I = istart,iend
-           aveh_qmax(i,k,j)=aveh_q(i,k,j)
-           aveh_qmin(i,k,j)=aveh_q(i,k,j)
-          DO ii=-1, 1
-           DO jj=-1,1
-             if(aveh_q(i+II,k,j+JJ).gt.aveh_qmax(i,k,j)) aveh_qmax(i,k,j)=aveh_q(i+II,k,j+JJ)
-             if(aveh_q(i+II,k,j+JJ).lt.aveh_qmin(i,k,j)) aveh_qmin(i,k,j)=aveh_q(i+II,k,j+JJ)
-           ENDDO
-          ENDDO 
-          if(aveh_qmax(i,k,j).gt.aveh_qmin(i,k,j))then
-          coef_h(i,k,j)=(aveh_q(i,k,j)-aveh_qmin(i,k,j))/(aveh_qmax(i,k,j)-aveh_qmin(i,k,j))
-          else
-          coef_h(i,k,j)=0.
-          endif
-          coef_h(i,k,j)=amin1(coef_h(i,k,j),1.0)
-          coef_h(i,k,j)=amax1(coef_h(i,k,j),0.0)
-          tpart_h(i,k,j)=coef_h(i,k,j)*(T(i,k,j)-aveh_t(i,k,j))
-        ENDDO
-        ENDDO
-        ENDDO
-    89 continue 
-! vertical 3-layer calculation
-        DO J = jts, jte
-        DO I = its, ite
-          z0(1) = 0.5 * dz8w(i,1,j)
-          DO K = 2, kte
-            Z0(K) = Z0(K-1) + .5 * (DZ8W(i,K,j) + DZ8W(i,K-1,j))
-          ENDDO
-        DO K = kts+1,kte-1
-	  ttop = t(i,k,j) + ((t(i,k,j) - t(i,k+1,j)) / (z0(k) - z0(k+1))) * (z0(k)-z0(k-1))
-          avev_t(i,k,j)=(T(i,k-1,j) + T(i,k,j) + ttop)/3.
-!         avev_t(i,k,j)=(T(i,k-1,j)+T(i,k,j) + T(i,k+1,j))/3.
-          avev_q(i,k,j)=(rqvften(i,k-1,j)+rqvften(i,k,j) + rqvften(i,k+1,j))/3.
-        ENDDO
-          avev_t(i,kts,j)=avev_t(i,kts+1,j)   ! lowest level value, is it the same as avev_t(i,kds,j)=avev_t(i,kds+1,j)?
-          avev_q(i,kts,j)=avev_q(i,kts+1,j)   
-          avev_t(i,kte,j)=avev_t(i,kte-1,j)   ! highest level value
-          avev_q(i,kte,j)=avev_q(i,kte-1,j)   
-        ENDDO
-        ENDDO
-! max /min value
-        DO J = jts, jte
-        DO I = its, ite
-        DO K = kts+1,kte-1
-          avev_qmax(i,k,j)=avev_q(i,k,j)
-          avev_qmin(i,k,j)=avev_q(i,k,j)
-         DO kk=-1,1
-         if(avev_q(i,k+kk,j).gt.avev_qmax(i,k,j)) avev_qmax(i,k,j)=avev_q(i,k+kk,j) 
-         if(avev_q(i,k+kk,j).lt.avev_qmin(i,k,j)) avev_qmin(i,k,j)=avev_q(i,k+kk,j) 
-         ENDDO
-         if(avev_qmax(i,k,j).gt.avev_qmin(i,k,j)) then
-         coef_v(i,k,j)=(avev_q(i,k,j)-avev_qmin(i,k,j))/(avev_qmax(i,k,j)-avev_qmin(i,k,j))
-         else
-         coef_v(i,k,j)=0
-         endif
-         tpart_v(i,k,j)=coef_v(i,k,j)*(T(i,k,j)-avev_t(i,k,j))
-        ENDDO
-         tpart_v(i,kts,j)= tpart_v(i,kts+1,j)    ! lowest level
-         tpart_v(i,kte,j)= tpart_v(i,kte-1,j)    ! highest level
-        ENDDO
-        ENDDO
-     ENDIF       ! endif (trigger.eq.2)          
 !
      DO J = jts,jte
      DO I= its,ite
@@ -3945,15 +3784,8 @@ CONTAINS
                P1D(K) =Pcps(I,K,J)
                W0AVG1D(K) =W0AVG(I,K,J)
                DZ1D(k)=dz8w(I,K,J)
-
-               IF (trigger.eq.2) THEN
-                  tpart_h1D(K) =tpart_h(I,K,J)
-                  tpart_v1D(K) =tpart_v(I,K,J)
-               ELSE
-                  tpart_h1D(K) = 0.
-                  tpart_v1D(K) = 0.
-               ENDIF
             ENDDO
+!
 !dkay
             IF (aercu_opt.gt.0) THEN
                 call mskf_mphyi ()
