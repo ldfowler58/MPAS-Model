@@ -399,12 +399,13 @@
  logical,pointer:: config_sst_update
  logical,pointer:: config_frac_seaice
  logical,pointer:: config_microp_re
-
+ logical,pointer:: config_jedi_da
 
  integer,pointer:: cam_dim1
  integer,pointer:: nMonths
  integer,pointer:: nAerosols,nAerLevels,nOznLevels
  integer,pointer:: nCellsSolve,nSoilLevels,nVertLevels
+ integer,pointer:: nFGLevels
 
  real(kind=RKIND),pointer:: config_dt
 
@@ -434,9 +435,9 @@
  call mpas_pool_get_config(configs,'config_sst_update'       ,config_sst_update       )
  call mpas_pool_get_config(configs,'config_frac_seaice'      ,config_frac_seaice      )
  call mpas_pool_get_config(configs,'config_microp_re'        ,config_microp_re        )
+ call mpas_pool_get_config(configs,'config_jedi_da'          ,config_jedi_da          )
 
  call mpas_pool_get_config(configs,'config_dt',config_dt)
-
 
  call mpas_pool_get_dimension(mesh,'cam_dim1'   ,cam_dim1   )
  call mpas_pool_get_dimension(mesh,'nMonths'    ,nMonths    )
@@ -446,6 +447,7 @@
  call mpas_pool_get_dimension(mesh,'nCellsSolve',nCellsSolve)
  call mpas_pool_get_dimension(mesh,'nSoilLevels',nSoilLevels)
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
+ call mpas_pool_get_dimension(mesh,'nFGLevels'  ,nFGLevels  )
 
  call mpas_pool_get_dimension(state,'num_aerosols',nAerosols)
 
@@ -727,7 +729,11 @@
  endif 
 
 !initialization of number of ozone levels:
- num_oznlevels = noznLevels
+ num_oznlevels = nOznLevels
+ if(config_jedi_da) num_oznlevels = nFGLevels-1
+ call mpas_log_write(' ')
+ call mpas_log_write('--- num_oznlevels = $i',intArgs=(/num_oznlevels/))
+ call mpas_log_write(' ')
 
 !initialization of sea-ice threshold:
  if(.not. config_frac_seaice) then
