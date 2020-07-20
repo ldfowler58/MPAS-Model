@@ -157,6 +157,9 @@
        if(.not.allocated(pin_p)        ) allocate(pin_p(num_oznlevels)                     )
        if(.not.allocated(o3clim_p)     ) allocate(o3clim_p(ims:ime,1:num_oznlevels,jms:jme))
 
+       if(.not.allocated(o3_p)         ) allocate(o3_p(ims:ime,1:num_oznlevels,jms:jme))
+       if(.not.allocated(po3_p)        ) allocate(po3_p(num_oznlevels)                 )
+
     case("cam_lw")
        if(.not.allocated(xlat_p)       ) allocate(xlat_p(ims:ime,jms:jme)               )
        if(.not.allocated(xlon_p)       ) allocate(xlon_p(ims:ime,jms:jme)               )
@@ -258,6 +261,9 @@
        if(allocated(pin_p)        ) deallocate(pin_p        )
        if(allocated(o3clim_p)     ) deallocate(o3clim_p     )
 
+       if(allocated(o3_p)         ) deallocate(o3_p         )
+       if(allocated(po3_p)        ) deallocate(po3_p        )
+
     case("cam_lw")
        if(allocated(pin_p)        ) deallocate(pin_p        )
        if(allocated(m_hybi_p)     ) deallocate(m_hybi_p     )          
@@ -296,7 +302,7 @@
  end subroutine deallocate_radiation_lw
 
 !=================================================================================================================
- subroutine radiation_lw_from_MPAS(xtime_s,configs,mesh,state,time_lev,diag_physics,atm_input, &
+ subroutine radiation_lw_from_MPAS(xtime_s,configs,mesh,state,time_lev,fg,diag_physics,atm_input, &
                                    sfc_input,its,ite)
 !=================================================================================================================
 
@@ -304,6 +310,7 @@
  type(mpas_pool_type),intent(in):: mesh
  type(mpas_pool_type),intent(in):: configs
  type(mpas_pool_type),intent(in):: state
+ type(mpas_pool_type),intent(in):: fg
  type(mpas_pool_type),intent(in):: atm_input
  type(mpas_pool_type),intent(in):: sfc_input
 
@@ -317,7 +324,7 @@
  type(mpas_pool_type),intent(inout):: diag_physics
 
 !local pointers:
- logical,pointer:: config_o3climatology
+ logical,pointer:: config_jedi_da,config_o3climatology
  character(len=StrKIND),pointer:: radt_lw_scheme
  character(len=StrKIND),pointer:: microp_scheme
  logical,pointer:: config_microp_re
@@ -328,15 +335,19 @@
  real(kind=RKIND),dimension(:),pointer    :: sfc_albedo,sfc_emiss
  real(kind=RKIND),dimension(:,:),pointer  :: cldfrac,m_hybi,o3clim,o3vmr
  real(kind=RKIND),dimension(:,:),pointer  :: re_cloud,re_ice,re_snow
+ real(kind=RKIND),dimension(:,:),pointer  :: p_fg,o3mr_fg
  real(kind=RKIND),dimension(:,:,:),pointer:: aerosols,ozmixm
 
 !local variables and arrays:
  integer:: ncols,nlevs
- integer:: i,j,k,n
+ integer:: i,j,k,kk,n
  real(kind=RKIND),dimension(:,:),allocatable:: p2d,o32d
 
 !-----------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine radiation_lw_from_MPAS:')
 
+ call mpas_pool_get_config(configs,'config_jedi_da'       ,config_jedi_da      )
  call mpas_pool_get_config(configs,'config_o3climatology' ,config_o3climatology)
  call mpas_pool_get_config(configs,'config_radt_lw_scheme',radt_lw_scheme      )
  call mpas_pool_get_config(configs,'config_microp_scheme' ,microp_scheme       )
@@ -346,6 +357,9 @@
  call mpas_pool_get_array(mesh,'lonCell',lonCell)
 
  call mpas_pool_get_array(state,'aerosols',aerosols,time_lev)
+
+ call mpas_pool_get_array(fg,'p_fg'   ,p_fg   )
+ call mpas_pool_get_array(fg,'o3mr_fg',o3mr_fg)
 
  call mpas_pool_get_array(sfc_input,'skintemp',skintemp)
  call mpas_pool_get_array(sfc_input,'snow'    ,snow    )
@@ -471,48 +485,45 @@
        enddo
 
        if(config_o3climatology) then
-          !ozone mixing ratio:
-          do k = 1, num_oznLevels
-             pin_p(k) = pin(k)
+!         call mpas_log_write(' ')
+!         call mpas_log_write('--- o3climatology:')
+!         call mpas_log_write('--- num_oznlevels = $i',intArgs=(/num_oznlevels/))
+          do k = 1,num_oznlevels
+             po3_p(k) = pin(k)
           enddo
           do j = jts,jte
-          do k = 1, num_oznLevels
-             do i = its,ite
-                o3clim_p(i,k,j) = o3clim(k,i)
+             do k = 1, num_oznLevels
+                do i = its,ite
+                   o3_p(i,k,j) = o3clim(k,i)
+                enddo
              enddo
           enddo
+       elseif(config_jedi_da) then
+!         call mpas_log_write(' ')
+!         call mpas_log_write('--- jedi_da:')
+!         call mpas_log_write('--- num_oznlevels = $i',intArgs=(/num_oznlevels/))
+          do k = 1,num_oznlevels
+             kk = num_oznlevels+2-k
+             po3_p(k) = p_fg(kk,1)/100.
           enddo
-
-          nlevs = kte-kts+1
-          ncols = ite-its+1
-          if(.not.allocated(p2d) ) allocate(p2d(its:ite,kts:kte) )
-          if(.not.allocated(o32d)) allocate(o32d(its:ite,kts:kte))
           do j = jts,jte
-             do i = its,ite
-             do k = kts,kte
-                o32d(i,k) = 0._RKIND
-                p2d(i,k)  = pres_hyd_p(i,k,j) / 100._RKIND
-             enddo
-             enddo
-             call vinterp_ozn(1,ncols,ncols,nlevs,p2d,pin_p,num_oznlevels,o3clim_p(1,1,j),o32d)
-             do i = its,ite
-             do k = kts,kte
-                o3vmr(k,i) = o32d(i,k)
-             enddo
+             do k = 1,num_oznlevels
+                kk = num_oznlevels+2-k
+                do i = its,ite
+                   o3_p(i,k,j) = o3mr_fg(kk,i)
+                enddo
              enddo
           enddo
-          if(allocated(p2d))  deallocate(p2d)
-          if(allocated(o32d)) deallocate(o32d)
        else
-          do k = 1, num_oznLevels
-             pin_p(k) = 0.0_RKIND
+          do k = 1,num_oznlevels
+             po3_p(k) = 0._RKIND
           enddo
           do j = jts,jte
-          do k = 1, num_oznLevels
-             do i = its,ite
-                o3clim_p(i,k,j) = 0.0_RKIND
+             do k = 1,num_oznlevels
+                do i = its,ite
+                   o3_p(i,k,j) = 0._RKIND
+                enddo
              enddo
-          enddo
           enddo
        endif
 
@@ -610,6 +621,9 @@
     case default
 
  end select radiation_lw_select
+
+!call mpas_log_write('--- end subroutine radiation_lw_from_MPAS:')
+!call mpas_log_write(' ')
 
  end subroutine radiation_lw_from_MPAS
 
@@ -807,15 +821,16 @@
  end subroutine init_radiation_lw
 
 !=================================================================================================================
- subroutine driver_radiation_lw(xtime_s,configs,mesh,state,time_lev,diag_physics,atm_input, &
+ subroutine driver_radiation_lw(xtime_s,configs,mesh,state,time_lev,fg,diag_physics,atm_input, &
                                 sfc_input,tend_physics,its,ite)
 !=================================================================================================================
 
 !input arguments:
- type(mpas_pool_type),intent(in):: mesh
  type(mpas_pool_type),intent(in):: configs
- integer,intent(in):: its,ite
+ type(mpas_pool_type),intent(in):: mesh
+ type(mpas_pool_type),intent(in):: fg
 
+ integer,intent(in):: its,ite
  integer,intent(in):: time_lev
  real(kind=RKIND),intent(in):: xtime_s
 
@@ -827,7 +842,7 @@
  type(mpas_pool_type),intent(inout):: tend_physics
 
 !local pointers:
- logical,pointer:: config_o3climatology
+ logical,pointer:: config_jedi_da,config_o3climatology
  character(len=StrKIND),pointer:: radt_lw_scheme
 
 !local variables:
@@ -837,18 +852,19 @@
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' --- enter subroutine driver_radiation_lw: ')
 
+ call mpas_pool_get_config(configs,'config_jedi_da'       ,config_jedi_da      )
  call mpas_pool_get_config(configs,'config_o3climatology' ,config_o3climatology)
  call mpas_pool_get_config(configs,'config_radt_lw_scheme',radt_lw_scheme      )
 
 !copy MPAS arrays to local arrays:
- call radiation_lw_from_MPAS(xtime_s,configs,mesh,state,time_lev,diag_physics,atm_input,sfc_input,its,ite)
+ call radiation_lw_from_MPAS(xtime_s,configs,mesh,state,time_lev,fg,diag_physics,atm_input,sfc_input,its,ite)
 
 !call to longwave radiation scheme:
  radiation_lw_select: select case (trim(radt_lw_scheme))
 
     case ("rrtmg_lw")
        o3input = 0
-       if(config_o3climatology) o3input = 2
+       if(config_o3climatology .or. config_jedi_da) o3input = 2
 
        call mpas_timer_start('RRTMG_lw')
        call rrtmg_lwrad( &
@@ -860,7 +876,7 @@
             qs3d       = qsrad_p       , cldfra3d  = cldfrac_p   , tsk      = tsk_p    , &
             emiss      = sfc_emiss_p   , xland     = xland_p     , xice     = xice_p   , &
             snow       = snow_p        , icloud    = icloud      , o3input  = o3input  , &
-            noznlevels = num_oznlevels , pin       = pin_p       , o3clim   = o3clim_p , &
+            noznlevels = num_oznlevels , pin       = po3_p       , o3clim   = o3_p     , &
             glw        = glw_p         , olr       = olrtoa_p    , lwcf     = lwcf_p   , &
             rthratenlw = rthratenlw_p  , has_reqc  = has_reqc    , has_reqi = has_reqi , &
             has_reqs   = has_reqs      , re_cloud  = recloud_p   , re_ice   = reice_p  , &

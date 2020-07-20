@@ -28,6 +28,8 @@
                      description="A constant value of 21"/>
                 <dim name="R3"                 definition="3"
                      description="The dimensionality of vectors in $\Re^3$"/>
+                <dim name="nFGLevels"
+                     description="The number of atmospheric levels in the first-guess dataset"/>
                 <dim name="nVertLevels"
                      description="The number of atmospheric layers"/>
                 <dim name="nVertLevelsP1"      definition="nVertLevels+1"
@@ -520,6 +522,8 @@
 			<var name="ol3"/>
 			<var name="ol4"/>
 			<var name="h_oml_initial"/>
+			<var name="p_fg"/>
+			<var name="o3mr_fg"/>
 		</stream>
 
 		<stream name="restart" 
@@ -847,6 +851,8 @@
 			<var name="h_oml_initial"/>
 			<var name="hu_oml"/>
 			<var name="hv_oml"/>
+			<var name="p_fg"/>
+			<var name="o3mr_fg"/>
 		</stream>
 
 		<stream name="output" 
@@ -3137,5 +3143,19 @@
 <!-- **************************************************************************************** -->
 
 #include "diagnostics/Registry_diagnostics.xml"
+
+        <!-- ================================================================================================== -->
+        <!-- ... FIRST-GUESS DATA NEEDED FOR INTERPOLATION OF PHYSICS DIAGNOSTICS:                              -->
+        <!-- ================================================================================================== -->
+
+        <var_struct name="fg" time_levs="1">
+
+                <var name="o3mr_fg" type="real" dimensions="nFGLevels nCells Time" units="kg kg^{-1}"
+                     description="First guess ozone mixing ratio packages=jedi_da"/>
+
+                <var name="p_fg" type="real" dimensions="nFGLevels nCells Time" units="Pa"
+                     description="First-guess pressures packages=jedi_da"/>
+
+        </var_struct>
 
 </registry>

@@ -762,6 +762,17 @@
  real(kind=RKIND),dimension(:,:),allocatable:: regime_hold
  real(kind=RKIND),dimension(:,:),allocatable:: tsk_ice
 
+!=================================================================================================================
+!.. variables and arrays related to input first_guess data:
+!=================================================================================================================
+
+ real(kind=RKIND),dimension(:),allocatable:: &
+    po3_p              !
+ real(kind=RKIND),dimension(:,:,:),allocatable:: &
+    o3_p               !
+
+!=================================================================================================================
+
 
  contains
 

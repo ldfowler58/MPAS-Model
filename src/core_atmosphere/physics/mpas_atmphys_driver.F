@@ -117,6 +117,7 @@
  type(mpas_pool_type),pointer::  configs,      &
                                  mesh,         &
                                  state,        &
+                                 fg,           &
                                  diag,         &
                                  diag_physics, &
                                  tend_physics, &
@@ -176,6 +177,7 @@
 
     call mpas_pool_get_subpool(block%structs,'mesh'        ,mesh        )
     call mpas_pool_get_subpool(block%structs,'state'       ,state       )
+    call mpas_pool_get_subpool(block%structs,'fg'          ,fg          )
     call mpas_pool_get_subpool(block%structs,'diag'        ,diag        )
     call mpas_pool_get_subpool(block%structs,'diag_physics',diag_physics)
     call mpas_pool_get_subpool(block%structs,'atm_input'   ,atm_input   )
@@ -217,7 +219,7 @@
        call allocate_radiation_sw(block%configs,xtime_s)
 !$OMP PARALLEL DO
        do thread=1,nThreads
-          call driver_radiation_sw(itimestep,block%configs,mesh,state,time_lev,diag_physics, &
+          call driver_radiation_sw(itimestep,block%configs,mesh,state,time_lev,fg,diag_physics, &
                                    atm_input,sfc_input,tend_physics,xtime_s, &
                                    cellSolveThreadStart(thread), cellSolveThreadEnd(thread))
        end do
@@ -230,7 +232,7 @@
        call allocate_radiation_lw(block%configs,xtime_s)
 !$OMP PARALLEL DO
        do thread=1,nThreads
-          call driver_radiation_lw(xtime_s,block%configs,mesh,state,time_lev,diag_physics, &
+          call driver_radiation_lw(xtime_s,block%configs,mesh,state,time_lev,fg,diag_physics, &
                                    atm_input,sfc_input,tend_physics, &
                                    cellSolveThreadStart(thread), cellSolveThreadEnd(thread))
        end do
