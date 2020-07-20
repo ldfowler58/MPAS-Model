@@ -36,7 +36,6 @@ module atm_core
       real (kind=RKIND), pointer :: dt
       type (block_type), pointer :: block
 
-      integer :: i
       logical, pointer :: config_do_restart
 
       type (mpas_pool_type), pointer :: state
@@ -201,8 +200,8 @@ module atm_core
       type (mpas_pool_type), intent(inout) :: configs
       integer, intent(out) :: ierr
 
-      type (MPAS_Time_Type) :: startTime, stopTime, alarmStartTime
-      type (MPAS_TimeInterval_type) :: runDuration, timeStep, alarmTimeStep
+      type (MPAS_Time_Type) :: startTime, stopTime
+      type (MPAS_TimeInterval_type) :: runDuration, timeStep
       integer :: local_err
       real (kind=RKIND), pointer :: config_dt
       character (len=StrKIND), pointer :: config_start_time
@@ -504,9 +503,6 @@ module atm_core
 
       type (mpas_pool_type), pointer :: state, diag, mesh, diag_physics, tend, tend_physics
 
-      ! For high-frequency diagnostics output
-      character (len=StrKIND) :: tempfilename
-
       ! For timing information
       real (kind=R8KIND) :: integ_start_time, integ_stop_time
       real (kind=R8KIND) :: diag_start_time, diag_stop_time
@@ -722,9 +718,8 @@ module atm_core
             block_ptr => domain % blocklist
             do while (associated(block_ptr))
 
-               call mpas_pool_get_subpool(block_ptr % structs, 'diag', diag)
                call mpas_pool_get_subpool(block_ptr % structs, 'diag_physics', diag_physics)
-               call atm_reset_diagnostics(diag, diag_physics)
+               call atm_reset_diagnostics(diag_physics)
 
                block_ptr => block_ptr % next
             end do
@@ -802,19 +797,17 @@ module atm_core
    end subroutine atm_compute_output_diagnostics
    
    
-   subroutine atm_reset_diagnostics(diag, diag_physics)
+   subroutine atm_reset_diagnostics(diag_physics)
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    ! reset some diagnostics after output
    !
-   ! Input: diag          - contains dynamics diagnostic fields
-   !        daig_physics  - contains physics diagnostic fields
+   ! Input: diag_physics  - contains physics diagnostic fields
    !
    ! Output: whatever diagnostics need resetting after output
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    
       implicit none
    
-      type (mpas_pool_type), intent(inout) :: diag
       type (mpas_pool_type), intent(inout) :: diag_physics
    
       real (kind=RKIND), dimension(:), pointer :: refl10cm_1km_max
