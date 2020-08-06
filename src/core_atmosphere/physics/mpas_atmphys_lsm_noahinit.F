@@ -274,7 +274,7 @@
        else
           call physics_message('    skipping over lutype = ' // trim ( lutype ))
           do lc = 1, lucats+20
-             read(16,*)
+             read(read_unit,*)
           enddo
        endif
     enddo find_lutype
@@ -302,35 +302,35 @@
 
     if(lutype.eq.mminlu)then
        do lc = 1, lucats
-          read(16,*) iindex,shdtbl(lc),nrotbl(lc),rstbl(lc),rgltbl(lc),hstbl(lc),snuptbl(lc),  &
-                     maxalb(lc),laimintbl(lc),laimaxtbl(lc),emissmintbl(lc),emissmaxtbl(lc),   &
-                     albedomintbl(lc),albedomaxtbl(lc),z0mintbl(lc),z0maxtbl(lc),ztopvtbl(lc), &
-                     zbotvtbl(lc)
+          read(read_unit,*) iindex,shdtbl(lc),nrotbl(lc),rstbl(lc),rgltbl(lc),hstbl(lc),snuptbl(lc),  &
+                            maxalb(lc),laimintbl(lc),laimaxtbl(lc),emissmintbl(lc),emissmaxtbl(lc),   &
+                            albedomintbl(lc),albedomaxtbl(lc),z0mintbl(lc),z0maxtbl(lc),ztopvtbl(lc), &
+                            zbotvtbl(lc)
        enddo
-       read (16,*)
-       read (16,*)topt_data
-       read (16,*)
-       read (16,*)cmcmax_data
-       read (16,*)
-       read (16,*)cfactr_data
-       read (16,*)
-       read (16,*)rsmax_data
-       read (16,*)
-       read (16,*)bare
-       read (16,*)
-       read (16,*)natural
-       read (16,*)
-       read (16,*)
-       read (16,*)
-       read (16,*)low_density_residential
-       read (16,*)
-       read (16,*)high_density_residential
-       read (16,*)
-       read (16,*)high_intensity_industrial
+       read (read_unit,*)
+       read (read_unit,*)topt_data
+       read (read_unit,*)
+       read (read_unit,*)cmcmax_data
+       read (read_unit,*)
+       read (read_unit,*)cfactr_data
+       read (read_unit,*)
+       read (read_unit,*)rsmax_data
+       read (read_unit,*)
+       read (read_unit,*)bare
+       read (read_unit,*)
+       read (read_unit,*)natural
+       read (read_unit,*)
+       read (read_unit,*)
+       read (read_unit,*)
+       read (read_unit,*)low_density_residential
+       read (read_unit,*)
+       read (read_unit,*)high_density_residential
+       read (read_unit,*)
+       read (read_unit,*)high_intensity_industrial
     endif
 
     2002 continue
-    close (read_unit)
+    call mpas_release_unit(read_unit)
     if(lumatch == 0) &
        call physics_error_fatal ('land use dataset '''//mminlu//''' not found in VEGPARM.TBL.')
       
