@@ -24,6 +24,10 @@ module init_atm_cases
    use mpas_atmphys_functions
    use mpas_atmphys_initialize_real
    use mpas_log, only : mpas_log_write
+#ifdef ATM_CHEMISTRY
+   use mpas_init_atm_chems
+   use mpas_init_atm_tracers
+#endif
 
    ! Added only clause to keep xlf90 from getting confused from the overloaded abs intrinsic in mpas_timekeeping
    use mpas_timekeeping !, only: MPAS_Time_type, MPAS_TimeInterval_type, MPAS_Clock_type, &
@@ -68,6 +72,10 @@ module init_atm_cases
       logical, pointer :: config_native_gwd_static
       logical, pointer :: config_met_interp
       logical, pointer :: config_blend_bdy_terrain
+#ifdef ATM_CHEMISTRY
+      logical, pointer :: config_chems_interp
+      logical, pointer :: config_tracers_interp
+#endif
       character (len=StrKIND), pointer :: config_start_time
       character (len=StrKIND), pointer :: config_met_prefix
 
@@ -173,6 +181,10 @@ module init_atm_cases
             call mpas_pool_get_config(block_ptr % configs, 'config_native_gwd_static', config_native_gwd_static)
             call mpas_pool_get_config(block_ptr % configs, 'config_met_interp', config_met_interp)
             call mpas_pool_get_config(block_ptr % configs, 'config_blend_bdy_terrain', config_blend_bdy_terrain)
+#ifdef ATM_CHEMISTRY
+            call mpas_pool_get_config(block_ptr % configs, 'config_chems_interp', config_chems_interp)
+            call mpas_pool_get_config(block_ptr % configs, 'config_tracers_interp', config_tracers_interp)
+#endif
 
             call mpas_pool_get_subpool(block_ptr % structs, 'mesh', mesh)
             call mpas_pool_get_subpool(block_ptr % structs, 'fg', fg)
@@ -258,6 +270,10 @@ module init_atm_cases
             if (config_met_interp) then
                call init_atm_gocart(block_ptr, mesh, block_ptr % configs, diag, state)
                call physics_initialize_real(mesh, fg, domain % dminfo, block_ptr % dimensions, block_ptr % configs)
+#ifdef ATM_CHEMISTRY
+               if(config_chems_interp) call init_atm_chems(block_ptr, mesh, block_ptr % configs, state)
+               if(config_tracers_interp) call init_atm_tracers(block_ptr, mesh, block_ptr % configs, state)
+#endif
             end if
 
             block_ptr => block_ptr % next

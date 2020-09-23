@@ -1,0 +1,35 @@
+<!-- ========================================================================================================= -->
+<!-- CO emissions and species:                                                                                 -->
+<!-- ========================================================================================================= -->
+
+ <var_struct name="mesh" time_levs="1">
+
+      <var_array name="CO" type="real" dimensions="nCells">
+           <var name="CO_em_anthro" array_group="CO_emissions" units="kg m^{-2} s^{-1}"
+                     description="CO anthropogenic emission - sector All"/> 
+
+           <var name="CO_em_anthro_energy" array_group="CO_emissions" units="kg m^{-2} s^{-1}"
+                     description="CO anthropogenic emission - sector Energy"/>
+
+           <var name="CO_em_anthro_industrial" array_group="CO_emissions" units="kg m^{-2} s^{-1}"
+                     description="CO anthropogenic emission - sector Industrial"/>
+       </var_array>
+
+ </var_struct>
+
+ <var_struct name="state" time_levs="1">
+
+      <var_array name="chems" type="real" dimensions="nVertLevels nCells Time">
+           <var name="CO_anthro" array_group="CO_chems" units="kg kg^{-1}"
+                     description="CO anthropogenic mixing ratio - sector All"/> 
+
+           <var name="CO_anthro_energy" array_group="CO_chems" units="kg kg^{-1}"
+                     description="CO anthropogenic mixing ratio - sector Energy"/>
+
+           <var name="CO_anthro_industrial" array_group="CO_chems" units="kg kg^{-1}"
+                     description="CO anthropogenic mixing ratio - sector Industrial"/>
+      </var_array>
+
+ </var_struct>
+
+<!-- ========================================================================================================= -->
