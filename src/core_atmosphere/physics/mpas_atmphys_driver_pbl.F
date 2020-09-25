@@ -14,6 +14,11 @@
  use mpas_atmphys_constants
  use mpas_atmphys_vars
 
+#ifdef ATM_CHEMISTRY
+ use mpas_atmphys_chems_physics
+ use mpas_atmphys_tracers_physics
+#endif
+
 !wrf physics:
  use module_bl_mynn
  use module_bl_ysu
@@ -676,7 +681,11 @@
  end subroutine pbl_to_MPAS
  
 !=================================================================================================================
+#ifdef ATM_CHEMISTRY
+ subroutine driver_pbl(itimestep,configs,mesh,sfc_input,diag_physics,tend_physics,its,ite,mpas_chems,mpas_tracers)
+#else
  subroutine driver_pbl(itimestep,configs,mesh,sfc_input,diag_physics,tend_physics,its,ite)
+#endif
 !=================================================================================================================
 
 !input arguments:
@@ -690,6 +699,10 @@
  type(mpas_pool_type),intent(inout):: sfc_input
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: tend_physics
+#ifdef ATM_CHEMISTRY
+ type(chems_physics),intent(inout)  :: mpas_chems
+ type(tracers_physics),intent(inout):: mpas_tracers
+#endif
 
 !local pointers:
  logical,pointer:: config_do_restart
@@ -698,11 +711,13 @@
                    bl_mynn_edmf,       &
                    bl_mynn_closure,    &
                    bl_mynn_mixscalars, &
-                   bl_mynn_cloudmix
+                   bl_mynn_cloudmix,   &
+                   bl_mynn_mixchem      !note: this pointer is not assigned when the preprocessing directive
+                                        !ATM_CHEMISTRY is not activated.
 
 !local variables:
  integer:: initflag
- integer:: i,k,j
+ integer:: i,k,j,it
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write('')
@@ -762,6 +777,11 @@
        call mpas_log_write('--- config_mynn_mixscalars = $i',intArgs=(/bl_mynn_mixscalars/))
        call mpas_log_write('--- config_mynn_mixclouds  = $i',intArgs=(/bl_mynn_cloudmix/))
 
+#ifdef ATM_CHEMISTRY
+       call mpas_pool_get_config(configs,'config_mynn_mixchems' ,bl_mynn_mixchem)
+       call mpas_log_write('--- config_mynn_mixchems   = $i',intArgs=(/bl_mynn_mixchem/))
+#endif
+
        call mpas_timer_start('bl_mynn')
        call mynn_bl_driver ( &
                  p           = pres_hyd_p   , exner        = pi_p           , ps           = psfc_p         , &
@@ -804,6 +824,13 @@
                  bl_mynn_edmf       = bl_mynn_edmf        ,                                                   &
                  bl_mynn_edmf_mom   = bl_mynn_edmf_mom    ,                                                   &
                  bl_mynn_edmf_tke   = bl_mynn_edmf_tke    ,                                                   &
+#ifdef ATM_CHEMISTRY
+                 bl_mynn_mixchem    = bl_mynn_mixchem          ,                                               &
+                 kdvel              = mpas_chems%kdepvel       , ndvel        = mpas_chems%ndepvel           , &
+                 num_vert_mix       = mpas_chems%nchems_mix    , nchem        = mpas_chems%nchems            , &
+                 ntracer            = mpas_tracers%ntracers    ,                                               &
+                 tracer3d           = mpas_tracers%tracers_p   , rtracerblten = mpas_tracers%rtracersblten_p , &
+#endif
                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde      , &
                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme      , &
                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte        &

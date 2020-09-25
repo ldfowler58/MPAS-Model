@@ -8,10 +8,10 @@ OBJS = mpas_atm_core.o \
        mpas_atm_dimensions.o \
        mpas_atm_threading.o
 
-all: physcore dycore diagcore atmcore utilities
+all: physcore_init chemcore physcore dycore diagcore atmcore utilities
 
 core_reg:
-	$(CPP) $(CPPFLAGS) $(CPPINCLUDES) Registry.xml > Registry_processed.xml
+	$(CPP) $(CPPFLAGS) $(CPPINCLUDES) $(MODEL_FORMULATION) Registry.xml > Registry_processed.xml
 
 core_input_gen:
 	if [ ! -e default_inputs ]; then  mkdir default_inputs; fi
@@ -19,7 +19,7 @@ core_input_gen:
 	( cd default_inputs; $(ST_GEN) ../Registry_processed.xml streams.atmosphere stream_list.atmosphere. listed )
 
 gen_includes:
-	$(CPP) $(CPPFLAGS) $(CPPINCLUDES) Registry.xml > Registry_processed.xml
+	$(CPP) $(CPPFLAGS) $(CPPINCLUDES) $(MODEL_FORMULATION) Registry.xml > Registry_processed.xml
 	(if [ ! -d inc ]; then mkdir -p inc; fi) # To generate *.inc files
 	(cd inc; $(REG_PARSE) < ../Registry_processed.xml )
 
@@ -28,13 +28,19 @@ post_build:
 	cp default_inputs/* $(ROOT_DIR)/default_inputs/.
 	( cd $(ROOT_DIR)/default_inputs; for FILE in `ls -1`; do if [ ! -e ../$$FILE ]; then cp $$FILE ../.; fi; done )
 
+physcore_init:
+	( cd physics; $(MAKE) core_physics_init )
+
 physcore: mpas_atm_dimensions.o
 	( cd physics; $(MAKE) all )
-	( mkdir libphys; cd libphys; ar -x ../physics/libphys.a )
+	( mkdir libphys; cd libphys; ar -x ../chemistry/libchem.a; ar -x ../physics/libphys.a )
 	( cd ../..; ln -sf ./src/core_atmosphere/physics/physics_wrf/files/*TBL .)
 	( cd ../..; ln -sf ./src/core_atmosphere/physics/physics_wrf/files/*DATA* .)
 
-dycore: mpas_atm_dimensions.o physcore
+chemcore: physcore_init
+	( cd chemistry; $(MAKE) all PHYSICS="$(PHYSICS)")
+
+dycore: mpas_atm_dimensions.o chemcore physcore
 	( cd dynamics; $(MAKE) all PHYSICS="$(PHYSICS)" )
 
 diagcore: physcore dycore
@@ -54,12 +60,14 @@ mpas_atm_dimensions.o:
 
 clean:
 	( cd physics; $(MAKE) clean )
+	( cd chemistry; $(MAKE) clean )
 	( cd dynamics; $(MAKE) clean )
 	( cd diagnostics; $(MAKE) clean )
 	( cd utils; $(MAKE) clean )
 	( cd ../..; rm -f *TBL )
 	( cd ../..; rm -f *DATA* )
 	$(RM) -r libphys
+	$(RM) -r libchem
 	$(RM) *.o *.mod *.f90 libdycore.a
 	$(RM) Registry_processed.xml
 	@# Certain systems with intel compilers generate *.i files
@@ -71,7 +79,7 @@ clean:
 	$(RM) $@ $*.mod
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(PHYSICS) $(CPPINCLUDES) -I./inc $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../framework -I../operators -I./chemistry -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./chemistry -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I../external/esmf_time_f90
 endif
