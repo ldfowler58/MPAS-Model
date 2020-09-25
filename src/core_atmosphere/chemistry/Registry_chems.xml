@@ -1,0 +1,94 @@
+<!-- ========================================================================================================= -->
+<!-- chemical species:                                                                                         -->
+<!-- ========================================================================================================= -->
+
+ <var_struct name="mesh" time_levs="1">
+
+      <var_array name="CO" type="real" dimensions="nCells">
+           <var name="CO_em_anthro" array_group="CO_emissions" units="kg m^{-2} s^{-1}"
+                     description="CO anthropogenic emission - sector All"/>
+
+           <var name="CO_em_anthro_energy" array_group="CO_emissions" units="kg m^{-2} s^{-1}"
+                     description="CO anthropogenic emission - sector Energy"/>
+
+           <var name="CO_em_anthro_industrial" array_group="CO_emissions" units="kg m^{-2} s^{-1}"
+                     description="CO anthropogenic emission - sector Industrial"/>
+       </var_array>
+
+ </var_struct>
+
+<!-- state variables for the chemical species: -->
+ <var_struct name="state" time_levs="2">
+
+      <var_array name="chems" type="real" dimensions="nVertLevels nCells Time">
+           <var name="CO_anthro" array_group="CO_chems" units="kg kg^{-1}"
+                     description="CO anthropogenic mixing ratio - sector All"/>
+
+           <var name="CO_anthro_energy" array_group="CO_chems" units="kg kg^{-1}"
+                     description="CO anthropogenic mixing ratio - sector Energy"/>
+
+           <var name="CO_anthro_industrial" array_group="CO_chems" units="kg kg^{-1}"
+                     description="CO anthropogenic mixing ratio - sector Industrial"/>
+      </var_array>
+
+ </var_struct>
+
+
+ <var_struct name="tend" time_levs="1">
+
+      <var_array name="chems_tend" type="real" dimensions="nVertLevels nCells Time">
+           <var name="tend_CO_anthro" name_in_code="CO_anthro" array_group="CO_chems" 
+                     units="dimensionless"
+                     description="tendency of CO anthropogenic mixing ratio - sector All"/>
+
+           <var name="tend_CO_anthro_energy" name_in_code="CO_anthro_energy" array_group="CO_chems"
+                     units="dimensionless"
+                     description="tendency of CO anthropogenic mixing ratio - sector Energy"/>
+
+           <var name="tend_CO_anthro_industrial" name_in_code="CO_anthro_industrial" array_group="CO_chems"
+                     units="dimensionless"
+                     description="tendency of CO anthropogenic mixing ratio - sector Industrial"/>
+      </var_array>
+      
+ </var_struct>
+
+
+<!-- tendencies associated with boundary layer and convective transport of chemical species: -->
+ <var_struct name="tend_chems" time_levs="1">
+
+      <var_array name="bl_chems" type="real" dimensions="nVertLevels nCells Time">
+           <var name="bl_CO_anthro" array_group="bl_CO_chems" units="dimensionless"
+                     description=" "/>
+
+           <var name="bl_CO_anthro_energy" array_group="bl_CO_chems" units="dimensionless"
+                     description=" "/>
+
+           <var name="bl_CO_anthro_industrial" array_group="bl_CO_chems" units="dimensionless"
+                     description=" "/>
+      </var_array>
+
+      <var_array name="cu_chems" type="real" dimensions="nVertLevels nCells Time">
+           <var name="cu_CO_anthro" array_group="cu_CO_chems" units="dimensionless"
+                     description=" "/>
+
+           <var name="cu_CO_anthro_energy" array_group="cu_CO_chems" units="dimensionless"
+                     description=" "/>
+
+           <var name="cu_CO_anthro_industrial" array_group="cu_CO_chems" units="dimensionless"
+                     description=" "/>
+      </var_array>
+
+      <var_array name="dyn_chems" type="real" dimensions="nVertLevels nCells Time">
+           <var name="dyn_CO_anthro" array_group="dyn_CO_chems" units="dimensionless"
+                     description=" "/>
+
+           <var name="dyn_CO_anthro_energy" array_group="dyn_CO_chems" units="dimensionless"
+                     description=" "/>
+
+           <var name="dyn_CO_anthro_industrial" array_group="dyn_CO_chems" units="dimensionless"
+                     description=" "/>
+      </var_array>
+
+ </var_struct>
+
+<!-- ========================================================================================================= -->
