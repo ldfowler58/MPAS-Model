@@ -11,6 +11,7 @@ dummy:
 
 OBJS = \
 	module_mynn_get_pblh.o \
+	mpas_atmphys_advection.o \
 	mpas_atmphys_chems.o \
 	mpas_atmphys_chems_physics.o \
 	mpas_atmphys_tracers.o \

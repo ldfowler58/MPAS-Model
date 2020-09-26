@@ -8,7 +8,7 @@ OBJS = mpas_atm_core.o \
        mpas_atm_dimensions.o \
        mpas_atm_threading.o
 
-all: physcore_init chemcore physcore dycore diagcore atmcore utilities
+all: dycore_init physcore_init chemcore physcore dycore diagcore atmcore utilities
 
 core_reg:
 	$(CPP) $(CPPFLAGS) $(CPPINCLUDES) $(MODEL_FORMULATION) Registry.xml > Registry_processed.xml
@@ -27,6 +27,9 @@ post_build:
 	if [ ! -e $(ROOT_DIR)/default_inputs ]; then mkdir $(ROOT_DIR)/default_inputs; fi
 	cp default_inputs/* $(ROOT_DIR)/default_inputs/.
 	( cd $(ROOT_DIR)/default_inputs; for FILE in `ls -1`; do if [ ! -e ../$$FILE ]; then cp $$FILE ../.; fi; done )
+
+dycore_init:
+	( cd dynamics; $(MAKE) core_dynamics_init PHYSICS="$(PHYSICS)" )
 
 physcore_init:
 	( cd physics; $(MAKE) core_physics_init )

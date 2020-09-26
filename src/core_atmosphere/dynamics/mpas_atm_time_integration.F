@@ -23,6 +23,11 @@ module atm_time_integration
    use mpas_atmphys_driver_microphysics
    use mpas_atmphys_todynamics
    use mpas_atmphys_utilities
+#ifdef ATM_CHEMISTRY
+   use mpas_atmphys_advection
+   use mpas_atmphys_chems
+   use mpas_atmphys_tracers
+#endif
 #endif
 
    use mpas_atm_boundaries, only : nSpecZone, nRelaxZone, nBdyZone, mpas_atm_get_bdy_state, mpas_atm_get_bdy_tend  ! regional_MPAS addition
@@ -220,6 +225,19 @@ module atm_time_integration
       type (field2DReal), pointer :: pv_edge_field
       type (field2DReal), pointer :: rho_edge_field
       type (field2DReal), pointer :: exner_field
+#ifdef DO_PHYSICS
+#ifdef ATM_CHEMISTRY
+      type (mpas_pool_type), pointer :: tend_chems
+      type (mpas_pool_type), pointer :: tend_tracers
+
+      type(field3DReal),pointer:: chems_field
+      type(field3DReal),pointer:: chems_field2
+      type(field3DReal),pointer:: tracers_field
+      type(field3DReal),pointer:: tracers_field2
+      real(kind=RKIND),dimension(:,:,:),pointer:: tracers_array1
+      real(kind=RKIND),dimension(:,:,:),pointer:: tracers_array2
+#endif
+#endif
 
       real (kind=RKIND), dimension(:,:), pointer :: w
       real (kind=RKIND), dimension(:,:), pointer :: u, uReconstructZonal, uReconstructMeridional, uReconstructX, uReconstructY, uReconstructZ
@@ -340,6 +358,13 @@ module atm_time_integration
 ! rtheta_p
       call mpas_dmpar_exch_halo_field(rtheta_p_field)
 
+#ifdef DO_PHYSICS
+#ifdef ATM_CHEMISTRY
+      call mpas_pool_get_field(state,'tracers',tracers_field,1)
+      call mpas_dmpar_exch_halo_field(tracers_field)
+      call atmphys_rk_integration_setup(domain)
+#endif
+#endif
 
       call mpas_timer_start('atm_rk_integration_setup')
 
@@ -450,6 +475,31 @@ module atm_time_integration
          block => block % next
       end do
       call mpas_timer_stop('physics_get_tend')
+#ifdef ATM_CHEMISTRY
+!     call mpas_timer_start('chems_get_tend')
+!     block => domain % blocklist
+!     do while (associated(block))
+!        call mpas_pool_get_subpool(block%structs,'mesh',mesh)
+!        call mpas_pool_get_subpool(block%structs,'state',state)
+!        call mpas_pool_get_subpool(block%structs,'tend',tend)
+!        call mpas_pool_get_subpool(block%structs,'tend_chems',tend_chems)
+!        call chems_get_tend(block,block%configs,mesh,state,tend,tend_chems)
+!        block => block % next
+!     end do
+!     call mpas_timer_stop('chems_get_tend')
+
+      call mpas_timer_start('tracers_get_tend')
+      block => domain % blocklist
+      do while (associated(block))
+         call mpas_pool_get_subpool(block%structs,'mesh',mesh)
+         call mpas_pool_get_subpool(block%structs,'state',state)
+         call mpas_pool_get_subpool(block%structs,'tend',tend)
+         call mpas_pool_get_subpool(block%structs,'tend_tracers',tend_tracers)
+         call tracers_get_tend(block,block%configs,mesh,state,tend,tend_tracers)
+         block => block % next
+      end do
+      call mpas_timer_stop('tracers_get_tend')
+#endif
 #else
       !
       ! If no physics are being used, simply zero-out the physics tendency fields
@@ -1577,6 +1627,29 @@ module atm_time_integration
          end do RK3_SPLIT_TRANSPORT
 
       end if
+
+#ifdef DO_PHYSICS
+#ifdef ATM_CHEMISTRY
+!--- MODIFICATIONS TO THE ORIGINAL ADVECTION OF SCALARS START HERE (for now, advection of scalars and passive tracers
+!    only works if config_split_dynamics_transport is true. also, will need to add extra sourcecode needed to run the
+!    regional version of MPAS (see original sourcecode):
+!    Laura D. Fowler (laura@ucar.edu) / 2020-08-24.
+      if(config_scalar_advection .and. config_split_dynamics_transport) then
+         rk_timestep(1) = dt/3.
+         rk_timestep(2) = dt/2.
+         rk_timestep(3) = dt
+         !  switch for 2nd order time integration for scalar transport
+         if(config_time_integration_order == 2) rk_timestep(1) = dt/2.
+
+         call mpas_log_write(' ')
+         call mpas_timer_start('--- advection tracers:')
+         call mpas_log_write('--- start advection tracers:')
+         call atmphys_advection(domain,rk_timestep,'tracers')
+         call mpas_log_write('--- end advection tracers:')
+         call mpas_timer_stop('--- advection tracers:')
+      endif
+#endif
+#endif
 
       !
       ! reconstruct full velocity vectors at cell centers:

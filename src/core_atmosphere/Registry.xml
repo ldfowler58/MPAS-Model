@@ -980,9 +980,9 @@
 			<var name="hu_oml"/>
 			<var name="hv_oml"/>
 #ifdef ATM_CHEMISTRY
-			<var_array="tracers"/>
-			<var_array="bl_tracers"/>
-			<var_array="cu_tracers"/>
+			<var_array name="tracers"/>
+			<var_array name="bl_tracers"/>
+			<var_array name="cu_tracers"/>
 #endif
 		</stream>
 
