@@ -672,6 +672,13 @@ else
 	OPENMP_MESSAGE="MPAS was built without OpenMP support."
 endif
 
+ifeq "$(ATM_CHEM)" "true"
+	MODEL_FORMULATION = -DATM_CHEMISTRY
+	CHEMISTRY_MESSAGE="MPAS was built with ATM_CHEMISTRY enabled."
+else
+	CHEMISTRY_MESSAGE="MPAS was built without ATM_CHEMISTRY enabled."
+endif
+
 ifneq ($(wildcard .mpas_core_*), ) # CHECK FOR BUILT CORE
 
 ifneq ($(wildcard .mpas_core_$(CORE)), ) # CHECK FOR SAME CORE AS ATTEMPTED BUILD.
@@ -850,6 +857,7 @@ endif
 	@echo $(TAU_MESSAGE)
 	@echo $(OPENMP_MESSAGE)
 	@echo $(SHAREDLIB_MESSAGE)
+	@echo $(CHEMISTRY_MESSAGE)
 ifeq "$(AUTOCLEAN)" "true"
 	@echo $(AUTOCLEAN_MESSAGE)
 endif
