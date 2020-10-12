@@ -141,7 +141,6 @@ contains
               ,cupclw        &  ! used for direct coupling to radiation, but with tuning factors
               ,ierr          &  ! ierr flags are error flags, used for debugging
               ,ierrc         &  ! !the following should be set to zero if not available
-              ,nc,ni,nifa,nwfa,ntrans,qtrans,outnc,outni,outnifa,outnwfa,outqtrans &
               ,rand_mom      &  ! for stochastics mom, if temporal and spatial patterns exist
               ,rand_vmas     &  ! for stochastics vertmass, if temporal and spatial patterns exist
               ,rand_clos     &  ! for stochastics closures, if temporal and spatial patterns exist
@@ -151,7 +150,12 @@ contains
                                 !! 3 = closures
                                 !! more is possible, talk to developer or
                                 !! implement yourself. pattern is expected to be
-                                !! betwee -1 and +1
+                                !! between -1 and +1
+#ifdef ATM_CHEMISTRY
+              ,nifa,nwfa,outnifa,outnwfa & !convective transport of "Thompson" aerosols.
+              ,nchem,chem,outchem        & !convective transport of chemical species.
+              ,ntracer,tracer,outtracer  & !convective transport of passive tracers.
+#endif
 #if ( wrf_dfi_radar == 1 )
               ,do_capsuppress,cap_suppress_j    &    !         
 #endif
@@ -391,80 +395,65 @@ contains
 
      real(kind=kind_phys),    dimension (its:ite,kts:kte) ::  p_liq_ice,melting_layer,melting
 
+     real(kind=kind_phys),dimension(kts:kte):: dummy1,dummy2
+#ifdef ATM_CHEMISTRY
 !--- MPAS (modified calls to the subroutines get_cloud_bc and get_zu_zd_pdf_fim. added convective transport of
 !    the number concentration of cloud liquid water, cloud ice, and "ice-" and "water-friendly" aerosols from
 !    the Thompson cloud microphysics scheme. also added the convective transport of passive tracers):
-     integer,intent(in):: ntrans
-     real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: nc,ni,nifa,nwfa
-     real(kind=kind_phys),intent(in),dimension(its:its,kts:kte,ntrans):: qtrans
-     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: outnc,outni,outnifa,outnwfa
-     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,ntrans):: outqtrans
+     real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte)   :: nifa,nwfa
+     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: outnifa,outnwfa
 
-     !local variables:
-     integer:: n
+     integer,intent(in):: nchem
+     real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,nchem)   :: chem
+     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,nchem):: outchem
+     integer,intent(in):: ntracer
+     real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,ntracer)   :: tracer
+     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,ntracer):: outtracer
 
-     real(kind=kind_phys),dimension(kts:kte):: dummy1,dummy2
-     real(kind=kind_phys),dimension(its:ite,kts:kte)       :: ncl2,nil2,nifal2,nwfal2
-     real(kind=kind_phys),dimension(its:ite,kts:kte)       :: nc_up,ni_up,nifa_up,nwfa_up
-     real(kind=kind_phys),dimension(its:ite,kts:kte)       :: nc_dn,ni_dn,nifa_dn,nwfa_dn
-     real(kind=kind_phys),dimension(its:ite,kts:kte,ntrans):: qtransl2
-     real(kind=kind_phys),dimension(its:ite,kts:kte,ntrans):: qtrans_up
-     real(kind=kind_phys),dimension(its:ite,kts:kte,ntrans):: qtrans_dn
+!    !local variables:
+!    real(kind=kind_phys),dimension(its:ite,kts:kte):: nifal2,nwfal2
+!    real(kind=kind_phys),dimension(its:ite,kts:kte):: nifa_up,nwfa_up
+!    real(kind=kind_phys),dimension(its:ite,kts:kte):: nifa_dn,nwfa_dn
 
-     !initialization:
-     do k = kts, ktf
-        do i = its, itf
-           outnc(i,k)   = 0._kind_phys
-           outni(i,k)   = 0._kind_phys
-           outnifa(i,k) = 0._kind_phys
-           outnwfa(i,k) = 0._kind_phys
+!    integer:: ic,it
+!    real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: cheml2
+!    real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: chem_up
+!    real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: chem_dn
+!    real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracerl2
+!    real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracer_up
+!    real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracer_dn
 
-           nc_up(i,k)   = 0._kind_phys
-           ni_up(i,k)   = 0._kind_phys
-           nifa_up(i,k) = 0._kind_phys
-           nwfa_up(i,k) = 0._kind_phys
-
-           nc_dn(i,k)   = 0._kind_phys
-           ni_dn(i,k)   = 0._kind_phys
-           nifa_dn(i,k) = 0._kind_phys
-           nwfa_dn(i,k) = 0._kind_phys
-        enddo
-     enddo
-     do n = 1, ntrans
-        do k = kts, ktf
-           do i = its, itf
-              qtrans_up(i,k,n) = 0._kind_phys
-              qtrans_dn(i,k,n) = 0._kind_phys
-           enddo
-        enddo
-     enddo
-
-     do k = kts, ktf
-        do i = its, itf
-           ncl2(i,k)   = 0._kind_phys
-           nil2(i,k)   = 0._kind_phys
-           nifal2(i,k) = 0._kind_phys
-           nwfal2(i,k) = 0._kind_phys
-        enddo
-     enddo
-     do n = 1, ntrans
-        do k = kts, ktf
-           do i = its, itf
-              qtransl2(i,k,n) = 0._kind_phys
-           enddo
-        enddo
-     enddo
-     call cup_transport_clev(its,ite,itf,kts,kte,ktf,ntrans,qtrans,nc,ni,nifa,nwfa,qtransl2, &
-                             ncl2,nil2,nifal2,nwfal2)
-!    do i = its, itf
-!       do k = kts, ktf
-!          call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/),    &
-!                    realArgs=(/ncl2(i,k),nil2(i,k),nifal2(i,k),nwfal2(i,k), &
-!                    (qtransl2(i,k,n),n=1,ntrans)/))
+!    !initialization:
+!    do k = kts, kte
+!       do i = its, ite
+!          nifal2(i,k)  = 0._kind_phys
+!          nwfal2(i,k)  = 0._kind_phys
+!          nifa_up(i,k) = 0._kind_phys
+!          nwfa_up(i,k) = 0._kind_phys
+!          nifa_dn(i,k) = 0._kind_phys
+!          nwfa_dn(i,k) = 0._kind_phys
 !       enddo
-!       call mpas_log_write(' ')
+!    enddo
+!    do k = kts, kte
+!       do i = its, ite
+!          do ic = 1, nchem
+!             cheml2(i,k,ic)  = 0._kind_phys
+!             chem_up(i,k,ic) = 0._kind_phys
+!             chem_dn(i,k,ic) = 0._kind_phys
+!          enddo
+!       enddo
+!    enddo
+!    do k = kts, kte
+!       do i = its, ite
+!          do it = 1, ntracer
+!             tracerl2(i,k,it)  = 0._kind_phys
+!             tracer_up(i,k,it) = 0._kind_phys
+!             tracer_dn(i,k,it) = 0._kind_phys
+!          enddo
+!       enddo
 !    enddo
 !--- MPAS end.
+#endif
 
 !---meltglac-------------------------------------------------
       melting_layer(:,:)=0.
@@ -688,6 +677,13 @@ contains
            ierr,z1,                                                &
            itf,ktf,                                                &
            its,ite, kts,kte)
+!     call mpas_log_write('--- end cup_env_clev:')
+!     do i = its,ite
+!        do k = kts,kte
+!           call mpas_log_write('--- cup_env_clev: $i $i $r $r $r $r',intArgs=(/i,k/), &
+!                     realArgs=(/t(i,k),t_cup(i,k),tn(i,k),tn_cup(i,k)/))
+!        enddo
+!     enddo
 !---meltglac-------------------------------------------------
 !> - Call get_partition_liq_ice() to calculate partition between liq/ice cloud contents
       call get_partition_liq_ice(ierr,tn,po_cup,p_liq_ice,melting_layer,&
@@ -1064,32 +1060,40 @@ contains
      !
 !> - Call cup_up_moisture() to calculate moisture properties of updraft
      !
-      if(imid.eq.1)then
-        call cup_up_moisture('mid',ierr,zo_cup,qco,qrco,pwo,pwavo,               &
-             p_cup,kbcon,ktop,dbyo,clw_all,xland1,                               &
-             qo,gammao_cup,zuo,qeso_cup,k22,qo_cup,                              &
-             zqexec,ccn,rho,c1d,tn_cup,up_massentr,up_massdetr,psum,psumh,       &
-             1,itf,ktf,                                                          &
-             its,ite, kts,kte)
-      else
+!     if(imid.eq.1)then
+!       call cup_up_moisture('mid',ierr,zo_cup,qco,qrco,pwo,pwavo,               &
+!            p_cup,kbcon,ktop,dbyo,clw_all,xland1,                               &
+!            qo,gammao_cup,zuo,qeso_cup,k22,qo_cup,                              &
+!            zqexec,ccn,rho,c1d,tn_cup,up_massentr,up_massdetr,psum,psumh,       &
+!            1,itf,ktf,                                                          &
+!            its,ite, kts,kte)
+!     else
 !--- for deep convection, replaced the subroutine cup_up_moisture with cup_up_moisture_ctrans in
 !    module_cu_gf_ctrans.F. cup_up_moisture_ctrans is a cleaned-up version of cup_up_moisture and
 !    includes the calculation of the in-cloud "ice-" and "water-friendly" aerosols (nifa_up and
 !    nwfa-up) from the Thompson cloud microphysics. for now, nc_up and ni_up are simply holders.
 !    cup_up_moisture_ctrans does not work with the "berry" autoconversion option.
-         call cup_up_moisture_ctrans('deep',ierr,k22,kbcon,ktop,autoconv,zo_cup, &
-                     tn_cup,qo_cup,qeso_cup,gammao_cup,qo,dbyo,c1d,up_massentr,  &
-                     up_massdetr,zuo,qco,qrco,pwo,clw_all,pwavo,psum,            &
-                     ntrans,nc,ni,nifa,nwfa,qtrans,ncl2,nil2,nifal2,nwfal2,      &
-                     qtransl2,nc_up,ni_up,nifa_up,nwfa_up,qtrans_up,             &
+         call cup_up_moisture_ctrans('deep',ierr,k22,kbcon,ktop,autoconv,zo_cup,  &
+                     tn_cup,qo_cup,qeso_cup,gammao_cup,qo,dbyo,c1d,up_massentr,   &
+                     up_massdetr,zuo,qco,qrco,pwo,clw_all,pwavo,psum,             &
+!#ifdef ATM_CHEMISTRY
+!                    nifa,nwfa,nifal2,nwfal2,nifa_up,nwfa_up,                     &
+!                    nchem,chem,cheml2,chem_up,ntracer,tracer,tracerl2,tracer_up, &
+!#endif
                      its,ite,itf,kts,kte,ktf)
+!        call mpas_log_write('--- end subroutine cup_up_moisture_ctrans:')
+!        do i = its,ite
+!           do k = kts,kte
+!              call mpas_log_write('--- pwo: $i $r',intArgs=(/i/),realArgs=(/pwo(i,k)/))
+!           enddo
+!        enddo
 !        call cup_up_moisture('deep',ierr,zo_cup,qco,qrco,pwo,pwavo,             &
 !            p_cup,kbcon,ktop,dbyo,clw_all,xland1,                               &
 !            qo,gammao_cup,zuo,qeso_cup,k22,qo_cup,                              &
 !            zqexec,ccn,rho,c1d,tn_cup,up_massentr,up_massdetr,psum,psumh,       &
 !            1,itf,ktf,                                                          &
 !            its,ite, kts,kte)
-     endif
+!    endif
 !     !--- get melting profile 
 !     call get_melting_profile(ierr,tn_cup,po_cup, p_liq_ice,melting_layer,qrco    &
 !                             ,pwo,edto,pwdo,melting                                & 
@@ -1412,10 +1416,12 @@ contains
            itf,ktf,                                                              &
            its,ite, kts,kte)
 !
-!--- MPAS: downdrafts for nc, ni, nifa, and nwfa:
- call cup_transport_dn(ierr,jmin,zdo,dd_massentro,dd_massdetro,ntrans,nc,ni,nifa,nwfa, &
-                  qtrans,ncl2,nil2,nifal2,nwfal2,qtransl2,nc_dn,ni_dn,nifa_dn,nwfa_dn, &
-                  qtrans_dn,its,ite,itf,kts,kte,ktf)
+!#ifdef ATM_CHEMISTRY
+!!--- MPAS: downdrafts for nc, ni, nifa, and nwfa:
+!call cup_transport_dn(its,ite,itf,kts,kte,ktf,ierr,jmin,zdo,dd_massentro,dd_massdetro, &
+!                    nifa,nwfa,nifal2,nwfal2,nifa_dn,nwfa_dn,nchem,chem,cheml2,chem_dn, &
+!                    ntracer,tracer,tracerl2,tracer_dn)
+!#endif
 !
 !---meltglac-------------------------------------------------
 !--- calculate moisture properties of updraft
@@ -1633,6 +1639,12 @@ contains
         if(ierr(i)/=0)cycle
             edto(i)=edtc(i,1)
         enddo
+!       call mpas_log_write('--- end subroutine cup_dd_edt:')
+!       do i = its,ite
+!           do k = kts,kte
+!              call mpas_log_write('$i $r',intArgs=(/i/),realArgs=(/pwo(i,k)/))
+!           enddo
+!       enddo
 
 !> - Call get_melting_profile() to get melting profile
      call get_melting_profile(ierr,tn_cup,po_cup, p_liq_ice,melting_layer,qrco    &
@@ -2115,11 +2127,11 @@ contains
           endif
       enddo
 !
-!--- MPAS:
-!     call cup_transport_tends(ierr,k22,kbcon,ktop,jmin,ntrans,xmb,p_cup,ncl2,nil2,nifal2,  &
-!                              nwfal2,qtransl2,nc_up,ni_up,nifa_up,nwfa_up,qtrans_up,nc_dn, &
-!                              ni_dn,nifa_dn,nwfa_dn,qtrans_dn,edto,zuo,zdo,outnc,outni,    &
-!                              outnifa,outnwfa,outqtrans,its,ite,itf,kts,kte,ktf)
+!#ifdef ATM_CHEMISTRY
+!     call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo,  &
+!                            p_cup,nifal2,nwfal2,nifa_up,nwfa_up,nifa_dn,nwfa_dn,outnifa,outnwfa,nchem,chem,  &
+!                            cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,tracer_up,tracer_dn,outtracer)
+!#endif
  
 ! rain evaporation as in sas
 !
@@ -2179,6 +2191,10 @@ contains
       endif
       enddo
       endif
+!     call mpas_log_write('--- before end subroutine cu_gf_deep_run:')
+!     do i = its,ite
+!        call mpas_log_write('$i $r',intArgs=(/i/),realArgs=(/pre(i)/))
+!     enddo
 !
 ! since kinetic energy is being dissipated, add heating accordingly (from ecmwf)
 !
