@@ -15,6 +15,11 @@
  use mpas_atmphys_utilities
  use mpas_atmphys_vars
 
+#ifdef ATM_CHEMISTRY
+ use mpas_atmphys_chems_physics
+ use mpas_atmphys_tracers_physics
+#endif
+
 !wrf physics:
  use module_cu_gf
  use module_cu_gf_wrf390
@@ -584,7 +589,12 @@
  end subroutine init_convection
 
 !=================================================================================================================
+#ifdef ATM_CHEMISTRY
+ subroutine driver_convection(itimestep,configs,mesh,sfc_input,diag_physics,diag_physics_cu,tend_physics,its,ite,&
+                              mpas_chems,mpas_tracers)
+#else
  subroutine driver_convection(itimestep,configs,mesh,sfc_input,diag_physics,diag_physics_cu,tend_physics,its,ite)
+#endif
 !=================================================================================================================
 
 !input arguments:
@@ -599,6 +609,10 @@
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: diag_physics_cu
  type(mpas_pool_type),intent(inout):: tend_physics
+#ifdef ATM_CHEMISTRY
+ type(chems_physics),intent(inout)  :: mpas_chems
+ type(tracers_physics),intent(inout):: mpas_tracers
+#endif
 
 !local variables and arrays:
  logical:: log_convection
@@ -725,7 +739,6 @@
                area         = area_p               , u            = u_p                  , &
                v            = v_p                  , w            = w_p                  , &
                t            = t_p                  , q            = qv_p                 , &
-               nifa         = nifa_p               , nwfa         = nwfa_p               , &
                rho          = rho_p                , p            = pres_hyd_p           , &
                pi           = pi_p                 , p8w          = pres2_hyd_p          , &
                dz8w         = dz_p                 , ht           = ht_p                 , &
@@ -758,9 +771,14 @@
                rqccuten_midlc = rqccuten_midlc_p   , rqicuten_midlc = rqicuten_midlc_p   , &
                rthcuten_shalc = rthcuten_shalc_p   , rqvcuten_shalc = rqvcuten_shalc_p   , &
                rqccuten_shalc = rqccuten_shalc_p   , rqicuten_shalc = rqicuten_shalc_p   , &
-               rnifacuten   = rnifacuten_p         , rnwfacuten     = rnwfacuten_p       , &
                gdc          = qccu_p               , gdc2         = qicu_p               , &
                nclos        = nclosures            , weights_clos = weights_clos_p       , &
+#ifdef ATM_CHEMISTRY
+!              nifa         = nifa_p                  , nwfa         = nwfa_p                       , &
+!              rnifacuten   = rnifacuten_p            , rnwfacuten   = rnwfacuten_p                 , &
+               nchem        = mpas_chems%nchems       , ntracer      = mpas_tracers%ntracers        , &
+               tracer3d     = mpas_tracers%tracers_p  , rtracercuten = mpas_tracers%rtracerscuten_p , &
+#endif
                ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde     , &
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme     , &
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &

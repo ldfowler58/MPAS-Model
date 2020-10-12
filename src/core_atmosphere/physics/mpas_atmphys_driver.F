@@ -355,10 +355,18 @@
     if(l_conv) then
        call allocate_convection(block%configs,mesh)
 !$OMP PARALLEL DO
+#ifdef ATM_CHEMISTRY
+       do thread=1,nThreads
+          call driver_convection(itimestep,block%configs,mesh,sfc_input,diag_physics,diag_physics_cu,   &
+                                 tend_physics,cellSolveThreadStart(thread), cellSolveThreadEnd(thread), &
+                                 mpas_chems,mpas_tracers)
+       end do
+#else
        do thread=1,nThreads
           call driver_convection(itimestep,block%configs,mesh,sfc_input,diag_physics,diag_physics_cu, &
                                  tend_physics,cellSolveThreadStart(thread), cellSolveThreadEnd(thread))
        end do
+#endif
 !$OMP END PARALLEL DO
        call deallocate_convection(block%configs)
     endif
