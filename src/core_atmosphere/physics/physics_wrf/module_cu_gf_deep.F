@@ -410,48 +410,48 @@ contains
      real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,ntracer)   :: tracer
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,ntracer):: outtracer
 
-!    !local variables:
-!    real(kind=kind_phys),dimension(its:ite,kts:kte):: nifal2,nwfal2
-!    real(kind=kind_phys),dimension(its:ite,kts:kte):: nifa_up,nwfa_up
-!    real(kind=kind_phys),dimension(its:ite,kts:kte):: nifa_dn,nwfa_dn
+     !local variables:
+     real(kind=kind_phys),dimension(its:ite,kts:kte):: nifal2,nwfal2
+     real(kind=kind_phys),dimension(its:ite,kts:kte):: nifa_up,nwfa_up
+     real(kind=kind_phys),dimension(its:ite,kts:kte):: nifa_dn,nwfa_dn
 
-!    integer:: ic,it
-!    real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: cheml2
-!    real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: chem_up
-!    real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: chem_dn
-!    real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracerl2
-!    real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracer_up
-!    real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracer_dn
+     integer:: ic,it
+     real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: cheml2
+     real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: chem_up
+     real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: chem_dn
+     real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracerl2
+     real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracer_up
+     real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracer_dn
 
-!    !initialization:
-!    do k = kts, kte
-!       do i = its, ite
-!          nifal2(i,k)  = 0._kind_phys
-!          nwfal2(i,k)  = 0._kind_phys
-!          nifa_up(i,k) = 0._kind_phys
-!          nwfa_up(i,k) = 0._kind_phys
-!          nifa_dn(i,k) = 0._kind_phys
-!          nwfa_dn(i,k) = 0._kind_phys
-!       enddo
-!    enddo
-!    do k = kts, kte
-!       do i = its, ite
-!          do ic = 1, nchem
-!             cheml2(i,k,ic)  = 0._kind_phys
-!             chem_up(i,k,ic) = 0._kind_phys
-!             chem_dn(i,k,ic) = 0._kind_phys
-!          enddo
-!       enddo
-!    enddo
-!    do k = kts, kte
-!       do i = its, ite
-!          do it = 1, ntracer
-!             tracerl2(i,k,it)  = 0._kind_phys
-!             tracer_up(i,k,it) = 0._kind_phys
-!             tracer_dn(i,k,it) = 0._kind_phys
-!          enddo
-!       enddo
-!    enddo
+     !initialization:
+     do k = kts, kte
+        do i = its, ite
+           nifal2(i,k)  = 0._kind_phys
+           nwfal2(i,k)  = 0._kind_phys
+           nifa_up(i,k) = 0._kind_phys
+           nwfa_up(i,k) = 0._kind_phys
+           nifa_dn(i,k) = 0._kind_phys
+           nwfa_dn(i,k) = 0._kind_phys
+        enddo
+     enddo
+     do k = kts, kte
+        do i = its, ite
+           do ic = 1, nchem
+              cheml2(i,k,ic)  = 0._kind_phys
+              chem_up(i,k,ic) = 0._kind_phys
+              chem_dn(i,k,ic) = 0._kind_phys
+           enddo
+        enddo
+     enddo
+     do k = kts, kte
+        do i = its, ite
+           do it = 1, ntracer
+              tracerl2(i,k,it)  = 0._kind_phys
+              tracer_up(i,k,it) = 0._kind_phys
+              tracer_dn(i,k,it) = 0._kind_phys
+           enddo
+        enddo
+     enddo
 !--- MPAS end.
 #endif
 
@@ -1076,17 +1076,11 @@ contains
          call cup_up_moisture_ctrans('deep',ierr,k22,kbcon,ktop,autoconv,zo_cup,  &
                      tn_cup,qo_cup,qeso_cup,gammao_cup,qo,dbyo,c1d,up_massentr,   &
                      up_massdetr,zuo,qco,qrco,pwo,clw_all,pwavo,psum,             &
-!#ifdef ATM_CHEMISTRY
-!                    nifa,nwfa,nifal2,nwfal2,nifa_up,nwfa_up,                     &
-!                    nchem,chem,cheml2,chem_up,ntracer,tracer,tracerl2,tracer_up, &
-!#endif
+#ifdef ATM_CHEMISTRY
+                     nifa,nwfa,nifal2,nwfal2,nifa_up,nwfa_up,                     &
+                     nchem,chem,cheml2,chem_up,ntracer,tracer,tracerl2,tracer_up, &
+#endif
                      its,ite,itf,kts,kte,ktf)
-!        call mpas_log_write('--- end subroutine cup_up_moisture_ctrans:')
-!        do i = its,ite
-!           do k = kts,kte
-!              call mpas_log_write('--- pwo: $i $r',intArgs=(/i/),realArgs=(/pwo(i,k)/))
-!           enddo
-!        enddo
 !        call cup_up_moisture('deep',ierr,zo_cup,qco,qrco,pwo,pwavo,             &
 !            p_cup,kbcon,ktop,dbyo,clw_all,xland1,                               &
 !            qo,gammao_cup,zuo,qeso_cup,k22,qo_cup,                              &
