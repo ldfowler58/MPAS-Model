@@ -540,16 +540,14 @@
  integer,intent(inout),dimension(its:ite) :: &
     ierr            !
 
-
-!output arguments:
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte):: &
+ real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: &
     nifa_dn,       &!
     nwfa_dn         !
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte,nchem):: &
+ real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,nchem):: &
     chem_dn         !
 
- real(kind=kind_phys),intent(out),dimension(its:ite,kts:kte,ntracer):: &
+ real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,ntracer):: &
     tracer_dn       !
 
 
@@ -560,40 +558,18 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
-!call mpas_log_write('--- enter subroutine cup_transport_dn:')
+ call mpas_log_write('--- enter subroutine cup_transport_dn:')
 
 !--- initialization:
- do k = kts, ktf
-    do i = its, itf
-       nifa_dn(i,k) = 0._kind_phys
-       nwfa_dn(i,k) = 0._kind_phys
+ do it = 1,ntracer
+    do i = its,itf
+       if(ierr(i) .eq. 0) then
+          do k = kts,ktf
+             tracer_dn(i,k,it)  = tracer(i,k,it)
+          enddo
+       endif
     enddo
  enddo
- if(nchem > 0) then
-    do ic = 1,nchem
-       do k = kts,ktf
-          do i = its,itf
-             chem_dn(i,k,ic) = 0._kind_phys
-          enddo
-       enddo
-    enddo
- endif
-
- if(ntracer > 0) then
-    do it = 1,ntracer
-       do i = its,itf
-          if(ierr(i) .eq. 0) then
-             do k = kts,ktf
-                tracer_dn(i,k,it)  = tracer(i,k,it)
-             enddo
-          else
-             do k = kts,ktf
-                tracer_dn(i,k,it)  = 0._kind_phys
-             enddo
-          endif
-       enddo
-    enddo
- endif
 
 !--- computation of the in-cloud cloud liquid water and ice number concentrations,"ice-friendly" and
 !    "water-friendly" number concentrations from the Thompson cloud microphysics scheme,and in-cloud
@@ -610,28 +586,28 @@
     if(ierr(i) .eq. 0) then
        kd = kdn(i)
 
-       nifa_dn(i,kd) = nifal2(i,kd)
-       nwfa_dn(i,kd) = nwfal2(i,kd)
-       do k = kd-1,kts,-1
-          nifa_dn(i,k) = (nifa_dn(i,k+1)*zd(i,k+1) -.5*dn_massdetr(i,k)*nifa_dn(i,k+1) &
-                     +  dn_massentr(i,k)*nifa(i,k))                                    &
-                     / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
+!      nifa_dn(i,kd) = nifal2(i,kd)
+!      nwfa_dn(i,kd) = nwfal2(i,kd)
+!      do k = kd-1,kts,-1
+!         nifa_dn(i,k) = (nifa_dn(i,k+1)*zd(i,k+1) -.5*dn_massdetr(i,k)*nifa_dn(i,k+1) &
+!                    +  dn_massentr(i,k)*nifa(i,k))                                    &
+!                    / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
 
-          nwfa_dn(i,k) = (nwfa_dn(i,k+1)*zd(i,k+1) -.5*dn_massdetr(i,k)*nwfa_dn(i,k+1) &
-                     +  dn_massentr(i,k)*nwfa(i,k))                                    &
-                     / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
-       enddo
+!         nwfa_dn(i,k) = (nwfa_dn(i,k+1)*zd(i,k+1) -.5*dn_massdetr(i,k)*nwfa_dn(i,k+1) &
+!                    +  dn_massentr(i,k)*nwfa(i,k))                                    &
+!                    / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
+!      enddo
 
-       if(nchem > 0) then
-          do ic = 1,nchem
-             chem_dn(i,kd,ic) = cheml2(i,kd,ic)
-             do k = kd-1,kts,-1
-                chem_dn(i,k,ic) = (chem_dn(i,k+1,ic)*zd(i,k+1) -.5*dn_massdetr(i,k)*chem_dn(i,k+1,ic) &
-                                 +  dn_massentr(i,k)*chem(i,k,ic))                                    &
-                                 / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
-             enddo
-          enddo
-       endif
+!      if(nchem > 0) then
+!         do ic = 1,nchem
+!            chem_dn(i,kd,ic) = cheml2(i,kd,ic)
+!            do k = kd-1,kts,-1
+!               chem_dn(i,k,ic) = (chem_dn(i,k+1,ic)*zd(i,k+1) -.5*dn_massdetr(i,k)*chem_dn(i,k+1,ic) &
+!                                +  dn_massentr(i,k)*chem(i,k,ic))                                    &
+!                                / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
+!            enddo
+!         enddo
+!      endif
 
        if(ntracer > 0) then
           do it = 1,ntracer
@@ -645,7 +621,7 @@
     endif
  enddo
 
-!call mpas_log_write('--- exit subroutine cup_transport_dn:')
+ call mpas_log_write('--- exit subroutine cup_transport_dn:')
 
  end subroutine cup_transport_dn
 

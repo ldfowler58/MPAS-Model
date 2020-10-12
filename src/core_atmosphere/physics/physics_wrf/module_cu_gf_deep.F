@@ -1410,12 +1410,12 @@ contains
            itf,ktf,                                                              &
            its,ite, kts,kte)
 !
-!#ifdef ATM_CHEMISTRY
+#ifdef ATM_CHEMISTRY
 !!--- MPAS: downdrafts for nc, ni, nifa, and nwfa:
-!call cup_transport_dn(its,ite,itf,kts,kte,ktf,ierr,jmin,zdo,dd_massentro,dd_massdetro, &
-!                    nifa,nwfa,nifal2,nwfal2,nifa_dn,nwfa_dn,nchem,chem,cheml2,chem_dn, &
-!                    ntracer,tracer,tracerl2,tracer_dn)
-!#endif
+ call cup_transport_dn(its,ite,itf,kts,kte,ktf,ierr,jmin,zdo,dd_massentro,dd_massdetro, &
+                     nifa,nwfa,nifal2,nwfal2,nifa_dn,nwfa_dn,nchem,chem,cheml2,chem_dn, &
+                     ntracer,tracer,tracerl2,tracer_dn)
+#endif
 !
 !---meltglac-------------------------------------------------
 !--- calculate moisture properties of updraft
