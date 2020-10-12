@@ -718,7 +718,7 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
-!call mpas_log_write('--- subroutine cup_transport_tends: itf = $i  ktf = $i',intArgs=(/itf,ktf/))
+ call mpas_log_write('--- subroutine cup_transport_tends: itf = $i  ktf = $i',intArgs=(/itf,ktf/))
 
 !--- CFL (maybe I only need to limit the CFL conditions between the cloud-base and cloud-top levels):
  do i = its, ite
@@ -852,12 +852,13 @@
           k = ktf
           dterm3(k) = tracer(i,k,it)
           call tridiag(ktf-1,aterm3(kts:ktf-1),bterm3(kts:ktf-1),cterm3(kts:ktf-1),dterm3(kts:ktf-1))
-!         do k = kts, ktf
-!            outtracer(i,k,it) = (dterm3(k)-tracer(i,k,it))/dtime
-!         enddo
+          do k = kts, ktf
+             outtracer(i,k,it) = (dterm3(k)-tracer(i,k,it))/dtime
+          enddo
 !         if(it .eq. 1) then
 !            do k = kts, ktf
-!               call mpas_log_write('$i $i $r $r',intArgs=(/i,k/),realArgs=(/tracer(i,k,it),dterm3(k)/))
+!               call mpas_log_write('$i $i $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/tracer_up(i,k,it), &
+!                    tracer_dn(i,k,it),tracer(i,k,it),dterm3(k),(dterm3(k)-tracer(i,k,it))/dtime/))
 !            enddo
 !            call mpas_log_write(' ')
 !         endif
@@ -866,7 +867,7 @@
     endif
  enddo
 
-!call mpas_log_write('--- end subroutine cup_transport_tends:')
+ call mpas_log_write('--- end subroutine cup_transport_tends:')
 !call mpas_log_write(' ')
 
  end subroutine cup_transport_tends

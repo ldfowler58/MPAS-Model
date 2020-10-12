@@ -2121,11 +2121,11 @@ contains
           endif
       enddo
 !
-!#ifdef ATM_CHEMISTRY
-!     call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo,  &
-!                            p_cup,nifal2,nwfal2,nifa_up,nwfa_up,nifa_dn,nwfa_dn,outnifa,outnwfa,nchem,chem,  &
-!                            cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,tracer_up,tracer_dn,outtracer)
-!#endif
+#ifdef ATM_CHEMISTRY
+      call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo,  &
+                             p_cup,nifal2,nwfal2,nifa_up,nwfa_up,nifa_dn,nwfa_dn,outnifa,outnwfa,nchem,chem,  &
+                             cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,tracer_up,tracer_dn,outtracer)
+#endif
  
 ! rain evaporation as in sas
 !
