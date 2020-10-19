@@ -94,6 +94,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2018-01-31.
 ! * added the option cu_kain_fritsch_sca to run the Kain-Fritsch scale-aware parameterization of convection.
 !   Laura D. Fowler (laura@ucar.edu) / 2018-02-06.
+! * renamed "noah" to "sf_noah" in all instances of noah.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-10-19.
 
 
  contains
@@ -153,7 +155,7 @@
     if (trim(config_radt_sw_scheme)    == 'suite') config_radt_sw_scheme    = 'rrtmg_sw'
     if (trim(config_radt_cld_scheme)   == 'suite') config_radt_cld_scheme   = 'cld_fraction'
     if (trim(config_sfclayer_scheme)   == 'suite') config_sfclayer_scheme   = 'sf_monin_obukhov'
-    if (trim(config_lsm_scheme)        == 'suite') config_lsm_scheme        = 'noah'
+    if (trim(config_lsm_scheme)        == 'suite') config_lsm_scheme        = 'sf_noah'
 
  else if (trim(config_physics_suite) == 'convection_permitting') then
 
@@ -165,7 +167,7 @@
     if (trim(config_radt_sw_scheme)    == 'suite') config_radt_sw_scheme    = 'rrtmg_sw'
     if (trim(config_radt_cld_scheme)   == 'suite') config_radt_cld_scheme   = 'cld_fraction'
     if (trim(config_sfclayer_scheme)   == 'suite') config_sfclayer_scheme   = 'sf_mynn'
-    if (trim(config_lsm_scheme)        == 'suite') config_lsm_scheme        = 'noah'
+    if (trim(config_lsm_scheme)        == 'suite') config_lsm_scheme        = 'sf_noah'
 
     if (config_mynn_cloudpdf == -1) config_mynn_cloudpdf = 2
 
@@ -315,7 +317,7 @@
                              'set config_sfclayer_scheme different than off')
     
  elseif(.not. (config_lsm_scheme .eq. 'off ' .or. &
-               config_lsm_scheme .eq. 'noah')) then
+               config_lsm_scheme .eq. 'sf_noah')) then
  
     write(mpas_err_message,'(A,A10)') 'illegal value for land surface scheme: ', &
           trim(config_lsm_scheme)
@@ -386,7 +388,7 @@
 
     lsm_select: select case(trim(config_lsm_scheme))
 
-       case("noah")
+       case("sf_noah")
        !initialize the thickness of the soil layers for the Noah scheme:
           do iCell = 1, nCells
              dzs(1,iCell) = 0.10_RKIND

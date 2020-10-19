@@ -96,6 +96,8 @@
 ! * modified the call to the subroutine lsm in conjunction with updated the NOAH land surface scheme to
 !   WRF-v4.1.4.
 !   Laura D. Fowler (laura@ucar.edu) / 2020-01-10.
+! * renamed "noah" to "sf_noah" in all instances of noah.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-10-19.
 
 
 !
@@ -764,7 +766,7 @@
 
  lsm_select: select case (trim(lsm_scheme))
 
-    case ("noah")
+    case ("sf_noah")
        call noah_init_forMPAS(dminfo,mesh,configs,diag_physics,sfc_input)
     
     case default
@@ -811,7 +813,7 @@
 !call to land-surface scheme:
  lsm_select: select case (trim(lsm_scheme))
 
-    case("noah")
+    case("sf_noah")
        call mpas_timer_start('sf_noah')
        call lsm( &
                 dz8w        = dz_p        , p8w3d       = pres2_hyd_p  , t3d       = t_p          , &
