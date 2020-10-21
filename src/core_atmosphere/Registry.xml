@@ -524,8 +524,8 @@
 			<var name="ol4"/>
 			<var name="h_oml_initial"/>
 #ifdef ATM_CHEMISTRY
-			<var_array="chems"/>
-			<var_array="tracers"/>
+			<var_array name="chems"/>
+			<var_array name="tracers"/>
 #endif
 		</stream>
 
