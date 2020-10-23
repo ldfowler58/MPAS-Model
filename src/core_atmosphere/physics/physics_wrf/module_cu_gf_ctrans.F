@@ -331,7 +331,9 @@
  do it = 1, ntracer
     do i = its, itf
        if(ierr(i) .eq. 0) then
-          do k = kts, ktf
+          k = kts
+          tracer_up(i,k,it) = tracer(i,k,it)
+          do k = kts+1, ktf
              tracer_up(i,k,it) = tracer(i,k-1,it)
           enddo
        endif
