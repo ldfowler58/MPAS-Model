@@ -308,6 +308,7 @@
 
  enddo
 
+ close(land_unit)
 !call mpas_log_write('--- end subroutine landuse_init_forMPAS')
 
  end subroutine landuse_init_forMPAS
