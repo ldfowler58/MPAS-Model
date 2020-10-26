@@ -384,6 +384,7 @@
     call deallocate_forall_physics
 
 #ifdef ATM_CHEMISTRY
+    call mpas_chems%deallocate_mem
     call mpas_tracers%tracers_from_physics(tend_tracers)
     call mpas_tracers%deallocate_mem
 #endif
