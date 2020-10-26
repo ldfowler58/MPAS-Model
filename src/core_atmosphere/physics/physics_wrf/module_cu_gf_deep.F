@@ -25,6 +25,7 @@ module module_cu_gf_deep
 
 #if defined(mpas)
  use mpas_log
+ use mpas_timer,only: mpas_timer_start,mpas_timer_stop
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_atmphys_constants,only: cp,g=>gravity,r_v=>R_v,xlv
 
@@ -423,6 +424,7 @@ contains
      real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracer_up
      real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracer_dn
 
+     call mpas_timer_start('atm_chem: physics - GF')
      !initialization:
      do k = kts, kte
         do i = its, ite
@@ -452,6 +454,7 @@ contains
            enddo
         enddo
      enddo
+     call mpas_timer_stop('atm_chem: physics - GF')
 !--- MPAS end.
 #endif
 
@@ -1411,10 +1414,12 @@ contains
            its,ite, kts,kte)
 !
 #ifdef ATM_CHEMISTRY
-!!--- MPAS: downdrafts for nc, ni, nifa, and nwfa:
+!--- MPAS: downdrafts for nc, ni, nifa, and nwfa:
+ call mpas_timer_start('atm_chem: physics - GF')
  call cup_transport_dn(its,ite,itf,kts,kte,ktf,ierr,jmin,zdo,dd_massentro,dd_massdetro, &
                      nifa,nwfa,nifal2,nwfal2,nifa_dn,nwfa_dn,nchem,chem,cheml2,chem_dn, &
                      ntracer,tracer,tracerl2,tracer_dn)
+ call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 !
 !---meltglac-------------------------------------------------
@@ -2122,9 +2127,11 @@ contains
       enddo
 !
 #ifdef ATM_CHEMISTRY
+      call mpas_timer_start('atm_chem: physics - GF')
       call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo,  &
                              p_cup,nifal2,nwfal2,nifa_up,nwfa_up,nifa_dn,nwfa_dn,outnifa,outnwfa,nchem,chem,  &
                              cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,tracer_up,tracer_dn,outtracer)
+      call mpas_timer_stop('atm_chem: physics - GF')
 #endif
  
 ! rain evaporation as in sas

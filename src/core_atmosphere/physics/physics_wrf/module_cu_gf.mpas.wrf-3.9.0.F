@@ -19,6 +19,7 @@
 !=================================================================================================================
  module module_cu_gf_wrf390
  use mpas_log
+ use mpas_timer,only: mpas_timer_start,mpas_timer_stop
  use mpas_atmphys_constants,only: cp,g=>gravity,r_v=>R_v,xlv
  use module_cu_gf_deep,only  : cu_gf_deep_run
  use module_cu_gf_sh,only    : cu_gf_sh_run
@@ -263,6 +264,7 @@
  enddo
 
 #ifdef ATM_CHEMISTRY
+ call mpas_timer_start('atm_chem: physics - GF')
  do j = jts, jte
     if(present(nifa) .and. present(rnifacuten) .and. present(nwfa) .and. present(rnwfacuten)) then
        do k = kts, kte
@@ -291,6 +293,7 @@
        enddo
     endif
  enddo
+ call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 
  j_loop: do j = jts, jte
@@ -425,6 +428,7 @@
     enddo
 
 #ifdef ATM_CHEMISTRY
+    call mpas_timer_start('atm_chem: physics - GF')
     if(present(nifa) .and. present(rnifacuten) .and. present(nwfa) .and. present(rnwfacuten)) then
        do k = kts, kte
           do i = its, ite
@@ -498,6 +502,7 @@
           enddo
        enddo
     enddo
+    call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 
     !--- calculation of the moisture convergence: we do not need to calculate
@@ -714,6 +719,7 @@
     enddo
 
 #ifdef ATM_CHEMISTRY
+    call mpas_timer_start('atm_chem: physics - GF')
     if(present(nifa) .and. present(rnifacuten) .and. present(nwfa) .and. present(rnwfacuten)) then
        do k = kts, ktf
           do i = its, itf
@@ -740,6 +746,7 @@
           enddo
        enddo
     endif
+    call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 
  enddo j_loop

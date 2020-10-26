@@ -1,6 +1,7 @@
 !=================================================================================================================
  module module_cu_gf_ctrans
  use mpas_log
+ use mpas_timer,only: mpas_timer_start,mpas_timer_stop
  use mpas_kind_types,only: kind_phys=>RKIND
 
  use mpas_atmphys_constants,only: grav=>gravity,xlv
@@ -267,6 +268,7 @@
  enddo
 
 #ifdef ATM_CHEMISTRY
+ call mpas_timer_start('atm_chem: physics - GF')
 !--- number concentrations:
 !do k = kts, ktf
 !   do i = its, itf
@@ -339,6 +341,7 @@
        endif
     enddo
  enddo
+ call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 
 !---
@@ -372,6 +375,7 @@
           endif
 
 #ifdef ATM_CHEMISTRY
+          call mpas_timer_start('atm_chem: physics - GF')
 !         !--- number concentration and aerosols:
 !         nifa_up(i,k) = (nifa_up(i,k-1)*zu(i,k-1) - .5*up_massdetr(i,k-1)*nifa_up(i,k-1) &
 !                       + up_massentr(i,k-1)*nifa(i,k-1))                                 &
@@ -397,6 +401,7 @@
                                   / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
              enddo
           endif
+          call mpas_timer_stop('atm_chem: physics - GF')
 #endif
        enddo
 
