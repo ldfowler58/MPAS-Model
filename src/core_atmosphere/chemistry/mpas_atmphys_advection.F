@@ -203,12 +203,6 @@
        call mpas_pool_get_config(block%configs,'config_monotonic'               ,monotonic               )
        call mpas_pool_get_config(block%configs,'config_positive_definite'       ,positive_definite       )
 
-       if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
-          call mpas_timer_start('atm_advance_chemistry')
-       else
-          call mpas_timer_start('atm_advance_chemistry')
-       endif
-
        call mpas_pool_get_config(block%configs,'config_dt',dt)
        call mpas_pool_get_config(block%configs,'config_coef_3rd_order',coef_3rd_order)
 
@@ -221,8 +215,6 @@
        call mpas_pool_get_dimension(mesh ,'nCellsSolve',nCellsSolve)
        call mpas_pool_get_dimension(mesh ,'nEdges'     ,nEdges     )
        call mpas_pool_get_dimension(mesh ,'nVertLevels',nVertLevels)
-
-!      call mpas_pool_get_dimension(state,'num_scalars',num_scalars)
 
        call mpas_pool_get_dimension(block%dimensions,'nThreads',nThreads)
        call mpas_pool_get_dimension(block%dimensions,'cellThreadStart'     ,cellThreadStart     )
@@ -256,13 +248,9 @@
 
        call mpas_pool_get_array(state,'rho_zz' ,rho_zz_old,1)
        call mpas_pool_get_array(state,'rho_zz' ,rho_zz_new,2)
-!      call mpas_pool_get_array(state,'scalars',scalar_old,1)
-!      call mpas_pool_get_array(state,'scalars',scalar_new,2)
 
        call mpas_pool_get_array(diag,'ruAvg',uhAvg)
        call mpas_pool_get_array(diag,'wwAvg',wwAvg)
-
-!      call mpas_pool_get_array(tend,'scalars_tend',scalar_tend)
 
        call mpas_pool_get_dimension(state,trim(num_string),num_species)
        call mpas_pool_get_array(state,trim(string_in),species_old,1 )
@@ -303,12 +291,6 @@
           endif
        enddo
 !$OMP END PARALLEL DO
-
-       if(rk_step < 3 .or. (.not. monotonic .and. .not. positive_definite)) then
-          call mpas_timer_stop('atm_advance_chemistry')
-       else
-          call mpas_timer_stop('atm_advance_chemistry')
-       endif
 
     block => block%next
     enddo
