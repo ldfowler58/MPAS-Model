@@ -115,6 +115,7 @@
 
 MODULE module_bl_mynn
 #if defined(mpas)
+  use mpas_timer,only: mpas_timer_start,mpas_timer_stop
   use mpas_atmphys_constants, only: &
         karman,          &
         g => gravity,    &
@@ -4367,6 +4368,7 @@ ENDIF
           s_awqnwfa1(kte+1)=0.
           s_awqnifa1(kte+1)=0.
 #ifdef ATM_CHEMISTRY
+          call mpas_timer_start('atm_chem: physics - MYNN')
           if(present(chem3d) .and. present(rchemblten)) then
              do ic = 1,nchem
                 do k = kts,kte
@@ -4444,6 +4446,7 @@ ENDIF
                 vdtracer1d(it) = 0.
              enddo
           endif
+          call mpas_timer_stop('atm_chem: physics - MYNN')
 #endif
 
 !          CALL GET_PBLH(KTS,KTE,PBLH(i,j),thetav,&
@@ -4709,6 +4712,7 @@ ENDIF
                &bl_mynn_mixscalars             )
 
 #ifdef ATM_CHEMISTRY
+          call mpas_timer_start('atm_chem: physics - MYNN')
           if(bl_mynn_mixchem == 1) then
              call mynn_mixchem(i,kts,kte,nchem,ntracer,delt,dfh,dz1,vdchem1d,chem1d,vdtracer1d,tracer1d,s_aw1, &
                                s_awchem1d,s_awtracer1d,dchem1d,dtracer1d)
@@ -4728,6 +4732,7 @@ ENDIF
                 enddo
              endif
           endif
+          call mpas_timer_stop('atm_chem: physics - MYNN')
 #endif
 
  
@@ -5278,6 +5283,7 @@ ENDIF
    real,dimension(kts:kte):: edf
 
 !--- initialization of chemical species and passive tracers:
+   call mpas_timer_start('atm_chem: physics - MYNN')
    do k = kts,kte
       edf(k) = 0.
    enddo
@@ -5295,6 +5301,7 @@ ENDIF
          enddo
       enddo
    enddo
+   call mpas_timer_stop('atm_chem: physics - MYNN')
 #endif
 ! check the inputs
 !     print *,'dt',dt
@@ -5533,6 +5540,7 @@ ENDIF
     ENDDO
 #ifdef ATM_CHEMISTRY
     !--- specify surface updraft properties at model interface between k=1 & 2:
+    call mpas_timer_start('atm_chem: physics - MYNN')
     if(bl_mynn_mixchem == 1) then
        do i = 1,nup !nup2
           if(i > nup2) exit
@@ -5544,6 +5552,7 @@ ENDIF
           enddo
        enddo
     endif
+    call mpas_timer_stop('atm_chem: physics - MYNN')
 #endif
 
   EntThrottle = 0.001  !MAX(0.02/MAX((flt*1.25*1004.)-25.,5.),0.0002)
@@ -5595,6 +5604,7 @@ ENDIF
           !QKEn=QKE(k)*(1-EntExp)+UPQKE(K-1,I)*EntExp
 
 #ifdef ATM_CHEMISTRY
+          call mpas_timer_start('atm_chem: physics - MYNN')
           if(bl_mynn_mixchem == 1) then
              !--- linear entrainment:
              do ic = 1,nchem
@@ -5604,6 +5614,7 @@ ENDIF
                 tracern(it) = uptracer(k-1,i,it)*(1.-entexp) + tracer(k,it)*entexp
              enddo
           endif
+          call mpas_timer_stop('atm_chem: physics - MYNN')
 #endif
 
           ! Define pressure at model interface
@@ -5697,6 +5708,7 @@ ENDIF
              UPQNIFA(K,I)=QNIFAn
              UPA(K,I)=UPA(K-1,I)
 #ifdef ATM_CHEMISTRY
+             call mpas_timer_start('atm_chem: physics - MYNN')
              if(bl_mynn_mixchem == 1) then
                 do ic = 1,nchem
                    upchem(k,i,ic) = chemn(ic)
@@ -5705,6 +5717,7 @@ ENDIF
                    uptracer(k,i,it) = tracern(it)
                 enddo
              endif
+             call mpas_timer_stop('atm_chem: physics - MYNN')
 #endif
              ktop = MAX(ktop,k)
           ELSE
@@ -5841,6 +5854,7 @@ ENDIF
       ENDIF
     ENDDO
 #ifdef ATM_CHEMISTRY
+    call mpas_timer_start('atm_chem: physics - MYNN')
     if(bl_mynn_mixchem == 1) then
        do k = kts,kte-1
           if(k > ktop) exit
@@ -5879,6 +5893,7 @@ ENDIF
           enddo
        enddo
     endif
+    call mpas_timer_stop('atm_chem: physics - MYNN')
 #endif
 
     !First, compute exner, plume theta, and dz centered at interface
