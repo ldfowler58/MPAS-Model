@@ -639,6 +639,9 @@
  real(kind=RKIND):: cudt
  real(kind=RKIND):: cudtacttime
 
+ real(kind=RKIND):: min_tr17_7,min_tr17_8
+ real(kind=RKIND):: max_tr17_7,max_tr17_8
+
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write('')
 !call mpas_log_write('--- enter subroutine driver_convection:')
@@ -784,7 +787,25 @@
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
                                    )
        call mpas_timer_stop('cu_grell_freitas_wrf390')
-
+#ifdef ATM_CHEMISTRY
+!      min_tr17_7 = minval(mpas_tracers%tracers_p(its:ite,kts:kte,jts:jte,1))
+!      min_tr17_8 = minval(mpas_tracers%tracers_p(its:ite,kts:kte,jts:jte,2))
+!      max_tr17_7 = maxval(mpas_tracers%tracers_p(its:ite,kts:kte,jts:jte,1))
+!      max_tr17_8 = maxval(mpas_tracers%tracers_p(its:ite,kts:kte,jts:jte,2))
+!      call mpas_log_write('--- min_tr17_7 = $r  max_tr17_7 = $r',realArgs=(/min_tr17_7,max_tr17_7/))
+!      call mpas_log_write('--- min_tr17_8 = $r  max_tr17_8 = $r',realArgs=(/min_tr17_8,max_tr17_8/))
+!      do j = jts,jte
+!         do i = its,ite
+!            do k = kts,kte
+!               if(max_tr17_7.gt.5.) then
+!                  call mpas_log_write('--- max tr17_7 $i $i $r $r $r $r',intArgs=(/i,k/),realArgs= &
+!                            (/mpas_tracers%tracers_p(i,k,j,1),mpas_tracers%rtracerscuten_p(i,k,j,1), &
+!                              mpas_tracers%tracers_p(i,k,j,2),mpas_tracers%rtracerscuten_p(i,k,j,2)/))
+!               endif
+!            enddo
+!         enddo
+!      enddo
+#endif
        call mpas_log_write('--- end subroutine cu_grell_freitas_wrf390.')
        call mpas_log_write('')
 
