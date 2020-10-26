@@ -360,9 +360,13 @@ module atm_time_integration
 
 #ifdef DO_PHYSICS
 #ifdef ATM_CHEMISTRY
+      call mpas_timer_start('atm_chem: dynamics')
+      call mpas_timer_start('atm_chem: dynamics - rk_integration_setup')
       call mpas_pool_get_field(state,'tracers',tracers_field,1)
       call mpas_dmpar_exch_halo_field(tracers_field)
       call atmphys_rk_integration_setup(domain)
+      call mpas_timer_stop('atm_chem: dynamics - rk_integration_setup')
+      call mpas_timer_stop('atm_chem: dynamics')
 #endif
 #endif
 
@@ -476,7 +480,8 @@ module atm_time_integration
       end do
       call mpas_timer_stop('physics_get_tend')
 #ifdef ATM_CHEMISTRY
-!     call mpas_timer_start('chems_get_tend')
+      call mpas_timer_start('atm_chem: dynamics')
+!     call mpas_timer_start('atm_chem: dynamics - chems_get_tend')
 !     block => domain % blocklist
 !     do while (associated(block))
 !        call mpas_pool_get_subpool(block%structs,'mesh',mesh)
@@ -486,9 +491,9 @@ module atm_time_integration
 !        call chems_get_tend(block,block%configs,mesh,state,tend,tend_chems)
 !        block => block % next
 !     end do
-!     call mpas_timer_stop('chems_get_tend')
+!     call mpas_timer_stop('atm_chem: dynamics - chems_get_tend')
 
-      call mpas_timer_start('tracers_get_tend')
+      call mpas_timer_start('atm_chem: dynamics - tracers_get_tend')
       block => domain % blocklist
       do while (associated(block))
          call mpas_pool_get_subpool(block%structs,'mesh',mesh)
@@ -498,7 +503,8 @@ module atm_time_integration
          call tracers_get_tend(block,block%configs,mesh,state,tend,tend_tracers)
          block => block % next
       end do
-      call mpas_timer_stop('tracers_get_tend')
+      call mpas_timer_stop('atm_chem: dynamics - tracers_get_tend')
+      call mpas_timer_stop('atm_chem: dynamics')
 #endif
 #else
       !
@@ -1630,6 +1636,7 @@ module atm_time_integration
 
 #ifdef DO_PHYSICS
 #ifdef ATM_CHEMISTRY
+      call mpas_timer_start('atm_chem: dynamics')
 !--- MODIFICATIONS TO THE ORIGINAL ADVECTION OF SCALARS START HERE (for now, advection of scalars and passive tracers
 !    only works if config_split_dynamics_transport is true. also, will need to add extra sourcecode needed to run the
 !    regional version of MPAS (see original sourcecode):
@@ -1642,12 +1649,13 @@ module atm_time_integration
          if(config_time_integration_order == 2) rk_timestep(1) = dt/2.
 
          call mpas_log_write(' ')
-         call mpas_timer_start('--- advection tracers:')
+         call mpas_timer_start('atm_chem: dynamics - advection tracers:')
          call mpas_log_write('--- start advection tracers:')
          call atmphys_advection(domain,rk_timestep,'tracers')
          call mpas_log_write('--- end advection tracers:')
-         call mpas_timer_stop('--- advection tracers:')
+         call mpas_timer_stop('atm_chem: dynamics - advection tracers:')
       endif
+      call mpas_timer_stop('atm_chem: dynamics')
 #endif
 #endif
 
