@@ -153,9 +153,9 @@ contains
                                 !! implement yourself. pattern is expected to be
                                 !! between -1 and +1
 #ifdef ATM_CHEMISTRY
-              ,nifa,nwfa,outnifa,outnwfa & !convective transport of "Thompson" aerosols.
-              ,nchem,chem,outchem        & !convective transport of chemical species.
-              ,ntracer,tracer,outtracer  & !convective transport of passive tracers.
+              ,is_mp,nifa,nwfa,outnifa,outnwfa & !convective transport of "Thompson" aerosols.
+              ,nchem,chem,outchem              & !convective transport of chemical species.
+              ,ntracer,tracer,outtracer        & !convective transport of passive tracers.
 #endif
 #if ( wrf_dfi_radar == 1 )
               ,do_capsuppress,cap_suppress_j    &    !         
@@ -404,6 +404,7 @@ contains
      real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte)   :: nifa,nwfa
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte):: outnifa,outnwfa
 
+     logical,intent(in):: is_mp
      integer,intent(in):: nchem
      real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,nchem)   :: chem
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,nchem):: outchem
@@ -1080,7 +1081,7 @@ contains
                      tn_cup,qo_cup,qeso_cup,gammao_cup,qo,dbyo,c1d,up_massentr,   &
                      up_massdetr,zuo,qco,qrco,pwo,clw_all,pwavo,psum,             &
 #ifdef ATM_CHEMISTRY
-                     nifa,nwfa,nifal2,nwfal2,nifa_up,nwfa_up,                     &
+                     is_mp,nifa,nwfa,nifal2,nwfal2,nifa_up,nwfa_up,               &
                      nchem,chem,cheml2,chem_up,ntracer,tracer,tracerl2,tracer_up, &
 #endif
                      its,ite,itf,kts,kte,ktf)
@@ -1417,8 +1418,8 @@ contains
 !--- MPAS: downdrafts for nc, ni, nifa, and nwfa:
  call mpas_timer_start('atm_chem: physics - GF')
  call cup_transport_dn(its,ite,itf,kts,kte,ktf,ierr,jmin,zdo,dd_massentro,dd_massdetro, &
-                     nifa,nwfa,nifal2,nwfal2,nifa_dn,nwfa_dn,nchem,chem,cheml2,chem_dn, &
-                     ntracer,tracer,tracerl2,tracer_dn)
+               is_mp,nifa,nwfa,nifal2,nwfal2,nifa_dn,nwfa_dn,nchem,chem,cheml2,chem_dn, &
+               ntracer,tracer,tracerl2,tracer_dn)
  call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 !
@@ -2128,9 +2129,10 @@ contains
 !
 #ifdef ATM_CHEMISTRY
       call mpas_timer_start('atm_chem: physics - GF')
-      call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo,  &
-                             p_cup,nifal2,nwfal2,nifa_up,nwfa_up,nifa_dn,nwfa_dn,outnifa,outnwfa,nchem,chem,  &
-                             cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,tracer_up,tracer_dn,outtracer)
+      call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo, &
+                               p_cup,is_mp,nifa,nifal2,nwfa,nwfal2,nifa_up,nwfa_up,nifa_dn,nwfa_dn,outnifa,  &
+                               outnwfa,nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,    &
+                               tracer_up,tracer_dn,outtracer)
       call mpas_timer_stop('atm_chem: physics - GF')
 #endif
  

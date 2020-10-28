@@ -120,7 +120,7 @@
  subroutine cup_up_moisture_ctrans(name,ierr,k22,kbcon,ktop,autoconv,z_cup,t_cup,qe_cup,qes_cup, &
                      gamma_cup,q,dby,c1d,up_massentr,up_massdetr,zu,qc,qrc,pw,clw_all,pwav,psum, &
 #ifdef ATM_CHEMISTRY
-                     nifa,nwfa,nifal2,nwfal2,nifa_up,nwfa_up,                                    &
+                     is_mp,nifa,nwfa,nifal2,nwfal2,nifa_up,nwfa_up,                              &
                      nchem,chem,cheml2,chem_up,ntracer,tracer,tracerl2,tracer_up,                &
 #endif
                      its,ite,itf,kts,kte,ktf)
@@ -178,7 +178,7 @@
 
 !local variables and arrays:
  integer,parameter:: iall = 0
- integer:: i,ic,it,k,k2,kb,kt
+ integer:: i,k,k2,kb,kt
 
 !real(kind=kind_phys),parameter:: c0 = 0.004
  real(kind=kind_phys):: top,bottom
@@ -189,6 +189,9 @@
 
 #ifdef ATM_CHEMISTRY
 !input arguments:
+ logical,intent(in):: &
+    is_mp           ! if is_mp is true, then compute convective transport of nifa and nwfa.
+
  integer,intent(in):: &
     nchem,         &! number of chemical species.
     ntracer         ! number of passive tracers.
@@ -216,6 +219,7 @@
     tracer_up       !
 
 !local variables:
+ integer:: ic,it
  real(kind=kind_phys):: nifa_aver,nwfa_aver,chem_aver,tracer_aver
 #endif
 
@@ -270,66 +274,32 @@
 #ifdef ATM_CHEMISTRY
  call mpas_timer_start('atm_chem: physics - GF')
 !--- number concentrations:
-!do k = kts, ktf
-!   do i = its, itf
-!      nifa_up(i,k) = 0._kind_phys
-!      nwfa_up(i,k) = 0._kind_phys
-!      if(ierr(i) .eq. 0) then
-!         nifa_up(i,k) = nifal2(i,k)
-!         nwfa_up(i,k) = nwfal2(i,k)
-!      endif
-!   enddo
-!enddo
-!do i = its, itf
-!   if(ierr(i) .eq. 0) then
-!      k2 = k22(i)
-!      do k = kts, kte
-!         dummy1(k) = nifa_up(i,k)
-!      enddo
-!      call get_cloud_bc(kte,dummy1,nifa_aver,k2)
-!      do k = kts, kte
-!         dummy1(k) = nwfa_up(i,k)
-!      enddo
-!      call get_cloud_bc(kte,dummy1,nwfa_aver,k2)
-
-!      nifa_up(i,k2) = nifa_aver
-!      nwfa_up(i,k2) = nwfa_aver
-!      do k = kts, k2-1
-!         nifa_up(i,k) = nifal2(i,k)
-!         nwfa_up(i,k) = nwfal2(i,k)
-!      enddo
-!   endif
-!enddo
-!--- chemical species and passive tracers:
-!do ic = 1, nchem
-!   do i = its, itf
-!      if(ierr(i) .eq. 0) then
-!         do k = kts, ktf
-!            chem_up(i,k,ic) = cheml2(i,k,ic)
-!         enddo
-!      else
-!         do k = kts, ktf
-!            chem_up(i,k,ic) = 0._kind_phys
-!         enddo
-!      endif
-!   enddo
-!enddo
-!do ic = 1, nchem
-!   do i = its, ite
-!      if(ierr(i) .eq. 0) then
-!         k2 = k22(i)
-!         do k = kts, kte
-!            dummy1(k) = chem_up(i,k,ic)
-!         enddo
-!         call get_cloud_bc(kte,dummy1,chem_aver,k2)
-!         chem_up(i,k2,ic) = chem_aver
-!         do  k = kts, k2-1
-!             chem_up(i,k,ic) = cheml2(i,k,ic)
-!         enddo
-!      endif
-!   enddo
-!enddo
-
+ if(is_mp) then
+    do i = its, itf
+       if(ierr(i) .eq. 0) then
+          k = kts
+          nifa_up(i,k) = nifa(i,k)
+          nwfa_up(i,k) = nwfa(i,k)
+          do k = kts+1, ktf
+             nifa_up(i,k) = nifa(i,k-1)
+             nwfa_up(i,k) = nwfa(i,k-1)
+          enddo
+       endif
+    enddo
+ endif
+!--- chemical species:
+ do ic = 1, nchem
+    do i = its, itf
+       if(ierr(i) .eq. 0) then
+          k = kts
+          chem_up(i,k,ic) = chem(i,k,ic)
+          do k = kts+1, ktf
+             chem_up(i,k,ic) = chem(i,k-1,ic)
+          enddo
+       endif
+    enddo
+ enddo
+!--- passive tracers:
  do it = 1, ntracer
     do i = its, itf
        if(ierr(i) .eq. 0) then
@@ -376,14 +346,15 @@
 
 #ifdef ATM_CHEMISTRY
           call mpas_timer_start('atm_chem: physics - GF')
-!         !--- number concentration and aerosols:
-!         nifa_up(i,k) = (nifa_up(i,k-1)*zu(i,k-1) - .5*up_massdetr(i,k-1)*nifa_up(i,k-1) &
-!                       + up_massentr(i,k-1)*nifa(i,k-1))                                 &
-!                     / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
-!         nwfa_up(i,k) = (nwfa_up(i,k-1)*zu(i,k-1) - .5*up_massdetr(i,k-1)*nwfa_up(i,k-1) &
-!                       + up_massentr(i,k-1)*nwfa(i,k-1))                                 &
-!                       / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
-
+          !--- number concentrations:
+          if(is_mp) then
+             nifa_up(i,k) = (nifa_up(i,k-1)*zu(i,k-1) - .5*up_massdetr(i,k-1)*nifa_up(i,k-1) &
+                          + up_massentr(i,k-1)*nifa(i,k-1))                                 &
+                          / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
+             nwfa_up(i,k) = (nwfa_up(i,k-1)*zu(i,k-1) - .5*up_massdetr(i,k-1)*nwfa_up(i,k-1) &
+                          + up_massentr(i,k-1)*nwfa(i,k-1))                                 &
+                          / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
+          endif
 !         !--- chemical species:
 !         if(nchem > 0) then
 !            do ic = 1,nchem
@@ -392,7 +363,6 @@
 !                               / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
 !            enddo
 !         endif
-
           !--- passive tracers:
           if(ntracer > 0) then
              do it = 1,ntracer
@@ -463,14 +433,15 @@
           psum(i) = psum(i) + clw_all(i,k)*zu(i,k) *dz
 
 #ifdef ATM_CHEMISTRY
-!         !--- number concentration and aerosols:
-!         nifa_up(i,k) = (nifa_up(i,k-1)*zu(i,k-1) - .5*up_massdetr(i,k-1)*nifa_up(i,k-1) &
-!                      + up_massentr(i,k-1)*nifa(i,k-1))                                  &
-!                      / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
-!         nwfa_up(i,k) = (nwfa_up(i,k-1)*zu(i,k-1) - .5*up_massdetr(i,k-1)*nwfa_up(i,k-1) &
-!                      + up_massentr(i,k-1)*nwfa(i,k-1))                                  &
-!                      / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
-
+          !--- number concentrations:
+          if(is_mp) then
+             nifa_up(i,k) = (nifa_up(i,k-1)*zu(i,k-1) - .5*up_massdetr(i,k-1)*nifa_up(i,k-1) &
+                          + up_massentr(i,k-1)*nifa(i,k-1))                                  &
+                          / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
+             nwfa_up(i,k) = (nwfa_up(i,k-1)*zu(i,k-1) - .5*up_massdetr(i,k-1)*nwfa_up(i,k-1) &
+                          + up_massentr(i,k-1)*nwfa(i,k-1))                                  &
+                          / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
+          endif
 !         !--- chemical species:
 !         if(nchem > 0) then
 !            do ic = 1, nchem
@@ -504,12 +475,15 @@
  end subroutine cup_up_moisture_ctrans
 
 !=================================================================================================================
- subroutine cup_transport_dn(its,ite,itf,kts,kte,ktf,ierr,kdn,zd,dn_massentr,dn_massdetr,nifa,nwfa,  &
-                             nifal2,nwfal2,nifa_dn,nwfa_dn,nchem,chem,cheml2,chem_dn,ntracer,tracer, &
-                             tracerl2,tracer_dn)
+ subroutine cup_transport_dn(its,ite,itf,kts,kte,ktf,ierr,kdn,zd,dn_massentr,dn_massdetr,is_mp,nifa,nwfa,     &
+                             nifal2,nwfal2,nifa_dn,nwfa_dn,nchem,chem,cheml2,chem_dn,ntracer,tracer,tracerl2, &
+                             tracer_dn)
 !=================================================================================================================
 
 !input arguments:
+ logical,intent(in):: &
+    is_mp           !
+
  integer,intent(in):: &
     its,ite,itf,   &! indices for horizontal dimensions.
     kts,kte,ktf     ! indices for vertical dimensions.
@@ -568,11 +542,23 @@
  call mpas_log_write('--- enter subroutine cup_transport_dn:')
 
 !--- initialization:
+!--- number concentrations:
+ if(is_mp) then
+    do i = its,itf
+       if(ierr(i) .eq. 0) then
+          do k = kts,ktf
+             nifa_dn(i,k) = nifa(i,k)
+             nwfa_dn(i,k) = nwfa(i,k)
+          enddo
+       endif
+    enddo
+ endif
+!--- passive tracers:
  do it = 1,ntracer
     do i = its,itf
        if(ierr(i) .eq. 0) then
           do k = kts,ktf
-             tracer_dn(i,k,it)  = tracer(i,k,it)
+             tracer_dn(i,k,it) = tracer(i,k,it)
           enddo
        endif
     enddo
@@ -592,19 +578,16 @@
 
     if(ierr(i) .eq. 0) then
        kd = kdn(i)
-
-!      nifa_dn(i,kd) = nifal2(i,kd)
-!      nwfa_dn(i,kd) = nwfal2(i,kd)
-!      do k = kd-1,kts,-1
-!         nifa_dn(i,k) = (nifa_dn(i,k+1)*zd(i,k+1) -.5*dn_massdetr(i,k)*nifa_dn(i,k+1) &
-!                    +  dn_massentr(i,k)*nifa(i,k))                                    &
-!                    / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
-
-!         nwfa_dn(i,k) = (nwfa_dn(i,k+1)*zd(i,k+1) -.5*dn_massdetr(i,k)*nwfa_dn(i,k+1) &
-!                    +  dn_massentr(i,k)*nwfa(i,k))                                    &
-!                    / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
-!      enddo
-
+       if(is_mp) then
+          do k = kd-1,kts,-1
+             nifa_dn(i,k) = (nifa_dn(i,k+1)*zd(i,k+1) -.5*dn_massdetr(i,k)*nifa_dn(i,k+1) &
+                          +  dn_massentr(i,k)*nifa(i,k))                                  &
+                          / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
+             nwfa_dn(i,k) = (nwfa_dn(i,k+1)*zd(i,k+1) -.5*dn_massdetr(i,k)*nwfa_dn(i,k+1) &
+                          +  dn_massentr(i,k)*nwfa(i,k))                                  &
+                          / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
+          enddo
+       endif
 !      if(nchem > 0) then
 !         do ic = 1,nchem
 !            chem_dn(i,kd,ic) = cheml2(i,kd,ic)
@@ -615,7 +598,6 @@
 !            enddo
 !         enddo
 !      endif
-
        if(ntracer > 0) then
           do it = 1,ntracer
              do k = kd-1,kts,-1
@@ -634,11 +616,15 @@
 
 !=================================================================================================================
  subroutine cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,kdn,kpbl,dtime,xmb,edt,zu,zd,pres, &
-                              nifal2,nwfal2,nifa_up,nwfa_up,nifa_dn,nwfa_dn,outnifa,outnwfa,nchem,chem,cheml2, &
-                              chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,tracer_up,tracer_dn,outtracer)
+                               is_mp,nifa,nifal2,nwfa,nwfal2,nifa_up,nwfa_up,nifa_dn,nwfa_dn,outnifa,outnwfa,  &
+                               nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,tracer_up,    &
+                               tracer_dn,outtracer)
 !=================================================================================================================
 
 !input arguments:
+ logical,intent(in):: &
+    is_mp           !
+
  integer,intent(in):: &
     its,ite,itf,   &! indices for horizontal dimensions.
     kts,kte,ktf     ! indices for vertical dimensions.
@@ -668,6 +654,8 @@
     zu
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: &
+    nifa,          &!
+    nwfa,          &!
     nifal2,        &! level environmental "ice-friendly" aerosol number concentration from Thompson microphysics.
     nwfal2          ! level environmental "water-friendly" aerosol number concentration from Thompson microphysics.
 

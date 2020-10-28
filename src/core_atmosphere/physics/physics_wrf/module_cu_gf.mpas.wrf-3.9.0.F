@@ -161,6 +161,7 @@
  real,intent(out),dimension(ims:ime,kms:kme,jms:jme),optional:: rnifacuten,rnwfacuten
 
 !local variables:
+ logical:: is_mp
  integer:: ic,it
  real,dimension(its:ite,kts:kte):: nifa2d,nwfa2d,outnifam,outnifa,outnwfam,outnwfa
  real,dimension(its:ite,kts:kte,nchem):: chem2d,outchemm,outchem
@@ -265,8 +266,10 @@
 
 #ifdef ATM_CHEMISTRY
  call mpas_timer_start('atm_chem: physics - GF')
+ is_mp = .false.
  do j = jts, jte
     if(present(nifa) .and. present(rnifacuten) .and. present(nwfa) .and. present(rnwfacuten)) then
+       is_mp = .true.
        do k = kts, kte
           do i = its, ite
              rnifacuten(i,k,j) = 0.
@@ -610,9 +613,9 @@
                 outu,outv,outt,outq,outqc,kbcon,ktop,k22,cupclw,          &
                 ierr,ierrc,rand_mom,rand_vmas,rand_clos,nranflag          &
 #ifdef ATM_CHEMISTRY
-               ,nifa2d,nwfa2d,outnifa,outnwfa & !convective transport of "Thompson" aerosols.
-               ,nchem,chem2d,outchem          & !convective transport of chemical species.
-               ,ntracer,tracer2d,outtracer    & !convective transport of passive tracers.
+               ,is_mp,nifa2d,nwfa2d,outnifa,outnwfa & !convective transport of "Thompson" aerosols.
+               ,nchem,chem2d,outchem                & !convective transport of chemical species.
+               ,ntracer,tracer2d,outtracer          & !convective transport of passive tracers.
 #endif
               ,jmin,tropics                                               &
                   )
