@@ -14,6 +14,7 @@ module convective_diagnostics
     type (MPAS_pool_type), pointer :: mesh
     type (MPAS_pool_type), pointer :: state
     type (MPAS_pool_type), pointer :: diag
+    type (MPAS_pool_type), pointer :: diag_physics
 
     type (MPAS_clock_type), pointer :: clock
 
@@ -34,6 +35,12 @@ module convective_diagnostics
     logical :: is_needed_w_max
     logical :: is_needed_lml_wsp_max
   
+    ! options for UKMO total cloud cover (subroutine r2_calc_total_cloud_cover)
+    integer, parameter :: ip_cloud_mix_max    = 1
+    integer, parameter :: ip_cloud_mix_random = 2
+    integer, parameter :: ip_cloud_column_max = 3
+    integer, parameter :: ip_cloud_triple     = 4
+    integer, parameter :: ip_cloud_clear      = 5
 
     contains
 
@@ -65,6 +72,7 @@ module convective_diagnostics
         call mpas_pool_get_subpool(all_pools, 'mesh', mesh)
         call mpas_pool_get_subpool(all_pools, 'state', state)
         call mpas_pool_get_subpool(all_pools, 'diag', diag)
+        call mpas_pool_get_subpool(all_pools, 'diag_physics', diag_physics)
 
         clock => simulation_clock
 
@@ -250,6 +258,17 @@ module convective_diagnostics
         real (kind=RKIND), dimension(:), pointer :: umeridional_6km
         real (kind=RKIND), dimension(:), pointer :: temperature_surface
         real (kind=RKIND), dimension(:), pointer :: dewpoint_surface
+        real (kind=RKIND), dimension(:), pointer :: cldfrac_low_UPP
+        real (kind=RKIND), dimension(:), pointer :: cldfrac_mid_UPP
+        real (kind=RKIND), dimension(:), pointer :: cldfrac_high_UPP
+        real (kind=RKIND), dimension(:), pointer :: cldfrac_tot_UPP
+        real (kind=RKIND), dimension(:), pointer :: cldfrac_low_UM
+        real (kind=RKIND), dimension(:), pointer :: cldfrac_mid_UM
+        real (kind=RKIND), dimension(:), pointer :: cldfrac_high_UM
+        real (kind=RKIND), dimension(:), pointer :: cldfrac_tot_UM_max
+        real (kind=RKIND), dimension(:), pointer :: cldfrac_tot_UM_rand
+        real (kind=RKIND), dimension(:), pointer :: cldht_top_UM
+        real (kind=RKIND), dimension(:), pointer :: cldht_base_UM
 
         ! Other fields used in the computation of convective diagnostics 
         ! defined above
@@ -263,6 +282,7 @@ module convective_diagnostics
         real (kind=RKIND), dimension(:,:), pointer :: pressure_base
         real (kind=RKIND), dimension(:,:,:), pointer :: scalars
         integer, pointer :: index_qv
+        real (kind=RKIND), dimension(:,:), pointer :: cldfrac
 
         real (kind=RKIND), parameter :: dev_motion = 7.5, z_bunker_bot = 0., z_bunker_top = 6000.
         real (kind=RKIND)            :: u_storm, v_storm, u_srh_bot, v_srh_bot, u_srh_top, v_srh_top
@@ -276,8 +296,20 @@ module convective_diagnostics
 
         real (kind=RKIND) :: evp
 
+        ! levels for low/mid/high cloud fraction - UPP method
+        real (kind=RKIND), parameter :: ptop_low = 64200.0, ptop_mid = 35000.0, ptop_high = 15000.0
+
+        ! levels for low/mid/high cloud fraction - UKMO method
+        real (kind=RKIND), parameter :: ptop_low_ = 80000.0, ptop_mid_ = 50000.0, ptop_high_ = 15000.0
+        real (kind=RKIND), parameter :: thresh_cld = 0.0627
+        real (kind=RKIND), parameter :: msgval = -999.0
+
+        real (kind=RKIND), dimension(:,:), allocatable :: cldfrac2
+
         logical :: need_cape, need_cin, need_lcl, need_lfc, need_srh_01km, need_srh_03km, need_uzonal_sfc, need_uzonal_1km, &
                    need_uzonal_6km, need_umerid_sfc, need_umerid_1km, need_umerid_6km, need_tsfc, need_tdsfc
+        logical :: need_cldfrac_UPP
+        logical :: need_cldfrac_UM
         logical :: need_any_diags
 
         need_any_diags = .false.
@@ -310,6 +342,19 @@ module convective_diagnostics
         need_any_diags = need_any_diags .or. need_tsfc
         need_tdsfc = MPAS_field_will_be_written('dewpoint_surface')
         need_any_diags = need_any_diags .or. need_tdsfc
+        need_cldfrac_UPP = MPAS_field_will_be_written('cldfrac_low_UPP')
+        need_cldfrac_UPP = MPAS_field_will_be_written('cldfrac_mid_UPP')  .or. need_cldfrac_UPP
+        need_cldfrac_UPP = MPAS_field_will_be_written('cldfrac_high_UPP') .or. need_cldfrac_UPP
+        need_cldfrac_UPP = MPAS_field_will_be_written('cldfrac_tot_UPP')  .or. need_cldfrac_UPP
+        need_any_diags = need_any_diags .or. need_cldfrac_UPP
+        need_cldfrac_UM = MPAS_field_will_be_written('cldfrac_low_UM')
+        need_cldfrac_UM = MPAS_field_will_be_written('cldfrac_mid_UM')      .or. need_cldfrac_UM
+        need_cldfrac_UM = MPAS_field_will_be_written('cldfrac_high_UM')     .or. need_cldfrac_UM
+        need_cldfrac_UM = MPAS_field_will_be_written('cldfrac_tot_UM_max')  .or. need_cldfrac_UM
+        need_cldfrac_UM = MPAS_field_will_be_written('cldfrac_tot_UM_rand') .or. need_cldfrac_UM
+        need_cldfrac_UM = MPAS_field_will_be_written('cldht_top_UM')        .or. need_cldfrac_UM
+        need_cldfrac_UM = MPAS_field_will_be_written('cldht_base_UM')       .or. need_cldfrac_UM
+        need_any_diags = need_any_diags .or. need_cldfrac_UM
 
         if (need_any_diags) then
 
@@ -332,6 +377,21 @@ module convective_diagnostics
             call mpas_pool_get_array(diag, 'umeridional_6km', umeridional_6km)
             call mpas_pool_get_array(diag, 'temperature_surface', temperature_surface)
             call mpas_pool_get_array(diag, 'dewpoint_surface', dewpoint_surface)
+            if ( need_cldfrac_UPP ) then
+                call mpas_pool_get_array(diag, 'cldfrac_low_UPP',  cldfrac_low_UPP)
+                call mpas_pool_get_array(diag, 'cldfrac_mid_UPP',  cldfrac_mid_UPP)
+                call mpas_pool_get_array(diag, 'cldfrac_high_UPP', cldfrac_high_UPP)
+                call mpas_pool_get_array(diag, 'cldfrac_tot_UPP',  cldfrac_tot_UPP)
+            end if
+            if ( need_cldfrac_UM ) then
+                call mpas_pool_get_array(diag, 'cldfrac_low_UM',  cldfrac_low_UM)
+                call mpas_pool_get_array(diag, 'cldfrac_mid_UM',  cldfrac_mid_UM)
+                call mpas_pool_get_array(diag, 'cldfrac_high_UM', cldfrac_high_UM)
+                call mpas_pool_get_array(diag, 'cldfrac_tot_UM_max',  cldfrac_tot_UM_max)
+                call mpas_pool_get_array(diag, 'cldfrac_tot_UM_rand', cldfrac_tot_UM_rand)
+                call mpas_pool_get_array(diag, 'cldht_top_UM',  cldht_top_UM)
+                call mpas_pool_get_array(diag, 'cldht_base_UM', cldht_base_UM)
+            end if
 
             call mpas_pool_get_array(mesh, 'zgrid', height)
             call mpas_pool_get_array(diag, 'uReconstructMeridional', umeridional)
@@ -342,6 +402,15 @@ module convective_diagnostics
             call mpas_pool_get_array(diag, 'relhum', relhum)
             call mpas_pool_get_array(diag, 'pressure_base', pressure_base)
             call mpas_pool_get_array(diag, 'pressure_p', pressure_p)
+            if ( need_cldfrac_UPP .or. need_cldfrac_UM ) then
+                call mpas_pool_get_array(diag_physics, 'cldfrac', cldfrac)
+                ! do we impose 0.0/1.0 limit to cldfrac here?
+                do iCell = 1, nCells
+                   do k = 1, nVertLevels
+                      cldfrac(k,iCell) = max(min(cldfrac(k,iCell),1.0),0.0)
+                   end do
+                end do
+            end if
 
             call mpas_pool_get_dimension(state, 'index_qv', index_qv)
 
@@ -469,6 +538,88 @@ module convective_diagnostics
                     cin(iCell) = cin_out
 
                 end do
+            end if
+
+            if ( need_cldfrac_UPP ) then
+                do iCell = 1, nCellsSolve
+                    cldfrac_low_UPP (iCell) = 0.0
+                    cldfrac_mid_UPP (iCell) = 0.0
+                    cldfrac_high_UPP(iCell) = 0.0
+                    cldfrac_tot_UPP (iCell) = 0.0
+                    p_in(1:nVertLevels) = pressure_p(1:nVertLevels,iCell) + pressure_base(1:nVertLevels,iCell)
+                    do k = 1, nVertLevels
+                       if ( p_in(k) >= ptop_low ) then
+                           cldfrac_low_UPP(iCell)  = max(cldfrac_low_UPP(iCell), cldfrac(k,iCell))
+                       else if ( p_in(k) < ptop_low .and. p_in(k) >= ptop_mid  ) then
+                           cldfrac_mid_UPP(iCell)  = max(cldfrac_mid_UPP(iCell), cldfrac(k,iCell))
+                       else if ( p_in(k) < ptop_mid .and. p_in(k) >= ptop_high ) then
+                           cldfrac_high_UPP(iCell) = max(cldfrac_high_UPP(iCell), cldfrac(k,iCell))
+                       end if
+                       cldfrac_tot_UPP(iCell) = max(cldfrac_tot_UPP(iCell), cldfrac(k,iCell))
+                    end do
+                end do
+            end if
+
+            if ( need_cldfrac_UM ) then
+
+                do iCell = 1, nCellsSolve
+                    cldfrac_low_UM (iCell) = 0.0
+                    cldfrac_mid_UM (iCell) = 0.0
+                    cldfrac_high_UM(iCell) = 0.0
+                    p_in(1:nVertLevels) = pressure_p(1:nVertLevels,iCell) + pressure_base(1:nVertLevels,iCell)
+                    do k = 1, nVertLevels
+                       if ( p_in(k) >= ptop_low_ ) then
+                           cldfrac_low_UM(iCell)  = max(cldfrac_low_UM(iCell), cldfrac(k,iCell))
+                       else if ( p_in(k) < ptop_low_ .and. p_in(k) >= ptop_mid_  ) then
+                           cldfrac_mid_UM(iCell)  = max(cldfrac_mid_UM(iCell), cldfrac(k,iCell))
+                       else if ( p_in(k) < ptop_mid_ .and. p_in(k) >= ptop_high_ ) then
+                           cldfrac_high_UM(iCell) = max(cldfrac_high_UM(iCell), cldfrac(k,iCell))
+                       end if
+                    end do
+                end do
+
+                do iCell = 1, nCellsSolve
+                    cldht_base_UM (iCell) = msgval
+                    cldht_top_UM  (iCell) = msgval
+                    zp(1:nVertLevels) = 0.5*(height(1:nVertLevels,iCell)+height(2:nVertlevels+1,iCell)) - height(1,iCell)
+                    do k = 1, nVertLevels
+                       if ( cldht_base_UM (iCell) == msgval ) then
+                           ! bottom-up check k
+                           if ( cldfrac(k,iCell) >= thresh_cld ) then
+                               cldht_base_UM (iCell) = zp(k)
+                           end if
+                       end if
+                       if ( cldht_top_UM (iCell) == msgval ) then
+                           ! top-down check nVertLevels-k+1
+                           if ( cldfrac(nVertLevels-k+1,iCell) >= thresh_cld ) then
+                               cldht_top_UM (iCell) = zp(nVertLevels-k+1)
+                           end if
+                       end if
+                    end do
+                end do
+
+                allocate (cldfrac2(nCellsSolve,nVertLevels))
+                ! swap cldfrac dimensions to conform to r2_calc_total_cloud_cover requirement
+                do iCell = 1, nCellsSolve
+                    do k = 1, nVertLevels
+                        cldfrac2(iCell,k) = cldfrac(k,iCell)
+                    end do
+                end do
+                ! max/random overlapping method
+                call r2_calc_total_cloud_cover(               &
+                     nCellsSolve, nVertLevels, nVertLevels,   &
+                     ip_cloud_mix_max,                        &
+                     cldfrac2, cldfrac_tot_UM_max,            &
+                     nCellsSolve, nVertLevels                 &
+                     )
+                ! random overlapping method
+                call r2_calc_total_cloud_cover(               &
+                     nCellsSolve, nVertLevels, nVertLevels,   &
+                     ip_cloud_mix_random,                     &
+                     cldfrac2, cldfrac_tot_UM_rand,           &
+                     nCellsSolve, nVertLevels                 &
+                     )
+                deallocate (cldfrac2)
             end if
 
             deallocate(temperature)
@@ -1091,6 +1242,196 @@ module convective_diagnostics
 
     return
     end function getthe
+
+!-----------------------------------------------------------------------
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!-----------------------------------------------------------------------
+
+! *****************************COPYRIGHT*******************************
+! (C) Crown copyright Met Office. All rights reserved.
+! For further details please refer to the file COPYRIGHT.txt
+! which you should have received as part of this distribution.
+! *****************************COPYRIGHT*******************************
+
+! Code Owner: Please refer to the UM file CodeOwners.txt
+! This file belongs in section: Radiation Control
+
+!- ---------------------------------------------------------------------
+!MODULE r2_calc_total_cloud_cover_mod
+
+!IMPLICIT NONE
+
+!CHARACTER(LEN=*),                                                              &
+!    PARAMETER, PRIVATE :: ModuleName = 'R2_CALC_TOTAL_CLOUD_COVER_MOD'
+!CONTAINS
+
+SUBROUTINE r2_calc_total_cloud_cover(n_profile, n_layer, nclds                 &
+   , i_cloud, w_cloud_in, total_cloud_cover                                    &
+   , npd_profile, npd_layer                                                    &
+   )
+
+!  Subroutine to calculate the total cloud cover.
+
+! Purpose:
+!   The total cloud cover at all grid-points is determined.
+
+! Method:
+!   A separate calculation is made for each different assumption about
+!   the overlap.
+
+
+!USE rad_pcf
+!USE yomhook, ONLY: lhook, dr_hook
+!USE parkind1, ONLY: jprb, jpim
+IMPLICIT NONE
+
+
+!     DECLARATION OF ARRAY SIZES.
+INTEGER, intent(in) ::                                                         &
+          !, INTENT(IN)
+     npd_profile                                                               &
+!             MAXIMUM NUMBER OF PROFILES
+         , npd_layer
+!             MAXIMUM NUMBER OF LAYERS
+
+
+!     DUMMY ARGUMENTS.
+INTEGER, intent(in) ::                                                         &
+          !, INTENT(IN)
+     n_profile                                                                 &
+!             NUMBER OF PROFILES
+         , n_layer                                                             &
+!             Number of layers seen in radiation
+         , nclds                                                               &
+!             NUMBER OF CLOUDY LAYERS
+         , i_cloud
+!             CLOUD SCHEME EMPLOYED
+REAL(kind=RKIND), intent(in) ::                                                &
+          !, INTENT(IN)
+     w_cloud_in(npd_profile, npd_layer)
+!             CLOUD AMOUNTS
+
+REAL(kind=RKIND), intent(out) ::                                               &
+          !, INTENT(OUT)
+     total_cloud_cover(npd_profile)
+!             TOTAL CLOUD COVER
+
+
+!     LOCAL VARIABLES.
+INTEGER ::                                                                     &
+     l                                                                         &
+!             LOOP VARIABLE
+         , i
+!             LOOP VARIABLE
+REAL(kind=RKIND) ::                                                            &
+     w_cloud(npd_profile, npd_layer)
+
+!INTEGER(KIND=jpim), PARAMETER :: zhook_in  = 0
+!INTEGER(KIND=jpim), PARAMETER :: zhook_out = 1
+!REAL(KIND=jprb)               :: zhook_handle
+
+CHARACTER(LEN=*), PARAMETER :: RoutineName='R2_CALC_TOTAL_CLOUD_COVER'
+
+
+!     COPY W_CLOUD_IN TO W_CLOUD AND THEN CHECK THAT VALUES ARE
+!     BETWEEN 0 AND 1.
+
+!IF (lhook) CALL dr_hook(ModuleName//':'//RoutineName,zhook_in,zhook_handle)
+DO i=n_layer+1-nclds, n_layer
+  DO l=1, n_profile
+    w_cloud(l,i) = MIN( MAX(w_cloud_in(l,i),0.0) , 1.0 )
+  END DO
+END DO
+
+!     DIFFERENT OVERLAP ASSUMPTIONS ARE CODED INTO EACH SOLVER.
+
+IF (i_cloud == ip_cloud_mix_max) THEN
+
+  !        USE THE TOTAL CLOUD COVER TEMPORARILY TO HOLD THE CLEAR-SKY
+  !        FRACTION AND CONVERT BACK TO CLOUD COVER LATER.
+  !        WE CALCULATE THIS QUANTITY BY IMAGINING A TOTALLY TRANSPARENT
+  !        ATMOSPHERE CONTAINING TOTALLY OPAQUE CLOUDS AND FINDING THE
+  !        TRANSMISSION.
+  DO l=1, n_profile
+    total_cloud_cover(l)=1.0_RKIND-w_cloud(l, n_layer+1-nclds)
+  END DO
+  DO i=n_layer+1-nclds, n_layer-1
+    DO l=1, n_profile
+      IF (w_cloud(l, i+1) >  w_cloud(l, i)) THEN
+        total_cloud_cover(l)=total_cloud_cover(l)                              &
+           *(1.0_RKIND-w_cloud(l, i+1))/(1.0_RKIND-w_cloud(l, i))
+      END IF
+    END DO
+  END DO
+  DO l=1, n_profile
+    total_cloud_cover(l)=1.0_RKIND-total_cloud_cover(l)
+  END DO
+
+ELSE IF (i_cloud == ip_cloud_mix_random) THEN
+
+  !        USE THE TOTAL CLOUD COVER TEMPORARILY TO HOLD THE CLEAR-SKY
+  !        FRACTION AND CONVERT BACK TO CLOUD COVER LATER.
+  DO l=1, n_profile
+    total_cloud_cover(l)=1.0_RKIND
+  END DO
+  DO i=n_layer+1-nclds, n_layer
+    DO l=1, n_profile
+      total_cloud_cover(l)=total_cloud_cover(l)                                &
+         *(1.0_RKIND-w_cloud(l, i))
+    END DO
+  END DO
+  DO l=1, n_profile
+    total_cloud_cover(l)=1.0_RKIND-total_cloud_cover(l)
+  END DO
+
+ELSE IF (i_cloud == ip_cloud_column_max) THEN
+
+  DO l=1, n_profile
+    total_cloud_cover(l)=0.0_RKIND
+  END DO
+  DO i=n_layer+1-nclds, n_layer
+    DO l=1, n_profile
+      total_cloud_cover(l)=MAX(total_cloud_cover(l)                            &
+         , w_cloud(l, i))
+    END DO
+  END DO
+
+ELSE IF (i_cloud == ip_cloud_triple) THEN
+
+  !        USE THE TOTAL CLOUD COVER TEMPORARILY TO HOLD THE CLEAR-SKY
+  !        FRACTION AND CONVERT BACK TO CLOUD COVER LATER.
+  !        WE CALCULATE THIS QUANTITY BY IMAGINING A TOTALLY TRANSPARENT
+  !        ATMOSPHERE CONTAINING TOTALLY OPAQUE CLOUDS AND FINDING THE
+  !        TRANSMISSION.
+  DO l=1, n_profile
+    total_cloud_cover(l)=1.0_RKIND-w_cloud(l, n_layer+1-nclds)
+  END DO
+  DO i=n_layer+1-nclds, n_layer-1
+    DO l=1, n_profile
+      IF (w_cloud(l, i+1) >  w_cloud(l, i)) THEN
+        total_cloud_cover(l)=total_cloud_cover(l)                              &
+           *(1.0_RKIND-w_cloud(l, i+1))/(1.0_RKIND-w_cloud(l, i))
+      END IF
+    END DO
+  END DO
+  DO l=1, n_profile
+    total_cloud_cover(l)=1.0_RKIND-total_cloud_cover(l)
+  END DO
+
+ELSE IF (i_cloud == ip_cloud_clear) THEN
+
+  DO l=1, n_profile
+    total_cloud_cover(l)=0.0_RKIND
+  END DO
+
+END IF
+
+
+
+!IF (lhook) CALL dr_hook(ModuleName//':'//RoutineName,zhook_out,zhook_handle)
+RETURN
+END SUBROUTINE r2_calc_total_cloud_cover
+!END MODULE r2_calc_total_cloud_cover_mod
 
 !-----------------------------------------------------------------------
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
