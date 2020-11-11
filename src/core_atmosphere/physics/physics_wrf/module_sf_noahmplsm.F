@@ -9136,6 +9136,14 @@ END SUBROUTINE EMERG
 END MODULE MODULE_SF_NOAHMPLSM
 
 MODULE NOAHMP_TABLES
+#if defined(mpas)
+use mpas_log
+use mpas_atmphys_utilities,only: physics_error_fatal
+#define FATAL_ERROR(M) call physics_error_fatal(M)
+#else
+use module_wrf_error
+#define FATAL_ERROR(M) call wrf_error_fatal(M)
+#endif
 
     IMPLICIT NONE
 
@@ -9426,6 +9434,8 @@ CONTAINS
          LAI_JAN, LAI_FEB, LAI_MAR, LAI_APR, LAI_MAY, LAI_JUN,LAI_JUL,LAI_AUG,LAI_SEP,LAI_OCT,LAI_NOV,LAI_DEC, &
          RHOL_VIS, RHOL_NIR, RHOS_VIS, RHOS_NIR, TAUL_VIS, TAUL_NIR, TAUS_VIS, TAUS_NIR, SLAREA, EPS1, EPS2, EPS3, EPS4, EPS5
 
+    call mpas_log_write('    enter subroutine read_mp_veg_parameters:')
+    call mpas_log_write('    dataset_identifier = '//trim(dataset_identifier))
     ! Initialize our variables to bad values, so that if the namelist read fails, we come to a screeching halt as soon as we try to use anything.
     CH2OP_TABLE  = -1.E36
     DLEAF_TABLE  = -1.E36
@@ -9563,7 +9573,7 @@ CONTAINS
         HS_TABLE(1:NVEG)  = HS(1:NVEG)
       TOPT_TABLE(1:NVEG)  = TOPT(1:NVEG)
      RSMAX_TABLE(1:NVEG)  = RSMAX(1:NVEG)
-    
+
     ! Put LAI and SAI into 2d array from monthly lines in table; same for canopy radiation properties
 
     SAIM_TABLE(1:NVEG, 1) = SAI_JAN(1:NVEG)
@@ -9601,6 +9611,8 @@ CONTAINS
     TAUS_TABLE(1:NVEG,1)  = TAUS_VIS(1:NVEG) !stem transmittance: 1=vis, 2=nir
     TAUS_TABLE(1:NVEG,2)  = TAUS_NIR(1:NVEG) !stem transmittance: 1=vis, 2=nir
 
+    call mpas_log_write('    exit subroutine read_mp_veg_parameters.')
+
   end subroutine read_mp_veg_parameters
 
   subroutine read_mp_soil_parameters()
@@ -9611,6 +9623,7 @@ CONTAINS
     CHARACTER(len=256)  :: message
     logical             :: file_named 
     
+    call mpas_log_write('    enter subroutine read_mp_soil_parameters:')
 
     ! Initialize our variables to bad values, so that if the namelist read fails, we come to a screeching halt as soon as we try to use anything.
        BEXP_TABLE = -1.E36
@@ -9706,6 +9719,7 @@ CONTAINS
     READ (22,*)
 
     CLOSE (22)
+    call mpas_log_write('    exit subroutine read_mp_soil_parameters.')
 
   end subroutine read_mp_soil_parameters
 
@@ -9723,6 +9737,7 @@ CONTAINS
     NAMELIST / noahmp_rad_parameters / ALBSAT_VIS,ALBSAT_NIR,ALBDRY_VIS,ALBDRY_NIR,ALBICE,ALBLAK,OMEGAS,BETADS,BETAIS,EG
 
 
+    call mpas_log_write('    enter subroutine read_mp_rad_parameters:')
     ! Initialize our variables to bad values, so that if the namelist read fails, we come to a screeching halt as soon as we try to use anything.
     ALBSAT_TABLE     = -1.E36
     ALBDRY_TABLE     = -1.E36
@@ -9758,6 +9773,7 @@ CONTAINS
     BETADS_TABLE      = BETADS
     BETAIS_TABLE      = BETAIS
     EG_TABLE          = EG
+    call mpas_log_write('    exit subroutine read_mp_rad_parameters.')
 
   end subroutine read_mp_rad_parameters
 
@@ -9777,6 +9793,7 @@ CONTAINS
 	    RSURF_SNOW,RSURF_EXP
 
 
+    call mpas_log_write('    enter subroutine read_mp_global_parameters:')
     ! Initialize our variables to bad values, so that if the namelist read fails, we come to a screeching halt as soon as we try to use anything.
        CO2_TABLE     = -1.E36
         O2_TABLE     = -1.E36
@@ -9835,6 +9852,7 @@ BATS_NIR_DIR_TABLE   = BATS_NIR_DIR
 RSURF_SNOW_TABLE     = RSURF_SNOW
  RSURF_EXP_TABLE     = RSURF_EXP
 
+   call mpas_log_write('    exit subroutine read_mp_global_parameters.')
   end subroutine read_mp_global_parameters
 
   subroutine read_mp_crop_parameters()
@@ -9899,6 +9917,7 @@ RSURF_SNOW_TABLE     = RSURF_SNOW
                                         GRAINPT_S1,GRAINPT_S2,GRAINPT_S3,GRAINPT_S4,GRAINPT_S5,GRAINPT_S6,GRAINPT_S7,GRAINPT_S8, &
                                            BIO2LAI
 
+    call mpas_log_write('    enter subroutine read_mp_crop_parameters:')
 
     ! Initialize our variables to bad values, so that if the namelist read fails, we come to a screeching halt as soon as we try to use anything.
  DEFAULT_CROP_TABLE     = -99999
@@ -10060,6 +10079,7 @@ RSURF_SNOW_TABLE     = RSURF_SNOW
       GRAINPT_TABLE(:,8) = GRAINPT_S8
       BIO2LAI_TABLE      = BIO2LAI
 
+     call mpas_log_write('    exit subroutine read_mp_crop_parameters.')
   end subroutine read_mp_crop_parameters
 
   subroutine read_mp_optional_parameters()
@@ -10086,6 +10106,7 @@ RSURF_SNOW_TABLE     = RSURF_SNOW
          sr2006_psi_e_a      , sr2006_psi_e_b      , sr2006_psi_e_c      , &
          sr2006_smcmax_a     , sr2006_smcmax_b
 
+    call mpas_log_write('    enter subroutine read_mp_optional_parameters')
     inquire( file='MPTABLE.TBL', exist=file_named ) 
     if ( file_named ) then
       open(15, file="MPTABLE.TBL", status='old', form='formatted', action='read', iostat=ierr)
@@ -10101,6 +10122,7 @@ RSURF_SNOW_TABLE     = RSURF_SNOW
     read(15,noahmp_optional_parameters)
     close(15)
 
+    call mpas_log_write('    exit subroutine read_mp_optional_parameters.')
 
   end subroutine read_mp_optional_parameters
 

@@ -14,11 +14,13 @@
  use mpas_atmphys_constants
  use mpas_atmphys_landuse, only: isurban
  use mpas_atmphys_lsm_noahinit
+ use mpas_atmphys_lsm_noahmpinit
  use mpas_atmphys_vars
 
 !wrf physics
  use module_sf_noahdrv
  use module_sf_noah_seaice_drv
+ use module_sf_noahmpdrv
  use module_sf_sfcdiags
  
  implicit none
@@ -33,9 +35,6 @@
  logical,parameter:: myj      = .false. !true if using Mellor-Yamada PBL scheme.
  logical,parameter:: frpcpn   = .false.
  logical,parameter:: rdlai2d  = .false.
-
-!urban physics: MPAS does not plan to run the urban physics option.
- integer,parameter:: sf_urban_physics = 0 !activate urban canopy model (=0: no urban canopy) 
 
 
 !MPAS driver for parameterization of land surface processes.
@@ -768,7 +767,11 @@
 
     case ("sf_noah")
        call noah_init_forMPAS(dminfo,mesh,configs,diag_physics,sfc_input)
-    
+
+    case ("sf_noahmp")
+       call noahmp_init_forMPAS(mesh,configs,diag_physics,sfc_input)
+       stop
+
     case default
  
  end select lsm_select

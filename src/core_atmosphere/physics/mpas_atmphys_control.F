@@ -316,8 +316,9 @@
     call physics_error_fatal('land surface scheme: ' // &
                              'set config_sfclayer_scheme different than off')
     
- elseif(.not. (config_lsm_scheme .eq. 'off ' .or. &
-               config_lsm_scheme .eq. 'sf_noah')) then
+ elseif(.not. (config_lsm_scheme .eq. 'off '    .or. &
+               config_lsm_scheme .eq. 'sf_noah' .or. &
+               config_lsm_scheme .eq. 'sf_noahmp')) then
  
     write(mpas_err_message,'(A,A10)') 'illegal value for land surface scheme: ', &
           trim(config_lsm_scheme)
@@ -388,7 +389,7 @@
 
     lsm_select: select case(trim(config_lsm_scheme))
 
-       case("sf_noah")
+       case("sf_noah","sf_noahmp")
        !initialize the thickness of the soil layers for the Noah scheme:
           do iCell = 1, nCells
              dzs(1,iCell) = 0.10_RKIND
