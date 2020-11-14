@@ -36,6 +36,12 @@
 !the convective transport of passive tracers. Note that the convective transport of passive tracers could be in
 !its own subroutine since they do not interact with moisture, it was more convenient to put them here.
 
+!add-ons and modifications to sourcecode:
+!----------------------------------------
+! * corrected how to limit the cloud base mass flux.
+! * added the convective transport of "ice-friendly" and "water-friendly" Thompson aerosols.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-11-14.
+
 
  contains
 
@@ -731,13 +737,20 @@
        kd = kdn(i)
        cflmax(i) = 0._kind_phys
 
-       do k = kts, ktf-1
+!      do k = kts, ktf-1
+!         ratio(i,k) = 0.01_kind_phys*grav/(pres(i,k) - pres(i,k+1))
+!         cfl(k) = zu(i,k)/(ratio(i,k)*dtime)
+!         cfl(k) = xmbl(i)*cfl(k)
+!         cflmax(i) = max(cflmax(i),cfl(k))
+!      enddo
+!      if(xmbl(i).gt.cflmax(i)) xmbl(i) = cflmax(i)
+       do k = kb,kt
           ratio(i,k) = 0.01_kind_phys*grav/(pres(i,k) - pres(i,k+1))
-          cfl(k) = zu(i,k)/(ratio(i,k)*dtime)
-          cfl(k) = xmbl(i)*cfl(k)
-          cflmax(i) = max(cflmax(i),cfl(k))
+          cflmax(k)  = 1._kind_phys/(ratio(i,k)*dtime)
+          znet(k)    = zu(i,k)-edt(i)*zd(i,k)
+          cfl(k)     = xmb(i)*znet(k)
+          if(cfl(k).gt.cflmax(k)) xmbl(i) = min(xmbl(i),cflmax(k)/znet(k))
        enddo
-       if(xmbl(i).gt.cflmax(i)) xmbl(i) = cflmax(i)
        do k = kts, ktf
           ratio(i,k) = ratio(i,k)*xmbl(i)
        enddo
@@ -756,6 +769,59 @@
 !      enddo
     endif
  enddo
+
+!--- convective transport of "ice-friendly" and "water-friendly" aerosols from the Thompson cloud microphysics:
+ if(is_mp) then
+    do i = its, itf
+       if(ierr(i) .eq. 0) then
+          k2 = k22(i)
+          kb = kbcon(i)
+          kt = ktop(i)
+          kd = kdn(i)
+
+          do k = kts, ktf
+             znet(k) = zu(i,k)-edt(i)*zd(i,k)
+!            znet(k) = zu(i,k)
+             fp(k) = 0.5*(znet(k)+abs(znet(k)))
+             fm(k) = 0.5*(znet(k)-abs(znet(k)))
+          enddo
+          do k = kts, ktf-1
+             aterm3(k) = ratio(i,k)*dtime*fm(k)
+             bterm3(k) = 1.+ratio(i,k)*dtime*(fp(k)-fm(k+1))
+             cterm3(k) = -ratio(i,k)*dtime*fp(k+1)
+         enddo
+         !nifa:
+         do k = kts, ktf-1
+             dterm3(k) = (zu(i,k)*nifa_up(i,k)-zu(i,k+1)*nifa_up(i,k+1)) &
+                       - edt(i)*(zd(i,k)*nifa_dn(i,k)-zd(i,k+1)*nifa_dn(i,k+1))
+             dterm3(k) = nifa(i,k) + ratio(i,k)*dtime*dterm3(k)
+          enddo
+          k = ktf
+          dterm3(k) = nifa(i,k)
+          call tridiag(ktf-1,aterm3(kts:ktf-1),bterm3(kts:ktf-1),cterm3(kts:ktf-1),dterm3(kts:ktf-1))
+          do k = kts, ktf
+             outnifa(i,k) = (dterm3(k)-nifa(i,k))/dtime
+          enddo
+          !nwfa:
+          do k = kts, ktf-1
+             dterm3(k) = (zu(i,k)*nwfa_up(i,k)-zu(i,k+1)*nwfa_up(i,k+1)) &
+                       - edt(i)*(zd(i,k)*nwfa_dn(i,k)-zd(i,k+1)*nwfa_dn(i,k+1))
+             dterm3(k) = nwfa(i,k) + ratio(i,k)*dtime*dterm3(k)
+          enddo
+          k = ktf
+          dterm3(k) = nwfa(i,k)
+          call tridiag(ktf-1,aterm3(kts:ktf-1),bterm3(kts:ktf-1),cterm3(kts:ktf-1),dterm3(kts:ktf-1))
+          do k = kts, ktf
+             outnwfa(i,k) = (dterm3(k)-nwfa(i,k))/dtime
+          enddo
+!         do k = kts, ktf
+!            call mpas_log_write('$i $i $i $i $i $i $r $r $r $r',intArgs=(/i,kd,k2,kb,kt,k/), &
+!                      realArgs=(/nifa(i,k),outnifa(i,k),nwfa(i,k),outnwfa(i,k)/))
+!         enddo
+!         call mpas_log_write(' ')
+       endif
+    enddo
+ endif
 
  do i = its, itf
     if(ierr(i) .eq. 0) then

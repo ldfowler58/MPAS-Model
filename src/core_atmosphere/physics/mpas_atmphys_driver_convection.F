@@ -138,6 +138,9 @@
 !   and rnwfacuten_p so that convection_from_MPAS works when using a convection scheme other than the Grell-
 !   Freitas scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2020-02-13.
+! * added the pre-processing option ATM_CHEMISTRY to include the convective transport of passive tracers, and
+!   "ice-friendly" and "water-friendly" Thompson aerosols.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-11-14.
 
 
  contains
@@ -777,8 +780,8 @@
                gdc          = qccu_p               , gdc2         = qicu_p               , &
                nclos        = nclosures            , weights_clos = weights_clos_p       , &
 #ifdef ATM_CHEMISTRY
-!              nifa         = nifa_p                  , nwfa         = nwfa_p                       , &
-!              rnifacuten   = rnifacuten_p            , rnwfacuten   = rnwfacuten_p                 , &
+               nifa         = nifa_p                  , nwfa         = nwfa_p                       , &
+               rnifacuten   = rnifacuten_p            , rnwfacuten   = rnwfacuten_p                 , &
                nchem        = mpas_chems%nchems       , ntracer      = mpas_tracers%ntracers        , &
                tracer3d     = mpas_tracers%tracers_p  , rtracercuten = mpas_tracers%rtracerscuten_p , &
 #endif

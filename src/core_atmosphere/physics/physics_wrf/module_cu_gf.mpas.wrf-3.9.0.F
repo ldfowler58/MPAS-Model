@@ -15,6 +15,9 @@
 !   rnifacuten,and rnwfacuten to include the convective transport for the number concentration of cloud liquid
 !   water and cloud ice,and for the number concentation of "ice-friendly" and "water-friendly" aerosols.
 !   Laura D. Fowler (laura@ucar.edu) / 2019-12-02.
+! * replaced (present(nifa) .and. ... with is_mp instrad.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-11-14.
+
 
 !=================================================================================================================
  module module_cu_gf_wrf390
@@ -723,7 +726,7 @@
 
 #ifdef ATM_CHEMISTRY
     call mpas_timer_start('atm_chem: physics - GF')
-    if(present(nifa) .and. present(rnifacuten) .and. present(nwfa) .and. present(rnwfacuten)) then
+    if(is_mp) then
        do k = kts, ktf
           do i = its, itf
              rnifacuten(i,k,j) = cutenm(i)*outnifam(i,k) + cuten(i)*outnifa(i,k)
