@@ -166,6 +166,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2019-09-11.
 ! * added the variable zd_shalc_p which is the local normalized downdraft mass flux for shallow convection.
 !   Laura D. Fowler (laura@ucar.edu) / 2019-10-14).
+! * added local variables to run the NoahMP land-surface scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-11-17.
 
 
 !=================================================================================================================
@@ -913,27 +915,28 @@
     soldrain_p         !soil column drainage                                                                  [mm]
 
 !=================================================================================================================
-!.. variables and arrays related to land-surface parameterization, only used in the NOAH MP scheme:
+!.. variables and arrays related to land-surface parameterization, only used in the NOAH MP scheme: additional
+!.. description of the iopt_* options are in README.namelist in the WRF sourcecode.
 !=================================================================================================================
 
 !.. default options as in README.namelist from WRF version 3.9.1.1:
- integer,parameter:: idveg     = 4
- integer,parameter:: iopt_crs  = 1
- integer,parameter:: iopt_sfc  = 1
- integer,parameter:: iopt_btr  = 1
- integer,parameter:: iopt_run  = 3
- integer,parameter:: iopt_frz  = 1
- integer,parameter:: iopt_inf  = 1
- integer,parameter:: iopt_rad  = 3
- integer,parameter:: iopt_alb  = 2
- integer,parameter:: iopt_snf  = 1
- integer,parameter:: iopt_tbot = 2
- integer,parameter:: iopt_stc  = 1
- integer,parameter:: iopt_gla  = 1
- integer,parameter:: iopt_rsf  = 1
- integer,parameter:: iopt_soil = 1
- integer,parameter:: iopt_pedo = 1
- integer,parameter:: iopt_crop = 0
+ integer,parameter:: idveg     = 4 ! Noah-MP dynamic vegetation option.
+ integer,parameter:: iopt_crs  = 1 ! Noah-MP stomatal resistance option.
+ integer,parameter:: iopt_sfc  = 1 ! Noah-MP surface layer drag coefficient calculation.
+ integer,parameter:: iopt_btr  = 1 ! Noah-MP soil moisture factor for stomatal resistance.
+ integer,parameter:: iopt_run  = 3 ! Noah-MP runoff and groundwater option.
+ integer,parameter:: iopt_frz  = 1 ! Noah-MP supercooled liquid water option.
+ integer,parameter:: iopt_inf  = 1 ! Noah-MP soil permeability option.
+ integer,parameter:: iopt_rad  = 3 ! Noah-MP radiative transfer option.
+ integer,parameter:: iopt_alb  = 2 ! Noah-MP ground surface albedo option.
+ integer,parameter:: iopt_snf  = 1 ! Noah-MP precipitation partitioning between snow and rain.
+ integer,parameter:: iopt_tbot = 2 ! Noah-MP Soil Temperature Lower Boundary Condition.
+ integer,parameter:: iopt_stc  = 1 ! Noah-MP Snow/Soil temperature time scheme.
+ integer,parameter:: iopt_gla  = 1 ! Noah-MP glacier treatment option (new in WRF 3.8)
+ integer,parameter:: iopt_rsf  = 1 ! Noah-MP surface evaporation resistance option (new in WRF 3.8).
+ integer,parameter:: iopt_soil = 1 ! Noah-MP options for defining soil properties.
+ integer,parameter:: iopt_pedo = 1 ! Noah-MP options for pedotransfer functions (used when OPT_SOIL = 3).
+ integer,parameter:: iopt_crop = 0 ! Noah-MP options for crop model.
 
 !inouts:
  integer,dimension(:,:),allocatable:: &

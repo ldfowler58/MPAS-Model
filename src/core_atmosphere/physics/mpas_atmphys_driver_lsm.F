@@ -97,6 +97,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2020-01-10.
 ! * renamed "noah" to "sf_noah" in all instances of noah.
 !   Laura D. Fowler (laura@ucar.edu) / 2020-10-19.
+! * added the option "sf_noahmp" to run the NoahMP land-surface scheme. added initialization of the NoahMP
+!   land-surface scheme in subroutine init_lsm.
+!   Laura D. Fowler (laura@ucar.edu) / 2020-11.17.
 
 
 !
