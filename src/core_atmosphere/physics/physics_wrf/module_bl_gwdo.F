@@ -26,7 +26,9 @@ contains
                   dt,dx,kpbl2d,itimestep,                                      &
                   ids,ide, jds,jde, kds,kde,                                   &
                   ims,ime, jms,jme, kms,kme,                                   &
-                  its,ite, jts,jte, kts,kte)
+                  its,ite, jts,jte, kts,kte,                                   &
+                  errmsg,errflg                                                &
+                 )
 !-------------------------------------------------------------------------------
    use bl_gwdo
    implicit none
@@ -120,6 +122,9 @@ contains
                                                                           znw
 !
   real,     optional, intent(in  )   ::                                 p_top
+
+  character(len=*), intent(out)      ::                                errmsg
+  integer,          intent(out)      ::                                errflg
 !
 !local
 !
@@ -151,9 +156,6 @@ contains
                                                                      ol2d3_hv, &
                                                                      ol2d4_hv
   integer ::  i,j,k
-
-  character(len=512)                     :: errmsg
-  integer                                :: errflg
 
    !  Outer j-loop. Allows consistency between WRF and MPAS in the driver.
 
