@@ -44,6 +44,10 @@ OBJS = \
 physics_wrf: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
 
+# CCPP DEPENDENCIES
+module_bl_gwdo.o: \
+	../physics_sima/bl_gwdo.o
+
 # DEPENDENCIES:
 module_bl_mynn.o: \
 	module_cam_error_function.o
@@ -105,7 +109,7 @@ clean:
 .F.o:
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../physics_sima -I../../../framework -I../../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../physics_sima -I../../../framework -I../../../external/esmf_time_f90
 endif
