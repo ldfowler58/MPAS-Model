@@ -48,6 +48,9 @@ physics_wrf: $(OBJS)
 module_bl_gwdo.o: \
 	../physics_sima/bl_gwdo.o
 
+module_bl_ysu.o: \
+	../physics_sima/bl_ysu.o
+
 # DEPENDENCIES:
 module_bl_mynn.o: \
 	module_cam_error_function.o

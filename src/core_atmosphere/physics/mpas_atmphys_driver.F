@@ -158,6 +158,9 @@
 
  call mpas_timer_start('physics driver')
 
+ errmsg = ' '
+ errflg = 0
+
  call mpas_pool_get_config(domain%configs,'config_convection_scheme',config_convection_scheme)
  call mpas_pool_get_config(domain%configs,'config_gwdo_scheme'      ,config_gwdo_scheme      )
  call mpas_pool_get_config(domain%configs,'config_lsm_scheme'       ,config_lsm_scheme       )
@@ -292,7 +295,8 @@
 !$OMP PARALLEL DO
        do thread=1,nThreads
           call driver_pbl(itimestep,block%configs,mesh,sfc_input,diag_physics,tend_physics, &
-                          cellSolveThreadStart(thread),cellSolveThreadEnd(thread))
+                          cellSolveThreadStart(thread),cellSolveThreadEnd(thread),          &
+                          errmsg,errflg)
        end do
 !$OMP END PARALLEL DO
        call deallocate_pbl(block%configs)
