@@ -1,18 +1,25 @@
 .SUFFIXES: .F .o
 
+OBJS =					\
+	ccpp_kinds.o			\
+	bl_gwdo.o			\
+	bl_ysu.o                      
+
 all: dummy physics_sima
 
 dummy:
 	echo "****** compiling physics_sima ******"
-
-OBJS = \
-	bl_gwdo.o			\
-	bl_ysu.o                      
+	echo "Files = $(OBJS) "
 
 physics_sima: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
 
 # DEPENDENCIES:
+
+bl_gwdo.o:	\
+	ccpp_kinds.o
+bl_ysu.o:	\
+	ccpp_kinds.o
 
 clean:
 	$(RM) *.f90 *.o *.mod

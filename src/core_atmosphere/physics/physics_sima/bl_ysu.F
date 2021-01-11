@@ -1,22 +1,21 @@
 #define  NEED_B4B_DURING_CCPP_TESTING 1
 !=================================================================================================================
  module bl_ysu
- use mpas_kind_types,only: kind_phys => RKIND
+ use ccpp_kinds,only: kind_phys
 
  implicit none
  private
- public:: bl_ysu_run,     &
-          bl_ysu_init,    &
-          bl_ysu_finalize          
+ public:: bl_ysu_run          ,    &
+          bl_ysu_init         ,    &
+          bl_ysu_final        ,    &
+          bl_ysu_timestep_init,    &
+          bl_ysu_timestep_final
 
 
  contains
 
 
 !=================================================================================================================
-!> \section arg_table_bl_ysu_run  Argument Table
-!! \htmlinclude arg_table_bl_ysu_run.html
-!!
    subroutine bl_ysu_run(ux,vx,tx,qvx,qcx,qix,nmix,qmix,p2d,p2di,pi2d,     &
                          f_qc,f_qi,                                        &
                          utnp,vtnp,ttnp,qvtnp,qctnp,qitnp,qmixtnp,         &
@@ -1251,9 +1250,7 @@
 !
    end subroutine bl_ysu_run
 
-!> \section arg_table_bl_ysu_init  Argument Table
-!! \htmlinclude arg_table_bl_ysu_init.html
-!!
+!=================================================================================================================
   subroutine bl_ysu_init (errmsg, errflg)
 
     character(len=*),        intent(out)   :: errmsg
@@ -1266,10 +1263,8 @@
 
   end subroutine bl_ysu_init
 
-!> \section arg_table_bl_ysu_finalize  Argument Table
-!! \htmlinclude arg_table_bl_ysu_finalize.html
-!!
-  subroutine bl_ysu_finalize (errmsg, errflg)
+!=================================================================================================================
+  subroutine bl_ysu_final (errmsg, errflg)
 
     character(len=*),        intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
@@ -1279,7 +1274,33 @@
     errmsg = ''
     errflg = 0
 
-  end subroutine bl_ysu_finalize
+  end subroutine bl_ysu_final
+
+!=================================================================================================================
+  subroutine bl_ysu_timestep_init (errmsg, errflg)
+
+    character(len=*),        intent(out)   :: errmsg
+    integer,                 intent(out)   :: errflg
+
+    ! This routine currently does nothing
+
+    errmsg = ''
+    errflg = 0
+
+  end subroutine bl_ysu_timestep_init
+
+!=================================================================================================================
+  subroutine bl_ysu_timestep_final (errmsg, errflg)
+
+    character(len=*),        intent(out)   :: errmsg
+    integer,                 intent(out)   :: errflg
+
+    ! This routine currently does nothing
+
+    errmsg = ''
+    errflg = 0
+
+  end subroutine bl_ysu_timestep_final
 !-------------------------------------------------------------------------------
 !
 !-------------------------------------------------------------------------------

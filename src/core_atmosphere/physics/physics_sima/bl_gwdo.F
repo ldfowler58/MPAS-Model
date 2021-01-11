@@ -1,16 +1,13 @@
-module ccpp_kinds
-   integer, parameter :: kind_phys = selected_real_kind(6)
-end module ccpp_kinds
-!-----------------------------------------------------------------------------------------------------------------
-! bl_gwdo.F for CCPP
-
 module bl_gwdo
-
+use ccpp_kinds,only: kind_phys 
+!===============================================================================
    IMPLICIT NONE
-
-   PUBLIC :: bl_gwdo_init
+   PRIVATE
    PUBLIC :: bl_gwdo_run
-   PUBLIC :: bl_gwdo_finalize
+   PUBLIC :: bl_gwdo_init
+   PUBLIC :: bl_gwdo_final
+   PUBLIC :: bl_gwdo_timestep_init
+   PUBLIC :: bl_gwdo_timestep_final
 
 contains
 !-------------------------------------------------------------------------------
@@ -607,10 +604,6 @@ contains
    end subroutine bl_gwdo_run
 
 !-------------------------------------------------------------------------------
-
-!> \section arg_table_bl_gwdo_init  Argument Table
-!! \htmlinclude arg_table_bl_gwdo_init.html
-!!
   subroutine bl_gwdo_init (errmsg, errflg)
 
     character(len=*),        intent(out)   :: errmsg
@@ -624,11 +617,7 @@ contains
   end subroutine bl_gwdo_init
 
 !-------------------------------------------------------------------------------
-
-!> \section arg_table_bl_gwdo_finalize  Argument Table
-!! \htmlinclude arg_table_bl_gwdo_finalize.html
-!!
-  subroutine bl_gwdo_finalize (errmsg, errflg)
+  subroutine bl_gwdo_final (errmsg, errflg)
 
     character(len=*),        intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
@@ -638,7 +627,33 @@ contains
     errmsg = ''
     errflg = 0
 
-  end subroutine bl_gwdo_finalize
+  end subroutine bl_gwdo_final
+
+!-------------------------------------------------------------------------------
+  subroutine bl_gwdo_timestep_init (errmsg, errflg)
+
+    character(len=*),        intent(out)   :: errmsg
+    integer,                 intent(out)   :: errflg
+
+    ! This routine currently does nothing
+
+    errmsg = ''
+    errflg = 0
+
+  end subroutine bl_gwdo_timestep_init
+
+!-------------------------------------------------------------------------------
+  subroutine bl_gwdo_timestep_final (errmsg, errflg)
+
+    character(len=*),        intent(out)   :: errmsg
+    integer,                 intent(out)   :: errflg
+
+    ! This routine currently does nothing
+
+    errmsg = ''
+    errflg = 0
+
+  end subroutine bl_gwdo_timestep_final
 
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------
