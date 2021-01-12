@@ -1,0 +1,236 @@
+[ccpp-arg-table]
+  name = cf_xurandall_run
+  type = scheme
+[cldfrac]
+  standard_name = cloud_fraction
+  long_name = cloud fraction
+  units = kg kg-1
+  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[t_p]
+  standard_name = air_temperature
+  long_name = air temperature
+  units =  K
+  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pres_p]
+  standard_name = air_pressure
+  long_name = air pressure
+  units = Pa
+  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[qv]
+  standard_name = water_vapor_mixing_ratio
+  long_name = water vapor mixing ratio
+  units = kg kg-1
+  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[qc]
+  standard_name = cloud_condensed_water_mixing_ratio
+  long_name = cloud condensed water mixing ratio
+  units = kg kg-1
+  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[qi]
+  standard_name = ice_water_mixing_ratio
+  long_name = ice water mixing ratio
+  units = kg kg-1
+  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[qs]
+  standard_name = snow_water_mixing_ratio
+  long_name = snow water mixing ratio
+  units = kg kg-1
+  dimensions = (horizontal_begin:horizontal_end,vertical_layer_dimension)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[svp1]
+  standard_name = DAVE_svp_const1
+  long_name = svp const1
+  units = not sure
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F 
+[svp2]
+  standard_name = DAVE_svp_liquid_const2
+  long_name = svp const1 liquid
+  units = not sure
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F 
+[svpi2]
+  standard_name = DAVE_svp_ice_const2
+  long_name = svp const2 ice
+  units = not sure
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F 
+[svp3]
+  standard_name = DAVE_svp_liquid_const3
+  long_name = svp const3 liquid
+  units = not sure
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F 
+[svpi3]
+  standard_name = DAVE_svp_ice_const3
+  long_name = svp const3 ice
+  units = not sure
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F 
+[svpt0]
+  standard_name = DAVE_some_temp_const
+  long_name = C to K conversion
+  units = K
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F 
+[ep_2]
+  standard_name = DAVE_yet_another_constant
+  long_name = something here
+  units = not sure
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F 
+[its]
+  standard_name = horizontal_begin
+  long_name = horizontal begin
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ite]
+  standard_name = horizontal_end
+  long_name = horizontal end
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[kte]
+  standard_name = vertical_layer_dimension
+  long_name = vertical layer dimension
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+[ccpp-arg-table]
+  name = cf_xurandall_init
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+[ccpp-arg-table]
+  name = cf_xurandall_final
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+[ccpp-arg-table]
+  name = cf_xurandall_timestep_init
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+[ccpp-arg-table]
+  name = cf_xurandall_timestep_final
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F

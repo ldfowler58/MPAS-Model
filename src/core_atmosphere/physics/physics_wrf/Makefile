@@ -13,6 +13,7 @@ OBJS = \
 	module_cam_error_function.o    \
 	module_cam_shr_kind_mod.o      \
 	module_cam_support.o           \
+	module_cf_xurandall.o          \
 	module_cu_gf.mpas.o            \
 	module_cu_tiedtke.o            \
 	module_cu_ntiedtke.o           \
@@ -50,6 +51,9 @@ module_bl_gwdo.o: \
 
 module_bl_ysu.o: \
 	../physics_sima/bl_ysu.o
+
+module_cf_xurandall.o: \
+	../physics_sima/cf_xurandall.o
 
 # DEPENDENCIES:
 module_bl_mynn.o: \

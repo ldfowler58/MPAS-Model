@@ -3,7 +3,8 @@
 OBJS =					\
 	ccpp_kinds.o			\
 	bl_gwdo.o			\
-	bl_ysu.o                      
+	bl_ysu.o			\
+	cf_xurandall.o                 
 
 all: dummy physics_sima
 
@@ -18,7 +19,11 @@ physics_sima: $(OBJS)
 
 bl_gwdo.o:	\
 	ccpp_kinds.o
+
 bl_ysu.o:	\
+	ccpp_kinds.o
+
+cf_xurandall.o:	\
 	ccpp_kinds.o
 
 clean:
