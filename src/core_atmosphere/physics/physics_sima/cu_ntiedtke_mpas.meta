@@ -1,0 +1,295 @@
+[ccpp-arg-table]
+  name = cu_ntiedtke_run
+  type = scheme
+[its]
+  standard_name = horizontal_loop_start
+  long_name = horizontal loop start
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[ite]
+  standard_name = horizontal_loop_end
+  long_name = horizontal loop end
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[kts]
+  standard_name = vertical_layer_start
+  long_name = vertical layer start
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[kte]
+  standard_name = vertical_layer_end
+  long_name = vertical layer end
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[itimestep]
+  standard_name = time_step_counter
+  long_name = time step counter
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[w]
+  standard_name = vertical_velocity_at_layer_interface
+  long_name = vertical velocity at layer interface
+  units =  m s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pt]
+  standard_name = air_temperature
+  long_name = air temperature
+  units =  K
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[pqv]
+  standard_name = water_vapor_mixing_ratio
+  long_name = water vapor mixing ratio
+  units = kg kg-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[pqsat]
+  standard_name = saturation_specific_humidity
+  long_name = saturation specific humidity
+  units = kg kg-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[ptf]
+  standard_name = temperature_tendency_due_to_dynamics_and_physics
+  long_name = temperature tendency due to dynamics and physics
+  units =  K s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[pqvf]
+  standard_name = specific_humidity_tendency_due_to_dynamics_and_physics
+  long_name = specific humidity tendency due to dynamics and physics
+  units = kg kg-1 s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[pap]
+  standard_name = air_pressure
+  long_name = air pressure at layer center
+  units = Pa
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[ztt]
+  standard_name = temperature_tendency_due_to_dynamics_and_physics
+  long_name = temperature tendency due to dynamics and physics of input
+  units =  K s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[zqq]
+  standard_name = specific_humidity_tendency_due_to_dynamics_and_physics
+  long_name = specific humidity tendency due to dynamics and physics of input
+  units = kg kg-1 s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[pomg]
+  standard_name = omega
+  long_name = pressure velocity at layer center
+  units =  Pa s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[pq]
+  standard_name = specific_humidity
+  long_name = specific humidity
+  units = kg kg-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[pqsat]
+  standard_name = saturation_specific_humidity
+  long_name = saturation specific humidity
+  units = kg kg-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[pgeo]
+  standard_name = geopotential
+  long_name = air pressure at layer center
+  units = m2 s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[pgeoh]
+  standard_name = geopotential_at_interface
+  long_name = geopotential at interface
+  units = m2 s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_start:vertical_interface_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[zrain]
+  standard_name = surface_rainfall
+  long_name = surface rainfall
+  units = mm
+  dimensions = (horizontal_loop_start:horizontal_loop_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = T
+[locum]
+  standard_name = flag_for_convective_grid
+  long_name = flag for convective grid
+  units =
+  dimensions = (horizontal_loop_start:horizontal_loop_end)
+  type = logical | kind = kind_phys
+  intent = in
+  optional = F
+[prsfc]
+  standard_name = liquid_surface_rainfall
+  long_name = liquid surface rainfall
+  units = mm
+  dimensions = (horizontal_loop_start:horizontal_loop_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[pssfc]
+  standard_name = frozen_surface_rainfall
+  long_name = frozen surface rainfall
+  units = mm
+  dimensions = (horizontal_loop_start:horizontal_loop_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[pcte]
+  standard_name = total_detrained_cloud
+  long_name = total detrained cloud
+  units = kg kg-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[pvom]
+  standard_name = x_wind
+  long_name = x wind
+  units = m s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[pvol]
+  standard_name = y_wind
+  long_name = y wind
+  units =  m s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[g]
+  standard_name = acceleration_due_to_gravity
+  long_name = acceleration due to gravity
+  units = m s-2
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[rv]
+  standard_name = gas_constant_for_water_vapor
+  long_name = gas constant for water vapor
+  units = J kg-1 K-1
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[rd]
+  standard_name = gas_constant_for_dry_air
+  long_name = gas constant for dry air
+  units = J kg-1 K-1
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pqc]
+  standard_name = cloud_water_mixing_ratio_after_convection
+  long_name = cloud water mixing ratio after convection
+  units = kg kg-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[pqi]
+  standard_name = cloud_ice_mixing_ratio_after_convection
+  long_name = cloud ice mixing ratio after convection
+  units = kg kg-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[pu]
+  standard_name = x_wind_after_convection
+  long_name = x wind after convection
+  units = m s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[pv]
+  standard_name = y_wind_after_convection
+  long_name = y wind after convection
+  units =  m s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[zprecc]
+  standard_name = surface_rainfall_due_convection
+  long_name = surface rainfall due convection
+  units = mm
+  dimensions = (horizontal_loop_start:horizontal_loop_end)
+  type = real | kind = kind_phys
+  intent = out
+  optional = F
+[ccpp-arg-table]
+  name = bl_ysu_init
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F

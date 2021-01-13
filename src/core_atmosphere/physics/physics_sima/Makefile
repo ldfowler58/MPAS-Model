@@ -4,7 +4,9 @@ OBJS =					\
 	ccpp_kinds.o			\
 	bl_gwdo.o			\
 	bl_ysu.o			\
-	cf_xurandall.o                 
+	cf_xurandall.o			\
+	cu_ntiedtke.o			\
+	cu_ntiedtke_mpas.o
 
 all: dummy physics_sima
 
@@ -25,6 +27,13 @@ bl_ysu.o:	\
 
 cf_xurandall.o:	\
 	ccpp_kinds.o
+
+cu_ntiedtke.o:	\
+	ccpp_kinds.o
+
+cu_ntiedtke_mpas.o:	\
+	ccpp_kinds.o	\
+	cu_ntiedtke.o
 
 clean:
 	$(RM) *.f90 *.o *.mod

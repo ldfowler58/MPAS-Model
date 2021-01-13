@@ -55,6 +55,10 @@ module_bl_ysu.o: \
 module_cf_xurandall.o: \
 	../physics_sima/cf_xurandall.o
 
+module_cu_ntiedtke.o: \
+	../physics_sima/cu_ntiedtke.o	\
+	../physics_sima/cu_ntiedtke_mpas.o
+
 # DEPENDENCIES:
 module_bl_mynn.o: \
 	module_cam_error_function.o

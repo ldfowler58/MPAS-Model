@@ -1,0 +1,191 @@
+[ccpp-arg-table]
+  name = cu_ntiedtke_run
+  type = scheme
+[klon]
+  standard_name = first_horiz_index
+  long_name = first horiz index
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[klev]
+  standard_name = vertical_dimension
+  long_name = vertical layer dimension
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[klevp1]
+  standard_name = vertical_dimension_plus_1
+  long_name = vertical interface dimension
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[klevm1]
+  standard_name = vertical_dimension_minus_1
+  long_name = vertical layer dimension minus 1
+  units = none
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[pten]
+  standard_name = air_temperature
+  long_name = air temperature
+  units =  K
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pqen]
+  standard_name = specific_humidity
+  long_name = specific humidity
+  units = kg kg-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[puen]
+  standard_name = x_wind
+  long_name = x wind
+  units = m s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pven]
+  standard_name = y_wind
+  long_name = y wind
+  units =  m s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pverv]
+  standard_name = omega
+  long_name = pressure velocity at layer center
+  units =  Pa s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pqsen]
+  standard_name = saturation_specific_humidity
+  long_name = saturation specific humidity
+  units = kg kg-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pqhfl]
+  standard_name = kinematic_surface_upward_latent_heat_flux
+  long_name = kinematic surface upward latent heat flux
+  units = W m-2
+  dimensions = (horizontal_loop_start:horizontal_loop_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[ztmst]
+  standard_name = time_step_for_physics
+  long_name = time step for physics
+  units = s
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pap]
+  standard_name = air_pressure
+  long_name = air pressure at layer center
+  units = Pa
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[paph]
+  standard_name = air_pressure_at_interface
+  long_name = air pressure at interface
+  units = Pa 
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_start:vertical_interface_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[pgeo]
+  standard_name = geopotential
+  long_name = air pressure at layer center
+  units = m2 s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[ptte]
+  standard_name = temperature_tendency_due_to_dynamics_and_physics
+  long_name = temperature tendency due to dynamics and physics
+  units =  K s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[pqte]
+  standard_name = specific_humidity_tendency_due_to_dynamics_and_physics
+  long_name = specific humidity tendency due to dynamics and physics
+  units = kg kg-1 s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_layer_start:vertical_layer_end)
+  type = real | kind = kind_phys
+  intent = inout
+  optional = F
+[phhfl]
+  standard_name = kinematic_surface_upward_sensible_heat_flux
+  long_name = kinematic surface upward sensible heat flux
+  units = W m-2
+  dimensions = (horizontal_loop_start:horizontal_loop_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[lndj]
+  standard_name = land_mask
+  long_name = land mask
+  units = 
+  dimensions = (horizontal_loop_start:horizontal_loop_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[zgeoh]
+  standard_name = geopotential_at_interface
+  long_name = geopotential at interface
+  units = m2 s-1
+  dimensions = (horizontal_loop_start:horizontal_loop_end,vertical_interface_start:vertical_interface_end)
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[dx]
+  standard_name = grid_distance
+  long_name = grid distance
+  units = m
+  dimensions = ()
+  type = real | kind = kind_phys
+  intent = in
+  optional = F
+[ccpp-arg-table]
+  name = bl_ysu_init
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = error flag for error handling in CCPP
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
