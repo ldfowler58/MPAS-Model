@@ -2,7 +2,7 @@
 
 module module_cu_ntiedtke
 
-! USE ccpp_kinds, ONLY: kind_phys
+  use mpas_kind_types,only: kind_phys => RKIND
 
   use mpas_atmphys_constants, only: g=>gravity, rd=>r_d, rv=>r_v
 
@@ -11,7 +11,8 @@ module module_cu_ntiedtke
   use cu_ntiedtke, only: cu_ntiedtke_run
 
   implicit none
-  PUBLIC :: ntiedtke
+  private
+  public :: ntiedtke
 
 contains
 !-----------------------------------------------------------------------
@@ -90,21 +91,21 @@ contains
                                         itimestep,                      &
                                         stepcu
 
-      real,    intent(in) ::                                            &
+      real(kind=kind_phys), intent(in) ::                               &
                                         dt
-      real,    dimension(ims:ime, jms:jme), intent(in) ::               &
+      real(kind=kind_phys), dimension(ims:ime, jms:jme), intent(in) ::  &
                                         dx
 
-      real,    dimension(ims:ime, jms:jme), intent(in) ::               &
+      real(kind=kind_phys), dimension(ims:ime, jms:jme), intent(in) ::  &
                                         xland
 
-      real,    dimension(ims:ime, jms:jme), intent(inout) ::            &
+      real(kind=kind_phys), dimension(ims:ime, jms:jme), intent(inout) :: &
                                         raincv, pratec
 
-      logical, dimension(ims:ime,jms:jme), intent(inout) ::             &
+      logical, dimension(ims:ime,jms:jme), intent(out) ::               &
                                         cu_act_flag
 
-      real,    dimension(ims:ime, kms:kme, jms:jme), intent(in) ::      &
+      real(kind=kind_phys), dimension(ims:ime, kms:kme, jms:jme), intent(in) ::      &
                                         dz8w,                           &
                                         pcps,                           &
                                         p8w,                            &
@@ -120,7 +121,7 @@ contains
                                         v3d,                            &
                                         w3d
 
-      real,    dimension(ims:ime, jms:jme), intent(in) ::               &
+      real(kind=kind_phys), dimension(ims:ime, jms:jme), intent(in) ::  &
                                         qfx,                            &
                                         hfx                            
 
@@ -129,7 +130,7 @@ contains
       integer,          intent(out) ::                                  &
                                         errflg
 
-      real, dimension(ims:ime, kms:kme, jms:jme),                       &
+      real(kind=kind_phys), dimension(ims:ime, kms:kme, jms:jme),       &
                intent(out) ::                                           &
                                         rqccuten,                       &
                                         rqicuten,                       &
@@ -150,22 +151,20 @@ contains
                                                   ,f_qs
 
 !--------------------------- local vars ------------------------------
-      real      ::                                                      &
+      real(kind=kind_phys)      ::                                      &
                                         delt,                           &
                                         rdelt
 
-      real     , dimension(its:ite) ::                                  &
+      real(kind=kind_phys) , dimension(its:ite) ::                      &
                                         evap,                           &
                                         heatflux,                       &
                                         dx2d
 
-      integer  , dimension(its:ite) ::  slimsk
-
-      real     , dimension(its:ite, kts:kte+1) ::                       &
+      real(kind=kind_phys) , dimension(its:ite, kts:kte+1) ::           &
                                         dzi,                            &
                                          w
 
-      real     , dimension(its:ite, kts:kte) ::                         &
+      real(kind=kind_phys) , dimension(its:ite, kts:kte) ::             &
                                         rho
 
       integer ::                                                        &
@@ -183,7 +182,7 @@ contains
 !
 !------- new local variables ----
 !
-      real     , dimension(its:ite, kts:kte) ::                         &
+      real(kind=kind_phys) , dimension(its:ite, kts:kte) ::             &
                                         pap,                            &
                                         pqv,                            &
                                         pqc,                            &
@@ -194,36 +193,40 @@ contains
                                          pu,                            &
                                          pv
 
-      real     , dimension(its:ite, kts:kte) ::                         &
+      real(kind=kind_phys) , dimension(its:ite, kts:kte) ::             &
                                        pomg,                            &
                                        pgeo,                            &
                                          pq,                            &
                                       pqsat
 
-      real     , dimension(its:ite, kts:kte+1) ::                       &
+      real(kind=kind_phys) , dimension(its:ite, kts:kte+1) ::           &
                                        paph,                            &
                                       pgeoh
 
-      real     , dimension(its:ite, kts:kte) ::                         &
+      real(kind=kind_phys) , dimension(its:ite, kts:kte) ::             &
                                         ztt,                            &
                                         zqq
 
-      real     , dimension(its:ite) ::                                  &
+      real(kind=kind_phys) , dimension(its:ite) ::                      &
                                      zprecc
 !
 ! more local arrays for cu which are not output out of the routine
 !
-      real     , dimension(its:ite, kts:kte) ::                         &
+      real(kind=kind_phys) , dimension(its:ite, kts:kte) ::             &
                                        pcte ,                           &
                                        pvom ,                           &
                                        pvol
 
-      real     , dimension(its:ite) ::                                  &
+      logical  , dimension(its:ite) ::                                  &
+                                      cu_act_flag_local
+
+      real(kind=kind_phys) , dimension(its:ite) ::                      &
                                       prsfc,                            &
                                       pssfc,                            &
-                                      zrain
+                                      zrain,                            &
+                                      xland_local
 
-      real     , dimension(its:ite, kts:kte) ::                         &
+      real(kind=kind_phys) , dimension(its:ite, kts:kte) ::             &
                                          ztu ,                          &
                                          zqu ,                          &
                                          zlu ,                          &
@@ -234,25 +237,16 @@ contains
       integer  , dimension(its:ite) ::                                  &
                                        icbot,                           &
                                        ictop,                           &
-                                       ktype
+                                       ktype,                           &
+                                      slimsk
 
       logical  , dimension(its:ite) :: locum
 
-      real     :: zew,zqs,zcor
-!
-!     set flag for a convection timestep
-!
-      do j=jts,jte
-         do i=its,ite
-            cu_act_flag(i,j)=.true.
-         enddo
-      enddo
+      real(kind=kind_phys)     :: zew,zqs,zcor
 
       im=ite-its+1
       kx=kte-kts+1
       kx1=kx+1
-      delt=dt*stepcu
-      rdelt=1./delt
 
 !  begin first j loop
 
@@ -272,11 +266,8 @@ contains
       enddo
 
       do i=its,ite
-        slimsk(i)=int(abs(xland(i,j)-2.))
-      enddo
-
-      do i=its,ite
-         dx2d(i) = dx(i,j)
+        dx2d(i) = dx(i,j)
+        xland_local(i)=xland(i,j)
       enddo
 
       pp = 0
@@ -310,16 +301,18 @@ contains
         heatflux(i) = hfx(i,j)
       enddo
 
-   enddo ! first j loop
+!  enddo ! first j loop
 
    call cu_ntiedtke_mpas_timestep_init(                         &
-                 its,ite, kts,kte, itimestep                    &
+                 its,ite, kts,kte, kx1, itimestep               &
                 ,w,pt,pqv,rho,dzi,pqvf,ptf,pap                  &
                 ,ztt,zqq                                        &
                 ,pomg,pq,pqsat,pgeo,pgeoh                       &
                 ,zrain,locum,prsfc,pssfc                        &
                 ,pcte,pvom,pvol                                 &
                 ,g,rv,rd                                        &
+                ,cu_act_flag_local,xland_local,slimsk           &
+                ,dt,stepcu,delt,rdelt                           &
                 ,errmsg,errflg                                  &
                                                                 )
 !
@@ -339,7 +332,8 @@ contains
           )
 
    call cu_ntiedtke_mpas_timestep_final(                        &
-                 its,ite, kts,kte, delt                         &
+                 its,ite, kts,kte                               &
+                ,delt,stepcu,dt,rdelt                           &    
                 ,pcte,ptf,pqvf,prsfc,pssfc                      &
                 ,pvom,pvol,ztt,zqq                              &
                 ,pqc,pqi,pt,pq,pqv,pu,pv                        &
@@ -349,7 +343,7 @@ contains
 !
 !     compute tendencies for model variables
 !
-   do j=jts,jte
+!  do j=jts,jte
 
       do i=its,ite
          raincv(i,j)=zprecc(i)/stepcu
@@ -389,6 +383,10 @@ contains
             pp = pp + 1
           enddo
         endif
+
+      do i=its,ite
+         cu_act_flag(i,j)=cu_act_flag_local(i)
+      enddo
 
    enddo
 !  end of second j loop

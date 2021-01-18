@@ -2,7 +2,7 @@
 
 module cu_ntiedtke_mpas
 
-! USE ccpp_kinds, ONLY: kind_phys
+USE ccpp_kinds, ONLY: kind_phys
  
   use cu_ntiedtke, only: foeewm, foealfa
 
@@ -30,14 +30,16 @@ contains
  end subroutine cu_ntiedtke_mpas_run
 
 !-----------------------------------------------------------------------
-     subroutine cu_ntiedtke_mpas_timestep_init(                    &
-                 its,ite, kts,kte, itimestep                    &
+     subroutine cu_ntiedtke_mpas_timestep_init(                 &
+                 its,ite, kts,kte, kx1, itimestep               &
                 ,w,pt,pqv,rho,dzi,pqvf,ptf,pap                  &
                 ,ztt,zqq                                        &
                 ,pomg,pq,pqsat,pgeo,pgeoh                       &
                 ,zrain,locum,prsfc,pssfc                        &
                 ,pcte,pvom,pvol                                 &
                 ,grav,rv,rd                                     &
+                ,cu_act_flag,xland,slimsk                       &
+                ,dt,stepcu,delt,rdelt                           &
                 ,errmsg,errflg                                  &
                                                                 )
 !-------------------------------------------------------------------
@@ -72,19 +74,22 @@ contains
 !-- pgeoh       geopotential at interface level
 !-------------------------------------------------------------------
 
-      integer, intent(in) ::            its,ite, kts,kte,              &
+      integer, intent(in) ::            its,ite, kts,kte, kx1,            &
                                         itimestep
 
-      real,    intent(in) ::            grav,rv,rd
+      real(kind=kind_phys), intent(in) ::            grav,rv,rd
 
-      real,    dimension(its:ite, kts:kte), intent(in) ::              &
+      real(kind=kind_phys), dimension(its:ite, kts:kte), intent(in) :: &
                                         rho
 
-      real     , dimension(its:ite, kts:kte+1), intent(in) ::          &
+      real(kind=kind_phys), dimension(its:ite, kts:kx1), intent(in) :: &
                                         dzi,                           &
                                         w
 
-      real,    dimension(its:ite, kts:kte) ::                          &
+      logical, dimension(its:ite), intent(out)         ::              &
+                                        cu_act_flag
+
+      real(kind=kind_phys), dimension(its:ite, kts:kte) ::                          &
                                         pt,                            &
                                         pqv,                           &
                                         pap,                           &
@@ -93,45 +98,68 @@ contains
                                         pomg,                          &
                                         pgeo
 
-      real     , dimension(its:ite, kts:kte+1) ::                      &
+      real(kind=kind_phys), dimension(its:ite, kts:kx1) ::             &
                                         pgeoh
 
-      real     , dimension(its:ite, kts:kte) ::                        &
+      real(kind=kind_phys), dimension(its:ite, kts:kte) ::             &
                                         pq,                            &
-                                        pqsat
-
-      real     , dimension(its:ite, kts:kte) ::                        &
+                                        pqsat,                         &
                                         ztt,                           &
-                                        zqq
-
-      real     , dimension(its:ite, kts:kte) ::                        &
+                                        zqq,                           &
                                         pcte,                          &
                                         pvom,                          &
                                         pvol
 
-      real     , dimension(its:ite) ::                                 &
+      real(kind=kind_phys), dimension(its:ite) ::                      &
                                         prsfc,                         &
                                         pssfc,                         &
                                         zrain
 
+      real(kind=kind_phys), dimension(its:ite), intent(in) ::          &
+                                        xland
+
+      integer  , dimension(its:ite), intent(out) ::                    &
+                                        slimsk
+
       logical  , dimension(its:ite) ::                                 &
                                         locum
 
-      character(len=*),intent(out):: errmsg
+      real(kind=kind_phys), intent(in) ::                              &
+                                        dt
 
-      integer,intent(out)::errflg
+      real(kind=kind_phys), intent(out) ::                             &
+                                        delt,                          &
+                                        rdelt
+      integer, intent(in) ::                                           &
+                                        stepcu
+
+      character(len=*),intent(out) ::                                  &
+                                        errmsg
+
+      integer,intent(out) ::                                           &
+                                        errflg
 
 !--------------------------- local vars ------------------------------
 
-      real     , dimension(its:ite, kts:kte+1) ::                      &
+      real(kind=kind_phys), dimension(its:ite, kts:kx1) ::             &
                                         zi
 
-      real     , dimension(its:ite, kts:kte) ::                        &
+      real(kind=kind_phys), dimension(its:ite, kts:kte) ::             &
                                         dot,                           &
                                         zl
 !
-      real     :: zew,zqs,zcor,tt,vtmpc1
+      real(kind=kind_phys)     :: zew,zqs,zcor,tt,vtmpc1
       integer  :: i,k,kp,pp,zz
+!
+!     initializations for output
+!
+      delt=dt*stepcu
+      rdelt = 1./delt
+
+      do i=its,ite
+         cu_act_flag(i)=.true.
+         slimsk(i)=int(abs(xland(i)-2.))
+      enddo
 
       vtmpc1 = rv/rd-1.0
 
@@ -171,8 +199,8 @@ contains
       enddo
 
       pp = 0
-      do k=kts,kte+1
-        zz = kte+1-pp
+      do k=kts,kx1
+        zz = kx1-pp
         do i=its,ite
           pgeoh(i,zz) = zi(i,k)*grav
         enddo
@@ -233,8 +261,9 @@ contains
 end subroutine cu_ntiedtke_mpas_timestep_init
 
 !-----------------------------------------------------------------------
-     subroutine cu_ntiedtke_mpas_timestep_final(                   &
-                 its,ite, kts,kte, delt                         &
+     subroutine cu_ntiedtke_mpas_timestep_final(                &
+                 its,ite, kts,kte                               &
+                ,delt,stepcu,dt,rdelt                           &
                 ,pcte,ptf,pqvf,prsfc,pssfc                      &
                 ,pvom,pvol,ztt,zqq                              &
                 ,pqc,pqi,pt,pq,pqv,pu,pv                        &
@@ -268,9 +297,15 @@ end subroutine cu_ntiedtke_mpas_timestep_init
 
       integer, intent(in) ::            its,ite, kts,kte
 
-      real,    intent(in) ::            delt
+      real(kind=kind_phys), intent(in) ::                             &
+                                       delt,                          &
+                                         dt,                          &
+                                      rdelt
 
-      real,    dimension(its:ite, kts:kte) ::                         &
+      integer ,             intent(in) ::                             &
+                                     stepcu
+
+      real(kind=kind_phys), dimension(its:ite, kts:kte) ::            &
                                         pqv,                          &
                                         pqc,                          &
                                         pqi,                          &
@@ -280,22 +315,22 @@ end subroutine cu_ntiedtke_mpas_timestep_init
                                          pq,                          &
                                          pu,                          &
                                          pv
-
-      real,    dimension(its:ite) ::                                  &
-                                     zprecc
  
-      real,    dimension(its:ite, kts:kte) ::                         &
+      real(kind=kind_phys), dimension(its:ite, kts:kte) ::            &
                                         ztt,                          &
                                         zqq,                          &
                                        pcte,                          &
                                        pvom,                          &
                                        pvol
 
-      real,    dimension(its:ite) ::                                  &
+      real(kind=kind_phys), dimension(its:ite) ::                     &
+                                     zprecc
+
+      real(kind=kind_phys), dimension(its:ite) ::                     &
                                       prsfc,                          &
                                       pssfc
 
-      real     :: fliq,fice
+      real(kind=kind_phys)     :: fliq,fice
       integer  :: i,k
 
       character(len=*),intent(out):: errmsg
