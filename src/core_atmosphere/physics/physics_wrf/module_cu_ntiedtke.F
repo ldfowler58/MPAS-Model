@@ -1,5 +1,3 @@
-!===================================================================================================
-
 module module_cu_ntiedtke
 
   use mpas_kind_types,only: kind_phys => RKIND
@@ -162,7 +160,7 @@ contains
 
       real(kind=kind_phys) , dimension(its:ite, kts:kte+1) ::           &
                                         dzi,                            &
-                                         w
+                                        w
 
       real(kind=kind_phys) , dimension(its:ite, kts:kte) ::             &
                                         rho
@@ -177,8 +175,6 @@ contains
                                         kx,                             &
                                         kx1
 
-!-------other local variables----
-      integer                      :: zz, pp
 !
 !------- new local variables ----
 !
@@ -207,9 +203,6 @@ contains
                                         ztt,                            &
                                         zqq
 
-      real(kind=kind_phys) , dimension(its:ite) ::                      &
-                                     zprecc
-!
 ! more local arrays for cu which are not output out of the routine
 !
       real(kind=kind_phys) , dimension(its:ite, kts:kte) ::             &
@@ -244,11 +237,36 @@ contains
 
       real(kind=kind_phys)     :: zew,zqs,zcor
 
+      real(kind=kind_phys), dimension(its:ite) ::                       &
+                                    raincv_l ,                          &
+                                    pratec_l  
+
+      real(kind=kind_phys), dimension(its:ite, kts:kte) ::              &
+                                       t3d_l ,                          &
+                                      pi3d_l ,                          &
+                                      qv3d_l ,                          &
+                                      qc3d_l ,                          &
+                                      qi3d_l ,                          &
+                                       u3d_l ,                          &
+                                       v3d_l ,                          &
+                                  rthcuten_l ,                          &
+                                  rqvcuten_l ,                          &
+                                  rqccuten_l ,                          &
+                                  rqicuten_l ,                          &
+                                   rucuten_l ,                          &
+                                   rvcuten_l,                           &
+                                    qvften_l,                           &
+                                    thften_l,                           &
+                                      pcps_l
+
+      real(kind=kind_phys), dimension(its:ite, kts:kte+1) ::            &
+                                       p8w_l
+
       im=ite-its+1
       kx=kte-kts+1
       kx1=kx+1
 
-!  begin first j loop
+!  begin j loop
 
    do j=jts,jte
 
@@ -256,70 +274,67 @@ contains
         do i=its,ite
           w(i,k)=w3d(i,k,j)
           dzi(i,k)=dz8w(i,k,j)
+          p8w_l(i,k)=p8w(i,k,j)
         enddo
       enddo
  
       do k=kts,kte
         do i=its,ite
           rho(i,k)=rho3d(i,k,j)
+          t3d_l(i,k)=t3d(i,k,j)
+          pi3d_l(i,k)=pi3d(i,k,j)
+          qv3d_l(i,k)=qv3d(i,k,j)
+          u3d_l(i,k)=u3d(i,k,j)
+          v3d_l(i,k)=v3d(i,k,j)
+          qvften_l(i,k)=qvften(i,k,j)
+          thften_l(i,k)=thften(i,k,j)
+          pcps_l(i,k)=pcps(i,k,j)
         enddo
       enddo
+
+      if ( f_qc ) then
+        do k=kts,kte
+          do i=its,ite
+            qc3d_l(i,k)=qc3d(i,k,j)
+          enddo
+        enddo
+      end if
+
+      if ( f_qi ) then
+        do k=kts,kte
+          do i=its,ite
+            qi3d_l(i,k)=qi3d(i,k,j)
+          enddo
+        enddo
+      end if
 
       do i=its,ite
         dx2d(i) = dx(i,j)
         xland_local(i)=xland(i,j)
-      enddo
-
-      pp = 0
-      do k=kts,kte
-        zz = kte-pp
-        do i=its,ite
-          pu(i,zz)=u3d(i,k,j)
-          pv(i,zz)=v3d(i,k,j)
-          pt(i,zz)=t3d(i,k,j)
-          pqv(i,zz)=qv3d(i,k,j)
-          pqvf(i,zz)=qvften(i,k,j)
-          ptf(i,zz)=thften(i,k,j)
-          pqc(i,zz)=qc3d(i,k,j)
-          pqi(i,zz)=qi3d(i,k,j)
-          pap(i,zz)=pcps(i,k,j)
-        enddo
-        pp = pp + 1
-      enddo
-
-      pp = 0
-      do k=kts,kte+1
-        zz = kte+1-pp
-        do i=its,ite
-          paph(i,zz) = p8w(i,k,j) 
-        enddo
-        pp = pp + 1
-      enddo
-
-      do i=its,ite
         evap(i) = qfx(i,j)
         heatflux(i) = hfx(i,j)
       enddo
 
-!  enddo ! first j loop
-
-   call cu_ntiedtke_mpas_timestep_init(                         &
+      call cu_ntiedtke_mpas_timestep_init(                      &
                  its,ite, kts,kte, kx1, itimestep               &
                 ,w,pt,pqv,rho,dzi,pqvf,ptf,pap                  &
                 ,ztt,zqq                                        &
                 ,pomg,pq,pqsat,pgeo,pgeoh                       &
+                ,pu,pv,pqc,pqi,paph                             &
                 ,zrain,locum,prsfc,pssfc                        &
                 ,pcte,pvom,pvol                                 &
                 ,g,rv,rd                                        &
                 ,cu_act_flag_local,xland_local,slimsk           &
                 ,dt,stepcu,delt,rdelt                           &
+                ,f_qc,f_qi                                      &
+                ,t3d_l,qv3d_l,qc3d_l,qi3d_l,u3d_l,v3d_l         &
+                ,qvften_l,thften_l,p8w_l,pcps_l                 &
                 ,errmsg,errflg                                  &
                                                                 )
 !
-!     call 'cu_ntiedtke_run'(master-routine for cumulus parameterization)
-!          (originally cumastrn)
+!     master-routine, originally cumastrn
 !
-   call cu_ntiedtke_run                                                          &
+      call cu_ntiedtke_run                                                       &
      &    (klon=im,       klev=kx,        klevp1=kx1,  klevm1=kx-1, pten=pt,     &
      &     pqen=pq,       puen=pu,        pven=pv,     pverv=pomg,  pqsen=pqsat, &
      &     pqhfl=evap,    ztmst=delt,     pap=pap,     paph=paph,   pgeo=pgeo,   &
@@ -331,65 +346,55 @@ contains
      &     errmsg=errmsg, errflg=errflg                                          &
           )
 
-   call cu_ntiedtke_mpas_timestep_final(                        &
+      call cu_ntiedtke_mpas_timestep_final(                     &
                  its,ite, kts,kte                               &
                 ,delt,stepcu,dt,rdelt                           &    
                 ,pcte,ptf,pqvf,prsfc,pssfc                      &
                 ,pvom,pvol,ztt,zqq                              &
                 ,pqc,pqi,pt,pq,pqv,pu,pv                        &
-                ,zprecc                                         &
+                ,f_qc,f_qi                                      &
+                ,raincv_l,pratec_l                              &
+                ,t3d_l,qv3d_l,qc3d_l,qi3d_l,u3d_l,v3d_l,pi3d_l  &
+                ,rthcuten_l,rqvcuten_l,rqccuten_l,rqicuten_l    &   
+                ,rucuten_l,rvcuten_l                            &
                 ,errmsg,errflg                                  &
                                                                 )
-!
-!     compute tendencies for model variables
-!
-!  do j=jts,jte
-
+        
       do i=its,ite
-         raincv(i,j)=zprecc(i)/stepcu
-         pratec(i,j)=zprecc(i)/(stepcu * dt)
+         raincv(i,j)=raincv_l(i)
+         pratec(i,j)=pratec_l(i)
       enddo
 
-      pp = 0
       do k=kts,kte
-        zz = kte-pp
         do i=its,ite
-          rthcuten(i,k,j)=(pt(i,zz)-t3d(i,k,j))/pi3d(i,k,j)*rdelt
-          rqvcuten(i,k,j)=(pqv(i,zz)-qv3d(i,k,j))*rdelt
-          rucuten(i,k,j) =(pu(i,zz)-u3d(i,k,j))*rdelt
-          rvcuten(i,k,j) =(pv(i,zz)-v3d(i,k,j))*rdelt
+          rthcuten(i,k,j)=rthcuten_l(i,k)
+          rqvcuten(i,k,j)=rqvcuten_l(i,k)
+          rucuten(i,k,j) =rucuten_l(i,k)
+          rvcuten(i,k,j) =rvcuten_l(i,k)
         enddo
-        pp = pp + 1
       enddo
 
-        if ( f_qc ) then
-          pp = 0
-          do k=kts,kte
-            zz = kte-pp
-            do i=its,ite
-              rqccuten(i,k,j)=(pqc(i,zz)-qc3d(i,k,j))*rdelt
-            enddo
-            pp = pp + 1
+      if ( f_qc ) then
+        do k=kts,kte
+          do i=its,ite
+            rqccuten(i,k,j)=rqccuten_l(i,k)
           enddo
-        endif
+        enddo
+      endif
 
-        if ( f_qi ) then
-          pp = 0
-          do k=kts,kte
-            zz = kte-pp
-            do i=its,ite
-              rqicuten(i,k,j)=(pqi(i,zz)-qi3d(i,k,j))*rdelt
-            enddo
-            pp = pp + 1
+      if ( f_qi ) then
+        do k=kts,kte
+          do i=its,ite
+            rqicuten(i,k,j)=rqicuten_l(i,k)
           enddo
-        endif
+        enddo
+      endif
 
       do i=its,ite
          cu_act_flag(i,j)=cu_act_flag_local(i)
       enddo
 
    enddo
-!  end of second j loop
 
    end subroutine ntiedtke
 

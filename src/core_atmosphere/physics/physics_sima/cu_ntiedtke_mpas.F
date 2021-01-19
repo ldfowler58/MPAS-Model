@@ -1,4 +1,4 @@
-!-----------------------------------------------------------------------
+
 
 module cu_ntiedtke_mpas
 
@@ -20,6 +20,7 @@ contains
  subroutine cu_ntiedtke_mpas_run(errmsg,errflg)
 !-----------------------------------------------------------------------
 
+implicit none
 !--- output arguments:
  character(len=*),intent(out):: errmsg
  integer,intent(out)::errflg
@@ -35,11 +36,15 @@ contains
                 ,w,pt,pqv,rho,dzi,pqvf,ptf,pap                  &
                 ,ztt,zqq                                        &
                 ,pomg,pq,pqsat,pgeo,pgeoh                       &
+                ,pu,pv,pqc,pqi,paph                             &
                 ,zrain,locum,prsfc,pssfc                        &
                 ,pcte,pvom,pvol                                 &
                 ,grav,rv,rd                                     &
                 ,cu_act_flag,xland,slimsk                       &
                 ,dt,stepcu,delt,rdelt                           &
+                ,f_qc,f_qi                                      &
+                ,t3d_l,qv3d_l,qc3d_l,qi3d_l,u3d_l,v3d_l         &
+                ,qvften_l,thften_l,p8w_l,pcps_l                 &
                 ,errmsg,errflg                                  &
                                                                 )
 !-------------------------------------------------------------------
@@ -89,19 +94,24 @@ contains
       logical, dimension(its:ite), intent(out)         ::              &
                                         cu_act_flag
 
-      real(kind=kind_phys), dimension(its:ite, kts:kte) ::                          &
+      real(kind=kind_phys), dimension(its:ite, kts:kte), intent(out) ::&
+                                        pu,                            &
+                                        pv,                            &
                                         pt,                            &
                                         pqv,                           &
+                                        pqc,                           &
+                                        pqi,                           &
                                         pap,                           &
                                         pqvf,                          &
                                         ptf,                           &
                                         pomg,                          &
                                         pgeo
 
-      real(kind=kind_phys), dimension(its:ite, kts:kx1) ::             &
-                                        pgeoh
+      real(kind=kind_phys), dimension(its:ite, kts:kx1), intent(out) ::&
+                                        pgeoh,                         &
+                                        paph
 
-      real(kind=kind_phys), dimension(its:ite, kts:kte) ::             &
+      real(kind=kind_phys), dimension(its:ite, kts:kte), intent(out) ::&
                                         pq,                            &
                                         pqsat,                         &
                                         ztt,                           &
@@ -110,7 +120,7 @@ contains
                                         pvom,                          &
                                         pvol
 
-      real(kind=kind_phys), dimension(its:ite) ::                      &
+      real(kind=kind_phys), dimension(its:ite), intent(out) ::         &
                                         prsfc,                         &
                                         pssfc,                         &
                                         zrain
@@ -121,7 +131,7 @@ contains
       integer  , dimension(its:ite), intent(out) ::                    &
                                         slimsk
 
-      logical  , dimension(its:ite) ::                                 &
+      logical  , dimension(its:ite), intent(out) ::                    &
                                         locum
 
       real(kind=kind_phys), intent(in) ::                              &
@@ -132,6 +142,24 @@ contains
                                         rdelt
       integer, intent(in) ::                                           &
                                         stepcu
+
+      logical, intent(in) ::                                           &
+                                        f_qc,                          &
+                                        f_qi
+
+      real(kind=kind_phys), dimension(its:ite, kts:kte), intent(in) :: &
+                                        t3d_l,                         &
+                                        qv3d_l,                        &
+                                        qc3d_l,                        &
+                                        qi3d_l,                        &
+                                        u3d_l,                         &
+                                        v3d_l,                         &
+                                        qvften_l,                      &
+                                        thften_l,                      &
+                                        pcps_l
+
+      real(kind=kind_phys), dimension(its:ite, kts:kx1), intent(in) :: &
+                                        p8w_l
 
       character(len=*),intent(out) ::                                  &
                                         errmsg
@@ -162,6 +190,21 @@ contains
       enddo
 
       vtmpc1 = rv/rd-1.0
+
+      call upside_down(p8w_l    ,paph,its,ite,kts,kx1)
+      call upside_down(u3d_l    ,pu  ,its,ite,kts,kte)
+      call upside_down(v3d_l    ,pv  ,its,ite,kts,kte)
+      call upside_down(t3d_l    ,pt  ,its,ite,kts,kte)
+      call upside_down(qv3d_l   ,pqv ,its,ite,kts,kte)
+      call upside_down(qvften_l ,pqvf,its,ite,kts,kte)
+      call upside_down(thften_l ,ptf ,its,ite,kts,kte)
+      if ( f_qc ) then
+         call upside_down(qc3d_l   ,pqc ,its,ite,kts,kte)
+      end if
+      if ( f_qi ) then
+         call upside_down(qi3d_l   ,pqi ,its,ite,kts,kte)
+      end if
+      call upside_down(pcps_l   ,pap ,its,ite,kts,kte)
 
 !     compute height at full (zi) and half (zl) levels
 
@@ -207,6 +250,7 @@ contains
         pp = pp + 1
       enddo
 
+! DAVE this should be moved to an init routine
       if(itimestep == 1) then
         do k=kts,kte
           do i=its,ite
@@ -267,7 +311,11 @@ end subroutine cu_ntiedtke_mpas_timestep_init
                 ,pcte,ptf,pqvf,prsfc,pssfc                      &
                 ,pvom,pvol,ztt,zqq                              &
                 ,pqc,pqi,pt,pq,pqv,pu,pv                        &
-                ,zprecc                                         &
+                ,f_qc,f_qi                                      &
+                ,raincv_l,pratec_l                              &
+                ,t3d_l,qv3d_l,qc3d_l,qi3d_l,u3d_l,v3d_l,pi3d_l  &
+                ,rthcuten_l,rqvcuten_l,rqccuten_l,rqicuten_l    &
+                ,rucuten_l,rvcuten_l                            &
                 ,errmsg,errflg                                  &
                                                                 )
 !-------------------------------------------------------------------
@@ -330,8 +378,34 @@ end subroutine cu_ntiedtke_mpas_timestep_init
                                       prsfc,                          &
                                       pssfc
 
+      logical, intent(in) ::                                          &
+                                        f_qc,                         &
+                                        f_qi
+
+      real(kind=kind_phys), dimension(its:ite), intent(out) ::        &
+                                   raincv_l,                          &
+                                   pratec_l
+
+      real(kind=kind_phys), dimension(its:ite, kts:kte), intent(in) ::&   
+                                       t3d_l ,                        &   
+                                      qv3d_l ,                        &   
+                                      qc3d_l ,                        &   
+                                      qi3d_l ,                        &   
+                                       u3d_l ,                        &   
+                                       v3d_l ,                        &   
+                                      pi3d_l
+
+      real(kind=kind_phys), dimension(its:ite, kts:kte), intent(out) :: &
+                                  rthcuten_l ,                          &
+                                  rqvcuten_l ,                          &
+                                  rqccuten_l ,                          &
+                                  rqicuten_l ,                          &
+                                   rucuten_l ,                          &
+                                   rvcuten_l
+
       real(kind=kind_phys)     :: fliq,fice
-      integer  :: i,k
+
+      integer  :: i,k,kk
 
       character(len=*),intent(out):: errmsg
 
@@ -340,16 +414,29 @@ end subroutine cu_ntiedtke_mpas_timestep_init
 !
 !     compute cloud water and cloud ice detrained from convection
 !
-      do k=kts,kte
-        do i=its,ite
-        if(pcte(i,k).gt.0.) then
-          fliq=foealfa(pt(i,k))
-          fice=1.0-fliq
-          pqc(i,k)=pqc(i,k)+fliq*pcte(i,k)*delt
-          pqi(i,k)=pqi(i,k)+fice*pcte(i,k)*delt
-        endif
+!DAVE, this should have qc qi IF test
+      if ( f_qc ) then 
+        do k=kts,kte
+          do i=its,ite
+          if(pcte(i,k).gt.0.) then
+            fliq=foealfa(pt(i,k))
+            pqc(i,k)=pqc(i,k)+fliq*pcte(i,k)*delt
+          endif
+          end do
         end do
-      end do
+      end if
+
+      if ( f_qi ) then 
+        do k=kts,kte
+          do i=its,ite
+          if(pcte(i,k).gt.0.) then
+            fliq=foealfa(pt(i,k))
+            fice=1.0-fliq
+            pqi(i,k)=pqi(i,k)+fice*pcte(i,k)*delt
+          endif
+          end do
+        end do
+      end if
 !
 !     compute temperature and water vapor mixing ratio after convection
 !
@@ -375,6 +462,35 @@ end subroutine cu_ntiedtke_mpas_timestep_init
           pv(i,k)=pv(i,k)+pvol(i,k)*delt
         end do
       end do
+!
+!     precipitation rate
+!
+      do i=its,ite
+         raincv_l(i)=zprecc(i)/stepcu
+         pratec_l(i)=zprecc(i)/(stepcu * dt) 
+      enddo
+!
+!     tendencies due to CU scheme
+!
+      do k=kts,kte
+        kk=kte+1-k
+        do i=its,ite
+          rthcuten_l(i,k)=(pt(i,kk)-t3d_l(i,k))/pi3d_l(i,k)*rdelt
+          rqvcuten_l(i,k)=(pqv(i,kk)-qv3d_l(i,k))*rdelt
+          rucuten_l(i,k) =(pu(i,kk)-u3d_l(i,k))*rdelt
+          rvcuten_l(i,k) =(pv(i,kk)-v3d_l(i,k))*rdelt
+        end do
+        if ( f_qc ) then
+          do i=its,ite
+            rqccuten_l(i,k)=(pqc(i,kk)-qc3d_l(i,k))*rdelt
+          end do
+        end if
+        if ( f_qi ) then
+          do i=its,ite
+            rqicuten_l(i,k)=(pqi(i,kk)-qi3d_l(i,k))*rdelt
+          end do
+        end if
+      end do
 
       errmsg = 'cu_ntiedtke_mpas_timestep_final OK'
       errflg = 0
@@ -383,6 +499,7 @@ end subroutine cu_ntiedtke_mpas_timestep_init
 
   subroutine cu_ntiedtke_mpas_init (errmsg, errflg)
 
+    implicit none
     character(len=*),        intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
 
@@ -394,7 +511,8 @@ end subroutine cu_ntiedtke_mpas_timestep_init
   end subroutine cu_ntiedtke_mpas_init
 
   subroutine cu_ntiedtke_mpas_final (errmsg, errflg)
-
+  
+    implicit none
     character(len=*),        intent(out)   :: errmsg
     integer,                 intent(out)   :: errflg
 
@@ -404,5 +522,19 @@ end subroutine cu_ntiedtke_mpas_timestep_init
     errflg = 0
 
   end subroutine cu_ntiedtke_mpas_final
+
+  subroutine upside_down (in,out,is,ie,ks,ke)
+    implicit none
+    integer, intent(in) :: is, ie, ks, ke
+    real(kind=kind_phys), intent(in) , dimension(is:ie,ks:ke) :: in
+    real(kind=kind_phys), intent(out), dimension(is:ie,ks:ke) :: out
+    integer :: i, k, kk
+    do k = ks, ke
+      do i = is, ie
+        kk= ke+1-k
+        out(i,kk) = in(i,k)      
+      end do
+    end do 
+  end subroutine upside_down
 
 end module cu_ntiedtke_mpas
