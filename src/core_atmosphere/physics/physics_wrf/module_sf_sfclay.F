@@ -1,3 +1,7 @@
+!=================================================================================================================
+!reference: WRF-v4.1.4 using module_sf_sfclayrev.F
+!Laura D. Fowler (laura@ucar.edu) / 2020-01-10.
+
 !WRF:MODEL_LAYER:PHYSICS
 !
 MODULE module_sf_sfclay
@@ -6,7 +10,7 @@ MODULE module_sf_sfclay
  REAL    , PARAMETER ::  CZO=0.0185
  REAL    , PARAMETER ::  OZO=1.59E-5
 
- REAL,   DIMENSION(0:1000 ),SAVE          :: PSIMTB,PSIHTB
+ REAL,   DIMENSION(0:1000 ),SAVE :: psim_stab,psim_unstab,psih_stab,psih_unstab
 
 CONTAINS
 
@@ -29,7 +33,7 @@ CONTAINS
 !-------------------------------------------------------------------
       IMPLICIT NONE
 !-------------------------------------------------------------------
-!   Changes in V3.7 over water surfaces: 
+!   Changes in V3.7 over water surfaces:
 !          1. for ZNT/Cd, replacing constant OZO with 0.11*1.5E-5/UST(I)
 !             the COARE 3.5 (Edson et al. 2013) formulation is also available
 !          2. for VCONV, reducing magnitude by half
@@ -137,6 +141,13 @@ CONTAINS
                                                              PBLH, &
                                                             XLAND, &
                                                               TSK
+      REAL,     DIMENSION( ims:ime, jms:jme )                    , &
+                INTENT(OUT  )               ::                U10, &
+                                                              V10, &
+                                                              TH2, &
+                                                               T2, &
+                                                               Q2, &
+                                                             QSFC
 
 !
       REAL,     DIMENSION( ims:ime, jms:jme )                    , &
@@ -173,6 +184,7 @@ CONTAINS
       REAL,     DIMENSION( ims:ime, jms:jme )                    , &
                 INTENT(INOUT)   ::                                 &
                                                               QGH
+
       REAL,     INTENT(IN   )               ::   CP,G,ROVCP,R,XLV
 
       REAL,     DIMENSION( ims:ime, jms:jme )                    , &
@@ -186,17 +198,6 @@ CONTAINS
 
       INTEGER,  OPTIONAL,  INTENT(IN )   ::     ISFTCFLX, IZ0TLND
       INTEGER,  OPTIONAL,  INTENT(IN )   ::     SCM_FORCE_FLUX
-
-      REAL,     DIMENSION( ims:ime, jms:jme )                    , &
-                INTENT(INOUT  )             ::               QSFC
-
-      REAL,     DIMENSION( ims:ime, jms:jme )                    , &
-                INTENT(OUT  )               ::                U10, &
-                                                              V10, &
-                                                              TH2, &
-                                                               T2, &
-                                                               Q2
-
 ! LOCAL VARS
 
       REAL,     DIMENSION( its:ite ) ::                       U1D, &
@@ -273,7 +274,7 @@ CONTAINS
                      ids,ide, jds,jde, kds,kde,                    &
                      ims,ime, jms,jme, kms,kme,                    &
                      its,ite, jts,jte, kts,kte,                    &
-                     isftcflx, iz0tlnd, scm_force_flux,            &
+                     isftcflx, iz0tlnd,scm_force_flux,             &
                      ustm,ck,cka,cd,cda                            )
 !-------------------------------------------------------------------
       IMPLICIT NONE
@@ -387,7 +388,17 @@ CONTAINS
       REAL    ::  DTG,PSIX,DTTHX,PSIX10,PSIT,PSIT2,PSIQ,PSIQ2,PSIQ10
       REAL    ::  FLUXC,VSGD,Z0Q,VISC,RESTAR,CZIL,GZ0OZQ,GZ0OZT
       REAL    ::  ZW, ZN1, ZN2
-      REAL    ::  Z0T, CZC
+!
+! .... paj ...
+!
+      REAL    :: zolzz,zol0
+!     REAL    :: zolri,zolri2
+!     REAL    :: psih_stable,psim_stable,psih_unstable,psim_unstable
+!     REAL    :: psih_stable_full,psim_stable_full,psih_unstable_full,psim_unstable_full
+      REAL    :: zl2,zl10,z0t
+      REAL,     DIMENSION( its:ite )        ::         pq,pq2,pq10
+
+
 !-------------------------------------------------------------------
       KL=kte
 
@@ -489,9 +500,9 @@ CONTAINS
 !     AKB(1976), EQ(12).                                                         
                    
       DO 260 I=its,ite
-        GZ1OZ0(I)=ALOG(ZA(I)/ZNT(I))                                        
-        GZ2OZ0(I)=ALOG(2./ZNT(I))                                        
-        GZ10OZ0(I)=ALOG(10./ZNT(I))                                        
+        GZ1OZ0(I)=ALOG((ZA(I)+ZNT(I))/ZNT(I))   ! log((z+z0)/z0)
+        GZ2OZ0(I)=ALOG((2.+ZNT(I))/ZNT(I))      ! log((2+z0)/z0)
+        GZ10OZ0(I)=ALOG((10.+ZNT(I))/ZNT(I))    ! log((10+z0)z0)
         IF((XLAND(I)-1.5).GE.0)THEN                                            
           ZL=ZNT(I)                                                            
         ELSE                                                                     
@@ -535,7 +546,7 @@ CONTAINS
   260 CONTINUE                                                                   
 
 !                                                                                
-!-----DIAGNOSE BASIC PARAMETERS FOR THE APPROPRIATED STABILITY CLASS:            
+!-----DIAGNOSE BASIC PARAMETERS FOR THE APPROPRIATED STABILITY CLASS:
 !                                                                                
 !                                                                                
 !     THE STABILITY CLASSES ARE DETERMINED BY BR (BULK RICHARDSON NO.)           
@@ -543,12 +554,8 @@ CONTAINS
 !                                                                                
 !     CRITERIA FOR THE CLASSES ARE AS FOLLOWS:                                   
 !                                                                                
-!        1. BR .GE. 0.2;                                                         
+!        1. BR .GE. 0.0;                                                         
 !               REPRESENTS NIGHTTIME STABLE CONDITIONS (REGIME=1),               
-!                                                                                
-!        2. BR .LT. 0.2 .AND. BR .GT. 0.0;                                       
-!               REPRESENTS DAMPED MECHANICAL TURBULENT CONDITIONS                
-!               (REGIME=2),                                                      
 !                                                                                
 !        3. BR .EQ. 0.0                                                          
 !               REPRESENTS FORCED CONVECTION CONDITIONS (REGIME=3),              
@@ -559,72 +566,71 @@ CONTAINS
 !CCCCC                                                                           
 
       DO 320 I=its,ite
-!CCCCC                                                                           
-!CC     REMOVE REGIME 3 DEPENDENCE ON PBL HEIGHT                                 
-!CC          IF(BR(I).LT.0..AND.HOL(I,J).GT.1.5)GOTO 310                         
-        IF(BR(I).LT.0.)GOTO 310                                                  
-!                                                                                
-!-----CLASS 1; STABLE (NIGHTTIME) CONDITIONS:                                    
-!                                                                                
-        IF(BR(I).LT.0.2)GOTO 270                                                 
-        REGIME(I)=1.                                                           
-        PSIM(I)=-10.*GZ1OZ0(I)                                                   
-!    LOWER LIMIT ON PSI IN STABLE CONDITIONS                                     
-        PSIM(I)=AMAX1(PSIM(I),-10.)                                              
-        PSIH(I)=PSIM(I)                                                          
-        PSIM10(I)=10./ZA(I)*PSIM(I)
-        PSIM10(I)=AMAX1(PSIM10(I),-10.)                               
-        PSIH10(I)=PSIM10(I)                                          
-        PSIM2(I)=2./ZA(I)*PSIM(I)
-        PSIM2(I)=AMAX1(PSIM2(I),-10.)                              
-        PSIH2(I)=PSIM2(I)                                         
-
-!       1.0 over Monin-Obukhov length
-        IF(UST(I).LT.0.01)THEN
-           RMOL(I)=BR(I)*GZ1OZ0(I) !ZA/L
+!
+      if (br(I).gt.0) then
+        if (br(I).gt.250.0) then
+        zol(I)=zolri(250.0,ZA(I),ZNT(I))
+        else
+        zol(I)=zolri(br(I),ZA(I),ZNT(I))
+        endif
+      endif
+!
+      if (br(I).lt.0) then
+       IF(UST(I).LT.0.001)THEN
+          ZOL(I)=BR(I)*GZ1OZ0(I)
         ELSE
-           RMOL(I)=KARMAN*GOVRTH(I)*ZA(I)*MOL(I)/(UST(I)*UST(I)) !ZA/L
+        if (br(I).lt.-250.0) then
+        zol(I)=zolri(-250.0,ZA(I),ZNT(I))
+        else
+        zol(I)=zolri(br(I),ZA(I),ZNT(I))
+        endif
+       ENDIF
+      endif
+!
+! ... paj: compute integrated similarity functions.
+!
+        zolzz=zol(I)*(za(I)+znt(I))/za(I) ! (z+z0/L
+        zol10=zol(I)*(10.+znt(I))/za(I)   ! (10+z0)/L
+        zol2=zol(I)*(2.+znt(I))/za(I)     ! (2+z0)/L
+        zol0=zol(I)*znt(I)/za(I)          ! z0/L
+        ZL2=(2.)/ZA(I)*ZOL(I)             ! 2/L
+        ZL10=(10.)/ZA(I)*ZOL(I)           ! 10/L
+
+        IF((XLAND(I)-1.5).LT.0.)THEN
+        ZL=(0.01)/ZA(I)*ZOL(I)   ! (0.01)/L
+        ELSE
+        ZL=ZOL0                     ! z0/L
         ENDIF
-        RMOL(I)=AMIN1(RMOL(I),9.999) ! ZA/L
-        RMOL(I) = RMOL(I)/ZA(I) !1.0/L
 
-        GOTO 320                                                                 
-!                                                                                
-!-----CLASS 2; DAMPED MECHANICAL TURBULENCE:                                     
-!                                                                                
-  270   IF(BR(I).EQ.0.0)GOTO 280                                                 
-        REGIME(I)=2.                                                           
-        PSIM(I)=-5.0*BR(I)*GZ1OZ0(I)/(1.1-5.0*BR(I))                             
-!    LOWER LIMIT ON PSI IN STABLE CONDITIONS                                     
-        PSIM(I)=AMAX1(PSIM(I),-10.)                                              
-!.....AKB(1976), EQ(16).                                                         
-        PSIH(I)=PSIM(I)                                                          
-        PSIM10(I)=10./ZA(I)*PSIM(I)
-        PSIM10(I)=AMAX1(PSIM10(I),-10.)                               
-        PSIH10(I)=PSIM10(I)                                          
-        PSIM2(I)=2./ZA(I)*PSIM(I)
-        PSIM2(I)=AMAX1(PSIM2(I),-10.)                              
-        PSIH2(I)=PSIM2(I)                                         
+        IF(BR(I).LT.0.)GOTO 310  ! go to unstable regime (class 4)
+        IF(BR(I).EQ.0.)GOTO 280  ! go to neutral regime (class 3)
+!
+!-----CLASS 1; STABLE (NIGHTTIME) CONDITIONS:
+!
+        REGIME(I)=1.
+!
+! ... paj: psim and psih. Follows Cheng and Brutsaert 2005 (CB05).
+!
+        psim(I)=psim_stable(zolzz)-psim_stable(zol0)
+        psih(I)=psih_stable(zolzz)-psih_stable(zol0)
+!
+        psim10(I)=psim_stable(zol10)-psim_stable(zol0)
+        psih10(I)=psih_stable(zol10)-psih_stable(zol0)
+!
+        psim2(I)=psim_stable(zol2)-psim_stable(zol0)
+        psih2(I)=psih_stable(zol2)-psih_stable(zol0)
+!
+! ... paj: preparations to compute PSIQ. Follows CB05+Carlson Boland JAM 1978.
+!
+        pq(I)=psih_stable(zol(I))-psih_stable(zl)
+        pq2(I)=psih_stable(zl2)-psih_stable(zl)
+        pq10(I)=psih_stable(zl10)-psih_stable(zl)
+!
+!       1.0 over Monin-Obukhov length
+        RMOL(I)=ZOL(I)/ZA(I)
+!
 
-        ! Linear form: PSIM = -0.5*ZA/L; e.g, see eqn 16 of
-        ! Blackadar, Modeling the nocturnal boundary layer, Preprints,
-        ! Third Symposium on Atmospheric Turbulence Diffusion and Air Quality,
-        ! Raleigh, NC, 1976
-        ZOL(I) = BR(I)*GZ1OZ0(I)/(1.00001-5.0*BR(I))
-
-        if ( ZOL(I) .GT. 0.5 ) then ! linear form ok
-           ! Holtslag and de Bruin, J. App. Meteor 27, 689-704, 1988;
-           ! see also, Launiainen, Boundary-Layer Meteor 76,165-179, 1995
-           ! Eqn (8) of Launiainen, 1995
-           ZOL(I) = ( 1.89*GZ1OZ0(I) + 44.2 ) * BR(I)*BR(I)    &
-                + ( 1.18*GZ1OZ0(I) - 1.37 ) * BR(I)
-           ZOL(I)=AMIN1(ZOL(I),9.999)
-        end if
-
-        ! 1.0 over Monin-Obukhov length
-        RMOL(I)= ZOL(I)/ZA(I)
-
-        GOTO 320                                                                 
+        GOTO 320
 !                                                                                
 !-----CLASS 3; FORCED CONVECTION:                                                
 !                                                                                
@@ -635,56 +641,47 @@ CONTAINS
         PSIH10(I)=PSIM10(I)                                           
         PSIM2(I)=0.                                                  
         PSIH2(I)=PSIM2(I)                                           
+!
+! paj: preparations to compute PSIQ.
+!
+        pq(I)=PSIH(I)
+        pq2(I)=PSIH2(I)
+        pq10(I)=0.
+!
+        ZOL(I)=0.
+        RMOL(I) = ZOL(I)/ZA(I)
 
-                                                                                 
-        IF(UST(I).LT.0.01)THEN                                                 
-          ZOL(I)=BR(I)*GZ1OZ0(I)                                               
-        ELSE                                                                     
-          ZOL(I)=KARMAN*GOVRTH(I)*ZA(I)*MOL(I)/(UST(I)*UST(I)) 
-        ENDIF                                                                    
-
-        RMOL(I) = ZOL(I)/ZA(I)  
-
-        GOTO 320                                                                 
+        GOTO 320
 !                                                                                
 !-----CLASS 4; FREE CONVECTION:                                                  
 !                                                                                
   310   CONTINUE                                                                 
         REGIME(I)=4.                                                           
-        IF(UST(I).LT.0.01)THEN                                                 
-          ZOL(I)=BR(I)*GZ1OZ0(I)                                               
-        ELSE                                                                     
-          ZOL(I)=KARMAN*GOVRTH(I)*ZA(I)*MOL(I)/(UST(I)*UST(I))
-        ENDIF                                                                    
-        ZOL10=10./ZA(I)*ZOL(I)                                    
-        ZOL2=2./ZA(I)*ZOL(I)                                     
-        ZOL(I)=AMIN1(ZOL(I),0.)                                              
-        ZOL(I)=AMAX1(ZOL(I),-9.9999)                                         
-        ZOL10=AMIN1(ZOL10,0.)                                          
-        ZOL10=AMAX1(ZOL10,-9.9999)                                    
-        ZOL2=AMIN1(ZOL2,0.)                                          
-        ZOL2=AMAX1(ZOL2,-9.9999)                                    
-        NZOL=INT(-ZOL(I)*100.)                                                 
-        RZOL=-ZOL(I)*100.-NZOL                                                 
-        NZOL10=INT(-ZOL10*100.)                                        
-        RZOL10=-ZOL10*100.-NZOL10                                     
-        NZOL2=INT(-ZOL2*100.)                                        
-        RZOL2=-ZOL2*100.-NZOL2                                      
-        PSIM(I)=PSIMTB(NZOL)+RZOL*(PSIMTB(NZOL+1)-PSIMTB(NZOL))                  
-        PSIH(I)=PSIHTB(NZOL)+RZOL*(PSIHTB(NZOL+1)-PSIHTB(NZOL))                  
-        PSIM10(I)=PSIMTB(NZOL10)+RZOL10*(PSIMTB(NZOL10+1)-PSIMTB(NZOL10))                                                    
-        PSIH10(I)=PSIHTB(NZOL10)+RZOL10*(PSIHTB(NZOL10+1)-PSIHTB(NZOL10))
-        PSIM2(I)=PSIMTB(NZOL2)+RZOL2*(PSIMTB(NZOL2+1)-PSIMTB(NZOL2))    
-        PSIH2(I)=PSIHTB(NZOL2)+RZOL2*(PSIHTB(NZOL2+1)-PSIHTB(NZOL2))   
-
+!
+! ... paj: PSIM and PSIH ...
+!
+        psim(I)=psim_unstable(zolzz)-psim_unstable(zol0)
+        psih(I)=psih_unstable(zolzz)-psih_unstable(zol0)
+!
+        psim10(I)=psim_unstable(zol10)-psim_unstable(zol0)
+        psih10(I)=psih_unstable(zol10)-psih_unstable(zol0)
+!
+        psim2(I)=psim_unstable(zol2)-psim_unstable(zol0)
+        psih2(I)=psih_unstable(zol2)-psih_unstable(zol0)
+!
+! ... paj: preparations to compute PSIQ
+!
+        pq(I)=psih_unstable(zol(I))-psih_unstable(zl)
+        pq2(I)=psih_unstable(zl2)-psih_unstable(zl)
+        pq10(I)=psih_unstable(zl10)-psih_unstable(zl)
+!
 !---LIMIT PSIH AND PSIM IN THE CASE OF THIN LAYERS AND HIGH ROUGHNESS            
 !---  THIS PREVENTS DENOMINATOR IN FLUXES FROM GETTING TOO SMALL                 
-!       PSIH(I)=AMIN1(PSIH(I),0.9*GZ1OZ0(I))                                     
-!       PSIM(I)=AMIN1(PSIM(I),0.9*GZ1OZ0(I))                                     
         PSIH(I)=AMIN1(PSIH(I),0.9*GZ1OZ0(I))
         PSIM(I)=AMIN1(PSIM(I),0.9*GZ1OZ0(I))
         PSIH2(I)=AMIN1(PSIH2(I),0.9*GZ2OZ0(I))
         PSIM10(I)=AMIN1(PSIM10(I),0.9*GZ10OZ0(I))
+!
 ! AHW: mods to compute ck, cd
         PSIH10(I)=AMIN1(PSIH10(I),0.9*GZ10OZ0(I))
 
@@ -699,38 +696,83 @@ CONTAINS
         DTG=THX(I)-THGB(I)                                                   
         PSIX=GZ1OZ0(I)-PSIM(I)                                                   
         PSIX10=GZ10OZ0(I)-PSIM10(I)
+
 !     LOWER LIMIT ADDED TO PREVENT LARGE FLHC IN SOIL MODEL
 !     ACTIVATES IN UNSTABLE CONDITIONS WITH THIN LAYERS OR HIGH Z0
-        PSIT=AMAX1(GZ1OZ0(I)-PSIH(I),2.)
-
+!       PSIT=AMAX1(GZ1OZ0(I)-PSIH(I),2.)
+       PSIT=GZ1OZ0(I)-PSIH(I)
+       PSIT2=GZ2OZ0(I)-PSIH2(I)
+!
         IF((XLAND(I)-1.5).GE.0)THEN                                            
           ZL=ZNT(I)                                                            
         ELSE                                                                     
           ZL=0.01                                                                
         ENDIF                                                                    
-        PSIQ=ALOG(KARMAN*UST(I)*ZA(I)/XKA+ZA(I)/ZL)-PSIH(I)   
-        PSIT2=GZ2OZ0(I)-PSIH2(I)                                     
-        PSIQ2=ALOG(KARMAN*UST(I)*2./XKA+2./ZL)-PSIH2(I)                                   
+!
+        PSIQ=ALOG(KARMAN*UST(I)*ZA(I)/XKA+ZA(I)/ZL)-pq(I)
+        PSIQ2=ALOG(KARMAN*UST(I)*2./XKA+2./ZL)-pq2(I)
+
 ! AHW: mods to compute ck, cd
-        PSIQ10=ALOG(KARMAN*UST(I)*10./XKA+10./ZL)-PSIH10(I)
+        PSIQ10=ALOG(KARMAN*UST(I)*10./XKA+10./ZL)-pq10(I)
 
 ! V3.7: using Fairall 2003 to compute z0q and z0t over water:
 !       adapted from module_sf_mynn.F
         IF ( (XLAND(I)-1.5).GE.0. ) THEN
               VISC=(1.32+0.009*(SCR3(I)-273.15))*1.E-5
-!             VISC=1.326e-5*(1. + 6.542e-3*SCR3(I) + 8.301e-6*SCR3(I)*SCR3(I) &
-!                 - 4.84e-9*SCR3(I)*SCR3(I)*SCR3(I))
               RESTAR=UST(I)*ZNT(I)/VISC
               Z0T = (5.5e-5)*(RESTAR**(-0.60))
               Z0T = MIN(Z0T,1.0e-4)
               Z0T = MAX(Z0T,2.0e-9)
               Z0Q = Z0T
 
-              PSIQ=max(ALOG((ZA(I)+Z0Q)/Z0Q)-PSIH(I), 2.)
-              PSIT=max(ALOG((ZA(I)+Z0T)/Z0T)-PSIH(I), 2.)
-              PSIQ2=max(ALOG((2.+Z0Q)/Z0Q)-PSIH2(I), 2.)
-              PSIT2=max(ALOG((2.+Z0T)/Z0T)-PSIH2(I), 2.)
-              PSIQ10=max(ALOG((10.+Z0Q)/Z0Q)-PSIH10(I), 2.)
+! following paj:
+           zolzz=zol(I)*(za(I)+z0t)/za(I)    ! (z+z0t)/L
+           zol10=zol(I)*(10.+z0t)/za(I)   ! (10+z0t)/L
+           zol2=zol(I)*(2.+z0t)/za(I)     ! (2+z0t)/L
+           zol0=zol(I)*z0t/za(I)          ! z0t/L
+!
+              if (zol(I).gt.0.) then
+              psih(I)=psih_stable(zolzz)-psih_stable(zol0)
+              psih10(I)=psih_stable(zol10)-psih_stable(zol0)
+              psih2(I)=psih_stable(zol2)-psih_stable(zol0)
+              else
+                if (zol(I).eq.0) then
+                psih(I)=0.
+                psih10(I)=0.
+                psih2(I)=0.
+                else
+                psih(I)=psih_unstable(zolzz)-psih_unstable(zol0)
+                psih10(I)=psih_unstable(zol10)-psih_unstable(zol0)
+                psih2(I)=psih_unstable(zol2)-psih_unstable(zol0)
+                endif
+              endif
+              PSIT=ALOG((ZA(I)+z0t)/Z0t)-PSIH(I)
+              PSIT2=ALOG((2.+z0t)/Z0t)-PSIH2(I)
+
+           zolzz=zol(I)*(za(I)+z0q)/za(I)    ! (z+z0q)/L
+           zol10=zol(I)*(10.+z0q)/za(I)   ! (10+z0q)/L
+           zol2=zol(I)*(2.+z0q)/za(I)     ! (2+z0q)/L
+           zol0=zol(I)*z0q/za(I)          ! z0q/L
+!
+              if (zol(I).gt.0.) then
+              psih(I)=psih_stable(zolzz)-psih_stable(zol0)
+              psih10(I)=psih_stable(zol10)-psih_stable(zol0)
+              psih2(I)=psih_stable(zol2)-psih_stable(zol0)
+              else
+                if (zol(I).eq.0) then
+                psih(I)=0.
+                psih10(I)=0.
+                psih2(I)=0.
+                else
+                psih(I)=psih_unstable(zolzz)-psih_unstable(zol0)
+                psih10(I)=psih_unstable(zol10)-psih_unstable(zol0)
+                psih2(I)=psih_unstable(zol2)-psih_unstable(zol0)
+                endif
+              endif
+!
+              PSIQ=ALOG((ZA(I)+z0q)/Z0q)-PSIH(I)
+              PSIQ2=ALOG((2.+z0q)/Z0q)-PSIH2(I)
+              PSIQ10=ALOG((10.+z0q)/Z0q)-PSIH10(I)
         ENDIF
 
         IF ( PRESENT(ISFTCFLX) ) THEN
@@ -741,13 +783,37 @@ CONTAINS
 !             Z0Q = 0.62*2.0E-5/UST(I) + 1.E-3*(MAX(0.,UST(I)-1.5))**2
 ! v3.2
               Z0Q = 1.e-4
-              PSIQ=ALOG(ZA(I)/Z0Q)-PSIH(I)
+!
+! ... paj: recompute psih for z0q
+!
+           zolzz=zol(I)*(za(I)+z0q)/za(I)    ! (z+z0q)/L
+           zol10=zol(I)*(10.+z0q)/za(I)   ! (10+z0q)/L
+           zol2=zol(I)*(2.+z0q)/za(I)     ! (2+z0q)/L
+           zol0=zol(I)*z0q/za(I)          ! z0q/L
+!
+              if (zol(I).gt.0.) then
+              psih(I)=psih_stable(zolzz)-psih_stable(zol0)
+              psih10(I)=psih_stable(zol10)-psih_stable(zol0)
+              psih2(I)=psih_stable(zol2)-psih_stable(zol0)
+              else
+                if (zol(I).eq.0) then
+                psih(I)=0.
+                psih10(I)=0.
+                psih2(I)=0.
+                else
+                psih(I)=psih_unstable(zolzz)-psih_unstable(zol0)
+                psih10(I)=psih_unstable(zol10)-psih_unstable(zol0)
+                psih2(I)=psih_unstable(zol2)-psih_unstable(zol0)
+                endif
+              endif
+!
+              PSIQ=ALOG((ZA(I)+z0q)/Z0Q)-PSIH(I)
               PSIT=PSIQ
-              PSIQ2=ALOG(2./Z0Q)-PSIH2(I)
-              PSIQ10=ALOG(10./Z0Q)-PSIH10(I)
+              PSIQ2=ALOG((2.+z0q)/Z0Q)-PSIH2(I)
+              PSIQ10=ALOG((10.+z0q)/Z0Q)-PSIH10(I)
               PSIT2=PSIQ2
            ENDIF
-           IF ( ISFTCFLX.EQ.2 .AND. (XLAND(I)-1.5).GE.0. ) THEN
+          IF ( ISFTCFLX.EQ.2 .AND. (XLAND(I)-1.5).GE.0. ) THEN
 ! AHW: Garratt formula: Calculate roughness Reynolds number
 !        Kinematic viscosity of air (linear approc to
 !                 temp dependence at sea level)
@@ -757,12 +823,67 @@ CONTAINS
 !!            VISC=1.5E-5
               RESTAR=UST(I)*ZNT(I)/VISC
               GZ0OZT=0.40*(7.3*SQRT(SQRT(RESTAR))*SQRT(0.71)-5.)
+!
+! ... paj: compute psih for z0t for temperature ...
+!
+              z0t=znt(I)/exp(GZ0OZT)
+!
+           zolzz=zol(I)*(za(I)+z0t)/za(I)    ! (z+z0t)/L
+           zol10=zol(I)*(10.+z0t)/za(I)   ! (10+z0t)/L
+           zol2=zol(I)*(2.+z0t)/za(I)     ! (2+z0t)/L
+           zol0=zol(I)*z0t/za(I)          ! z0t/L
+!
+              if (zol(I).gt.0.) then
+              psih(I)=psih_stable(zolzz)-psih_stable(zol0)
+              psih10(I)=psih_stable(zol10)-psih_stable(zol0)
+              psih2(I)=psih_stable(zol2)-psih_stable(zol0)
+              else
+                if (zol(I).eq.0) then
+                psih(I)=0.
+                psih10(I)=0.
+                psih2(I)=0.
+                else
+                psih(I)=psih_unstable(zolzz)-psih_unstable(zol0)
+                psih10(I)=psih_unstable(zol10)-psih_unstable(zol0)
+                psih2(I)=psih_unstable(zol2)-psih_unstable(zol0)
+                endif
+              endif
+!
+!              PSIT=GZ1OZ0(I)-PSIH(I)+RESTAR2
+!              PSIT2=GZ2OZ0(I)-PSIH2(I)+RESTAR2
+              PSIT=ALOG((ZA(I)+z0t)/Z0t)-PSIH(I)
+              PSIT2=ALOG((2.+z0t)/Z0t)-PSIH2(I)
+!
               GZ0OZQ=0.40*(7.3*SQRT(SQRT(RESTAR))*SQRT(0.60)-5.)
-              PSIT=GZ1OZ0(I)-PSIH(I)+GZ0OZT
-              PSIQ=GZ1OZ0(I)-PSIH(I)+GZ0OZQ
-              PSIT2=GZ2OZ0(I)-PSIH2(I)+GZ0OZT
-              PSIQ2=GZ2OZ0(I)-PSIH2(I)+GZ0OZQ
-              PSIQ10=GZ10OZ0(I)-PSIH(I)+GZ0OZQ
+              z0q=znt(I)/exp(GZ0OZQ)
+!
+           zolzz=zol(I)*(za(I)+z0q)/za(I)    ! (z+z0q)/L
+           zol10=zol(I)*(10.+z0q)/za(I)   ! (10+z0q)/L
+           zol2=zol(I)*(2.+z0q)/za(I)     ! (2+z0q)/L
+           zol0=zol(I)*z0q/za(I)          ! z0q/L
+!
+              if (zol(I).gt.0.) then
+              psih(I)=psih_stable(zolzz)-psih_stable(zol0)
+              psih10(I)=psih_stable(zol10)-psih_stable(zol0)
+              psih2(I)=psih_stable(zol2)-psih_stable(zol0)
+              else
+                if (zol(I).eq.0) then
+                psih(I)=0.
+                psih10(I)=0.
+                psih2(I)=0.
+                else
+                psih(I)=psih_unstable(zolzz)-psih_unstable(zol0)
+                psih10(I)=psih_unstable(zol10)-psih_unstable(zol0)
+                psih2(I)=psih_unstable(zol2)-psih_unstable(zol0)
+                endif
+              endif
+!
+              PSIQ=ALOG((ZA(I)+z0q)/Z0q)-PSIH(I)
+              PSIQ2=ALOG((2.+z0q)/Z0q)-PSIH2(I)
+              PSIQ10=ALOG((10.+z0q)/Z0q)-PSIH10(I)
+!              PSIQ=GZ1OZ0(I)-PSIH(I)+2.28*SQRT(SQRT(RESTAR))-2.
+!              PSIQ2=GZ2OZ0(I)-PSIH2(I)+2.28*SQRT(SQRT(RESTAR))-2.
+!              PSIQ10=GZ10OZ0(I)-PSIH(I)+2.28*SQRT(SQRT(RESTAR))-2.
            ENDIF
         ENDIF
         IF(PRESENT(ck) .and. PRESENT(cd) .and. PRESENT(cka) .and. PRESENT(cda)) THEN
@@ -785,11 +906,41 @@ CONTAINS
               ELSE IF ( IZ0TLND.EQ.2 ) THEN
                  CZIL = 0.1
               END IF
-
-              PSIT=GZ1OZ0(I)-PSIH(I)+CZIL*KARMAN*SQRT(RESTAR)
-              PSIQ=GZ1OZ0(I)-PSIH(I)+CZIL*KARMAN*SQRT(RESTAR)
-              PSIT2=GZ2OZ0(I)-PSIH2(I)+CZIL*KARMAN*SQRT(RESTAR)
-              PSIQ2=GZ2OZ0(I)-PSIH2(I)+CZIL*KARMAN*SQRT(RESTAR)
+!
+! ... paj: compute phish for z0t over land
+!
+              z0t=znt(I)/exp(CZIL*KARMAN*SQRT(RESTAR))
+!
+           zolzz=zol(I)*(za(I)+z0t)/za(I)    ! (z+z0t)/L
+           zol10=zol(I)*(10.+z0t)/za(I)   ! (10+z0t)/L
+           zol2=zol(I)*(2.+z0t)/za(I)     ! (2+z0t)/L
+           zol0=zol(I)*z0t/za(I)          ! z0t/L
+!
+              if (zol(I).gt.0.) then
+              psih(I)=psih_stable(zolzz)-psih_stable(zol0)
+              psih10(I)=psih_stable(zol10)-psih_stable(zol0)
+              psih2(I)=psih_stable(zol2)-psih_stable(zol0)
+              else
+                if (zol(I).eq.0) then
+                psih(I)=0.
+                psih10(I)=0.
+                psih2(I)=0.
+                else
+                psih(I)=psih_unstable(zolzz)-psih_unstable(zol0)
+                psih10(I)=psih_unstable(zol10)-psih_unstable(zol0)
+                psih2(I)=psih_unstable(zol2)-psih_unstable(zol0)
+                endif
+              endif
+!
+              PSIQ=ALOG((ZA(I)+z0t)/Z0t)-PSIH(I)
+              PSIQ2=ALOG((2.+z0t)/Z0t)-PSIH2(I)
+              PSIT=PSIQ
+              PSIT2=PSIQ2
+!
+!              PSIT=GZ1OZ0(I)-PSIH(I)+CZIL*KARMAN*SQRT(RESTAR)
+!              PSIQ=GZ1OZ0(I)-PSIH(I)+CZIL*KARMAN*SQRT(RESTAR)
+!              PSIT2=GZ2OZ0(I)-PSIH2(I)+CZIL*KARMAN*SQRT(RESTAR)
+!              PSIQ2=GZ2OZ0(I)-PSIH2(I)+CZIL*KARMAN*SQRT(RESTAR)
 
            ENDIF
         ENDIF
@@ -800,20 +951,15 @@ CONTAINS
         IF ( PRESENT(USTM) ) THEN
         USTM(I)=0.5*USTM(I)+0.5*KARMAN*WSPDI(I)/PSIX
         ENDIF
+
         U10(I)=UX(I)*PSIX10/PSIX                                    
         V10(I)=VX(I)*PSIX10/PSIX                                   
         TH2(I)=THGB(I)+DTG*PSIT2/PSIT                                
         Q2(I)=QSFC(I)+(QX(I)-QSFC(I))*PSIQ2/PSIQ                   
-!        T2(I) = TH2(I)*(PSFC(I)/100.)**ROVCP                     
         T2(I) = TH2(I)*(PSFCPA(I)/P1000mb)**ROVCP                     
-!       LATER Q2 WILL BE OVERWRITTEN FOR LAND POINTS IN SURFCE     
-!       QA2(I,J) = Q2(I)                                         
-!       UA10(I,J) = U10(I)                                      
-!       VA10(I,J) = V10(I)                                     
-!       write(*,1002)UST(I),KARMAN*WSPD(I),PSIX,KARMAN*WSPD(I)/PSIX
 !                                                                                
         IF((XLAND(I)-1.5).LT.0.)THEN                                            
-          UST(I)=AMAX1(UST(I),0.1)
+          UST(I)=AMAX1(UST(I),0.001)
         ENDIF                                                                    
         MOL(I)=KARMAN*DTG/PSIT/PRT                              
         DENOMQ(I)=PSIQ
@@ -827,17 +973,17 @@ CONTAINS
                                                                                   
 !-----COMPUTE THE SURFACE SENSIBLE AND LATENT HEAT FLUXES:                       
       IF ( PRESENT(SCM_FORCE_FLUX) ) THEN
-         IF (SCM_FORCE_FLUX.EQ.1) GOTO 350              
+         IF (SCM_FORCE_FLUX.EQ.1) GOTO 350
       ENDIF
       DO i=its,ite
         QFX(i)=0.                                                              
         HFX(i)=0.                                                              
       ENDDO
-  350 CONTINUE
+  350 CONTINUE                                                                   
 
       IF (ISFFLX.EQ.0) GOTO 410                                                
                                                                                  
-!-----OVER WATER, ALTER ROUGHNESS LENGTH (ZNT) ACCORDING TO WIND (UST).
+!-----OVER WATER, ALTER ROUGHNESS LENGTH (ZNT) ACCORDING TO WIND (UST).          
                                                                                  
       DO 360 I=its,ite
         IF((XLAND(I)-1.5).GE.0)THEN                                            
@@ -883,16 +1029,17 @@ CONTAINS
         ELSE                                                                     
           FLHC(I)=0.                                                             
         ENDIF                                                                    
-  360 CONTINUE
+  360 CONTINUE                                                                   
 
 !                                                                                
-!-----COMPUTE SURFACE MOIST FLUX:                                               
-!
-!     IF(IDRY.EQ.1)GOTO 390
+!-----COMPUTE SURFACE MOIST FLUX:
+!                                                                                
+!     IF(IDRY.EQ.1)GOTO 390                                                
+!                                                                                
      IF ( PRESENT(SCM_FORCE_FLUX) ) THEN
-        IF (SCM_FORCE_FLUX.EQ.1) GOTO 405                                     
+        IF (SCM_FORCE_FLUX.EQ.1) GOTO 405
      ENDIF
-!                                                                               
+
       DO 370 I=its,ite
         QFX(I)=FLQC(I)*(QSFC(I)-QX(I))                                     
         QFX(I)=AMAX1(QFX(I),0.)                                            
@@ -904,13 +1051,13 @@ CONTAINS
   390 CONTINUE                                                                 
       DO 400 I=its,ite
         IF(XLAND(I)-1.5.GT.0.)THEN                                           
-          HFX(I)=FLHC(I)*(THGB(I)-THX(I))                                
+          HFX(I)=FLHC(I)*(THGB(I)-THX(I)) 
 !         IF ( PRESENT(ISFTCFLX) ) THEN
 !            IF ( ISFTCFLX.NE.0 ) THEN
 ! AHW: add dissipative heating term (commented out in 3.6.1)
 !               HFX(I)=HFX(I)+RHOX(I)*USTM(I)*USTM(I)*WSPDI(I)
 !            ENDIF
-!         ENDIF
+!         ENDIF 
         ELSEIF(XLAND(I)-1.5.LT.0.)THEN                                       
           HFX(I)=FLHC(I)*(THGB(I)-THX(I))                                
           HFX(I)=AMAX1(HFX(I),-250.)                                       
@@ -925,11 +1072,18 @@ CONTAINS
          ELSE
            ZL=0.01
          ENDIF
+!v3.1.1
+!         CHS(I)=UST(I)*KARMAN/(ALOG(KARMAN*UST(I)*ZA(I) &
+!                /XKA+ZA(I)/ZL)-PSIH(I))
          CHS(I)=UST(I)*KARMAN/DENOMQ(I)
 !        GZ2OZ0(I)=ALOG(2./ZNT(I))
 !        PSIM2(I)=-10.*GZ2OZ0(I)
 !        PSIM2(I)=AMAX1(PSIM2(I),-10.)
 !        PSIH2(I)=PSIM2(I)
+! v3.1.1
+!         CQS2(I)=UST(I)*KARMAN/(ALOG(KARMAN*UST(I)*2.0  &
+!               /XKA+2.0/ZL)-PSIH2(I))
+!         CHS2(I)=UST(I)*KARMAN/(GZ2OZ0(I)-PSIH2(I))
          CQS2(I)=UST(I)*KARMAN/DENOMQ2(I)
          CHS2(I)=UST(I)*KARMAN/DENOMT2(I)
       ENDDO
@@ -949,23 +1103,175 @@ CONTAINS
    END SUBROUTINE SFCLAY1D
 
 !====================================================================
-   SUBROUTINE sfclayinit( allowed_to_read )         
+   SUBROUTINE sfclayinit
 
-   LOGICAL , INTENT(IN)      ::      allowed_to_read
-   INTEGER                   ::      N
-   REAL                      ::      ZOLN,X,Y
+    INTEGER                   ::      N
+    REAL                      ::      zolf
 
-   DO N=0,1000
-      ZOLN=-FLOAT(N)*0.01
-      X=(1-16.*ZOLN)**0.25
-      PSIMTB(N)=2*ALOG(0.5*(1+X))+ALOG(0.5*(1+X*X))- &
-                2.*ATAN(X)+2.*ATAN(1.)
-      Y=(1-16*ZOLN)**0.5
-      PSIHTB(N)=2*ALOG(0.5*(1+Y))
-   ENDDO
+    DO N=0,1000
+! stable function tables
+       zolf = float(n)*0.01
+       psim_stab(n)=psim_stable_full(zolf)
+       psih_stab(n)=psih_stable_full(zolf)
+ 
+! unstable function tables
+       zolf = -float(n)*0.01
+       psim_unstab(n)=psim_unstable_full(zolf)
+       psih_unstab(n)=psih_unstable_full(zolf)
+
+    ENDDO
 
    END SUBROUTINE sfclayinit
+
+      function zolri(ri,z,z0)
+!
+      if (ri.lt.0.)then
+        x1=-5.
+        x2=0.
+      else
+        x1=0.
+        x2=5.
+      endif
+!
+      fx1=zolri2(x1,ri,z,z0)
+      fx2=zolri2(x2,ri,z,z0)
+      Do While (abs(x1 - x2) > 0.01)
+! check added for potential divide by zero (2019/11)
+      if(fx1.eq.fx2)return
+      if(abs(fx2).lt.abs(fx1))then
+        x1=x1-fx1/(fx2-fx1)*(x2-x1)
+        fx1=zolri2(x1,ri,z,z0)
+        zolri=x1
+      else
+        x2=x2-fx2/(fx2-fx1)*(x2-x1)
+        fx2=zolri2(x2,ri,z,z0)
+        zolri=x2
+      endif
+!
+      enddo
+!
+
+      return
+      end function
+
+!
+! -----------------------------------------------------------------------
+!
+      function zolri2(zol2,ri2,z,z0)
+!
+      if(zol2*ri2 .lt. 0.)zol2=0.  ! limit zol2 - must be same sign as ri2
+!
+      zol20=zol2*z0/z ! z0/L
+      zol3=zol2+zol20 ! (z+z0)/L
+!
+      if (ri2.lt.0) then
+      psix2=log((z+z0)/z0)-(psim_unstable(zol3)-psim_unstable(zol20))
+      psih2=log((z+z0)/z0)-(psih_unstable(zol3)-psih_unstable(zol20))
+      else
+      psix2=log((z+z0)/z0)-(psim_stable(zol3)-psim_stable(zol20))
+      psih2=log((z+z0)/z0)-(psih_stable(zol3)-psih_stable(zol20))
+      endif
+!
+      zolri2=zol2*psih2/psix2**2-ri2
+!
+      return
+      end function
+!
+! ... integrated similarity functions ...
+!
+      function psim_stable_full(zolf)
+        psim_stable_full=-6.1*log(zolf+(1+zolf**2.5)**(1./2.5))
+      return
+      end function
+
+      function psih_stable_full(zolf)
+        psih_stable_full=-5.3*log(zolf+(1+zolf**1.1)**(1./1.1))
+      return
+      end function
+      
+      function psim_unstable_full(zolf)
+        x=(1.-16.*zolf)**.25
+        psimk=2*ALOG(0.5*(1+X))+ALOG(0.5*(1+X*X))-2.*ATAN(X)+2.*ATAN(1.)
+!
+        ym=(1.-10.*zolf)**0.33
+        psimc=(3./2.)*log((ym**2.+ym+1.)/3.)-sqrt(3.)*ATAN((2.*ym+1)/sqrt(3.))+4.*ATAN(1.)/sqrt(3.)
+!
+        psim_unstable_full=(psimk+zolf**2*(psimc))/(1+zolf**2.)
+
+      return
+      end function
+
+      function psih_unstable_full(zolf)
+        y=(1.-16.*zolf)**.5
+        psihk=2.*log((1+y)/2.)
+!
+        yh=(1.-34.*zolf)**0.33
+        psihc=(3./2.)*log((yh**2.+yh+1.)/3.)-sqrt(3.)*ATAN((2.*yh+1)/sqrt(3.))+4.*ATAN(1.)/sqrt(3.)
+!
+        psih_unstable_full=(psihk+zolf**2*(psihc))/(1+zolf**2.)
+
+      return
+      end function
+
+! look-up table functions
+      function psim_stable(zolf)
+      integer :: nzol
+      real    :: rzol
+        nzol = int(zolf*100.)
+        rzol = zolf*100. - nzol
+        if(nzol+1 .le. 1000)then
+           psim_stable = psim_stab(nzol) + rzol*(psim_stab(nzol+1)-psim_stab(nzol))
+        else
+           psim_stable = psim_stable_full(zolf)
+        endif
+      return
+      end function
+
+      function psih_stable(zolf)
+      integer :: nzol
+      real    :: rzol
+        nzol = int(zolf*100.)
+        rzol = zolf*100. - nzol
+        if(nzol+1 .le. 1000)then
+           psih_stable = psih_stab(nzol) + rzol*(psih_stab(nzol+1)-psih_stab(nzol))
+        else
+           psih_stable = psih_stable_full(zolf)
+        endif
+      return
+      end function
+      
+      function psim_unstable(zolf)
+      integer :: nzol
+      real    :: rzol
+        nzol = int(-zolf*100.)
+        rzol = -zolf*100. - nzol
+        if(nzol+1 .le. 1000)then
+           psim_unstable = psim_unstab(nzol) + rzol*(psim_unstab(nzol+1)-psim_unstab(nzol))
+        else
+           psim_unstable = psim_unstable_full(zolf)
+        endif
+      return
+      end function
+
+      function psih_unstable(zolf)
+      integer :: nzol
+      real    :: rzol
+        nzol = int(-zolf*100.)
+        rzol = -zolf*100. - nzol
+        if(nzol+1 .le. 1000)then
+           psih_unstable = psih_unstab(nzol) + rzol*(psih_unstab(nzol+1)-psih_unstab(nzol))
+        else
+           psih_unstable = psih_unstable_full(zolf)
+        endif
+      return
+      end function
 
 !-------------------------------------------------------------------          
 
 END MODULE module_sf_sfclay
+
+!
+! ----------------------------------------------------------
+!
+
+
