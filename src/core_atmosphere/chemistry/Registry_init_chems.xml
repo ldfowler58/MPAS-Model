@@ -13,7 +13,94 @@
 
            <var name="CO_em_anthro_industrial" array_group="CO_emissions" units="kg m^{-2} s^{-1}"
                      description="CO anthropogenic emission - sector Industrial"/>
-       </var_array>
+      </var_array>
+
+      <var_array name="aerosols_clim" type="real" dimensions="nMonths nGocartLevels nCells">
+           <var name="dust1_clim" array_group="thompson_clim" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 1 to nifa"/>
+
+           <var name="dust2_clim" array_group="thompson_clim" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 2 to nifa"/>
+
+           <var name="dust3_clim" array_group="thompson_clim" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 3 to nifa"/>
+
+           <var name="dust4_clim" array_group="thompson_clim" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 4 to nifa"/>
+
+           <var name="dust5_clim" array_group="thompson_clim" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 5 to nifa"/>
+
+           <var name="oc_clim" array_group="thompson_clim" units="# kg^{-1}"
+                     description="contribution of nb concentration of hydrophobic organic carbon to nwfa"/>
+
+           <var name="so4_clim" array_group="thompson_clim" units="# kg^{-1}"
+                     description="contribution of nb concentration of sulfates to nwfa"/>
+
+           <var name="seas1_clim" array_group="thompson_clim" units="# kg^{-1}"
+                     description="contribution of nb concentration of accumulation mode of sea salt to nwfa"/>
+
+           <var name="seas2_clim" array_group="thompson_clim" units="# kg^{-1}"
+                     description="contribution of nb concentration of coarse mode of sea salt to nwfa"/>
+      </var_array>
+
+      <var_array name="aerosols" type="real" dimensions="nVertLevels nCells">
+           <var name="dust1" array_group="thompson" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 1 to nifa"/>
+
+           <var name="dust2" array_group="thompson" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 2 to nifa"/>
+
+           <var name="dust3" array_group="thompson" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 3 to nifa"/>
+
+           <var name="dust4" array_group="thompson" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 4 to nifa"/>
+
+           <var name="dust5" array_group="thompson" units="# kg^{-1}"
+                     description="contribution of nb concentration of dust bin 5 to nifa"/>
+
+           <var name="oc" array_group="thompson" units="# kg^{-1}"
+                     description="contribution of nb concentration of hydrophobic organic carbon to nwfa"/>
+
+           <var name="so4" array_group="thompson" units="# kg^{-1}"
+                     description="contribution of nb concentration of sulfates to nwfa"/>
+
+           <var name="seas1" array_group="thompson" units="# kg^{-1}"
+                     description="contribution of nb concentration of accumulation mode of sea salt to nwfa"/>
+
+           <var name="seas2" array_group="thompson" units="# kg^{-1}"
+                     description="contribution of nb concentration of coarse mode of sea salt to nwfa"/>
+      </var_array>
+
+      <var_array name="aerosols_weight" type="real" dimensions="nVertLevels nCells">
+           <var name="dust1_weight" array_group="thompson" units="unitless"
+                     description="weight of nb concentration of dust bin 1 to nifa"/>
+
+           <var name="dust2_weight" array_group="thompson" units="unitless"
+                     description="weight of nb concentration of dust bin 2 to nifa"/>
+
+           <var name="dust3_weight" array_group="thompson" units="unitless"
+                     description="weight of nb concentration of dust bin 3 to nifa"/>
+
+           <var name="dust4_weight" array_group="thompson" units="unitless"
+                     description="weight of nb concentration of dust bin 4 to nifa"/>
+
+           <var name="dust5_weight" array_group="thompson" units="unitless"
+                     description="weight of nb concentration of dust bin 5 to nifa"/>
+
+           <var name="oc_weight" array_group="thompson" units="unitless"
+                     description="weight of nb concentration of hydrophobic organic carbon to nwfa"/>
+
+           <var name="so4_weight" array_group="thompson" units="unitless"
+                     description="weight of nb concentration of sulfates to nwfa"/>
+
+           <var name="seas1_weight" array_group="thompson" units="unitless"
+                     description="weight of nb concentration of accumulation mode of sea salt to nwfa"/>
+
+           <var name="seas2_weight" array_group="thompson" units="unitless"
+                     description="weight of nb concentration of coarse mode of sea salt to nwfa"/>
+      </var_array>
 
  </var_struct>
 
