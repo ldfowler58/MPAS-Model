@@ -590,7 +590,10 @@
 #ifdef ATM_CHEMISTRY
                         <var_array name="tracers" packages="met_stage_out"/>
                         <var_array name="chems" packages="met_stage_out"/>
-                        <var_array name="CO"/>
+                        <var_array name="CO" packages="met_stage_out"/>
+                        <var_array name="aerosols_clim" packages="met_stage_out"/>
+                        <var_array name="aerosols" packages="met_stage_out"/>
+                        <var_array name="aerosols_weight" packages="met_stage_out"/>
 #endif
 		</stream>
 
