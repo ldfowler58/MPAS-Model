@@ -328,6 +328,12 @@ CONTAINS
 !CCPP-PHYSICS:
  real,dimension(its:ite):: mavail_hv,pblh_hv,xland_hv,tsk_hv,psfcpa_hv, &
                            qcg_hv,snowh_hv,dx_hv
+ real,dimension(its:ite):: regime_hv,hfx_hv,qfx_hv,lh_hv,mol_hv,rmol_hv,qgh_hv,  &
+                           qsfc_hv,znt_hv,zol_hv,ust_hv,cpm_hv,chs2_hv,cqs2_hv,  &
+                           chs_hv,ch_hv,flhc_hv,flqc_hv,gz1oz0_hv,wspd_hv,br_hv, &
+                           psim_hv,psih_hv
+ real,dimension(its:ite):: u10_hv,v10_hv,th2_hv,t2_hv,q2_hv,wstar_hv,qstar_hv
+ real,dimension(its:ite):: cd_hv,cda_hv,ck_hv,cka_hv,ustm_hv
 !CCPP-PHYSICS end.
 
 !-----------------------------------------------------------
@@ -358,6 +364,7 @@ CONTAINS
         ENDDO
 
         !CCPP-PHYSICS:
+        !input arguments:
         do i = its,ite
            mavail_hv(i) = mavail(i,j)
            pblh_hv(i)   = pblh(i,j)
@@ -368,6 +375,59 @@ CONTAINS
            snowh_hv(i)  = snowh(i,j)
            dx_hv(i)     = dx(i,j)
         enddo
+
+        !inout arguments:
+        do i = its,ite
+           regime_hv(i) = regime(i,j)
+           hfx_hv(i)    = hfx(i,j)
+           qfx_hv(i)    = qfx(i,j)
+           lh_hv(i)     = lh(i,j)
+           mol_hv(i)    = mol(i,j)
+           rmol_hv(i)   = rmol(i,j)
+           qgh_hv(i)    = qgh(i,j)
+           qsfc_hv(i)   = qsfc(i,j)
+           znt_hv(i)    = znt(i,j)
+           zol_hv(i)    = zol(i,j)
+           ust_hv(i)    = ust(i,j)
+           cpm_hv(i)    = cpm(i,j)
+           chs2_hv(i)   = chs2(i,j)
+           cqs2_hv(i)   = cqs2(i,j)
+           chs_hv(i)    = chs(i,j)
+           ch_hv(i)     = ch(i,j)
+           flhc_hv(i)   = flhc(i,j)
+           flqc_hv(i)   = flqc(i,j)
+           gz1oz0_hv(i) = gz1oz0(i,j)
+           wspd_hv(i)   = wspd(i,j)
+           br_hv(i)     = br(i,j)
+           psim_hv(i)   = psim(i,j)
+           psih_hv(i)   = psih(i,j)
+        enddo
+
+        !output arguments:
+        do i = its,ite
+           u10_hv(i)    = 0.
+           v10_hv(i)    = 0.
+           th2_hv(i)    = 0.
+           t2_hv(i)     = 0.
+           q2_hv(i)     = 0.
+           wstar_hv(i)  = 0.
+           qstar_hv(i)  = 0.
+        enddo
+
+        !optional output arguments:
+        if(present(ck) .and. present(cka) .and. present(cd) .and. present(cda)) then
+           do i = its,ite
+              ck_hv(i)  = 0.
+              cka_hv(i) = 0.
+              cd_hv(i)  = 0.
+              cda_hv(i) = 0.
+           enddo
+        endif
+        if(present(ustm)) then
+           do i = its,ite
+              ustm_hv(i) = 0.
+           enddo
+        endif
         !CCPP-PHYSICS end.
 
         IF (itimestep==1) THEN
@@ -382,29 +442,84 @@ CONTAINS
         CALL SFCLAY1D_mynn(                                        &
                 J,U1D,V1D,T1D,QV1D,P1D,dz8w1d,rho1d,               &
                 U1D2,V1D2,dz2w1d,                                  &
-                CP,G,ROVCP,R,XLV,psfcpa_hv,CHS(ims,j),CHS2(ims,j), &
-                CQS2(ims,j),CPM(ims,j),pblh_hv, RMOL(ims,j),       &
-                ZNT(ims,j),UST(ims,j),mavail_hv,ZOL(ims,j),        &
-                MOL(ims,j),REGIME(ims,j),PSIM(ims,j),PSIH(ims,j),  &
-                xland_hv,HFX(ims,j),QFX(ims,j),tsk_hv,             &
-                U10(ims,j),V10(ims,j),TH2(ims,j),T2(ims,j),        &
-                Q2(ims,j),FLHC(ims,j),FLQC(ims,j),snowh_hv,        &
-                QGH(ims,j),QSFC(ims,j),LH(ims,j),                  &
-                GZ1OZ0(ims,j),WSPD(ims,j),BR(ims,j),ISFFLX,dx_hv,  &
+                CP,G,ROVCP,R,XLV,psfcpa_hv,chs_hv,chs2_hv,         &
+                cqs2_hv,cpm_hv,pblh_hv,rmol_hv,                    &
+                znt_hv,ust_hv,mavail_hv,zol_hv,                    &
+                mol_hv,regime_hv,psim_hv,psih_hv,                  &
+                xland_hv,hfx_hv,qfx_hv,tsk_hv,                     &
+                u10_hv,v10_hv,th2_hv,t2_hv,                        &
+                q2_hv,flhc_hv,flqc_hv,snowh_hv,                    &
+                qgh_hv,qsfc_hv,lh_hv,                              &
+                gz1oz0_hv,wspd_hv,br_hv,ISFFLX,dx_hv,              &
                 SVP1,SVP2,SVP3,SVPT0,EP1,EP2,KARMAN,               &
-                ch(ims,j),qc1d,qcg_hv,                             &
+                ch_hv,qc1d,qcg_hv,                                 &
                 itimestep,                                         &
 !JOE-begin additional output
-                wstar(ims,j),qstar(ims,j),                         &
+                wstar_hv,qstar_hv,                                 &
 !JOE-end
                 spp_pbl,rstoch1D,                                  &
                 ids,ide, jds,jde, kds,kde,                         &
                 ims,ime, jms,jme, kms,kme,                         &
                 its,ite, jts,jte, kts,kte                          &
                 ,isftcflx,iz0tlnd,                                 &
-                USTM(ims,j),CK(ims,j),CKA(ims,j),                  &
-                CD(ims,j),CDA(ims,j)                               &
+                ustm_hv,ck_hv,cka_hv,                              &
+                cd_hv,cda_hv                                       &
                                                                    )
+
+        !CCPP-PHYSICS:
+        !inout arguments:
+        do i = its,ite
+           regime(i,j) = regime_hv(i)
+           hfx(i,j)    = hfx_hv(i)
+           qfx(i,j)    = qfx_hv(i)
+           lh(i,j)     = lh_hv(i)
+           mol(i,j)    = mol_hv(i)
+           rmol(i,j)   = rmol_hv(i)
+           qgh(i,j)    = qgh_hv(i)
+           qsfc(i,j)   = qsfc_hv(i)
+           znt(i,j)    = znt_hv(i)
+           zol(i,j)    = zol_hv(i)
+           ust(i,j)    = ust_hv(i)
+           cpm(i,j)    = cpm_hv(i)
+           chs2(i,j)   = chs2_hv(i)
+           cqs2(i,j)   = cqs2_hv(i)
+           chs(i,j)    = chs_hv(i)
+           ch(i,j)     = ch_hv(i)
+           flhc(i,j)   = flhc_hv(i)
+           flqc(i,j)   = flqc_hv(i)
+           gz1oz0(i,j) = gz1oz0_hv(i)
+           wspd(i,j)   = wspd_hv(i)
+           br(i,j)     = br_hv(i)
+           psim(i,j)   = psim_hv(i)
+           psih(i,j)   = psih_hv(i)
+        enddo
+
+        !output arguments:
+        do i = its,ite
+           u10(i,j)   = u10_hv(i)
+           v10(i,j)   = v10_hv(i)
+           th2(i,j)   = th2_hv(i)
+           t2(i,j)    = t2_hv(i)
+           q2(i,j)    = q2_hv(i)
+           wstar(i,j) = wstar_hv(i)
+           qstar(i,j) = qstar_hv(i)
+        enddo
+
+        !optional output arguments:
+        if(present(ck) .and. present(cka) .and. present(cd) .and. present(cda)) then
+           do i = its,ite
+              ck(i,j)  = ck_hv(i)
+              cka(i,j) = cka_hv(i)
+              cd(i,j)  = cd_hv(i)
+              cda(i,j) = cda_hv(i)
+           enddo
+        endif
+        if(present(ustm)) then
+           do i = its,ite
+              ustm(i,j) = ustm_hv(i)
+           enddo
+        endif
+        !CCPP-PHYSICS end.
 
       ENDDO
 
@@ -474,7 +589,7 @@ CONTAINS
                                                     dz8w1d,dz2w1d, &
                                                             RHO1D
 
-      REAL,     DIMENSION( ims:ime ), INTENT(INOUT) ::     REGIME, &
+      REAL,     DIMENSION( its:ite ), INTENT(INOUT) ::     REGIME, &
                                                        HFX,QFX,LH, &
                                                          MOL,RMOL, &
                                                          QGH,QSFC, &
@@ -492,14 +607,14 @@ CONTAINS
       REAL,     DIMENSION( its:ite ), INTENT(IN)   ::     rstoch1D
 
       ! DIAGNOSTIC OUTPUT
-      REAL,     DIMENSION( ims:ime ), INTENT(OUT)   ::    U10,V10, &
+      REAL,     DIMENSION( its:ite ), INTENT(OUT)   ::    U10,V10, &
                                                         TH2,T2,Q2
 
-      REAL, OPTIONAL, DIMENSION( ims:ime )                       , &
+      REAL, OPTIONAL, DIMENSION( its:ite )                       , &
                 INTENT(OUT)     ::              ck,cka,cd,cda,ustm
 !--------------------------------------------
 !JOE-additinal output
-      REAL,     DIMENSION( ims:ime ) ::                wstar,qstar
+      REAL,     DIMENSION( its:ite ) ::                wstar,qstar
 !JOE-end
 !----------------------------------------------------------------
 ! LOCAL VARS
