@@ -324,6 +324,12 @@ CONTAINS
       REAL,     DIMENSION( its:ite ) ::                  rstoch1D
 
       INTEGER ::  I,J,K,itf,jtf,ktf
+
+!CCPP-PHYSICS:
+ real,dimension(its:ite):: mavail_hv,pblh_hv,xland_hv,tsk_hv,psfcpa_hv, &
+                           qcg_hv,snowh_hv,dx_hv
+!CCPP-PHYSICS end.
+
 !-----------------------------------------------------------
 
       itf=MIN0(ite,ide-1)
@@ -351,6 +357,19 @@ CONTAINS
            endif
         ENDDO
 
+        !CCPP-PHYSICS:
+        do i = its,ite
+           mavail_hv(i) = mavail(i,j)
+           pblh_hv(i)   = pblh(i,j)
+           xland_hv(i)  = xland(i,j)
+           tsk_hv(i)    = tsk(i,j)
+           psfcpa_hv(i) = psfcpa(i,j)
+           qcg_hv(i)    = qcg(i,j)
+           snowh_hv(i)  = snowh(i,j)
+           dx_hv(i)     = dx(i,j)
+        enddo
+        !CCPP-PHYSICS end.
+
         IF (itimestep==1) THEN
            DO i=its,ite
               UST(i,j)=MAX(0.04*SQRT(U1D(i)*U1D(i) + V1D(i)*V1D(i)),0.001)
@@ -363,17 +382,17 @@ CONTAINS
         CALL SFCLAY1D_mynn(                                        &
                 J,U1D,V1D,T1D,QV1D,P1D,dz8w1d,rho1d,               &
                 U1D2,V1D2,dz2w1d,                                  &
-                CP,G,ROVCP,R,XLV,PSFCPA(ims,j),CHS(ims,j),CHS2(ims,j),&
-                CQS2(ims,j),CPM(ims,j),PBLH(ims,j), RMOL(ims,j),   &
-                ZNT(ims,j),UST(ims,j),MAVAIL(ims,j),ZOL(ims,j),    &
+                CP,G,ROVCP,R,XLV,psfcpa_hv,CHS(ims,j),CHS2(ims,j), &
+                CQS2(ims,j),CPM(ims,j),pblh_hv, RMOL(ims,j),       &
+                ZNT(ims,j),UST(ims,j),mavail_hv,ZOL(ims,j),        &
                 MOL(ims,j),REGIME(ims,j),PSIM(ims,j),PSIH(ims,j),  &
-                XLAND(ims,j),HFX(ims,j),QFX(ims,j),TSK(ims,j),     &
+                xland_hv,HFX(ims,j),QFX(ims,j),tsk_hv,             &
                 U10(ims,j),V10(ims,j),TH2(ims,j),T2(ims,j),        &
-                Q2(ims,j),FLHC(ims,j),FLQC(ims,j),SNOWH(ims,j),    &
+                Q2(ims,j),FLHC(ims,j),FLQC(ims,j),snowh_hv,        &
                 QGH(ims,j),QSFC(ims,j),LH(ims,j),                  &
-                GZ1OZ0(ims,j),WSPD(ims,j),BR(ims,j),ISFFLX,DX(ims,j),&
+                GZ1OZ0(ims,j),WSPD(ims,j),BR(ims,j),ISFFLX,dx_hv,  &
                 SVP1,SVP2,SVP3,SVPT0,EP1,EP2,KARMAN,               &
-                ch(ims,j),qc1d,qcg(ims,j),                         &
+                ch(ims,j),qc1d,qcg_hv,                             &
                 itimestep,                                         &
 !JOE-begin additional output
                 wstar(ims,j),qstar(ims,j),                         &
@@ -439,7 +458,7 @@ CONTAINS
 !-----------------------------
 ! 1D ARRAYS
 !-----------------------------
-      REAL,     DIMENSION( ims:ime ), INTENT(IN)    ::     MAVAIL, &
+      REAL,     DIMENSION( its:ite ), INTENT(IN)    ::     MAVAIL, &
                                                              PBLH, &
                                                             XLAND, &
                                                               TSK, &
