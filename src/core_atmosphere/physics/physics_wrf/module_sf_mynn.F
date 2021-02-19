@@ -363,6 +363,15 @@ CONTAINS
            endif
         ENDDO
 
+        if(itimestep==1) then
+           do i=its,ite
+              ust(i,j)   = max(0.04*sqrt(u1d(i)*u1d(i) + v1d(i)*v1d(i)),0.001)
+              mol(i,j)   = 0.0
+              qsfc(i,j)  = qv1d(i)/(1.+qv1d(i))
+              qstar(i,j) = 0.0
+           enddo
+        endif
+
         !CCPP-PHYSICS:
         !input arguments:
         do i = its,ite
@@ -429,15 +438,6 @@ CONTAINS
            enddo
         endif
         !CCPP-PHYSICS end.
-
-        IF (itimestep==1) THEN
-           DO i=its,ite
-              UST(i,j)=MAX(0.04*SQRT(U1D(i)*U1D(i) + V1D(i)*V1D(i)),0.001)
-              MOL(i,j)=0.     ! Tstar
-              QSFC(i,j)=QV3D(i,kts,j)/(1.+QV3D(i,kts,j))
-              qstar(i,j)=0.0
-           ENDDO
-        ENDIF
 
         CALL SFCLAY1D_mynn(                                        &
                 J,U1D,V1D,T1D,QV1D,P1D,dz8w1d,rho1d,               &
