@@ -954,10 +954,7 @@
                    ustm      = ustm_p     , ck        = ck_p       , cka       = cka_p      , &
                    cd        = cd_p       , cda       = cda_p      , isftcflx  = isftcflx   , &
                    iz0tlnd   = iz0tlnd    , itimestep = initflag   , ch        = ch_p       , &
-                   cov       = cov_p      , tsq       = tsq_p      , qsq       = qsq_p      , &
-                   sh3d      = sh3d_p     , el_pbl    = elpbl_p    , qcg       = qcg_p      , &
-                   icloud_bl = icloud_bl  , cldfra_bl = cldfrabl_p , qc_bl     = qcbl_p     , &
-                   spp_pbl   = spp_pbl    , bl_mynn_cloudpdf = bl_mynn_cloudpdf             , &
+                   qcg       = qcg_p      , spp_pbl   = spp_pbl    ,                          &
                    ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde    , &
                    ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme    , &
                    its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte      &
@@ -987,10 +984,7 @@
                       ustm      = ustm_sea   , ck        = ck_sea     , cka       = cka_sea    , &
                       cd        = cd_sea     , cda       = cda_sea    , isftcflx  = isftcflx   , &
                       iz0tlnd   = iz0tlnd    , itimestep = initflag   , ch        = ch_sea     , &
-                      cov       = cov_p      , tsq       = tsq_p      , qsq       = qsq_p      , &
-                      sh3d      = sh3d_p     , el_pbl    = elpbl_p    , qcg       = qcg_p      , &
-                      icloud_bl = icloud_bl  , cldfra_bl = cldfrabl_p , qc_bl     = qcbl_p     , &
-                      spp_pbl   = spp_pbl    , bl_mynn_cloudpdf = bl_mynn_cloudpdf             , &
+                      qcg       = qcg_p      , spp_pbl   = spp_pbl    ,                          &
                       ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde    , &
                       ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme    , &
                       its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte      &
