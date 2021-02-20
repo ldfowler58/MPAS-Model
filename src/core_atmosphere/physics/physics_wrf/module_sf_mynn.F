@@ -434,7 +434,7 @@ CONTAINS
         endif
         if(present(ustm)) then
            do i = its,ite
-              ustm_hv(i) = 0.
+              ustm_hv(i) = ustm(i,j)
            enddo
         endif
         !CCPP-PHYSICS end.
