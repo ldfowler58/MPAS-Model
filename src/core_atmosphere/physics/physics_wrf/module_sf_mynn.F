@@ -66,45 +66,15 @@ MODULE module_sf_mynn
 !      Performance with the Noah (or other) LSM is relatively unknown.
 !-------------------------------------------------------------------
 #if defined(mpas)
-  use mpas_atmphys_constants, only: &
-        g=> gravity,   &
-        p1000mb => P0, &
-        cp,            &
-        xlv,           &
-        ep_2,          &
-        R_d,           &
-        R_v,           &
-        rcp,           &
-        cpv
   use bl_mynn, only: tv0, b1, b2, p608, ev, rd, & !, mym_condensation
        &esat_blend, xl_blend, qsat_blend
+#endif
 
   implicit none
   private
   public:: sfclay_mynn, &
            mynn_sf_init_driver
-#else
-!For WRF
-  USE module_model_constants, only: &
-       &p1000mb, ep_2
 
-!-------------------------------------------------------------------
-  IMPLICIT NONE
-!-------------------------------------------------------------------
-!For non-WRF
-!   REAL    , PARAMETER :: g            = 9.81
-!   REAL    , PARAMETER :: r_d          = 287.
-!   REAL    , PARAMETER :: cp           = 7.*r_d/2.
-!   REAL    , PARAMETER :: r_v          = 461.6
-!   REAL    , PARAMETER :: cpv          = 4.*r_v
-!   REAL    , PARAMETER :: rcp          = r_d/cp
-!   REAL    , PARAMETER :: XLV          = 2.5E6
-!   REAL    , PARAMETER :: XLF          = 3.50E5
-!   REAL    , PARAMETER :: p1000mb      = 100000.
-!   REAL    , PARAMETER :: EP_2         = r_d/r_v
-#endif
-
-  REAL, PARAMETER :: ep_3=1.-ep_2 
   REAL, PARAMETER :: wmin=0.1    ! Minimum wind speed
   REAL, PARAMETER :: VCONVC=1.25
   REAL, PARAMETER :: SNOWZ0=0.011
@@ -653,8 +623,11 @@ CONTAINS
                   PSIQ,PSIQ2,PSIQ10
       REAL    ::  FLUXC,VSGD
       REAL    ::  restar,VISC,DQG,OLDUST,OLDTST
+      REAL    ::  EP3
 
 !-------------------------------------------------------------------
+
+      EP3 = 1.-EP2
 
       DO I=its,ite
          ! CONVERT GROUND & LOWEST LAYER TEMPERATURE TO POTENTIAL TEMPERATURE:
@@ -690,7 +663,7 @@ CONTAINS
          ENDIF
          !FOR LAND POINTS, QSFC can come from LSM, ONLY RECOMPUTE OVER WATER
          IF (xland(i).gt.1.5 .or. QSFC(i).le.0.0) THEN   !WATER
-            QSFC(I)=EP2*E1/(PSFC(I)-ep_3*E1)             !specific humidity    
+            QSFC(I)=EP2*E1/(PSFC(I)-EP3*E1)              !specific humidity
             QSFCMR(I)=EP2*E1/(PSFC(I)-E1)                !mixing ratio 
          ELSE                                            !LAND 
             QSFCMR(I)=QSFC(I)/(1.-QSFC(I))
@@ -707,7 +680,7 @@ CONTAINS
             E1=SVP1*EXP(SVP2*(T1D(I)-SVPT0)/(T1D(I)-SVP3))
          ENDIF
          PL=P1D(I)/1000.
-         !QGH(I)=EP2*E1/(PL-ep_3*E1)    !specific humidity
+         !QGH(I)=EP2*E1/(PL-EP3*E1)    !specific humidity
          QGH(I)=EP2*E1/(PL-E1)          !mixing ratio
          CPM(I)=CP*(1.+0.84*QV1D(I))
       ENDDO
