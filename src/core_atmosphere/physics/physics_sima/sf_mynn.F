@@ -1,5 +1,5 @@
 !=================================================================================================================
- MODULE sf_mynn
+ module sf_mynn
 
 !modications implemented by Laura D. Fowler NCAR/MMM to make the original module module_sf_mynn.F CCPP compliant.
 ! * split module_sf_mynn.F into two separate modules:
@@ -60,29 +60,26 @@
 !NOTE: This code was primarily tested in combination with the RUC LSM.
 !      Performance with the Noah (or other) LSM is relatively unknown.
 !-------------------------------------------------------------------
-#if defined(mpas)
-! use bl_mynn, only: tv0, b1, b2, p608, ev, rd, & !, mym_condensation
-!      &esat_blend, xl_blend, qsat_blend
-  use bl_mynn, only: tv0, b1, b2, p608, ev, rd
-  use mynn_shared, only: esat_blend, xl_blend, qsat_blend
-#endif
+  use mynn_shared,only: esat_blend,qsat_blend,xl_blend
 
   implicit none
   private
   public:: sfclay1d_mynn,      &
            mynn_sf_init_driver
 
-  REAL, PARAMETER :: wmin=0.1    ! Minimum wind speed
-  REAL, PARAMETER :: VCONVC=1.25
-  REAL, PARAMETER :: SNOWZ0=0.011
-  REAL, PARAMETER :: COARE_OPT=3.0  ! 3.0 or 3.5
+  real,parameter:: wmin      = 0.1
+  real,parameter:: vconvc    = 1.25
+  real,parameter:: snowz0    = 0.011
+  real,parameter:: coare_opt = 3.0   ! 3.0 or 3.5
   !For debugging purposes:
-  LOGICAL, PARAMETER :: debug_code = .false.
+  logical,parameter:: debug_code = .false.
 
-  REAL,   DIMENSION(0:1000 ),SAVE :: psim_stab,psim_unstab, &
-                                     psih_stab,psih_unstab
+  real,dimension(0:1000),save:: psim_stab,psim_unstab, &
+                                psih_stab,psih_unstab
 
-CONTAINS
+
+  contains
+
 
 !-------------------------------------------------------------------
   SUBROUTINE mynn_sf_init_driver(allowed_to_read)
@@ -1842,6 +1839,6 @@ END SUBROUTINE SFCLAY1D_mynn
    end function
 
 !=================================================================================================================
- END MODULE sf_mynn
+ end module sf_mynn
 !=================================================================================================================
 
