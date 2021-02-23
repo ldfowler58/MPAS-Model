@@ -18,6 +18,9 @@
  use module_sf_mynn
  use module_sf_sfclay
 
+!sima physics:
+ use sf_mynn
+
  implicit none
  private
  public:: init_sfclayer,       &
