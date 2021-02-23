@@ -61,8 +61,10 @@
 !      Performance with the Noah (or other) LSM is relatively unknown.
 !-------------------------------------------------------------------
 #if defined(mpas)
-  use bl_mynn, only: tv0, b1, b2, p608, ev, rd, & !, mym_condensation
-       &esat_blend, xl_blend, qsat_blend
+! use bl_mynn, only: tv0, b1, b2, p608, ev, rd, & !, mym_condensation
+!      &esat_blend, xl_blend, qsat_blend
+  use bl_mynn, only: tv0, b1, b2, p608, ev, rd
+  use mynn_shared, only: esat_blend, xl_blend, qsat_blend
 #endif
 
   implicit none

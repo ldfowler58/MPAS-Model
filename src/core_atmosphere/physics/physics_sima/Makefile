@@ -11,6 +11,7 @@ OBJS_init = \
 OBJS = \
 	bl_mynn.o \
 	bl_mynn_mpas.o \
+	mynn_shared.o \
 	sf_mynn.o \
 	sf_mynn_mpas.o
 
@@ -22,6 +23,10 @@ physics_sima: $(OBJS) physics_sima_init
 # DEPENDENCIES:
 bl_mynn_mpas.o: \
 	bl_mynn.o
+
+sf_mynn.o: \
+	bl_mynn.o \
+	mynn_shared.o
 
 clean:
 	$(RM) *.f90 *.o *.mod
