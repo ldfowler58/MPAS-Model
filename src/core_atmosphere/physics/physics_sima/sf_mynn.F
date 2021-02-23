@@ -64,8 +64,9 @@
 
   implicit none
   private
-  public:: sfclay1d_mynn,      &
-           mynn_sf_init_driver
+  public:: sf_mynn_run,      &
+           sf_mynn_init,     &
+           sf_mynn_final
 
   real,parameter:: wmin      = 0.1
   real,parameter:: vconvc    = 1.25
@@ -82,22 +83,35 @@
 
 
 !-------------------------------------------------------------------
-  SUBROUTINE mynn_sf_init_driver(allowed_to_read)
+  SUBROUTINE sf_mynn_init(errmsg,errflg)
 
-    LOGICAL, INTENT(in) :: allowed_to_read
+  character(len=*),intent(out):: errmsg
+  integer,intent(out):: errflg
 
-    !Fill the PSIM and PSIH tables. This code was leveraged from
-    !module_sf_sfclayrev.F, leveraging the work from Pedro Jimenez.
-    !This subroutine returns a blended form from Dyer and Hicks (1974)
-    !and Grachev et al (2000) for unstable conditions and the form 
-    !from Cheng and Brutsaert (2005) for stable conditions.
+  !Fill the PSIM and PSIH tables. This code was leveraged from
+  !module_sf_sfclayrev.F, leveraging the work from Pedro Jimenez.
+  !This subroutine returns a blended form from Dyer and Hicks (1974)
+  !and Grachev et al (2000) for unstable conditions and the form
+  !from Cheng and Brutsaert (2005) for stable conditions.
 
-     CALL psi_init
+  errmsg = ' '
+  errflg = 0
 
-  END SUBROUTINE mynn_sf_init_driver
+  call psi_init
 
+  END SUBROUTINE sf_mynn_init
 !-------------------------------------------------------------------
-   SUBROUTINE SFCLAY1D_mynn(                                       &
+  SUBROUTINE sf_mynn_final(errmsg,errflg)
+
+  character(len=*),intent(out):: errmsg
+  integer,intent(out):: errflg
+
+  errmsg = ' '
+  errflg = 0
+
+  END SUBROUTINE sf_mynn_final
+!-------------------------------------------------------------------
+  SUBROUTINE sf_mynn_run(                                          &
                      J,U1D,V1D,T1D,QV1D,P1D,dz8w1d,rho1d,          &
                      U1D2,V1D2,dz2w1d,                             &
                      CP,G,ROVCP,R,XLV,PSFCPA,CHS,CHS2,CQS2,CPM,    &
@@ -933,7 +947,7 @@
 
  ENDDO !end i-loop
 
-END SUBROUTINE SFCLAY1D_mynn
+ END SUBROUTINE sf_mynn_run
 !-------------------------------------------------------------------          
    SUBROUTINE zilitinkevich_1995(Z_0,Zt,Zq,restar,ustar,KARMAN,&
        & landsea,IZ0TLND2,spp_pbl,rstoch)

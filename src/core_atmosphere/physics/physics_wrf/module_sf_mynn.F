@@ -3,7 +3,7 @@
 !=================================================================================================================
  use mpas_kind_types,only: StrKIND
 
- use sf_mynn,only     : sfclay1d_mynn
+ use sf_mynn,only     : sf_mynn_run
  use sf_mynn_mpas,only: sf_mynn_mpas_run
 
  implicit none
@@ -310,7 +310,7 @@
         endif
         !ccpp-physics end.
 
-        call sfclay1d_mynn(                                        &
+        call sf_mynn_run(                                          &
                 j,u1d,v1d,t1d,qv1d,p1d,dz8w1d,rho1d,               &
                 u1d2,v1d2,dz2w1d,                                  &
                 cp,g,rovcp,r,xlv,psfcpa_hv,chs_hv,chs2_hv,         &

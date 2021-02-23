@@ -15,11 +15,11 @@
  use mpas_atmphys_vars
 
 !wrf physics:
- use module_sf_mynn
+ use module_sf_mynn,only: sfclay_mynn
  use module_sf_sfclay
 
 !sima physics:
- use sf_mynn
+ use sf_mynn,only: sf_mynn_init
 
  implicit none
  private
@@ -806,6 +806,8 @@
 !local variables and pointers:
  logical, parameter:: allowed_to_read = .false. !actually not used in subroutine sfclayinit.
  character(len=StrKIND),pointer:: sfclayer_scheme
+ character(len=StrKIND):: errmsg
+ integer:: errflg
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -817,7 +819,7 @@
        call sfclayinit
 
     case("sf_mynn")
-       call mynn_sf_init_driver(allowed_to_read)
+       call sf_mynn_init(errmsg,errflg)
 
     case default
 
