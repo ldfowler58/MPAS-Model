@@ -112,7 +112,7 @@
   END SUBROUTINE sf_mynn_final
 !-------------------------------------------------------------------
   SUBROUTINE sf_mynn_run(                                          &
-                     J,U1D,V1D,T1D,QV1D,P1D,dz8w1d,rho1d,          &
+                     U1D,V1D,T1D,QV1D,P1D,dz8w1d,rho1d,            &
                      U1D2,V1D2,dz2w1d,                             &
                      CP,G,ROVCP,R,XLV,PSFCPA,CHS,CHS2,CQS2,CPM,    &
                      PBLH,RMOL,ZNT,UST,MAVAIL,ZOL,MOL,REGIME,      &
@@ -122,15 +122,11 @@
                      SVP1,SVP2,SVP3,SVPT0,EP1,EP2,                 &
                      KARMAN,ch,qc1d,qcg,                           &
                      itimestep,                                    &
-!JOE-additional output
                      wstar,qstar,                                  &
-!JOE-end
                      spp_pbl,rstoch1D,                             &
-                     ids,ide, jds,jde, kds,kde,                    &
-                     ims,ime, jms,jme, kms,kme,                    &
-                     its,ite, jts,jte, kts,kte                     &
-                     ,isftcflx, iz0tlnd,                           &
-                     ustm,ck,cka,cd,cda                            &
+                     isftcflx, iz0tlnd,                            &
+                     ustm,ck,cka,cd,cda,                           &
+                     its,ite                                       &
                      )
 
 !-------------------------------------------------------------------
@@ -138,10 +134,8 @@
 !-------------------------------------------------------------------
 ! SCALARS
 !-----------------------------
-      INTEGER,  INTENT(IN) ::        ids,ide, jds,jde, kds,kde, &
-                                     ims,ime, jms,jme, kms,kme, &
-                                     its,ite, jts,jte, kts,kte, &
-                                     J, itimestep
+      INTEGER,  INTENT(IN) :: its,ite
+      INTEGER,  INTENT(IN) :: itimestep
 
       REAL,     PARAMETER  :: XKA=2.4E-5   !molecular diffusivity
       REAL,     PARAMETER  :: PRT=1.       !prandlt number
@@ -895,37 +889,37 @@
       yesno = 0
       IF (HFX(I) > 1200. .OR. HFX(I) < -700.)THEN
             print*,"SUSPICIOUS VALUES IN MYNN SFCLAYER",&
-            I,J, "HFX: ",HFX(I)
+            I, "HFX: ",HFX(I)
             yesno = 1
       ENDIF
       IF (LH(I)  > 1200. .OR. LH(I)  < -700.)THEN
             print*,"SUSPICIOUS VALUES IN MYNN SFCLAYER",&
-            I,J, "LH: ",LH(I)
+            I, "LH: ",LH(I)
             yesno = 1
       ENDIF
       IF (UST(I) < 0.0 .OR. UST(I) > 4.0 )THEN
             print*,"SUSPICIOUS VALUES IN MYNN SFCLAYER",&
-            I,J, "UST: ",UST(I)
+            I, "UST: ",UST(I)
             yesno = 1
       ENDIF
       IF (WSTAR(I)<0.0 .OR. WSTAR(I) > 6.0)THEN
             print*,"SUSPICIOUS VALUES IN MYNN SFCLAYER",&
-            I,J, "WSTAR: ",WSTAR(I)
+            I, "WSTAR: ",WSTAR(I)
             yesno = 1
       ENDIF
       IF (RHO1D(I)<0.0 .OR. RHO1D(I) > 1.6 )THEN
             print*,"SUSPICIOUS VALUES IN MYNN SFCLAYER",&
-            I,J, "rho: ",RHO1D(I)
+            I, "rho: ",RHO1D(I)
             yesno = 1
       ENDIF
       IF (QSFC(I)*1000. <0.0 .OR. QSFC(I)*1000. >40.)THEN
             print*,"SUSPICIOUS VALUES IN MYNN SFCLAYER",&
-            I,J, "QSFC: ",QSFC(I)
+            I, "QSFC: ",QSFC(I)
             yesno = 1
       ENDIF
       IF (PBLH(I)<0. .OR. PBLH(I)>6000.)THEN
             print*,"SUSPICIOUS VALUES IN MYNN SFCLAYER",&
-            I,J, "PBLH: ",PBLH(I)
+            I, "PBLH: ",PBLH(I)
             yesno = 1
       ENDIF
 

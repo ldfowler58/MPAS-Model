@@ -310,32 +310,26 @@
         endif
         !ccpp-physics end.
 
-        call sf_mynn_run(                                          &
-                j,u1d,v1d,t1d,qv1d,p1d,dz8w1d,rho1d,               &
-                u1d2,v1d2,dz2w1d,                                  &
-                cp,g,rovcp,r,xlv,psfcpa_hv,chs_hv,chs2_hv,         &
-                cqs2_hv,cpm_hv,pblh_hv,rmol_hv,                    &
-                znt_hv,ust_hv,mavail_hv,zol_hv,                    &
-                mol_hv,regime_hv,psim_hv,psih_hv,                  &
-                xland_hv,hfx_hv,qfx_hv,tsk_hv,                     &
-                u10_hv,v10_hv,th2_hv,t2_hv,                        &
-                q2_hv,flhc_hv,flqc_hv,snowh_hv,                    &
-                qgh_hv,qsfc_hv,lh_hv,                              &
-                gz1oz0_hv,wspd_hv,br_hv,isfflx,dx_hv,              &
-                svp1,svp2,svp3,svpt0,ep1,ep2,karman,               &
-                ch_hv,qc1d,qcg_hv,                                 &
-                itimestep,                                         &
-!joe-begin additional output
-                wstar_hv,qstar_hv,                                 &
-!joe-end
-                spp_pbl,rstoch1d,                                  &
-                ids,ide, jds,jde, kds,kde,                         &
-                ims,ime, jms,jme, kms,kme,                         &
-                its,ite, jts,jte, kts,kte                          &
-                ,isftcflx,iz0tlnd,                                 &
-                ustm_hv,ck_hv,cka_hv,                              &
-                cd_hv,cda_hv                                       &
-                                                                   )
+        call sf_mynn_run( &
+                u1d,v1d,t1d,qv1d,p1d,dz8w1d,rho1d,         &
+                u1d2,v1d2,dz2w1d,                          &
+                cp,g,rovcp,r,xlv,psfcpa_hv,chs_hv,chs2_hv, &
+                cqs2_hv,cpm_hv,pblh_hv,rmol_hv,            &
+                znt_hv,ust_hv,mavail_hv,zol_hv,            &
+                mol_hv,regime_hv,psim_hv,psih_hv,          &
+                xland_hv,hfx_hv,qfx_hv,tsk_hv,             &
+                u10_hv,v10_hv,th2_hv,t2_hv,                &
+                q2_hv,flhc_hv,flqc_hv,snowh_hv,            &
+                qgh_hv,qsfc_hv,lh_hv,                      &
+                gz1oz0_hv,wspd_hv,br_hv,isfflx,dx_hv,      &
+                svp1,svp2,svp3,svpt0,ep1,ep2,karman,       &
+                ch_hv,qc1d,qcg_hv,                         &
+                itimestep,                                 &
+                wstar_hv,qstar_hv,                         &
+                spp_pbl,rstoch1d,                          &
+                isftcflx,iz0tlnd,                          &
+                ustm_hv,ck_hv,cka_hv,cd_hv,cda_hv,         &
+                its,ite)
 
         !ccpp-physics:
         !inout arguments:
