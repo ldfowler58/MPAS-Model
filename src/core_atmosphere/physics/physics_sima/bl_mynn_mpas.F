@@ -7,11 +7,28 @@
 
  implicit none
  private
- public:: bl_mynn_mpas_run
+ public:: bl_mynn_mpas_run,  &
+          bl_mynn_mpas_init, &
+          bl_mynn_mpas_final
 
 
  contains
 
+
+!=================================================================================================================
+ subroutine bl_mynn_mpas_init(errmsg,errflg)
+!=================================================================================================================
+
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
+!-----------------------------------------------------------------------------------------------------------------
+!note: this subroutine currently does nothing.
+
+ errmsg = ' '
+ errflg = 0
+
+ end subroutine bl_mynn_mpas_init
 
 !=================================================================================================================
  subroutine bl_mynn_mpas_run &
@@ -434,7 +451,7 @@
 
 
     !call to MYNN parameterization
-    call bl_mynn_run &
+    call bl_mynn_1d &
             (initflag         , do_restart         , do_DAcycling     , &
              grav_settling    , delt               , dz1d             , &
              dx1d             , znt1d              , u1d              , &
@@ -472,7 +489,7 @@
              f_qni            , f_qnwfa            , f_qnifa          , &
              !--- constants:
              cp , karman , gravity , P0 , ep_1 , ep_2 , rcp , xlv ,     &
-             kts              , kte                , i                  &
+             kts              , kte                                     &
             )    
 
 
@@ -618,7 +635,7 @@
  end subroutine bl_mynn_mpas_run
 
 !=================================================================================================================
- subroutine bl_mynn_run &
+ subroutine bl_mynn_1d &
             (initflag         , restart            , cycling          , &
              grav_settling    , delt               , dz1              , &
              dx1              , znt1               , u1               , &
@@ -656,7 +673,7 @@
              flag_qni         , flag_qnwfa         , flag_qnifa       , &
              !--- constants:
              cp , karman , grav , p1000mb , ep_1 , ep_2 , rcp , xlv ,   &
-             kts              , kte                , ii                 &
+             kts              , kte                                     &
             )    
 
 !=================================================================================================================
@@ -669,8 +686,6 @@
 
  logical,intent(in):: &
     restart,cycling
-
- integer,intent(in):: ii
 
  integer,intent(in):: kts,kte
 
@@ -895,16 +910,13 @@
     if((restart .or. cycling)) then
        if(qke1(kts) < 0.0002) then
           initialize_qke = .true.
-          !if(ii.eq.1) call mpas_log_write("qke is too small, must initialize")
           !print*,"qke is too small, must initialize"
        else
           initialize_qke = .false.
-          !if(ii.eq.1) call mpas_log_write("using background qke, will not initialize")
           !print*,"using background qke, will not initialize"
        endif
     else ! not cycling or restarting:
        initialize_qke = .true.
-       !if(ii.eq.1) call mpas_log_write("not restart nor cycling, must initialize qke")
        !print*,"not restart nor cycling, must initialize qke"
     endif
 
@@ -1324,7 +1336,22 @@
     enddo
  endif
 
- end subroutine bl_mynn_run
+ end subroutine bl_mynn_1d
+
+!=================================================================================================================
+ subroutine bl_mynn_mpas_final(errmsg,errflg)
+!=================================================================================================================
+
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
+
+!-----------------------------------------------------------------------------------------------------------------
+!note: this subroutine currently does nothing.
+
+ errmsg = ' '
+ errflg = 0
+
+ end subroutine bl_mynn_mpas_final
 
 !=================================================================================================================
  end module bl_mynn_mpas
