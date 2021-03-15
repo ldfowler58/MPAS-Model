@@ -219,8 +219,8 @@
     call update_tracers(itimestep,block%configs,mesh,state,time_lev,diag,diag_physics,sfc_input)
 
     !initialize chemical species and boundary layer passive tracers:
-    call mpas_chems%allocate_mem(state)
-    call mpas_chems%chems_to_physics(state,time_lev)
+    call mpas_chems%allocate_mem(mesh,state)
+    call mpas_chems%chems_to_physics(mesh,state,time_lev)
     call mpas_tracers%allocate_mem(state)
     call mpas_tracers%tracers_to_physics(state,time_lev)
 #endif
