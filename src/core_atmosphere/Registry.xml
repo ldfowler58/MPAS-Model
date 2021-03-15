@@ -526,6 +526,8 @@
 #ifdef ATM_CHEMISTRY
 			<var_array name="chems"/>
 			<var_array name="tracers"/>
+			<var_array name="aerosols"/>
+			<var_array name="aerosols_weight"/>
 #endif
 		</stream>
 
