@@ -85,6 +85,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2021-01-05.
 ! * updated the MYNN PBL scheme to WRF-v4.2.2 from the GMTB ccpp_physics directory.
 !   Laura D. Fowler (laura@ucar.edu) / 2021-01-19.
+! * in the call to mynn_bl_driver, added the variables nc_p, nifa_p, and nwfa_p.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-03-30.
 
 
  contains
@@ -833,7 +835,8 @@
                  th          = th_p           , t3d        = t_p         , dz          = dz_p         , &
                  dx          = dx_p           , u          = u_p         , v           = v_p          , &
                  w           = w_p            , qv3d       = qv_p        , qc3d        = qc_p         , &
-                 qi3d        = qi_p           , qni        = ni_p        , rho         = rho_p        , &
+                 qi3d        = qi_p           , qnc        = nc_p        , qni         = ni_p         , &
+                 qnifa       = nifa_p         , qnwfa      = nwfa_p      , rho         = rho_p        , &
                  rublten     = rublten_p      , rvblten    = rvblten_p   , rthblten    = rthblten_p   , &
                  rqvblten    = rqvblten_p     , rqcblten   = rqcblten_p  , rqiblten    = rqiblten_p   , &
                  rqncblten   = rncblten_p     , rqniblten  = rniblten_p  , rqnifablten = rnifablten_p , &
