@@ -1,0 +1,520 @@
+!=================================================================================================================
+ module module_cu_gf_ctrans_thompson
+!=================================================================================================================
+ use mpas_kind_types
+ use mpas_log
+ use module_cu_gf_ctrans,only:tridiag
+
+ implicit none
+ private
+ public:: ctrans_thompson
+
+ real(kind=RKIND),dimension(:),allocatable    :: thom_wetr
+ real(kind=RKIND),dimension(:),allocatable    :: thom_conv
+ real(kind=RKIND),dimension(:,:,:),allocatable:: thom,thoml2,thom_up,thom_dn,thom_mult,thom_multo
+
+
+ contains
+
+
+!=================================================================================================================
+ subroutine ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,dtime,grav,edt,xmb,p_cup,z_cup,thom_w, &
+                            nifa,nwfa,zu,up_entr,up_detr,zd,dn_entr,dn_detr,outnifa,outnwfa)
+!=================================================================================================================
+
+!--- input arguments:
+ integer,intent(in):: its,ite,kts,kte
+
+ integer,intent(in):: &
+    nthom      ! number of aerosols that describe "water-friendly" and "ice-friendly" aerosols.
+                              
+ integer,intent(in),dimension(its:ite):: &
+    ierr,     &!
+    k22,      &!
+    kbcon,    &!
+    ktop,     &!
+    kdn
+
+ real(kind=RKIND),intent(in):: &
+    dtime,    &!
+    grav
+
+ real(kind=RKIND),intent(in),dimension(its:ite):: &
+    edt,      &!
+    xmb
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
+    p_cup,    &!
+    z_cup      !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
+    up_entr,  &!
+    up_detr,  &!
+    zu,       &!
+    dn_entr,  &!
+    dn_detr,  &!
+    zd         !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
+    nifa,     &! "ice-friendly" aerosols   (# per kg).
+    nwfa       ! "water-friendly" aerosols (# per kg).
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte,nthom):: &
+    thom_w     ! weight of individual aerosols to "water-friendly" and "ice-friendly" aerosols (-).
+
+
+!--- inout arguments:
+ real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
+    outnifa,  &! "ice-friendly" aerosols   (# per kg).
+    outnwfa    ! "water-friendly" aerosols (# per kg).
+
+
+!--- local variables and arrays:
+ integer:: i,k,n
+ integer:: k2,kb,kc,kd,kt
+
+ real(kind=RKIND),parameter:: c0 = 0.004
+ real(kind=RKIND):: denom
+ real(kind=RKIND),dimension(kts:kte):: fm,fp,znet
+ real(kind=RKIND),dimension(kts:kte):: aeri,aeri_dn,aeri_up,aerw,aerw_dn,aerw_up
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nifal2,nwfal2,nifa_dn,nifa_up,nwfa_dn,nwfa_up
+
+ real(kind=RKIND),dimension(:),allocatable:: mult,aterm,bterm,cterm,dterm
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine ctrans_thompson: nthom = $i',intArgs=(/nthom/))
+
+
+!--- allocate the different aerosol components of "water-friendly" and "ice-friendly" aerosols:
+ if(.not.allocated(thom_wetr) ) allocate(thom_wetr(nthom)                 )
+ if(.not.allocated(thom_conv) ) allocate(thom_conv(nthom)                 )
+ if(.not.allocated(thom)      ) allocate(thom(its:ite,kts:kte,nthom)      )  
+ if(.not.allocated(thoml2)    ) allocate(thoml2(its:ite,kts:kte,nthom)    )
+ if(.not.allocated(thom_up)   ) allocate(thom_up(its:ite,kts:kte,nthom)   )
+ if(.not.allocated(thom_dn)   ) allocate(thom_dn(its:ite,kts:kte,nthom)   )
+ if(.not.allocated(thom_mult) ) allocate(thom_mult(its:ite,kts:kte,nthom) )
+ if(.not.allocated(thom_multo)) allocate(thom_multo(its:ite,kts:kte,nthom))
+
+ do n = 1,nthom
+    do k = kts,kte
+       do i = its,ite
+          thom_up(i,k,n) = 0._RKIND
+          thom_dn(i,k,n) = 0._RKIND
+       enddo
+    enddo
+ enddo
+
+ do k = kts,kte
+    do i = its,ite
+       nifa_up(i,k) = 0._RKIND
+       nwfa_dn(i,k) = 0._RKIND
+    enddo
+ enddo
+
+!--- conversion coeffcients from kg/kg to #/kg:
+ thom_conv(1) = 1.58e-15 ! DUST1.
+ thom_conv(2) = 1.68e-14 ! DUST2.
+ thom_conv(3) = 8.46e-14 ! DUST3.
+ thom_conv(4) = 5.58e-13 ! DUST4.
+ thom_conv(5) = 3.13e-13 ! DUST5.
+ thom_conv(6) = 6.61e-18 ! OC.
+ thom_conv(7) = 1.07e-17 ! SO4.
+ thom_conv(8) = 1.04e-15 ! SEAS1.
+ thom_conv(9) = 3.88e-13 ! SEAS2.
+
+
+!--- fractional removal of cloud-borne aerosols ("water-friendly" and "ice-friendly" aerosols. For now, thom_wetr
+!    is the fractional conversion of cloud water to precipitation across the layer:
+ thom_wetr(1) = 0.
+ thom_wetr(2) = 0.
+ thom_wetr(3) = 0.
+ thom_wetr(4) = 0.
+ thom_wetr(5) = 0.
+ thom_wetr(6) = 1.
+ thom_wetr(7) = 1.
+ thom_wetr(8) = 1.
+ thom_wetr(9) = 1.
+
+
+!--- computes the different "environmental" aerosols that describe "water-friendly" and "ice-friendly"
+!    aerosols, and conversion from #/kg to kg/kg: 
+ do i = its,ite
+    if(ierr(i) .eq. 0) then
+       do k = kts,kte
+          do n = 1,nthom
+             thom_mult(i,k,n)  = thom_conv(n)*thom_w(i,k,n)
+             thom_multo(i,k,n) = 1._RKIND/thom_mult(i,k,n)
+          enddo
+       enddo
+
+       do k = kts,kte
+          !aerosols that describe "ice-friendly" aerosols:
+          do n = 1,5
+             thom(i,k,n) = thom_mult(i,k,n)*nifa(i,k)
+          enddo
+          !aerosols that describe "water-friendly" aerosols:
+          do n = 6,nthom
+             thom(i,k,n) = thom_mult(i,k,n)*nwfa(i,k)
+          enddo
+       enddo
+       !environmental aerosols at cloud levels:
+       k = kts
+       do n = 1,nthom
+          thoml2(i,k,n) = thom(i,k,n)
+       enddo
+       do k = kts+1,kte
+          do n = 1,nthom
+             thoml2(i,k,n) = thom(i,k-1,n)
+          enddo
+       enddo
+       !environmental "ice-frienly" and "water-friendly" aerosols at cloud levels:
+       k = kts
+       nifal2(i,k) = nifa(i,k)
+       nwfal2(i,k) = nwfa(i,k)
+       do k = kts+1,kte
+          nifal2(i,k) = nifa(i,k-1)
+          nwfal2(i,k) = nwfa(i,k-1)
+       enddo
+    endif
+ enddo
+
+
+!--- convective transport in convective_updrafts:
+ call ctrans_thompson_up(its,ite,kts,kte,ierr,k22,kbcon,ktop,nthom,c0,thom_wetr,z_cup,thom,thoml2,thom_up, &
+                         nifa,nifal2,nifa_up,nwfa,nwfal2,nwfa_up,zu,up_entr,up_detr)
+
+
+!--- convective transport in convective downdrafts:
+ call ctrans_thompson_dn(its,ite,kts,kte,ierr,kdn,nthom,z_cup,thom,thoml2,thom_dn,nifa,nifal2,nifa_dn, &
+                         nwfa,nwfal2,nwfa_dn,zd,dn_entr,dn_detr)
+
+
+!--- updates the "water-friendly" and "ice-friendly" aerosols, and computes tendencies of "water-friendly"
+!    and "ice-friendly" aerosols due transport,activation,and wet scavenging in convective updrafts and
+!    downdrafts.
+ do i = its,ite
+    if(ierr(i) .eq. 0) then
+       k2 = k22(i)
+       kb = kbcon(i)
+       kt = ktop(i)
+       kd = kdn(i)
+       kc = kt-kts+1
+
+       do k = kts,kte
+          znet(k) = zu(i,k)-edt(i)*zd(i,k)
+          fp(k)   = 0.5*(znet(k)+abs(znet(k)))
+          fm(k)   = 0.5*(znet(k)-abs(znet(k)))
+
+          aeri(k)    = 0._RKIND
+          aerw(k)    = 0._RKIND
+          aeri_up(k) = 0._RKIND
+          aerw_up(k) = 0._RKIND
+          aeri_dn(k) = 0._RKIND
+          aerw_dn(k) = 0._RKIND
+          do n = 1,5
+             aeri_dn(k) = aeri_dn(k) + thom_multo(i,k,n)*thom_dn(i,k,n)
+             aeri_up(k) = aeri_up(k) + thom_multo(i,k,n)*thom_up(i,k,n)
+          enddo
+          do n = 6,nthom
+             aerw_dn(k) = aerw_dn(k) + thom_multo(i,k,n)*thom_dn(i,k,n)
+             aerw_up(k) = aerw_up(k) + thom_multo(i,k,n)*thom_up(i,k,n)
+          enddo
+       enddo
+
+       if(.not.allocated(mult) ) allocate(mult(kts:kt) )
+       if(.not.allocated(aterm)) allocate(aterm(kts:kt))
+       if(.not.allocated(bterm)) allocate(bterm(kts:kt))
+       if(.not.allocated(cterm)) allocate(cterm(kts:kt))
+       if(.not.allocated(dterm)) allocate(dterm(kts:kt))
+       do k = kts,kt
+          mult(k)  = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
+          mult(k)  = xmb(i)*mult(k)
+
+          aterm(k) = mult(k)*dtime*fm(k)
+          bterm(k) = 1.+mult(k)*dtime*(fp(k)-fm(k+1))
+          cterm(k) = -mult(k)*dtime*fp(k+1)
+       enddo
+
+       !--- "ice-friendly" aerosols:
+!      do k = kts,kt
+!         dterm(k) = (zu(i,k)*aeri_up(k)-zu(i,k+1)*aeri_up(k+1)) &
+!                  - edt(i)*(zd(i,k)*aeri_dn(k)-zd(i,k+1)*aeri_dn(k+1))
+!         dterm(k) = nifa(i,k) + mult(k)*dtime*dterm(k)
+!      enddo
+       do k = kts,kt
+          dterm(k) = (zu(i,k)*nifa_up(i,k)-zu(i,k+1)*nifa_up(i,k+1)) &
+                   - edt(i)*(zd(i,k)*nifa_dn(i,k)-zd(i,k+1)*nifa_dn(i,k+1))
+          dterm(k) = nifa(i,k) + mult(k)*dtime*dterm(k)
+       enddo
+       call tridiag(kc,aterm,bterm,cterm,dterm)
+       do k = kts,kt
+          outnifa(i,k) = (dterm(k)-nifa(i,k))/dtime
+       enddo
+
+       !--- "water-friendly" aerosols:
+!      do k = kts,kt
+!         dterm(k) = (zu(i,k)*aerw_up(k)-zu(i,k+1)*aerw_up(k+1)) &
+!                  - edt(i)*(zd(i,k)*aerw_dn(k)-zd(i,k+1)*aerw_dn(k+1))
+!         dterm(k) = nwfa(i,k) + mult(k)*dtime*dterm(k)
+!      enddo
+       do k = kts,kt
+          dterm(k) = (zu(i,k)*nwfa_up(i,k)-zu(i,k+1)*nwfa_up(i,k+1)) &
+                   - edt(i)*(zd(i,k)*nwfa_dn(i,k)-zd(i,k+1)*nwfa_dn(i,k+1))
+          dterm(k) = nwfa(i,k) + mult(k)*dtime*dterm(k)
+       enddo
+       call tridiag(kc,aterm,bterm,cterm,dterm)
+       do k = kts,kt
+          outnwfa(i,k) = (dterm(k)-nwfa(i,k))/dtime
+       enddo
+
+       if(allocated(mult) ) deallocate(mult )
+       if(allocated(aterm)) deallocate(aterm)
+       if(allocated(bterm)) deallocate(bterm)
+       if(allocated(cterm)) deallocate(cterm)
+       if(allocated(dterm)) deallocate(dterm)
+
+    endif
+ enddo
+
+
+!--- deallocate the different aerosol components of "water-friendly" and "ice-friendly" aerosols:
+ if(allocated(thom_conv) ) deallocate(thom_conv )
+ if(allocated(thom)      ) deallocate(thom      )
+ if(allocated(thom_up)   ) deallocate(thom_up   )
+ if(allocated(thom_dn)   ) deallocate(thom_dn   )
+ if(allocated(thoml2)    ) deallocate(thoml2    )
+ if(allocated(thom_mult) ) deallocate(thom_mult )
+ if(allocated(thom_multo)) deallocate(thom_multo)
+
+
+ call mpas_log_write('--- end subroutine ctrans_thompson:')
+ call mpas_log_write(' ')
+
+ end subroutine ctrans_thompson
+
+!=================================================================================================================
+ subroutine ctrans_thompson_up(its,ite,kts,kte,ierr,k22,kbcon,ktop,nthom,c0,thom_wetr,z_cup,thom,thoml2,thom_up, &
+                               nifa,nifal2,nifa_up,nwfa,nwfal2,nwfa_up,zu,up_entr,up_detr)
+!=================================================================================================================
+
+!--- input arguments:
+ integer,intent(in):: its,ite,kts,kte
+
+ integer,intent(in):: &
+    nthom         ! number of aerosols that describe "water-friendly" and "ice-friendly" aerosols.
+                              
+ integer,intent(in),dimension(its:ite):: &
+    ierr,        &!
+    k22,         &!
+    kbcon,       &!
+    ktop          !
+
+ real(kind=RKIND),intent(in):: &
+    c0         !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
+    z_cup      !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
+    up_entr,     &!
+    up_detr,     &!
+    zu            !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
+    nifa,        &!
+    nifal2,      &!
+    nwfa,        &!
+    nwfal2        !
+
+ real(kind=RKIND),intent(in),dimension(nthom):: &
+    thom_wetr     !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte,nthom):: &
+    thom,        &!
+    thoml2        !
+
+
+!--- inout arguments:
+ real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
+    nifa_up,     &!
+    nwfa_up       !
+
+ real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte,nthom):: &
+    thom_up       !
+
+
+!--- local variables and arrays:
+ integer:: i,k,n
+ integer:: k2,kb,kt
+
+ real(kind=RKIND),parameter:: nwfa_wetr = 1.0
+ real(kind=RKIND):: denom,dz,thom_b,thom_c,thom_g,thom_l,thom_r
+
+!-----------------------------------------------------------------------------------------------------------------
+!call mpas_log_write('--- enter subroutine ctrans_thompson_up: nthom = $i',intArgs=(/nthom/))
+!do n = 1,nthom
+!   call mpas_log_write('$i $r',intArgs=(/n/),realArgs=(/thom_wetr(n)/))
+!enddo
+!call mpas_log_write(' ')
+
+ do i = its,ite
+    if(ierr(i) .eq. 0) then
+       k2 = k22(i)
+       kb = kbcon(i)
+       kt = ktop(i)
+
+       !--- convective transport of "ice-friendly" and "water-friendly" aerosols in updrafts (use upstream
+       !    method to define the in-cloud variables at the k2 levels):
+       k = k2
+       nifa_up(i,k) = nifa(i,k-1)
+       nwfa_up(i,k) = nwfa(i,k-1)
+       do k = k2+1,kt
+          dz = z_cup(i,k)-z_cup(i,k-1)
+          denom = zu(i,k-1)-.5*up_detr(i,k-1)+up_entr(i,k-1)
+          if(denom .lt. 1.e-16) exit
+
+          nifa_up(i,k) = (nifa_up(i,k-1)*zu(i,k-1) - .5*up_detr(i,k-1)*nifa_up(i,k-1) &
+                       + up_entr(i,k-1)*nifa(i,k-1))/denom
+          nwfa_up(i,k) = (nwfa_up(i,k-1)*zu(i,k-1) - .5*up_detr(i,k-1)*nwfa_up(i,k-1) &
+                       + up_entr(i,k-1)*nwfa(i,k-1))/denom
+!         !wet scavenging:
+!         thom_b = nwfa_up(i,k)
+!         thom_c = nwfa_wetr*nwfa_up(i,k) ! amount of aerosols 
+!         thom_g = nwfa_up(i,k) - thom_c  ! amount of aerosols
+!         thom_l = thom_c/(1.+c0*dz)
+!         thom_r = c0*dz*thom_c/(1.+c0*dz)
+!         nwfa_up(i,k) = thom_g + thom_l
+       enddo
+
+       !--- convective transport of individual aerosols in updrafts (use upstream method to define the
+       !    in-cloud variables at the k2 levels):
+       k = k2
+       do n = 1, nthom
+          thom_up(i,k,n) = thoml2(i,k-1,n)
+       enddo
+       do k = k2+1,kte
+          dz = z_cup(i,k)-z_cup(i,k-1)
+          denom = zu(i,k-1)-.5*up_detr(i,k-1)+up_entr(i,k-1)
+          if(denom .lt. 1.e-16) exit
+          do n = 1,nthom
+             thom_up(i,k,n) = (thom_up(i,k-1,n)*zu(i,k-1) - .5*up_detr(i,k-1)*thom_up(i,k-1,n) &
+                            + up_entr(i,k-1)*thom(i,k-1,n))/denom
+!            if(thom_wetr(n) .gt. 0._RKIND) then
+!               !wet scavenging:
+!               thom_b = thom_up(i,k,n)
+!               thom_c = thom_wetr(n)*thom_up(i,k,n) ! amount of aerosols 
+!               thom_g = thom_up(i,k,n) - thom_c     ! amount of aerosols
+!               thom_l = thom_c/(1.+c0*dz)
+!               thom_r = c0*dz*thom_c/(1.+c0*dz)
+!               thom_up(i,k,n) = thom_g + thom_l
+!               if(n.eq.6) &
+!                  call mpas_log_write('$i $i $i $i $i $r $r $r $r $r $r $r',intArgs=(/i,k2,kb,kt,k/), &
+!                            realArgs=(/thom_wetr(n),thom_b,thom_up(i,k,n),thom_c,thom_g,thom_l,thom_r/))
+!            endif
+          enddo
+       enddo
+!      call mpas_log_write(' ')
+    endif
+ enddo
+
+!call mpas_log_write('--- end subroutine ctrans_thompson_up:')
+
+ end subroutine ctrans_thompson_up
+
+!=================================================================================================================
+ subroutine ctrans_thompson_dn(its,ite,kts,kte,ierr,kdn,nthom,z_cup,thom,thoml2,thom_dn,nifa,nifal2,nifa_dn, &
+                               nwfa,nwfal2,nwfa_dn,zd,dn_entr,dn_detr)
+!=================================================================================================================
+
+!--- input arguments:
+ integer,intent(in):: its,ite,kts,kte
+
+ integer,intent(in):: &
+    nthom         ! number of aerosols that describe "water-friendly" and "ice-friendly" aerosols.
+                              
+ integer,intent(in),dimension(its:ite):: &
+    ierr,        &!
+    kdn           !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
+    z_cup      !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
+    dn_entr,     &!
+    dn_detr,     &!
+    zd            !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
+    nifa,        &!
+    nifal2,      &!
+    nwfa,        &!
+    nwfal2        !
+
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte,nthom):: &
+    thom,        &!
+    thoml2        !
+
+!--- inout arguments:
+ real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
+    nifa_dn,     &!
+    nwfa_dn       !
+
+ real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte,nthom):: &
+    thom_dn       !
+
+
+!--- local variables and arrays:
+ integer:: i,k,kd,n
+
+ real(kind=RKIND):: denom,dz
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write('--- enter subroutine ctrans_thompson_dn: nthom = $i',intArgs=(/nthom/))
+
+ do i = its,ite
+    if(ierr(i) .eq. 0) then
+       kd = kdn(i)
+
+       !--- convective transport of "ice-friendly" and "water-friendly" aerosols in downdrafts:
+       k = kd
+       nifa_dn(i,k) = nifa(i,k)
+       nwfa_dn(i,k) = nwfa(i,k)
+
+       do k = kd-1,kts,-1
+          dz = z_cup(i,k+1)-z_cup(i,k)
+          denom = zd(i,k+1)-.5*dn_detr(i,k)+dn_entr(i,k)
+          if(denom .lt. 1.e-16) exit
+          nifa_dn(i,k) = (nifa_dn(i,k+1)*zd(i,k+1) - .5*dn_detr(i,k)*nifa_dn(i,k+1) &
+                       + dn_entr(i,k)*nifa(i,k))/denom
+
+          nwfa_dn(i,k) = (nwfa_dn(i,k+1)*zd(i,k+1) - .5*dn_detr(i,k)*nwfa_dn(i,k+1) &
+                       +  dn_entr(i,k)*nwfa(i,k))/denom
+       enddo
+
+       !--- convective transport of individual aerosols in downdrafts:
+       k = kd
+       do n = 1, nthom
+          thom_dn(i,k,n) = thom(i,k,n)
+       enddo
+
+       do k = kd-1,kts,-1
+          dz = z_cup(i,k+1)-z_cup(i,k)
+          denom = zd(i,k+1)-.5*dn_detr(i,k)+dn_entr(i,k)
+          if(denom .lt. 1.e-16) exit
+          do n = 1,nthom
+             thom_dn(i,k,n) = (thom_dn(i,k+1,n)*zd(i,k+1) - .5*dn_detr(i,k)*thom_dn(i,k+1,n) &
+                            +  dn_entr(i,k)*thom(i,k,n))/denom
+          enddo
+       enddo
+!      call mpas_log_write(' ')
+    endif
+ enddo
+
+ call mpas_log_write('--- end subroutine ctrans_thompson_dn:')
+
+ end subroutine ctrans_thompson_dn
+
+!=================================================================================================================
+ end module module_cu_gf_ctrans_thompson
+!=================================================================================================================

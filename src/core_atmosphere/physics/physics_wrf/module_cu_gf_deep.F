@@ -29,10 +29,12 @@ module module_cu_gf_deep
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_atmphys_constants,only: cp,g=>gravity,r_v=>R_v,xlv
 
- use module_cu_gf_ctrans,only: cup_transport_clev,    &
+ use module_cu_gf_ctrans,only: ctrans_clev,           &
                                cup_transport_dn,      &
                                cup_transport_tends,   &
                                cup_up_moisture_ctrans
+
+ use module_cu_gf_ctrans_thompson,only: ctrans_thompson
 
  use module_cu_gf_shared,only: cup_env,cup_env_clev,cup_kbcon,cup_minimi,cup_up_aa0,   &
                                get_cloud_bc,get_inversion_layers,get_lateral_massflux, &
@@ -153,9 +155,10 @@ contains
                                 !! implement yourself. pattern is expected to be
                                 !! between -1 and +1
 #ifdef ATM_CHEMISTRY
-              ,is_mp,nifa,nwfa,outnifa,outnwfa & !convective transport of "Thompson" aerosols.
-              ,nchem,chem,outchem              & !convective transport of chemical species.
-              ,ntracer,tracer,outtracer        & !convective transport of passive tracers.
+              ,is_mp,nifa,nwfa,outnifa,outnwfa  & !convective transport of "Thompson" aerosols.
+              ,naer,aerosol_w                   & !convective transport of "Thompson" aerosols.
+              ,nchem,chem,outchem               & !convective transport of chemical species.
+              ,ntracer,tracer,outtracer         & !convective transport of passive tracers.
 #endif
 #if ( wrf_dfi_radar == 1 )
               ,do_capsuppress,cap_suppress_j    &    !         
@@ -411,13 +414,15 @@ contains
      integer,intent(in):: ntracer
      real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,ntracer)   :: tracer
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,ntracer):: outtracer
+     integer,intent(in):: naer
+     real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,naer):: aerosol_w
 
      !local variables:
      real(kind=kind_phys),dimension(its:ite,kts:kte):: nifal2,nwfal2
      real(kind=kind_phys),dimension(its:ite,kts:kte):: nifa_up,nwfa_up
      real(kind=kind_phys),dimension(its:ite,kts:kte):: nifa_dn,nwfa_dn
 
-     integer:: ic,it
+     integer:: ic,it,ia
      real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: cheml2
      real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: chem_up
      real(kind=kind_phys),dimension(its:ite,kts:kte,nchem):: chem_dn
@@ -455,6 +460,14 @@ contains
            enddo
         enddo
      enddo
+!    call mpas_log_write('--- enter subroutine cu_gf_deep: naer = $i',intArgs=(/naer/))
+!    do i = its,its+9
+!       do k = kts, kte
+!          call mpas_log_write('$i $i $r $r $r $r $r $r $r $r $r',intArgs=(/i,k/), &
+!                    realArgs=(/(aerosol_w(i,k,ia),ia=1,naer)/))
+!       enddo
+!       call mpas_log_write(' ')
+!    enddo
      call mpas_timer_stop('atm_chem: physics - GF')
 !--- MPAS end.
 #endif
@@ -1081,7 +1094,6 @@ contains
                      tn_cup,qo_cup,qeso_cup,gammao_cup,qo,dbyo,c1d,up_massentr,   &
                      up_massdetr,zuo,qco,qrco,pwo,clw_all,pwavo,psum,             &
 #ifdef ATM_CHEMISTRY
-                     is_mp,nifa,nwfa,nifal2,nwfal2,nifa_up,nwfa_up,               &
                      nchem,chem,cheml2,chem_up,ntracer,tracer,tracerl2,tracer_up, &
 #endif
                      its,ite,itf,kts,kte,ktf)
@@ -1418,8 +1430,7 @@ contains
 !--- MPAS: downdrafts for nc, ni, nifa, and nwfa:
  call mpas_timer_start('atm_chem: physics - GF')
  call cup_transport_dn(its,ite,itf,kts,kte,ktf,ierr,jmin,zdo,dd_massentro,dd_massdetro, &
-               is_mp,nifa,nwfa,nifal2,nwfal2,nifa_dn,nwfa_dn,nchem,chem,cheml2,chem_dn, &
-               ntracer,tracer,tracerl2,tracer_dn)
+               nchem,chem,cheml2,chem_dn,ntracer,tracer,tracerl2,tracer_dn)
  call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 !
@@ -2129,9 +2140,10 @@ contains
 !
 #ifdef ATM_CHEMISTRY
       call mpas_timer_start('atm_chem: physics - GF')
+      call ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,jmin,naer,dtime,g,edto,xmb,p_cup,z_cup,aerosol_w, &
+                           nifa,nwfa,zuo,up_massentr,up_massdetr,zdo,dd_massentro,dd_massdetro,outnifa,outnwfa)
       call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo, &
-                               p_cup,is_mp,nifa,nifal2,nwfa,nwfal2,nifa_up,nwfa_up,nifa_dn,nwfa_dn,outnifa,  &
-                               outnwfa,nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,    &
+                               p_cup,nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,      &
                                tracer_up,tracer_dn,outtracer)
       call mpas_timer_stop('atm_chem: physics - GF')
 #endif

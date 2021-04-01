@@ -738,6 +738,7 @@
        call mpas_log_write('gfconv_closure_deepc = $i',intArgs=(/gfconv_closure_deepc/))
        call mpas_log_write('gfconv_closure_midlc = $i',intArgs=(/gfconv_closure_midlc/))
        call mpas_log_write('gfconv_closure_shalc = $i',intArgs=(/gfconv_closure_shalc/))
+       call mpas_log_write('naer = $i',intArgs=(/mpas_chems%naers/))
 
        call mpas_timer_start('cu_grell_freitas_wrf390')
        call cu_grell_freitas_wrf390( &
@@ -782,6 +783,7 @@
 #ifdef ATM_CHEMISTRY
                nifa         = nifa_p                  , nwfa         = nwfa_p                       , &
                rnifacuten   = rnifacuten_p            , rnwfacuten   = rnwfacuten_p                 , &
+               naer         = mpas_chems%naers        , aerosol3d_w  = mpas_chems%aerosols_weight_p , &
                nchem        = mpas_chems%nchems       , ntracer      = mpas_tracers%ntracers        , &
                tracer3d     = mpas_tracers%tracers_p  , rtracercuten = mpas_tracers%rtracerscuten_p , &
 #endif

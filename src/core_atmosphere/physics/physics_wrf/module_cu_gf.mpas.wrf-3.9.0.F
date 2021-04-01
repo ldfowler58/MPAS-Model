@@ -56,8 +56,8 @@
                pratec,pratecd,pratecm,pratecs,raincv,        &
                raincvd,raincvm,raincvs,nclos,weights_clos,   &
 #ifdef ATM_CHEMISTRY
-               nifa,nwfa,rnifacuten,rnwfacuten,nchem,chem3d, &
-               rchemcuten,ntracer,tracer3d,rtracercuten,     &
+               nifa,nwfa,rnifacuten,rnwfacuten,naer,aerosol3d_w,      &
+               nchem,chem3d,rchemcuten,ntracer,tracer3d,rtracercuten, &
 #endif
                ids,ide,jds,jde,kds,kde,                      &
                ims,ime,jms,jme,kms,kme,                      &
@@ -154,8 +154,10 @@
 #ifdef ATM_CHEMISTRY
 !input variables:
  integer,intent(in):: nchem
+ integer,intent(in):: naer
  integer,intent(in):: ntracer
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme,nchem),optional:: chem3d
+ real,intent(in),dimension(ims:ime,kms:kme,jms:jme,naer),optional ::aerosol3d_w
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: tracer3d
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: nifa,nwfa
 
@@ -165,9 +167,10 @@
 
 !local variables:
  logical:: is_mp
- integer:: ic,it
+ integer:: ia,ic,it
  real,dimension(its:ite,kts:kte):: nifa2d,nwfa2d,outnifam,outnifa,outnwfam,outnwfa
  real,dimension(its:ite,kts:kte,nchem):: chem2d,outchemm,outchem
+ real,dimension(its:ite,kts:kte,naer) :: aerosol2d_w
  real,dimension(its:ite,kts:kte,ntracer):: tracer2d,outtracerm,outtracer
 #endif
 
@@ -508,6 +511,23 @@
           enddo
        enddo
     enddo
+    if(present(aerosol3d_w)) then
+       do k = kts, kte
+          do i = its, ite
+             do ia = 1, naer
+                aerosol2d_w(i,k,ia) = aerosol3d_w(i,k,j,ia)
+             enddo
+          enddo
+       enddo
+    else
+       do k = kts, kte
+          do i = its, ite
+             do ia = 1, naer
+                aerosol2d_w(i,k,ia) = 0.
+             enddo
+          enddo
+       enddo
+    endif
     call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 
@@ -616,9 +636,10 @@
                 outu,outv,outt,outq,outqc,kbcon,ktop,k22,cupclw,          &
                 ierr,ierrc,rand_mom,rand_vmas,rand_clos,nranflag          &
 #ifdef ATM_CHEMISTRY
-               ,is_mp,nifa2d,nwfa2d,outnifa,outnwfa & !convective transport of "Thompson" aerosols.
-               ,nchem,chem2d,outchem                & !convective transport of chemical species.
-               ,ntracer,tracer2d,outtracer          & !convective transport of passive tracers.
+               ,is_mp,nifa2d,nwfa2d,outnifa,outnwfa              & !convective transport of "Thompson" aerosols.
+               ,naer,aerosol2d_w                                 & !convective transport of "Thompson" aerosols.
+               ,nchem,chem2d,outchem                             & !convective transport of chemical species.
+               ,ntracer,tracer2d,outtracer                       & !convective transport of passive tracers.
 #endif
               ,jmin,tropics                                               &
                   )
