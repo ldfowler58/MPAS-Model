@@ -744,7 +744,7 @@
 !         cflmax(i) = max(cflmax(i),cfl(k))
 !      enddo
 !      if(xmbl(i).gt.cflmax(i)) xmbl(i) = cflmax(i)
-       do k = kb,kt
+       do k = kts,kt
           ratio(i,k) = 0.01_kind_phys*grav/(pres(i,k) - pres(i,k+1))
           cflmax(k)  = 1._kind_phys/(ratio(i,k)*dtime)
           znet(k)    = zu(i,k)-edt(i)*zd(i,k)
@@ -752,21 +752,9 @@
           if(cfl(k).gt.cflmax(k)) xmbl(i) = min(xmbl(i),cflmax(k)/znet(k))
        enddo
        do k = kts, ktf
-          ratio(i,k) = ratio(i,k)*xmbl(i)
+!         ratio(i,k) = ratio(i,k)*xmbl(i)
+          ratio(i,k) = ratio(i,k)*xmb(i)
        enddo
-
-!      do k = kts, ktf
-!         call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r $r',intArgs=(/i,kd,k2,kb,kt,k/),realArgs= &
-!              (/nifa_up(i,k),nifa_dn(i,k),outnifa(i,k),nwfa_up(i,k),nwfa_dn(i,k),outnwfa(i,k)/))
-!      enddo
-!      do k = kts, ktf
-!         call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r $r $r $r $r',intArgs=(/i,kd,k2,kb,kt,k/),realArgs= &
-!              (/(chem_up(i,k,ic),chem_dn(i,k,ic),outchem(i,k,ic),ic=1,nchem)/))
-!      enddo
-!      do k = kts, ktf
-!         call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r $r $r $r',intArgs=(/i,kd,k2,kb,kt,k/),realArgs= &
-!              (/(tracer(i,k,it),tracer_up(i,k,it),tracer_dn(i,k,it),outtracer(i,k,it),it=1,ntracer)/))
-!      enddo
     endif
  enddo
 
@@ -814,11 +802,6 @@
           do k = kts, ktf
              outnwfa(i,k) = (dterm3(k)-nwfa(i,k))/dtime
           enddo
-!         do k = kts, ktf
-!            call mpas_log_write('$i $i $i $i $i $i $r $r $r $r',intArgs=(/i,kd,k2,kb,kt,k/), &
-!                      realArgs=(/nifa(i,k),outnifa(i,k),nwfa(i,k),outnwfa(i,k)/))
-!         enddo
-!         call mpas_log_write(' ')
        endif
     enddo
  endif
@@ -916,13 +899,6 @@
           do k = kts, ktf
              outtracer(i,k,it) = (dterm3(k)-tracer(i,k,it))/dtime
           enddo
-!         if(it .eq. 1) then
-!            do k = kts, ktf
-!               call mpas_log_write('$i $i $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/tracer_up(i,k,it), &
-!                    tracer_dn(i,k,it),tracer(i,k,it),dterm3(k),(dterm3(k)-tracer(i,k,it))/dtime/))
-!            enddo
-!            call mpas_log_write(' ')
-!         endif
        enddo
 
     endif
