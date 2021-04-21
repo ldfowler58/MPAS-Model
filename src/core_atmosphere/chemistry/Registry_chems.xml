@@ -149,4 +149,45 @@
 
  </var_struct>
 
+
+<!-- aerosols diagnostics due to wet scavenging of deep convection: -->
+ <var_struct name="diag_chems" time_levs="1">
+
+      <var_array name="aerosols_scav" type="real" dimensions="nVertLevels nCells Time">
+           <var name="dust1_scav" array_group="thompson" units="# kg^{-1}"
+                     description="dust bin 1 ice-friendly aerosols due to wet scavenging"/>
+
+           <var name="dust2_scav" array_group="thompson" units="# kg^{-1}"
+                     description="dust bin 2 ice-friendly aerosols due to wet scavenging"/>
+
+           <var name="dust3_scav" array_group="thompson" units="# kg^{-1}"
+                     description="dust bin 3 ice-friendly aerosols due to wet scavenging"/>
+
+           <var name="dust4_scav" array_group="thompson" units="# kg^{-1}"
+                     description="dust bin 4 ice-friendly aerosols due to wet scavenging"/>
+
+           <var name="dust5_scav" array_group="thompson" units="# kg^{-1}"
+                     description="dust bin 5 ice-friendly aerosols due to wet scavenging"/>
+
+           <var name="oc_scav" array_group="thompson" units="# kg^{-1}"
+                     description="hydrophobic organic carbon water-friendly aerosols due to wet scavenging"/>
+
+           <var name="so4_scav" array_group="thompson" units="# kg^{-1}"
+                     description="sulfate water-friendly aerosols due to wet scavenging"/>
+
+           <var name="seas1_scav" array_group="thompson" units="# kg^{-1}"
+                     description="accumulation mode of sea salt water-friendly due to wet scavenging"/>
+
+           <var name="seas2_scav" array_group="thompson" units="# kg^{-1}"
+                     description="coarse mode of sea salt water-friendly due to wet scavenging"/>
+      </var_array>
+
+      <var name="nifa_scav" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
+           description="ice-friendly aerosols due to wet scavening"/>
+
+      <var name="nwfa_scav" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
+           description="water-friendly aerosols due to wet scavening"/>
+ </var_struct>
+
+
 <!-- ========================================================================================================= -->
