@@ -24,6 +24,9 @@
     integer:: naers      ! number of aerosol species that describe nwfa and nifa (Thompson aerosol-aware MP).
     real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_p        => null()
     real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_weight_p => null()
+    real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_scav_p   => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: nifa_scav_p => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: nwfa_scav_p => null()
 
     contains
        procedure:: allocate_mem       => mpas_chems_allocate
@@ -85,6 +88,9 @@
 
  if(.not.associated(this%aerosols_p)       ) allocate(this%aerosols_p(ims:ime,kms:kme,jms:jme,this%naers)       )
  if(.not.associated(this%aerosols_weight_p)) allocate(this%aerosols_weight_p(ims:ime,kms:kme,jms:jme,this%naers))
+ if(.not.associated(this%aerosols_scav_p)  ) allocate(this%aerosols_scav_p(ims:ime,kms:kme,jms:jme,this%naers)  )
+ if(.not.associated(this%nifa_scav_p)) allocate(this%nifa_scav_p(ims:ime,kms:kme,jms:jme))
+ if(.not.associated(this%nwfa_scav_p)) allocate(this%nwfa_scav_p(ims:ime,kms:kme,jms:jme))
 
  call mpas_log_write('--- end subroutine mpas_chems_allocate:')
 
@@ -106,6 +112,9 @@
 
  if(associated(this%aerosols_p)       ) deallocate(this%aerosols_p       )
  if(associated(this%aerosols_weight_p)) deallocate(this%aerosols_weight_p)
+ if(associated(this%aerosols_scav_p)  ) deallocate(this%aerosols_scav_p  )
+ if(associated(this%nifa_scav_p)) deallocate(this%nifa_scav_p)
+ if(associated(this%nwfa_scav_p)) deallocate(this%nwfa_scav_p)
 
  call mpas_log_write('--- end subroutine mpas_chems_deallocate:')
 !call mpas_log_write(' ')
