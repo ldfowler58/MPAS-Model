@@ -83,7 +83,6 @@
 !--- Thompson aerosol-aware cloud microphysics scheme:
  call mpas_pool_get_dimension(mesh,'num_aerosols',num_aers)
  this%naers = num_aers
- call mpas_log_write(' ')
  call mpas_log_write('naers      = $i',intArgs=(/this%naers/))
 
  if(.not.associated(this%aerosols_p)       ) allocate(this%aerosols_p(ims:ime,kms:kme,jms:jme,this%naers)       )
@@ -117,7 +116,7 @@
  if(associated(this%nwfa_scav_p)) deallocate(this%nwfa_scav_p)
 
  call mpas_log_write('--- end subroutine mpas_chems_deallocate:')
-!call mpas_log_write(' ')
+ call mpas_log_write(' ')
 
  end subroutine mpas_chems_deallocate
 
@@ -148,7 +147,8 @@
  integer,pointer:: index_dust1,index_dust2,index_dust3,index_dust4,index_dust5
  integer,pointer:: index_oc,index_so4,index_seas1,index_seas2
  real(kind=RKIND),dimension(:,:,:),pointer  :: aerosols,aerosols_weight
- real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_p,aerosols_weight_p
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_p,aerosols_weight_p,aerosols_scav_p
+ real(kind=RKIND),dimension(:,:,:),pointer  :: nifa_scav_p,nwfa_scav_p
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -216,6 +216,9 @@
 
  aerosols_p        => this%aerosols_p
  aerosols_weight_p => this%aerosols_weight_p
+ aerosols_scav_p   => this%aerosols_scav_p
+ nifa_scav_p => this%nifa_scav_p
+ nwfa_scav_p => this%nwfa_scav_p
 
  do n = 1,naers
     do j = jts,jte
@@ -223,7 +226,17 @@
           do i = its,ite
              aerosols_p(i,k,j,n) = aerosols(n,k,i)
              aerosols_weight_p(i,k,j,n) = aerosols_weight(n,k,i)
+             aerosols_scav_p(i,k,j,n) = 0._RKIND
           enddo
+       enddo
+    enddo
+ enddo
+
+ do j = jts,jte
+    do k = kts,kte
+       do i = its,ite
+          nifa_scav_p(i,k,j) = 0._RKIND
+          nwfa_scav_p(i,k,j) = 0._RKIND
        enddo
     enddo
  enddo
@@ -234,7 +247,7 @@
  end subroutine mpas_chems_to_physics
 
 !=================================================================================================================
- subroutine mpas_chems_from_physics(this,tend_chems)
+ subroutine mpas_chems_from_physics(this,tend_chems,diag_chems)
 !=================================================================================================================
 
 !input arguments:
@@ -242,17 +255,24 @@
 
 !output arguments:
  type(mpas_pool_type),intent(inout):: tend_chems
+ type(mpas_pool_type),intent(inout):: diag_chems
 
 !local variables and arrays:
  integer:: i,k,j,n
 
 !local pointers associated to this:
  integer:: nchems
+ integer:: naers
  real(kind=RKIND),dimension(:,:,:,:),pointer:: rchemsblten_p,rchemscuten_p
+ real(kind=RKIND),dimension(:,:,:),pointer  :: nifa_scav_p,nwfa_scav_p
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_scav_p
 
  integer,pointer:: num_bl_chems
  integer,pointer:: num_cu_chems
  real(kind=RKIND),dimension(:,:,:),pointer:: bl_chems,cu_chems
+
+ real(kind=RKIND),dimension(:,:),pointer  :: nifa_scav,nwfa_scav
+ real(kind=RKIND),dimension(:,:,:),pointer:: aerosols_scav
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -266,12 +286,21 @@
  call mpas_pool_get_array(tend_chems,'bl_chems',bl_chems)
  call mpas_pool_get_array(tend_chems,'cu_chems',cu_chems)
 
- nchems  = this%nchems
+ call mpas_pool_get_array(diag_chems,'aerosols_scav',aerosols_scav)
+ call mpas_pool_get_array(diag_chems,'nifa_scav',nifa_scav)
+ call mpas_pool_get_array(diag_chems,'nwfa_scav',nwfa_scav)
+
+ nchems = this%nchems
  rchemsblten_p => this%rchemsblten_p
  rchemscuten_p => this%rchemscuten_p
 
+ naers = this%naers
+ nifa_scav_p => this%nifa_scav_p
+ nwfa_scav_p => this%nwfa_scav_p
+ aerosols_scav_p => this%aerosols_scav_p
+
  call mpas_log_write('--- nchems       = $i',intArgs=(/nchems/))
- do n = 1, num_bl_chems
+ do n = 1,num_bl_chems
     do j = jts,jte
        do k = kts,kte
           do i = its,ite
@@ -282,25 +311,24 @@
     enddo
  enddo
 
-!do j = jts,jte
-!   do i = its,its
-!      do k = kts,kte
-!         call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/), &
-!                        realArgs=(/(rchemsblten_p(i,k,j,n),n=1,nchems), &
-!                        (rchemscuten_p(i,k,j,n),n=1,nchems)/))
-!      enddo
-!      call mpas_log_write(' ')
-!   enddo
-!enddo
-!call mpas_log_write(' ')
-!do i = its,its
-!   do k = kts,kte
-!      call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/), &
-!                realArgs=(/(bl_chems(n,k,i),n=1,num_bl_chems), &
-!                           (cu_chems(n,k,i),n=1,num_cu_chems)/))
-!   enddo
-!   call mpas_log_write(' ')
-!enddo
+ call mpas_log_write('--- naers        = $i',intArgs=(/naers/))
+ do n = 1,naers
+    do j = jts,jte
+       do k = kts,kte
+          do i = its,ite
+             aerosols_scav(n,k,i) = aerosols_scav_p(i,k,j,n)
+          enddo
+       enddo
+    enddo
+ enddo
+ do j = jts,jte
+    do k = kts,kte
+       do i = its,ite
+          nifa_scav(k,i) = nifa_scav_p(i,k,j)
+          nwfa_scav(k,i) = nwfa_scav_p(i,k,j)
+       enddo
+    enddo
+ enddo
 
  call mpas_log_write('--- end subroutine mpas_chems_to_physics:')
 !call mpas_log_write(' ')
