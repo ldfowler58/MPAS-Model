@@ -620,7 +620,7 @@
 !local variables and arrays:
  logical:: log_convection
 
- integer:: i,j,k
+ integer:: i,j,k,n
  integer:: icount,initflag
 
  real(kind=RKIND):: dx
@@ -738,7 +738,9 @@
        call mpas_log_write('gfconv_closure_deepc = $i',intArgs=(/gfconv_closure_deepc/))
        call mpas_log_write('gfconv_closure_midlc = $i',intArgs=(/gfconv_closure_midlc/))
        call mpas_log_write('gfconv_closure_shalc = $i',intArgs=(/gfconv_closure_shalc/))
+#ifdef ATM_CHEMISTRY
        call mpas_log_write('naer = $i',intArgs=(/mpas_chems%naers/))
+#endif
 
        call mpas_timer_start('cu_grell_freitas_wrf390')
        call cu_grell_freitas_wrf390( &
@@ -781,36 +783,33 @@
                gdc          = qccu_p               , gdc2         = qicu_p               , &
                nclos        = nclosures            , weights_clos = weights_clos_p       , &
 #ifdef ATM_CHEMISTRY
-               nifa         = nifa_p                  , nwfa         = nwfa_p                       , &
-               rnifacuten   = rnifacuten_p            , rnwfacuten   = rnwfacuten_p                 , &
-               naer         = mpas_chems%naers        , aerosol3d_w  = mpas_chems%aerosols_weight_p , &
-               nchem        = mpas_chems%nchems       , ntracer      = mpas_tracers%ntracers        , &
-               tracer3d     = mpas_tracers%tracers_p  , rtracercuten = mpas_tracers%rtracerscuten_p , &
+               nifa           = nifa_p                       , nwfa         = nwfa_p                       , &
+               rnifacuten     = rnifacuten_p                 , rnwfacuten   = rnwfacuten_p                 , &
+               naer           = mpas_chems%naers             , aerosol3d_w  = mpas_chems%aerosols_weight_p , &
+               aerosol3d_scav = mpas_chems%aerosols_scav_p   , nifa3d_scav  = mpas_chems%nifa_scav_p       , &
+               nwfa3d_scav    = mpas_chems%nwfa_scav_p       , nchem        = mpas_chems%nchems            , &
+               ntracer        = mpas_tracers%ntracers        , tracer3d     = mpas_tracers%tracers_p       , &
+               rtracercuten   = mpas_tracers%rtracerscuten_p ,                                               &
 #endif
                ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde     , &
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme     , &
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
                                    )
        call mpas_timer_stop('cu_grell_freitas_wrf390')
-#ifdef ATM_CHEMISTRY
-!      min_tr17_7 = minval(mpas_tracers%tracers_p(its:ite,kts:kte,jts:jte,1))
-!      min_tr17_8 = minval(mpas_tracers%tracers_p(its:ite,kts:kte,jts:jte,2))
-!      max_tr17_7 = maxval(mpas_tracers%tracers_p(its:ite,kts:kte,jts:jte,1))
-!      max_tr17_8 = maxval(mpas_tracers%tracers_p(its:ite,kts:kte,jts:jte,2))
-!      call mpas_log_write('--- min_tr17_7 = $r  max_tr17_7 = $r',realArgs=(/min_tr17_7,max_tr17_7/))
-!      call mpas_log_write('--- min_tr17_8 = $r  max_tr17_8 = $r',realArgs=(/min_tr17_8,max_tr17_8/))
+!#ifdef ATM_CHEMISTRY
 !      do j = jts,jte
 !         do i = its,ite
-!            do k = kts,kte
-!               if(max_tr17_7.gt.5.) then
-!                  call mpas_log_write('--- max tr17_7 $i $i $r $r $r $r',intArgs=(/i,k/),realArgs= &
-!                            (/mpas_tracers%tracers_p(i,k,j,1),mpas_tracers%rtracerscuten_p(i,k,j,1), &
-!                              mpas_tracers%tracers_p(i,k,j,2),mpas_tracers%rtracerscuten_p(i,k,j,2)/))
-!               endif
-!            enddo
+!            if(raincv_p(i,j) .gt. 0._RKIND) then
+!               do k = kts,kte
+!                  call mpas_log_write('$i $i $r $r $r $r $r $r $r $r $r',intArgs=(/i,k/), &
+!                            realArgs=(/(mpas_chems%aerosols_scav_p(i,k,j,n),n=1,mpas_chems%naers), &
+!                                        mpas_chems%nifa_scav_p(i,k,j),mpas_chems%nwfa_scav_p(i,k,j)/))
+!               enddo
+!               call mpas_log_write(' ')
+!            endif
 !         enddo
 !      enddo
-#endif
+!#endif
        call mpas_log_write('--- end subroutine cu_grell_freitas_wrf390.')
        call mpas_log_write('')
 
