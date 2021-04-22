@@ -155,10 +155,10 @@ contains
                                 !! implement yourself. pattern is expected to be
                                 !! between -1 and +1
 #ifdef ATM_CHEMISTRY
-              ,is_mp,nifa,nwfa,outnifa,outnwfa  & !convective transport of "Thompson" aerosols.
-              ,naer,aerosol_w                   & !convective transport of "Thompson" aerosols.
-              ,nchem,chem,outchem               & !convective transport of chemical species.
-              ,ntracer,tracer,outtracer         & !convective transport of passive tracers.
+              ,is_mp,nifa,nwfa,outnifa,outnwfa                 & !convective transport of "Thompson" aerosols.
+              ,naer,aerosol_w,aerosol_scav,nifa_scav,nwfa_scav & !convective transport of "Thompson" aerosols.
+              ,nchem,chem,outchem                              & !convective transport of chemical species.
+              ,ntracer,tracer,outtracer                        & !convective transport of passive tracers.
 #endif
 #if ( wrf_dfi_radar == 1 )
               ,do_capsuppress,cap_suppress_j    &    !         
@@ -415,7 +415,9 @@ contains
      real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,ntracer)   :: tracer
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,ntracer):: outtracer
      integer,intent(in):: naer
-     real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,naer):: aerosol_w
+     real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,naer)   :: aerosol_w
+     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte)     :: nifa_scav,nwfa_scav
+     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,naer):: aerosol_scav
 
      !local variables:
      real(kind=kind_phys),dimension(its:ite,kts:kte):: nifal2,nwfal2
@@ -2140,8 +2142,9 @@ contains
 !
 #ifdef ATM_CHEMISTRY
       call mpas_timer_start('atm_chem: physics - GF')
-      call ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,jmin,naer,dtime,g,edto,xmb,p_cup,z_cup,aerosol_w, &
-                           nifa,nwfa,zuo,up_massentr,up_massdetr,zdo,dd_massentro,dd_massdetro,outnifa,outnwfa)
+      call ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,jmin,naer,dtime,g,edto,xmb,p_cup,z_cup,aerosol_w,    &
+                           nifa,nwfa,aerosol_scav,nifa_scav,nwfa_scav,zuo,up_massentr,up_massdetr,zdo,dd_massentro, &
+                           dd_massdetro,outnifa,outnwfa)
       call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo, &
                                p_cup,nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,      &
                                tracer_up,tracer_dn,outtracer)
