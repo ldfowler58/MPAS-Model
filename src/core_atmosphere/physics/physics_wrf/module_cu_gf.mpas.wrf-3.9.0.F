@@ -56,8 +56,8 @@
                pratec,pratecd,pratecm,pratecs,raincv,        &
                raincvd,raincvm,raincvs,nclos,weights_clos,   &
 #ifdef ATM_CHEMISTRY
-               nifa,nwfa,rnifacuten,rnwfacuten,naer,aerosol3d_w,      &
-               nchem,chem3d,rchemcuten,ntracer,tracer3d,rtracercuten, &
+               nifa,nwfa,rnifacuten,rnwfacuten,naer,aerosol3d_w,aerosol3d_scav, &
+               nifa3d_scav,nwfa3d_scav,nchem,chem3d,rchemcuten,ntracer,tracer3d,rtracercuten,           &
 #endif
                ids,ide,jds,jde,kds,kde,                      &
                ims,ime,jms,jme,kms,kme,                      &
@@ -157,9 +157,12 @@
  integer,intent(in):: naer
  integer,intent(in):: ntracer
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme,nchem),optional:: chem3d
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme,naer),optional ::aerosol3d_w
+ real,intent(in),dimension(ims:ime,kms:kme,jms:jme,naer),optional :: aerosol3d_w
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: tracer3d
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: nifa,nwfa
+
+ real,intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional     :: nifa3d_scav,nwfa3d_scav
+ real,intent(inout),dimension(ims:ime,kms:kme,jms:jme,naer),optional::aerosol3d_scav
 
  real,intent(out),dimension(ims:ime,kms:kme,jms:jme,nchem),optional:: rchemcuten
  real,intent(out),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: rtracercuten
@@ -169,8 +172,9 @@
  logical:: is_mp
  integer:: ia,ic,it
  real,dimension(its:ite,kts:kte):: nifa2d,nwfa2d,outnifam,outnifa,outnwfam,outnwfa
+ real,dimension(its:ite,kts:kte):: nifa2d_scav,nwfa2d_scav
  real,dimension(its:ite,kts:kte,nchem):: chem2d,outchemm,outchem
- real,dimension(its:ite,kts:kte,naer) :: aerosol2d_w
+ real,dimension(its:ite,kts:kte,naer) :: aerosol2d_w,aerosol2d_scav
  real,dimension(its:ite,kts:kte,ntracer):: tracer2d,outtracerm,outtracer
 #endif
 
@@ -528,6 +532,38 @@
           enddo
        enddo
     endif
+    if(present(aerosol3d_scav)) then
+       do k = kts, kte
+          do i = its, ite
+             do ia = 1, naer
+                aerosol2d_scav(i,k,ia) = aerosol3d_scav(i,k,j,ia)
+             enddo
+          enddo
+       enddo
+    else
+       do k = kts, kte
+          do i = its, ite
+             do ia = 1, naer
+                aerosol2d_scav(i,k,ia) = 0.
+             enddo
+          enddo
+       enddo
+    endif
+    if(present(nifa3d_scav) .and. present(nwfa3d_scav)) then
+       do k = kts,kte
+          do i = its,ite
+             nifa2d_scav(i,k) = nifa3d_scav(i,k,j)
+             nwfa2d_scav(i,k) = nwfa3d_scav(i,k,j)
+          enddo
+       enddo
+    else
+       do k = kts,kte
+          do i = its,ite
+             nifa2d_scav(i,k) = 0.
+             nwfa2d_scav(i,k) = 0.
+          enddo
+       enddo
+    endif
     call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 
@@ -636,10 +672,10 @@
                 outu,outv,outt,outq,outqc,kbcon,ktop,k22,cupclw,          &
                 ierr,ierrc,rand_mom,rand_vmas,rand_clos,nranflag          &
 #ifdef ATM_CHEMISTRY
-               ,is_mp,nifa2d,nwfa2d,outnifa,outnwfa              & !convective transport of "Thompson" aerosols.
-               ,naer,aerosol2d_w                                 & !convective transport of "Thompson" aerosols.
-               ,nchem,chem2d,outchem                             & !convective transport of chemical species.
-               ,ntracer,tracer2d,outtracer                       & !convective transport of passive tracers.
+               ,is_mp,nifa2d,nwfa2d,outnifa,outnwfa                       & !convective transport of "Thompson" aerosols.
+               ,naer,aerosol2d_w,aerosol2d_scav,nifa2d_scav,nwfa2d_scav   & !convective transport of "Thompson" aerosols.
+               ,nchem,chem2d,outchem                                      & !convective transport of chemical species.
+               ,ntracer,tracer2d,outtracer                                & !convective transport of passive tracers.
 #endif
               ,jmin,tropics                                               &
                   )
@@ -770,6 +806,24 @@
              do it = 1, ntracer
                 rtracercuten(i,k,j,it) = cutenm(i)*outtracerm(i,k,it) + cuten(i)*outtracer(i,k,it)
              enddo
+          enddo
+       enddo
+    endif
+
+    if(present(aerosol3d_scav)) then
+       do k = kts, kte
+          do i = its, ite
+             do ia = 1, naer
+                aerosol3d_scav(i,k,j,ia) = aerosol2d_scav(i,k,ia)
+             enddo
+          enddo
+       enddo
+    endif
+    if(present(nifa3d_scav) .and. present(nwfa3d_scav)) then
+       do k = kts,kte
+          do i = its,ite
+             nifa3d_scav(i,k,j) = nifa2d_scav(i,k)
+             nwfa3d_scav(i,k,j) = nwfa2d_scav(i,k)
           enddo
        enddo
     endif
