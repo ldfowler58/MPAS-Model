@@ -3,6 +3,16 @@
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_log
 
+ use mpas_atmphys_constants,only: &
+    cp,      &
+    karman,  &
+    gravity, &
+    P0,      &
+    ep_1,    &
+    ep_2,    &
+    rcp,     &
+    xlv
+ use bl_mynn,only: bl_mynn_run
  use bl_mynn_mpas,only: bl_mynn_mpas_run
 
  implicit none
@@ -15,28 +25,25 @@
 
 !=================================================================================================================
  subroutine mynn_bl_driver &
-               (ids         , ide         , jds            , jde          , kds           , kde , &
-                ims         , ime         , jms            , jme          , kms           , kme , &
-                its         , ite         , jts            , jte          , kts           , kte , &
-                flag_qc     , flag_qi     , flag_qnc       , flag_qni     , flag_qnifa    , &
-                flag_qnwfa  , initflag    , do_restart     , do_DAcycling , grav_settling , &
-                icloud_bl   , spp_pbl     , delt           , dx           , xland         , &
-                ps          , ts          , qsfc           , qcg          , ust           , &
-                ch          , hfx         , qfx            , rmol         , wspd          , &
-                znt         , vdfg        , uoce           , voce         , dz            , &
-                u           , v           , w              , th           , tt            , &
-                p           , exner       , rho            , qv           , qc            , &
-                qi          , qnc         , qni            , qnifa        , qnwfa         , &
-                ozone       , rthraten    , pattern_spp_bl , pblh         , kpbl          , &
-                delta       , wstar       , cldfra_bl      , qc_bl        , qi_bl         , &
-                nupdraft    , ktop_plume  , maxmf          , qke          , qke_adv       , &
-                tsq         , qsq         , cov            , el_pbl       , rublten       , &
-                rvblten     , rthblten    , rqvblten       , rqcblten     , rqiblten      , &
-                rqncblten   , rqniblten   , rqnifablten    , rqnwfablten  , rqozblten     , &
-                edmf_a      , edmf_w      , edmf_qt        , edmf_thl     , edmf_ent      , &
-                edmf_qc     , sub_thl     , sub_sqv        , det_thl      , det_sqv       , &
-                exch_h      , exch_m      , dqke           , qwt          , qshear        , &
-                qbuoy       , qdiss       , sh3d           ,                                &
+               (ids        , ide        , jds        , jde          , kds           , kde        , &
+                ims        , ime        , jms        , jme          , kms           , kme        , &
+                its        , ite        , jts        , jte          , kts           , kte        , &
+                f_qc       , f_qi       , f_qoz      , f_nc         , f_ni          , f_nifa     , &
+                f_nwfa     , initflag   , do_restart , do_DAcycling , grav_settling , icloud_bl  , &
+                delt       , dx         , xland      , ps           , ts            , qsfc       , &
+                qcg        , ust        , ch         , hfx          , qfx           , rmol       , &
+                wspd       , znt        , vdfg       , uoce         , voce          , dz         , &
+                u          , v          , w          , th           , tt            , p          , &
+                exner      , rho        , qv         , qc           , qi            , nc         , &
+                ni         , nifa       , nwfa       , qoz          , rthraten      , pblh       , &
+                kpbl       , delta      , wstar      , cldfra_bl    , qc_bl         , qi_bl      , &
+                nupdraft   , ktop_plume , maxmf      , qke          , qke_adv       , tsq        , &
+                qsq        , cov        , el_pbl     , rublten      , rvblten       , rthblten   , &
+                rqvblten   , rqcblten   , rqiblten   , rncblten     , rniblten      , rnifablten , &
+                rnwfablten , rqozblten  , edmf_a     , edmf_w       , edmf_qt       , edmf_thl   , &
+                edmf_ent   , edmf_qc    , sub_thl    , sub_sqv      , det_thl       , det_sqv    , &
+                exch_h     , exch_m     , dqke       , qwt          , qshear        , qbuoy      , &
+                qdiss      , sh3d       , spp_pbl    , pattern_spp  ,                              &
                 bl_mynn_closure  , bl_mynn_cloudpdf , bl_mynn_mixlength , bl_mynn_edmf       , &
                 bl_mynn_edmf_mom , bl_mynn_edmf_tke , bl_mynn_output    , bl_mynn_mixscalars , &
                 bl_mynn_cloudmix , bl_mynn_mixqt    , bl_mynn_tkeadvect , bl_mynn_tkebudget  , &
@@ -46,12 +53,13 @@
 
 !--- input arguments:
  logical,intent(in):: &
-    flag_qc,            &! if true,the physics package includes the cloud liquid water mixing ratio.
-    flag_qi,            &! if true,the physics package includes the cloud ice mixing ratio.
-    flag_qnc,           &! if true,the physics package includes the cloud liquid water number concentration.
-    flag_qni,           &! if true,the physics package includes the cloud ice number concentration.
-    flag_qnifa,         &! if true,the physics package includes the "ice-friendly" aerosol number concentration.
-    flag_qnwfa           ! if true,the physics package includes the "water-friendly" aerosol number concentration.
+    f_qc,               &! if true,the physics package includes the cloud liquid water mixing ratio.
+    f_qi,               &! if true,the physics package includes the cloud ice mixing ratio.
+    f_qoz,              &! if true,the physics package includes the ozone mixing ratio.
+    f_nc,               &! if true,the physics package includes the cloud liquid water number concentration.
+    f_ni,               &! if true,the physics package includes the cloud ice number concentration.
+    f_nifa,             &! if true,the physics package includes the "ice-friendly" aerosol number concentration.
+    f_nwfa               ! if true,the physics package includes the "water-friendly" aerosol number concentration.
 
  logical,intent(in):: &
     bl_mynn_tkeadvect    !
@@ -120,17 +128,17 @@
  real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
     w         !
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
     qc,      &!
     qi,      &!
-    qnc,     &!
-    qni,     &!
-    qnifa,   &!
-    qnwfa,   &!
-    ozone     !
+    qoz,     &!
+    nc,      &!
+    ni,      &!
+    nifa,    &!
+    nwfa      !
 
- real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-    pattern_spp_bl !
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
+    pattern_spp   !
 
 !--- inout arguments:
  integer,intent(inout),dimension(ims:ime,jms:jme):: &
@@ -164,13 +172,11 @@
     rqvblten,    &!
     rqcblten,    &!
     rqiblten,    &!
-    rqncblten,   &!
-    rqniblten,   &!
-    rqnifablten, &!
-    rqnwfablten   !
-
- real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-    rqozblten     !
+    rqozblten,   &!
+    rncblten,    &!
+    rniblten,    &!
+    rnifablten,  &!
+    rnwfablten    !
 
  real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: &
     edmf_a,      &!
@@ -213,6 +219,8 @@
  integer,dimension(its:ite):: &
     kpbl_hv,nupdraft_hv,ktopplume_hv
 
+ real(kind=kind_phys):: denom
+
  real(kind=kind_phys),dimension(its:ite):: &
     dx_hv,xland_hv,ps_hv,ts_hv,qcg_hv,qsfc_hv,ust_hv,ch_hv,hfx_hv,qfx_hv, &
     rmol_hv,wspd_hv,vdfg_hv,uoce_hv,voce_hv,znt_hv
@@ -224,7 +232,7 @@
     w_hv
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
-    qc_hv,qi_hv,qnc_hv,qni_hv,qnifa_hv,qnwfa_hv,ozone_hv
+    qc_hv,qi_hv,nc_hv,ni_hv,nifa_hv,nwfa_hv,qoz_hv
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
     pattern_spp_hv
@@ -237,7 +245,7 @@
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
     rublten_hv,rvblten_hv,rthblten_hv,rqvblten_hv,rqcblten_hv,rqiblten_hv, &
-    rqncblten_hv,rqniblten_hv,rqnifablten_hv,rqnwfablten_hv,rqozblten_hv
+    rncblten_hv,rniblten_hv,rnifablten_hv,rnwfablten_hv,rqozblten_hv
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
     edmfa_hv,edmfw_hv,edmfqt_hv,edmfthl_hv,edmfent_hv,edmfqc_hv, &
@@ -249,9 +257,12 @@
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
     exchh_hv,exchm_hv,dqke_hv,qwt_hv,qshear_hv,qbuoy_hv,qdiss_hv
 
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: &
+    sqv_hv,sqc_hv,sqi_hv
+
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine mynn_bl_driver:')
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine mynn_bl_driver:')
 
  errmsg = " "
  errflg = 0
@@ -277,7 +288,6 @@
        voce_hv(i)  = voce(i,j)
        znt_hv(i)   = znt(i,j)
     enddo
-
     do k = kts,kte
        do i = its,ite
           dz_hv(i,k)       = dz(i,k,j)
@@ -297,111 +307,79 @@
        w_hv(i,kte+1) = w(i,kte+1,j)
     enddo
 
-    !--- input optional arguments:
-    if(flag_qc .and. present(qc)) then
+    !--- input arguments for cloud mixing ratios and number concentrations; input argument
+    !    for the ozone mixing ratio; input arguments for aerosols from the aerosol-aware
+    !    Thompson cloud microphysics:
+    do k = kts,kte
+       do i = its,ite
+          qc_hv(i,k)   = 0._kind_phys
+          qi_hv(i,k)   = 0._kind_phys
+          qoz_hv(i,k)  = 0._kind_phys
+          nc_hv(i,k)   = 0._kind_phys
+          ni_hv(i,k)   = 0._kind_phys
+          nifa_hv(i,k) = 0._kind_phys
+          nwfa_hv(i,k) = 0._kind_phys
+       enddo
+    enddo
+    if(f_qc) then
        do k = kts,kte
           do i = its,ite
              qc_hv(i,k) = qc(i,k,j)
           enddo
        enddo
-    else
-       do k = kts,kte
-          do i = its,ite
-             qc_hv(i,k) = 0._kind_phys
-          enddo
-       enddo
     endif
-    if(flag_qi .and. present(qi)) then
+    if(f_qi) then
        do k = kts,kte
           do i = its,ite
              qi_hv(i,k) = qi(i,k,j)
           enddo
        enddo
-    else
+    endif
+    if(f_nc) then
        do k = kts,kte
           do i = its,ite
-             qi_hv(i,k) = 0._kind_phys
+             nc_hv(i,k) = nc(i,k,j)
           enddo
        enddo
     endif
-    if(flag_qnc .and. present(qnc)) then
+    if(f_ni) then
        do k = kts,kte
           do i = its,ite
-             qnc_hv(i,k) = qnc(i,k,j)
-          enddo
-       enddo
-    else
-       do k = kts,kte
-          do i = its,ite
-             qnc_hv(i,k) = 0._kind_phys
+             ni_hv(i,k) = ni(i,k,j)
           enddo
        enddo
     endif
-    if(flag_qni .and. present(qni)) then
+    if(f_nifa) then
        do k = kts,kte
           do i = its,ite
-             qni_hv(i,k) = qni(i,k,j)
-          enddo
-       enddo
-    else
-       do k = kts,kte
-          do i = its,ite
-             qni_hv(i,k) = 0._kind_phys
+             nifa_hv(i,k) = nifa(i,k,j)
           enddo
        enddo
     endif
-    if(flag_qnifa .and. present(qnifa)) then
+    if(f_nwfa) then
        do k = kts,kte
           do i = its,ite
-             qnifa_hv(i,k) = qnifa(i,k,j)
-          enddo
-       enddo
-    else
-       do k = kts,kte
-          do i = its,ite
-             qnifa_hv(i,k) = 0._kind_phys
+             nwfa_hv(i,k) = nwfa(i,k,j)
           enddo
        enddo
     endif
-     if(flag_qnwfa .and. present(qnwfa)) then
+    if(f_qoz) then
        do k = kts,kte
           do i = its,ite
-             qnwfa_hv(i,k) = qnwfa(i,k,j)
-          enddo
-       enddo
-    else
-       do k = kts,kte
-          do i = its,ite
-             qnwfa_hv(i,k) = 0._kind_phys
+             qoz_hv(i,k) = qoz(i,k,j)
           enddo
        enddo
     endif
-    if(present(ozone)) then
-       do k = kts,kte
-          do i = its,ite
-             ozone_hv(i,k) = ozone(i,k,j)
-          enddo
+
+    !--- conversion from mixing ratios to specific contents:
+    call bl_mynn_mpas_run(its,ite,kte,f_qc,f_qi,qv_hv,qc_hv,qi_hv,sqv_hv,sqc_hv,sqi_hv,errmsg,errflg)
+
+    !--- initialization of the stochastic forcing in the PBL:
+    do k = kts,kte
+       do i = its,ite
+          pattern_spp_hv(i,k) = pattern_spp(i,k,j)
        enddo
-    else
-       do k = kts,kte
-          do i = its,ite
-             ozone_hv(i,k) = 0._kind_phys
-          enddo
-       enddo
-    endif
-    if(present(pattern_spp_bl)) then
-       do k = kts,kte
-          do i = its,ite
-             pattern_spp_hv(i,k) = pattern_spp_bl(i,k,j)
-          enddo
-       enddo
-    else
-       do k = kts,kte
-          do i = its,ite
-             pattern_spp_hv(i,k) = 0._kind_phys
-          enddo
-       enddo
-    endif
+    enddo
 
     !--- inout arguments:
     do i = its,ite
@@ -452,32 +430,47 @@
     enddo
 
 
-    call bl_mynn_mpas_run &
-            (its              , ite              , kts               , kte            , kme           , &
-             flag_qc          , flag_qi          , flag_qnc          , flag_qni       , flag_qnifa    , &
-             flag_qnwfa       , initflag         , do_restart        , do_DAcycling   , grav_settling , &
-             icloud_bl        , spp_pbl          , delt              , dx_hv          , xland_hv      , &
-             ps_hv            , ts_hv            , qsfc_hv           , qcg_hv         , ust_hv        , &
-             ch_hv            , hfx_hv           , qfx_hv            , rmol_hv        , wspd_hv       , &
-             znt_hv           , vdfg_hv          , uoce_hv           , voce_hv        , dz_hv         , &
-             u_hv             , v_hv             , w_hv              , th_hv          , tt_hv         , &
-             p_hv             , exner_hv         , rho_hv            , qv_hv          , qc_hv         , &
-             qi_hv            , qnc_hv           , qni_hv            , qnifa_hv       , qnwfa_hv      , &
-             ozone_hv         , rthraten_hv      , pattern_spp_hv    , pblh_hv        , kpbl_hv       , &
-             delta_hv         , wstar_hv         , cldfrabl_hv       , qcbl_hv        , qibl_hv       , &
-             nupdraft_hv      , ktopplume_hv     , maxmf_hv          , qke_hv         , qkeadv_hv     , &
-             tsq_hv           , qsq_hv           , cov_hv            , elpbl_hv       , rublten_hv    , &
-             rvblten_hv       , rthblten_hv      , rqvblten_hv       , rqcblten_hv    , rqiblten_hv   , &
-             rqncblten_hv     , rqniblten_hv     , rqnifablten_hv    , rqnwfablten_hv , rqozblten_hv  , &
-             edmfa_hv         , edmfw_hv         , edmfqt_hv         , edmfthl_hv     , edmfent_hv    , &
-             edmfqc_hv        , subthl_hv        , subsqv_hv         , detthl_hv      , detsqv_hv     , &
-             exchh_hv         , exchm_hv         , dqke_hv           , qwt_hv         , qshear_hv     , & 
-             qbuoy_hv         , qdiss_hv         , sh3d_hv           ,                                  &
-             bl_mynn_closure  , bl_mynn_cloudpdf , bl_mynn_mixlength , bl_mynn_edmf       , &
-             bl_mynn_edmf_mom , bl_mynn_edmf_tke , bl_mynn_output    , bl_mynn_mixscalars , &
-             bl_mynn_cloudmix , bl_mynn_mixqt    , bl_mynn_tkeadvect , bl_mynn_tkebudget  , &
-             errmsg           , errflg                                                      &
+    call bl_mynn_run &
+             (initflag        , do_restart         , do_DAcycling     , &
+             grav_settling    , delt               , dz_hv            , &
+             dx_hv            , znt_hv             , u_hv             , &
+             v_hv             , w_hv               , th_hv            , &
+             sqv_hv           , sqc_hv             , sqi_hv           , &
+             nc_hv            , ni_hv              , nwfa_hv          , &
+             nifa_hv          , qoz_hv             , p_hv             , &
+             exner_hv         , rho_hv             , tt_hv            , &
+             xland_hv         , ts_hv              , qsfc_hv          , &
+             qcg_hv           , ps_hv              , ust_hv           , &
+             ch_hv            , hfx_hv             , qfx_hv           , &
+             rmol_hv          , wspd_hv            , uoce_hv          , &
+             voce_hv          , vdfg_hv            , qke_hv           , &
+             qkeadv_hv        , bl_mynn_tkeadvect  , tsq_hv           , &
+             qsq_hv           , cov_hv             , rublten_hv       , &
+             rvblten_hv       , rthblten_hv        , rqvblten_hv      , &
+             rqcblten_hv      , rqiblten_hv        , rncblten_hv      , &
+             rniblten_hv      , rnwfablten_hv      , rnifablten_hv    , &
+             rqozblten_hv     , exchh_hv           , exchm_hv         , &
+             pblh_hv          , kpbl_hv            , elpbl_hv         , &
+             dqke_hv          , qwt_hv             , qshear_hv        , &
+             qbuoy_hv         , qdiss_hv           , wstar_hv         , &
+             delta_hv         , bl_mynn_tkebudget  , bl_mynn_cloudpdf , &
+             sh3d_hv          , bl_mynn_mixlength  , icloud_bl        , &
+             qcbl_hv          , qibl_hv            , cldfrabl_hv      , &
+             bl_mynn_closure  , bl_mynn_edmf       , bl_mynn_edmf_mom , &
+             bl_mynn_edmf_tke , bl_mynn_mixscalars , bl_mynn_output   , &
+             bl_mynn_cloudmix , bl_mynn_mixqt      , edmfa_hv         , &
+             edmfw_hv         , edmfqt_hv          , edmfthl_hv       , &
+             edmfent_hv       , edmfqc_hv          , subthl_hv        , &
+             subsqv_hv        , detthl_hv          , detsqv_hv        , &
+             nupdraft_hv      , maxmf_hv           , ktopplume_hv     , &
+             spp_pbl          , pattern_spp_hv     , rthraten_hv      , &
+             f_qc             , f_qi               , f_nc             , &
+             f_ni             , f_nwfa             , f_nifa           , &
+             !--- constants:
+             cp , karman , gravity , P0 , ep_1 , ep_2 , rcp , xlv     , &
+             its, ite , kts , kte , kme , errmsg , errflg               &
             )
+
 
 
     !--- inout arguments:
@@ -509,25 +502,61 @@
        enddo
     enddo
 
+    !--- inout tendencies:
     do k = kts,kte
        do i = its,ite
-          rublten(i,k,j)     = rublten_hv(i,k) 
-          rvblten(i,k,j)     = rvblten_hv(i,k) 
-          rthblten(i,k,j)    = rthblten_hv(i,k) 
-          rqvblten(i,k,j)    = rqvblten_hv(i,k) 
-          rqcblten(i,k,j)    = rqcblten_hv(i,k) 
-          rqiblten(i,k,j)    = rqiblten_hv(i,k) 
-          rqncblten(i,k,j)   = rqncblten_hv(i,k) 
-          rqniblten(i,k,j)   = rqniblten_hv(i,k) 
-          rqnifablten(i,k,j) = rqnifablten_hv(i,k) 
-          rqnwfablten(i,k,j) = rqnwfablten_hv(i,k) 
+          rublten(i,k,j)    = rublten_hv(i,k) 
+          rvblten(i,k,j)    = rvblten_hv(i,k) 
+          rthblten(i,k,j)   = rthblten_hv(i,k) 
+          rqvblten(i,k,j)   = rqvblten_hv(i,k) 
        enddo
     enddo
-
-    if(present(rqozblten)) then
+    if(f_qc) then
        do k = kts,kte
           do i = its,ite
-             rqozblten(i,k,j) = rqozblten_hv(i,k) 
+             rqcblten(i,k,j)   = rqcblten_hv(i,k) 
+          enddo
+       enddo
+    endif
+    if(f_qi) then
+       do k = kts,kte
+          do i = its,ite
+             rqiblten(i,k,j)   = rqiblten_hv(i,k) 
+          enddo
+       enddo
+    endif
+    if(f_qoz) then
+       do k = kts,kte
+          do i = its,ite
+             rqozblten(i,k,j)  = rqozblten_hv(i,k) 
+          enddo
+       enddo
+    endif
+    if(f_nc) then
+       do k = kts,kte
+          do i = its,ite
+             rncblten(i,k,j)   = rncblten_hv(i,k) 
+          enddo
+       enddo
+    endif
+    if(f_ni) then
+       do k = kts,kte
+          do i = its,ite
+             rniblten(i,k,j)   = rniblten_hv(i,k) 
+          enddo
+       enddo
+    endif
+    if(f_nifa) then
+       do k = kts,kte
+          do i = its,ite
+             rnifablten(i,k,j) = rnifablten_hv(i,k) 
+          enddo
+       enddo
+    endif
+    if(f_nwfa) then
+       do k = kts,kte
+          do i = its,ite
+             rnwfablten(i,k,j) = rnwfablten_hv(i,k) 
           enddo
        enddo
     endif
@@ -561,7 +590,7 @@
 
  enddo
 
- call mpas_log_write('--- enter subroutine mynn_bl_driver:')
+!call mpas_log_write('--- end subroutine mynn_bl_driver:')
 
  end subroutine mynn_bl_driver
 

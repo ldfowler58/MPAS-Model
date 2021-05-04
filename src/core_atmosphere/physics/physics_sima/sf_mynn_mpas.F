@@ -1,19 +1,19 @@
 !=================================================================================================================
- module bl_mynn_mpas
+ module sf_mynn_mpas
  use mpas_kind_types,only: kind_phys => RKIND
 
  implicit none
  private
- public:: bl_mynn_mpas_run,  &
-          bl_mynn_mpas_init, &
-          bl_mynn_mpas_final
+ public:: sf_mynn_mpas_run,  &
+          sf_mynn_mpas_init, &
+          sf_mynn_mpas_final
 
 
  contains
 
 
 !=================================================================================================================
- subroutine bl_mynn_mpas_init(errmsg,errflg)
+ subroutine sf_mynn_mpas_init(errmsg,errflg) 
 !=================================================================================================================
 
  character(len=*),intent(out):: errmsg
@@ -25,26 +25,41 @@
  errmsg = ' '
  errflg = 0
 
- end subroutine bl_mynn_mpas_init
+ end subroutine sf_mynn_mpas_init
 
 !=================================================================================================================
- subroutine bl_mynn_mpas_run(its,ite,kte,f_qc,f_qi,qv,qc,qi,sqv,sqc,sqi,errmsg,errflg)
+ subroutine sf_mynn_mpas_run(its,ite,kte,itimestep,dz3d,u3d,v3d,p3d,t3d,rho3d,qv3d,qc3d,f_spp,pattern_spp, &
+                           ust,mol,qsfc,qstar,dz8w1d,u1d,v1d,p1d,t1d,rho1d,qv1d,qc1d,rstoch1d,dz2w1d,u1d2, &
+                           v1d2,errmsg,errflg)
 !=================================================================================================================
 
 !--- input arguments:
- logical,intent(in):: &
-    f_qc,      &! if true,the physics package includes the cloud liquid water mixing ratio.
-    f_qi        ! if true,the physics package includes the cloud ice mixing ratio.
+ logical,intent(in):: f_spp
 
  integer,intent(in):: its,ite
  integer,intent(in):: kte
+ integer,intent(in):: itimestep
 
  real(kind=kind_phys),intent(in),dimension(its:ite,1:kte):: &
-    qv          !
+    dz3d,      &!
+    u3d,       &!
+    v3d,       &!
+    qv3d,      &!
+    qc3d,      &!
+    p3d,       &!
+    t3d,       &!
+    rho3d       !
 
  real(kind=kind_phys),intent(in),dimension(its:ite,1:kte):: &
-    qc,        &!
-    qi          !
+    pattern_spp !
+
+
+!--- inout arguments:
+ real(kind=kind_phys),intent(inout),dimension(its:ite):: &
+    ust,       &!
+    mol,       &!
+    qsfc,      &!
+    qstar       !
 
 
 !--- output arguments:
@@ -54,53 +69,72 @@
  integer,intent(out):: &
     errflg      ! output error flag (-).
 
- real(kind=kind_phys),intent(out),dimension(its:ite,1:kte):: &
-    sqv,       &!
-    sqc,       &!
-    sqi         !
+ real(kind=kind_phys),intent(out),dimension(its:ite):: &
+    dz8w1d,    &!
+    u1d,       &!
+    v1d,       &!
+    qv1d,      &!
+    qc1d,      &!
+    p1d,       &!
+    t1d,       &!
+    rho1d,     &!
+    rstoch1d    !
+
+ real(kind=kind_phys),intent(out),dimension(its:ite):: &
+    dz2w1d,    &!
+    u1d2,      &!
+    v1d2        !
 
 
 !--- local variables:
- integer:: i,k,kts
+ integer:: i,kts
 
 !-----------------------------------------------------------------------------------------------------------------
 
-!--- initialization:
  kts = 1
- do k = kts,kte
-    do i = its,ite
-       sqc(i,k) = 0._kind_phys
-       sqi(i,k) = 0._kind_phys
-    enddo
+
+ do i = its,ite
+    dz8w1d(i) = dz3d(i,kts)
+    u1d(i)    = u3d(i,kts)
+    v1d(i)    = v3d(i,kts)
+    qv1d(i)   = qv3d(i,kts)
+    qc1d(i)   = qc3d(i,kts)
+    p1d(i)    = p3d(i,kts)
+    t1d(i)    = t3d(i,kts)
+    rho1d(i)  = rho3d(i,kts)
+    !--- 2nd model level winds - for diags with high-resolution grids:
+    dz2w1d(i) = dz3d(i,kts+1)
+    u1d2(i)   = u3d(i,kts+1)
+    v1d2(i)   = v3d(i,kts+1)
  enddo
 
-!--- conversion from water vapor mixing ratio to specific humidity:
- do k = kts,kte
+ if(f_spp) then
     do i = its,ite
-       sqv(i,k) = qv(i,k)/(1.+qv(i,k))
+       rstoch1d(i) = pattern_spp(i,kts)
     enddo
- enddo
-
-!--- conversion from cloud liquid water and cloud ice mixing ratio to specific contents:
- if(f_qc) then
-    do k = kts,kte
-       do i = its,ite
-          sqc(i,k) = qc(i,k)/(1.+qv(i,k))
-       enddo
-    enddo
- endif
- if(f_qi) then
-    do k = kts,kte
-       do i = its,ite
-          sqi(i,k) = qi(i,k)/(1.+qv(i,k))
-       enddo
+ else
+    do i = its,ite
+       rstoch1d(i)=0._kind_phys
     enddo
  endif
 
- end subroutine bl_mynn_mpas_run
+ if(itimestep == 1) then
+    do i = its,ite
+       ust(i)   = max(0.04*sqrt(u1d(i)*u1d(i) + v1d(i)*v1d(i)),0.001)
+       mol(i)   = 0._kind_phys
+       qsfc(i)  = qv1d(i)/(1.+qv1d(i))
+       qstar(i) = 0._kind_phys
+    enddo
+ endif
+
+!--- output message and error flags:
+ errmsg = 'sf_mynn_mpas_run OK'
+ errflg = 0
+
+ end subroutine sf_mynn_mpas_run
 
 !=================================================================================================================
- subroutine bl_mynn_mpas_final(errmsg,errflg)
+ subroutine sf_mynn_mpas_final(errmsg,errflg) 
 !=================================================================================================================
 
  character(len=*),intent(out):: errmsg
@@ -112,8 +146,8 @@
  errmsg = ' '
  errflg = 0
 
- end subroutine bl_mynn_mpas_final
+ end subroutine sf_mynn_mpas_final
 
 !=================================================================================================================
- end module bl_mynn_mpas
+ end module sf_mynn_mpas
 !=================================================================================================================
