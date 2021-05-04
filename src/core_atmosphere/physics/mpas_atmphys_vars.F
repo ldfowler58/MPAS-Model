@@ -188,6 +188,9 @@
     ni_p,             &!
     nr_p               !
 
+ real(kind=RKIND),dimension(:,:,:),allocatable:: &
+    qoz_p              !ozone mixing ratio                                                  [kg/kg]
+
 !... arrays located at w (vertical velocity) points, or at interface between layers:
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     w_p,              &!vertical velocity                                                     [m/s]
@@ -230,24 +233,24 @@
  logical,parameter:: &
     warm_rain = .false.  !warm-phase cloud microphysics only (used in WRF).
 
- logical,parameter:: &
-    f_qv      = .true., &!WRF parameter set to true to include the water vapor mixing ratio.
-    f_qc      = .true., &!WRF parameter set to true to include the cloud water mixing ratio.
-    f_qr      = .true., &!WRF parameter set to true to include the rain mixing ratio.
-    f_qi      = .true., &!WRF parameter set to true to include the cloud ice mixing ratio.
-    f_qs      = .true., &!WRF parameter set to true to include the snow mixing ratio.
-    f_qg      = .true.   !WRF parameter set to true to include the graupel mixing ratio.
+ logical:: &
+    f_qv,             &!parameter set to true to include the water vapor mixing ratio.
+    f_qc,             &!parameter set to true to include the cloud water mixing ratio.
+    f_qr,             &!parameter set to true to include the rain mixing ratio.
+    f_qi,             &!parameter set to true to include the cloud ice mixing ratio.
+    f_qs,             &!parameter set to true to include the snow minxg ratio.
+    f_qg,             &!parameter set to true to include the graupel mixing ratio.
+    f_qoz              !parameter set to true to include the ozone mixing ratio.
 
- logical,parameter:: &
-    f_qnc     = .false.,&!WRF parameter set to true to include the cloud water number concentration.
-    f_qni     = .true., &!WRF parameter set to true to include the cloud ice number concentration.
-    f_qnr     = .false.,&!WRF parameter set to true to include the rain number concentration.
-    f_qnifa   = .false.,&!WRF parameter set to true to include the number concentration of hygroscopic aerosols.
-    f_qnwfa   = .false.  !WRF parameter set to true to include the number concentration of hydrophobic aerosols.
+ logical:: &
+    f_nc,             &!parameter set to true to include the cloud water number concentration.
+    f_ni,             &!parameter set to true to include the cloud ice number concentration.
+    f_nifa,           &!parameter set to true to include the number concentration of hygroscopic aerosols.
+    f_nwfa             !parameter set to true to include the number concentration of hydrophobic aerosols.
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
-    f_ice,              &!fraction of cloud ice (used in WRF only).
-    f_rain               !fraction of rain (used in WRF only).
+    f_ice,            &!fraction of cloud ice (used in WRF only).
+    f_rain             !fraction of rain (used in WRF only).
 
  real(kind=RKIND),dimension(:,:),allocatable:: &
     rainnc_p,         &!
@@ -268,6 +271,8 @@
     ntc_p,            &!
     muc_p              !
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
+    nifa_p,           &!
+    nwfa_p,           &!
     rainprod_p,       &!
     evapprod_p,       &!
     recloud_p,        &!
@@ -432,7 +437,10 @@
     rnwfablten_p       !tendency of "ice-friendly" aerosols due to PBL processes.
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
-    rqo3blten_p        !tendency of ozone mixing ratio due to PBL processes.
+    rqozblten_p        !tendency of ozone mixing ratio due to PBL processes.
+
+ real(kind=RKIND),dimension(:,:,:),allocatable:: &
+    pattern_spp_pbl    !stochastic forcing for the MYMM PBL and surface layer schemes.
 
 !=================================================================================================================
 !... variables and arrays related to parameterization of gravity wave drag over orography:

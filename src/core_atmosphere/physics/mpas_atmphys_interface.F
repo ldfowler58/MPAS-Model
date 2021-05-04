@@ -114,9 +114,14 @@
  if(.not.allocated(qs_p)   ) allocate(qs_p(ims:ime,kms:kme,jms:jme)   )
  if(.not.allocated(qg_p)   ) allocate(qg_p(ims:ime,kms:kme,jms:jme)   )
 
+ !--- note: the variables nc_p, nifa_p, and nwfa_p are set to zero until the aerosol-aware
+ !option in the Thompson cloud microphysics scheme becomes available.
  pbl_select: select case (trim(pbl_scheme))
     case("bl_mynn")
-       if(.not.allocated(ni_p)) allocate(ni_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(nc_p)  ) allocate(nc_p(ims:ime,kms:kme,jms:jme)  )
+       if(.not.allocated(ni_p)  ) allocate(ni_p(ims:ime,kms:kme,jms:jme)  )
+       if(.not.allocated(nifa_p)) allocate(nifa_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(nwfa_p)) allocate(nwfa_p(ims:ime,kms:kme,jms:jme))
 
     case default
 
@@ -178,9 +183,14 @@
  if(allocated(qs_p)    ) deallocate(qs_p    )
  if(allocated(qg_p)    ) deallocate(qg_p    )
 
+ !--- note: the variables nc_p, nifa_p, and nwfa_p are set to zero until the aerosol-aware
+ !option in the Thompson cloud microphysics scheme becomes available.
  pbl_select: select case (trim(pbl_scheme))
     case("bl_mynn")
-       if(allocated(ni_p)) deallocate(ni_p)
+       if(allocated(nc_p)  ) deallocate(nc_p  )
+       if(allocated(ni_p)  ) deallocate(ni_p  )
+       if(allocated(nifa_p)) deallocate(nifa_p)
+       if(allocated(nwfa_p)) deallocate(nwfa_p)
 
     case default
 
@@ -327,6 +337,11 @@
        do k = kts,kte
        do i = its,ite
           ni_p(i,k,j) = max(0.,ni(k,i))
+          !--- note: the variables nc_p, nifa_p, and nwfa_p are set to zero until the aerosol-aware
+          !option in the Thompson cloud microphysics scheme becomes available.
+          nc_p(i,k,j)   = 0._RKIND
+          nifa_p(i,k,j) = 0._RKIND
+          nwfa_p(i,k,j) = 0._RKIND
        enddo
        enddo
        enddo
