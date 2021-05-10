@@ -56,8 +56,9 @@
                pratec,pratecd,pratecm,pratecs,raincv,        &
                raincvd,raincvm,raincvs,nclos,weights_clos,   &
 #ifdef ATM_CHEMISTRY
-               nifa,nwfa,rnifacuten,rnwfacuten,naer,aerosol3d_w,aerosol3d_scav, &
-               nifa3d_scav,nwfa3d_scav,nchem,chem3d,rchemcuten,ntracer,tracer3d,rtracercuten,           &
+               use_thom_scaven,use_thom_evap,nifa,nwfa,rnifacuten,rnwfacuten, &
+               naer,aerosol3d_w,aerosol3d_scav,nifa3d_scav,nwfa3d_scav,       &
+               nchem,chem3d,rchemcuten,ntracer,tracer3d,rtracercuten,         &
 #endif
                ids,ide,jds,jde,kds,kde,                      &
                ims,ime,jms,jme,kms,kme,                      &
@@ -156,6 +157,7 @@
  integer,intent(in):: nchem
  integer,intent(in):: naer
  integer,intent(in):: ntracer
+ integer,intent(in):: use_thom_scaven,use_thom_evap
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme,nchem),optional:: chem3d
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme,naer),optional :: aerosol3d_w
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: tracer3d
@@ -533,14 +535,14 @@
        enddo
     endif
     if(present(aerosol3d_scav)) then
-       do k = kts, kte
-          do i = its, ite
-             do ia = 1, naer
-                aerosol2d_scav(i,k,ia) = aerosol3d_scav(i,k,j,ia)
-             enddo
-          enddo
-       enddo
-    else
+!      do k = kts, kte
+!         do i = its, ite
+!            do ia = 1, naer
+!               aerosol2d_scav(i,k,ia) = aerosol3d_scav(i,k,j,ia)
+!            enddo
+!         enddo
+!      enddo
+!   else
        do k = kts, kte
           do i = its, ite
              do ia = 1, naer
@@ -672,10 +674,10 @@
                 outu,outv,outt,outq,outqc,kbcon,ktop,k22,cupclw,          &
                 ierr,ierrc,rand_mom,rand_vmas,rand_clos,nranflag          &
 #ifdef ATM_CHEMISTRY
-               ,is_mp,nifa2d,nwfa2d,outnifa,outnwfa                       & !convective transport of "Thompson" aerosols.
-               ,naer,aerosol2d_w,aerosol2d_scav,nifa2d_scav,nwfa2d_scav   & !convective transport of "Thompson" aerosols.
-               ,nchem,chem2d,outchem                                      & !convective transport of chemical species.
-               ,ntracer,tracer2d,outtracer                                & !convective transport of passive tracers.
+               ,use_thom_scaven,use_thom_evap,is_mp,nifa2d,nwfa2d,outnifa,outnwfa & !transport of "Thompson" aerosols.
+               ,naer,aerosol2d_w,aerosol2d_scav,nifa2d_scav,nwfa2d_scav           & !transport of "Thompson" aerosols.
+               ,nchem,chem2d,outchem                                              & !transport of chemical species.
+               ,ntracer,tracer2d,outtracer                                        & !transport of passive tracers.
 #endif
               ,jmin,tropics                                               &
                   )
