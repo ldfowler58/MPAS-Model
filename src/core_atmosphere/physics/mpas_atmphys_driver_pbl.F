@@ -839,7 +839,8 @@
                  th          = th_p           , tt         = t_p         , dz          = dz_p         , &
                  dx          = dx_p           , u          = u_p         , v           = v_p          , &
                  w           = w_p            , qv         = qv_p        , qc          = qc_p         , &
-                 qi          = qi_p           , qni        = ni_p        , rho         = rho_p        , &
+                 qi          = qi_p           , qnc        = nc_p        , qni         = ni_p         , &
+                 qnifa       = nifa_p         , qnwfa      = nwfa_p      , rho         = rho_p        , &
                  rublten     = rublten_p      , rvblten    = rvblten_p   , rthblten    = rthblten_p   , &
                  rqvblten    = rqvblten_p     , rqcblten   = rqcblten_p  , rqiblten    = rqiblten_p   , &
                  rqncblten   = rncblten_p     , rqniblten  = rniblten_p  , rqnifablten = rnifablten_p , &
