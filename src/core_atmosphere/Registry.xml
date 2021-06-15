@@ -376,6 +376,7 @@
 
         <packages>
                 <package name="mp_kessler_in" description="parameterization of kessler microphysics."/>
+                <package name="mp_pumas_in" description="parameterization of CAM6 pumas cloud microphysics."/>
                 <package name="mp_thompson_in" description="parameterization of Thompson cloud microphysics."/>
                 <package name="mp_wsm6_in" description="parameterization of WSM6 cloud microphysics."/>
                 <package name="cu_grell_freitas_in" description="parameterization of Grell-Freitas convection."/>

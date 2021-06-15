@@ -36,7 +36,7 @@
  character(len=StrKIND),pointer:: config_microp_scheme
  character(len=StrKIND),pointer:: config_convection_scheme
  character(len=StrKIND),pointer:: config_pbl_scheme
- logical,pointer:: mp_kessler_in,mp_thompson_in,mp_wsm6_in
+ logical,pointer:: mp_kessler_in,mp_pumas_in,mp_thompson_in,mp_wsm6_in
  logical,pointer:: cu_grell_freitas_in,cu_kain_fritsch_in,cu_tiedtke_in
  logical,pointer:: bl_mynn_in,bl_ysu_in
 
@@ -58,6 +58,9 @@
  nullify(mp_kessler_in)
  call mpas_pool_get_package(packages,'mp_kessler_inActive',mp_kessler_in)
 
+ nullify(mp_pumas_in)
+ call mpas_pool_get_package(packages,'mp_pumas_inActive',mp_pumas_in)
+
  nullify(mp_thompson_in)
  call mpas_pool_get_package(packages,'mp_thompson_inActive',mp_thompson_in)
 
@@ -65,6 +68,7 @@
  call mpas_pool_get_package(packages,'mp_wsm6_inActive',mp_wsm6_in)
 
  if(.not.associated(mp_kessler_in)  .or. &
+    .not.associated(mp_pumas_in)    .or. &
     .not.associated(mp_thompson_in) .or. &
     .not.associated(mp_wsm6_in)) then
     call mpas_log_write('====================================================================================',messageType=MPAS_LOG_ERR)
@@ -75,11 +79,14 @@
  endif
 
  mp_kessler_in           = .false.
+ mp_pumas_in             = .false.
  mp_thompson_in          = .false.
  mp_wsm6_in              = .false.
 
  if(config_microp_scheme == 'mp_kessler') then
     mp_kessler_in = .true.
+ elseif(config_microp_scheme == 'mp_pumas')then
+    mp_pumas_in   = .true.
  elseif(config_microp_scheme == 'mp_thompson' .or. &
         config_microp_scheme == 'mp_thompson_aerosols') then
     mp_thompson_in = .true.
@@ -88,6 +95,7 @@
  endif
 
  call mpas_log_write('    mp_kessler_in           = $l', logicArgs=(/mp_kessler_in/))
+ call mpas_log_write('    mp_pumas_in             = $l', logicArgs=(/mp_pumas_in/))
  call mpas_log_write('    mp_thompson_in          = $l', logicArgs=(/mp_thompson_in/))
  call mpas_log_write('    mp_wsm6_in              = $l', logicArgs=(/mp_wsm6_in/))
 

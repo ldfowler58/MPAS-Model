@@ -94,6 +94,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2018-01-31.
 ! * added the option cu_kain_fritsch_sca to run the Kain-Fritsch scale-aware parameterization of convection.
 !   Laura D. Fowler (laura@ucar.edu) / 2018-02-06.
+! * added the option mp_pumas to run the CAM6 pumas cloud microphysics parameterization.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-06-15.
 
 
  contains
@@ -193,6 +195,7 @@
  if(.not. (config_microp_scheme .eq. 'off'                  .or. &
            config_microp_scheme .eq. 'mp_kessler'           .or. &
            config_microp_scheme .eq. 'mp_thompson'          .or. &
+           config_microp_scheme .eq. 'mp_pumas'             .or. &
            config_microp_scheme .eq. 'mp_thompson_aerosols' .or. &
            config_microp_scheme .eq. 'mp_wsm6')) then
 
