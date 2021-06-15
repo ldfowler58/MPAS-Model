@@ -227,7 +227,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas","cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas_wrf390")
        if(.not.allocated(ht_p)           ) allocate(ht_p(ims:ime,jms:jme)               )
        if(.not.allocated(cubot_p)        ) allocate(cubot_p(ims:ime,jms:jme)            )
        if(.not.allocated(cutop_p)        ) allocate(cutop_p(ims:ime,jms:jme)            )
@@ -430,7 +430,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas","cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas_wrf390")
        if(allocated(ht_p)           ) deallocate(ht_p           )
        if(allocated(cubot_p)        ) deallocate(cubot_p        )
        if(allocated(cutop_p)        ) deallocate(cutop_p        )
@@ -680,47 +680,6 @@
  if(config_do_restart .or. itimestep > 1) initflag = 0
 
  convection_select: select case(convection_scheme)
-
-    case ("cu_grell_freitas")
-       call mpas_timer_start('cu_grell-freitas')
-       call cu_grell_freitas( &
-             itimestep       = itimestep              , dt            = dt_dyn          , &
-             dxCell          = dx_p                   , areaCell      = area_p          , &
-             u               = u_p                    , v             = v_p             , &
-             w               = w_p                    , t             = t_p             , &
-             q               = qv_p                   , rho           = rho_p           , &
-             p               = pres_hyd_p             , pi            = pi_p            , &
-             p8w             = pres2_hyd_p            , dz8w          = dz_p            , &
-             ht              = ht_p                   , xland         = xland_p         , &
-             gsw             = gsw_p                  , xlv           = xlv             , &
-             cp              = cp                     , g             = gravity         , &
-             r_v             = R_v                    , hfx           = hfx_p           , &
-             qfx             = qfx_p                  , rthblten      = rthblten_p      , &
-             rqvblten        = rqvblten_p             , rthften       = rthdynten_p     , &
-             rqvften         = rqvdynten_p            , rthraten      = rthraten_p      , &
-             kpbl            = kpbl_p                 , raincv        = raincv_p        , &
-             pratec          = pratec_p               , htop          = cutop_p         , &
-             hbot            = cubot_p                , k22_deepc     = k22_deepc_p     , &
-             kbcon_deepc     = kbcon_deepc_p          , ktop_deepc    = ktop_deepc_p    , &
-             k22_shalc       = k22_shalc_p            , kbcon_shalc   = kbcon_shalc_p   , &
-             ktop_shalc      = ktop_shalc_p           , xmb_total     = xmb_deepc_p     , &
-             xmb_shallow     = xmb_shalc_p            , gdc           = qccu_p          , &
-             gdc2            = qicu_p                 , rthcuten      = rthcuten_p      , &
-             rqvcuten        = rqvcuten_p             , rqccuten      = rqccuten_p      , &
-             rqicuten        = rqicuten_p             , gdcs          = qccu_shalc_p    , &
-             gdc2s           = qicu_shalc_p           , rthcutens     = rthcuten_shalc_p, &
-             rqvcutens       = rqvcuten_shalc_p       , rqccutens     = rqccuten_shalc_p, &
-             rqicutens       = rqicuten_shalc_p       , rinc          = rinc_p          , &
-             rincs           = rincs_p                ,                                   &
-             nclos           = nclosures              ,                                   &
-             ichoice_deep    = gfconv_closure_deep                                      , &
-             ichoice_shallow = gfconv_closure_shallow                                   , &
-             ishallow_g3     = ishallow                                                 , &
-             ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde      , &
-             ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme      , &
-             its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte        &
-                            )
-       call mpas_timer_stop('cu_grell-freitas')
 
     case ("cu_grell_freitas_wrf390")
        call mpas_log_write('')
@@ -1417,7 +1376,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas","cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas_wrf390")
        call mpas_pool_get_config(configs,'config_len_disp',len_disp)
 
        call mpas_pool_get_array(mesh,'areaCell'   ,areaCell   )
@@ -2004,7 +1963,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas","cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas_wrf390")
        call mpas_pool_get_dimension(mesh,'nClosures',nclosures)
 
        call mpas_pool_get_array(diag_physics,'cubot'    ,cubot    )

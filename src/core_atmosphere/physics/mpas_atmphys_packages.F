@@ -118,8 +118,7 @@
  cu_kain_fritsch_in  = .false.
  cu_tiedtke_in       = .false.
 
- if(config_convection_scheme=='cu_grell_freitas' .or. &
-    config_convection_scheme=='cu_grell_freitas_wrf390') then
+ if(config_convection_scheme=='cu_grell_freitas_wrf390') then
     cu_grell_freitas_in = .true.
  elseif(config_convection_scheme == 'cu_kain_fritsch' .or. &
         config_convection_scheme == 'cu_kain_fritsch_sca') then

@@ -386,7 +386,7 @@
           enddo
           enddo
     
-       case('cu_tiedtke','cu_ntiedtke','cu_grell_freitas','cu_grell_freitas_wrf390')
+       case('cu_tiedtke','cu_ntiedtke','cu_grell_freitas_wrf390')
           if(rk_step == 1 .and. dynamics_substep == 1) then
              call tend_toEdges(block,mesh,rucuten,rvcuten,rucuten_Edge)
                  
@@ -401,7 +401,7 @@
           enddo
 
        cu2_select: select case(convection_scheme)
-          case('cu_grell_freitas','cu_grell_freitas_wrf390')
+          case('cu_grell_freitas_wrf390')
              do i = 1, nCellsSolve
              do k = 1, nVertLevels
                 tend_scalars(index_nc,k,i)   = tend_scalars(index_nc,k,i) + rnccuten(k,i)*mass(k,i)
