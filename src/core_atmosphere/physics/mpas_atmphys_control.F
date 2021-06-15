@@ -94,6 +94,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2018-01-31.
 ! * added the option cu_kain_fritsch_sca to run the Kain-Fritsch scale-aware parameterization of convection.
 !   Laura D. Fowler (laura@ucar.edu) / 2018-02-06.
+! * substituted the option cu_grell_freitas_wrf390 with the option cu_grell_freitas.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-06-15.
 
 
  contains
@@ -158,7 +160,7 @@
  else if (trim(config_physics_suite) == 'convection_permitting') then
 
     if (trim(config_microp_scheme)     == 'suite') config_microp_scheme     = 'mp_thompson'
-    if (trim(config_convection_scheme) == 'suite') config_convection_scheme = 'cu_grell_freitas_wrf390'
+    if (trim(config_convection_scheme) == 'suite') config_convection_scheme = 'cu_grell_freitas'
     if (trim(config_pbl_scheme)        == 'suite') config_pbl_scheme        = 'bl_mynn'
     if (trim(config_gwdo_scheme)       == 'suite') config_gwdo_scheme       = 'bl_ysu_gwdo'
     if (trim(config_radt_lw_scheme)    == 'suite') config_radt_lw_scheme    = 'rrtmg_lw'
@@ -203,11 +205,11 @@
  endif
 
 !convection scheme:
- if(.not. (config_convection_scheme .eq. 'off'                     .or. &
-           config_convection_scheme .eq. 'cu_grell_freitas_wrf390' .or. &
-           config_convection_scheme .eq. 'cu_kain_fritsch'         .or. &
-           config_convection_scheme .eq. 'cu_kain_fritsch_sca'     .or. &
-           config_convection_scheme .eq. 'cu_tiedtke'              .or. &
+ if(.not. (config_convection_scheme .eq. 'off'                 .or. &
+           config_convection_scheme .eq. 'cu_grell_freitas'    .or. &
+           config_convection_scheme .eq. 'cu_kain_fritsch'     .or. &
+           config_convection_scheme .eq. 'cu_kain_fritsch_sca' .or. &
+           config_convection_scheme .eq. 'cu_tiedtke'          .or. &
            config_convection_scheme .eq. 'cu_ntiedtke')) then
 
     write(mpas_err_message,'(A,A10)') 'illegal value for config_convection_scheme: ', &

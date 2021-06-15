@@ -43,6 +43,8 @@
 !   tendencies for the "ice-friendly" and "water-friendly" aerosol number concentrations for convective transport
 !   in the GF convection scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2019-05-09.
+! * substituted the option cu_grell_freitas_wrf390 with the option cu_grell_freitas.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-06-15.
 
 
  contains
@@ -386,7 +388,7 @@
           enddo
           enddo
     
-       case('cu_tiedtke','cu_ntiedtke','cu_grell_freitas_wrf390')
+       case('cu_tiedtke','cu_ntiedtke','cu_grell_freitas')
           if(rk_step == 1 .and. dynamics_substep == 1) then
              call tend_toEdges(block,mesh,rucuten,rvcuten,rucuten_Edge)
                  
@@ -401,7 +403,7 @@
           enddo
 
        cu2_select: select case(convection_scheme)
-          case('cu_grell_freitas_wrf390')
+          case('cu_grell_freitas')
              do i = 1, nCellsSolve
              do k = 1, nVertLevels
                 tend_scalars(index_nc,k,i)   = tend_scalars(index_nc,k,i) + rnccuten(k,i)*mass(k,i)

@@ -118,7 +118,7 @@
  cu_kain_fritsch_in  = .false.
  cu_tiedtke_in       = .false.
 
- if(config_convection_scheme=='cu_grell_freitas_wrf390') then
+ if(config_convection_scheme=='cu_grell_freitas') then
     cu_grell_freitas_in = .true.
  elseif(config_convection_scheme == 'cu_kain_fritsch' .or. &
         config_convection_scheme == 'cu_kain_fritsch_sca') then
@@ -128,9 +128,9 @@
     cu_tiedtke_in = .true.
  endif
 
- call mpas_log_write('    cu_grell_freitas_in     = $l', logicArgs=(/cu_grell_freitas_in/))
- call mpas_log_write('    cu_kain_fritsch_in      = $l', logicArgs=(/cu_kain_fritsch_in/))
- call mpas_log_write('    cu_tiedtke_in           = $l', logicArgs=(/cu_tiedtke_in/))
+ call mpas_log_write('    cu_grell_freitas_in = $l', logicArgs=(/cu_grell_freitas_in/))
+ call mpas_log_write('    cu_kain_fritsch_in  = $l', logicArgs=(/cu_kain_fritsch_in/))
+ call mpas_log_write('    cu_tiedtke_in       = $l', logicArgs=(/cu_tiedtke_in/))
 
 !--- initialization of all packages for parameterizations of surface layer and planetary boundary layer:
 
