@@ -1629,8 +1629,8 @@ module atm_time_integration
          call mpas_pool_get_dimension(block % dimensions, 'cellSolveThreadStart', cellSolveThreadStart)
          call mpas_pool_get_dimension(block % dimensions, 'cellSolveThreadEnd', cellSolveThreadEnd)
 
-         if(config_convection_scheme == 'cu_grell_freitas_wrf390'   .or. &
-            config_convection_scheme == 'cu_tiedtke'                .or. &
+         if(config_convection_scheme == 'cu_grell_freitas' .or. &
+            config_convection_scheme == 'cu_tiedtke'       .or. &
             config_convection_scheme == 'cu_ntiedtke') then
 
             call mpas_pool_get_array(tend_physics, 'rqvdynten', rqvdynten)
