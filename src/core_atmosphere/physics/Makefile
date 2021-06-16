@@ -4,7 +4,7 @@ ifeq ($(CORE),atmosphere)
 COREDEF = -Dmpas
 endif
 
-all: lookup_tables core_physics_init core_physics_sima core_physics_wrf core_physics
+all: lookup_tables core_physics_init core_physics_cam6 core_physics_sima core_physics_wrf core_physics
 
 dummy:
 	echo "****** compiling physics ******"
@@ -55,6 +55,9 @@ core_physics_wrf: core_physics_init
 
 core_physics_sima: core_physics_init
 	(cd physics_sima; $(MAKE) all COREDEF="$(COREDEF)")
+
+core_physics_cam6:
+	(cd physics_cam6; $(MAKE) all COREDEF="$(COREDEF)")
 
 core_physics_init: $(OBJS_init)
 	ar -ru libphys.a $(OBJS_init)
@@ -209,6 +212,7 @@ clean:
 	$(RM) *.o *.mod *.f90 libphys.a
 	( cd physics_wrf; $(MAKE) clean )
 	( cd physics_sima; $(MAKE) clean )
+	( cd physics_cam6; $(MAKE) clean )
 	@# Certain systems with intel compilers generate *.i files
 	@# This removes them during the clean process
 	$(RM) *.i
