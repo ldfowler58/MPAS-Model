@@ -12,6 +12,11 @@
                   units="-"
                   description="option for evaporation of Thompson "water-friendly" and "ice-friendly" aerosols"
                   possible_values="0,1"/>
+
+      <nml_option name="config_gfconv_thom_implicit" type="integer" default_value="0" in_defaults="false"
+                  units="-"
+                  description="option for time implicit transport of Thompson "water-friendly" and "ice-friendly" aerosols"
+                  possible_values="0,1"/>
  </nml_record>
 
 
@@ -196,11 +201,30 @@
                      description="coarse mode of sea salt water-friendly due to wet scavenging"/>
       </var_array>
 
+      <var name="nifa_scavt" type="real" dimensions="nCells Time" units="# kg^{-1}"
+           description=" "/>
+
+      <var name="nifa_evapt" type="real" dimensions="nCells Time" units="# kg^{-1}"
+           description=" "/>
+
+      <var name="nwfa_scavt" type="real" dimensions="nCells Time" units="# kg^{-1}"
+           description=" "/>
+
+      <var name="nwfa_evapt" type="real" dimensions="nCells Time" units="# kg^{-1}"
+           description=" "/>
+
       <var name="nifa_scav" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
-           description="ice-friendly aerosols due to wet scavening"/>
+           description="ice-friendly aerosols due to wet scavening in updrafts"/>
+
+      <var name="nifa_evap" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
+           description="ice-friendly aerosols due to evaporation in downdrafts"/>
 
       <var name="nwfa_scav" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
-           description="water-friendly aerosols due to wet scavening"/>
+           description="water-friendly aerosols due to wet scavening in updrafts"/>
+
+      <var name="nwfa_evap" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
+           description="water-friendly aerosols due to evaporation in downdrafts"/>
+
  </var_struct>
 
 
