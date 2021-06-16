@@ -22,7 +22,6 @@
 
 !wrf physics:
  use module_cu_gf
- use module_cu_gf_wrf390
  use module_cu_kfeta
  use module_cu_mskf
  use module_cu_ntiedtke
@@ -141,6 +140,9 @@
 ! * added the pre-processing option ATM_CHEMISTRY to include the convective transport of passive tracers, and
 !   "ice-friendly" and "water-friendly" Thompson aerosols.
 !   Laura D. Fowler (laura@ucar.edu) / 2020-11-14.
+! * deleted the old GF convection scheme (call cu_grell_freitas) and renamed cu_grell_freitas_wrf390 to
+!   cu_grell_freitas.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-06-16.
 
 
  contains
@@ -227,7 +229,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        if(.not.allocated(ht_p)           ) allocate(ht_p(ims:ime,jms:jme)               )
        if(.not.allocated(cubot_p)        ) allocate(cubot_p(ims:ime,jms:jme)            )
        if(.not.allocated(cutop_p)        ) allocate(cutop_p(ims:ime,jms:jme)            )
@@ -430,7 +432,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        if(allocated(ht_p)           ) deallocate(ht_p           )
        if(allocated(cubot_p)        ) deallocate(cubot_p        )
        if(allocated(cutop_p)        ) deallocate(cutop_p        )
@@ -643,7 +645,7 @@
  real(kind=RKIND):: cudtacttime
 
 #ifdef ATM_CHEMISTRY
- integer,pointer:: gfconv_thom_scaven,gfconv_thom_evap
+ integer,pointer:: gfconv_thom_scaven,gfconv_thom_evap,gfconv_thom_implicit
 #endif
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -681,9 +683,9 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        call mpas_log_write('')
-       call mpas_log_write('--- enter subroutine cu_grell_freitas_wrf390:')
+       call mpas_log_write('--- enter subroutine cu_grell_freitas:')
 
        call mpas_pool_get_config(configs,'config_gfconv_deepc',gfconv_deepc)
        call mpas_pool_get_config(configs,'config_gfconv_midlc',gfconv_midlc)
@@ -699,16 +701,18 @@
        call mpas_log_write('gfconv_closure_midlc = $i',intArgs=(/gfconv_closure_midlc/))
        call mpas_log_write('gfconv_closure_shalc = $i',intArgs=(/gfconv_closure_shalc/))
 #ifdef ATM_CHEMISTRY
-       call mpas_pool_get_config(configs,'config_gfconv_thom_scaven',gfconv_thom_scaven)
-       call mpas_pool_get_config(configs,'config_gfconv_thom_evap'  ,gfconv_thom_evap  )
+       call mpas_pool_get_config(configs,'config_gfconv_thom_scaven'  ,gfconv_thom_scaven  )
+       call mpas_pool_get_config(configs,'config_gfconv_thom_evap'    ,gfconv_thom_evap    )
+       call mpas_pool_get_config(configs,'config_gfconv_thom_implicit',gfconv_thom_implicit)
 
        call mpas_log_write('naer = $i',intArgs=(/mpas_chems%naers/))
-       call mpas_log_write('gfconv_thom_scaven   = $i',intArgs=(/gfconv_thom_scaven/))
-       call mpas_log_write('gfconv_thom_evap     = $i',intArgs=(/gfconv_thom_evap/)  )
+       call mpas_log_write('gfconv_thom_scaven   = $i',intArgs=(/gfconv_thom_scaven/)  )
+       call mpas_log_write('gfconv_thom_evap     = $i',intArgs=(/gfconv_thom_evap/)    )
+       call mpas_log_write('gfconv_thom_implicit = $i',intArgs=(/gfconv_thom_implicit/))
 #endif
 
-       call mpas_timer_start('cu_grell_freitas_wrf390')
-       call cu_grell_freitas_wrf390( &
+       call mpas_timer_start('cu_grell_freitas')
+       call cu_grell_freitas( &
                dt           = dt_dyn               , dx           = dx_p                 , &
                area         = area_p               , u            = u_p                  , &
                v            = v_p                  , w            = w_p                  , &
@@ -748,20 +752,24 @@
                gdc          = qccu_p               , gdc2         = qicu_p               , &
                nclos        = nclosures            , weights_clos = weights_clos_p       , &
 #ifdef ATM_CHEMISTRY
-               use_thom_scaven = gfconv_thom_scaven           , use_thom_evap = gfconv_thom_evap             , &
-               nifa            = nifa_p                       , nwfa          = nwfa_p                       , &
-               rnifacuten      = rnifacuten_p                 , rnwfacuten    = rnwfacuten_p                 , &
-               naer            = mpas_chems%naers             , aerosol3d_w   = mpas_chems%aerosols_weight_p , &
-               aerosol3d_scav  = mpas_chems%aerosols_scav_p   , nifa3d_scav   = mpas_chems%nifa_scav_p       , &
-               nwfa3d_scav     = mpas_chems%nwfa_scav_p       , nchem         = mpas_chems%nchems            , &
-               ntracer         = mpas_tracers%ntracers        , tracer3d      = mpas_tracers%tracers_p       , &
-               rtracercuten    = mpas_tracers%rtracerscuten_p ,                                                &
+               use_thom_scaven   = gfconv_thom_scaven           , use_thom_evap = gfconv_thom_evap             , &
+               use_thom_implicit = gfconv_thom_implicit         ,                                                &
+               nifa              = nifa_p                       , nwfa          = nwfa_p                       , &
+               rnifacuten        = rnifacuten_p                 , rnwfacuten    = rnwfacuten_p                 , &
+               naer              = mpas_chems%naers             , aerosol3d_w   = mpas_chems%aerosols_weight_p , &
+               aerosol3d_scav    = mpas_chems%aerosols_scav_p   , nifa3d_evapt  = mpas_chems%nifa_evapt_p      , &
+               nifa3d_scavt      = mpas_chems%nifa_scavt_p      , nwfa3d_evapt  = mpas_chems%nwfa_evapt_p      , &
+               nwfa3d_scavt      = mpas_chems%nwfa_scavt_p      , nifa3d_evap   = mpas_chems%nifa_evap_p       , &
+               nifa3d_scav       = mpas_chems%nifa_scav_p       , nwfa3d_evap   = mpas_chems%nwfa_evap_p       , &
+               nwfa3d_scav       = mpas_chems%nwfa_scav_p       , nchem         = mpas_chems%nchems            , &
+               ntracer           = mpas_tracers%ntracers        , tracer3d      = mpas_tracers%tracers_p       , &
+               rtracercuten      = mpas_tracers%rtracerscuten_p ,                                                &
 #endif
                ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde     , &
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme     , &
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
-                                   )
-       call mpas_timer_stop('cu_grell_freitas_wrf390')
+                            )
+       call mpas_timer_stop('cu_grell_freitas')
 !#ifdef ATM_CHEMISTRY
 !      do j = jts,jte
 !         do i = its,ite
@@ -776,7 +784,7 @@
 !         enddo
 !      enddo
 !#endif
-       call mpas_log_write('--- end subroutine cu_grell_freitas_wrf390.')
+       call mpas_log_write('--- end subroutine cu_grell_freitas.')
        call mpas_log_write('')
 
     case ("cu_kain_fritsch")
@@ -1376,7 +1384,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        call mpas_pool_get_config(configs,'config_len_disp',len_disp)
 
        call mpas_pool_get_array(mesh,'areaCell'   ,areaCell   )
@@ -1963,7 +1971,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        call mpas_pool_get_dimension(mesh,'nClosures',nclosures)
 
        call mpas_pool_get_array(diag_physics,'cubot'    ,cubot    )
@@ -2234,7 +2242,7 @@
 !end of each dynamic time-step:
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        call mpas_pool_get_dimension(mesh,'nClosures',nclosures)
 
        call mpas_pool_get_array(diag_physics,'cuprecd',cuprecd)

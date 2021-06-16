@@ -155,10 +155,13 @@ contains
                                 !! implement yourself. pattern is expected to be
                                 !! between -1 and +1
 #ifdef ATM_CHEMISTRY
-              ,use_thom_scaven,use_thom_evap,is_mp,nifa,nwfa,outnifa,outnwfa & !transport of "Thompson" aerosols.
-              ,naer,aerosol_w,aerosol_scav,nifa_scav,nwfa_scav               & !transport of "Thompson" aerosols.
-              ,nchem,chem,outchem                                            & !transport of chemical species.
-              ,ntracer,tracer,outtracer                                      & !transport of passive tracers.
+              ,use_thom_scaven,use_thom_evap,use_thom_implicit,is_mp & !transport of "Thompson" aerosols.
+              ,nifa,nwfa,outnifa,outnwfa                             & !transport of "Thompson" aerosols.
+              ,naer,aerosol_w,aerosol_scav                           & !transport of "Thompson" aerosols.
+              ,nifa_evapt,nifa_scavt,nwfa_evapt,nwfa_scavt           & !transport of "Thompson" aerosols.
+              ,nifa_evap,nifa_scav,nwfa_evap,nwfa_scav               & !transport of "Thompson" aerosols.
+              ,nchem,chem,outchem                                    & !transport of chemical species.
+              ,ntracer,tracer,outtracer                              & !transport of passive tracers.
 #endif
 #if ( wrf_dfi_radar == 1 )
               ,do_capsuppress,cap_suppress_j    &    !         
@@ -409,7 +412,7 @@ contains
 
      logical,intent(in):: is_mp
      integer,intent(in):: nchem
-     integer,intent(in):: use_thom_scaven,use_thom_evap
+     integer,intent(in):: use_thom_scaven,use_thom_evap,use_thom_implicit
      real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,nchem)   :: chem
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,nchem):: outchem
      integer,intent(in):: ntracer
@@ -417,7 +420,8 @@ contains
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,ntracer):: outtracer
      integer,intent(in):: naer
      real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,naer)   :: aerosol_w
-     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte)     :: nifa_scav,nwfa_scav
+     real(kind=kind_phys),intent(inout),dimension(its:ite)             :: nifa_evapt,nifa_scavt,nwfa_evapt,nwfa_scavt
+     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte)     :: nifa_evap,nifa_scav,nwfa_evap,nwfa_scav
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,naer):: aerosol_scav
 
      !local variables:
@@ -919,6 +923,16 @@ contains
                                 ,'deep',kbcon,k22,up_massentru,up_massdetru,lambau)
      endif
 
+!    call mpas_log_write('--- afer subroutine get_lateral_massflux:')
+!    do i = its,ite
+!       if(ierr(i).eq.0) then
+!          do k = kts,ktop(i)+10
+!             call mpas_log_write('$i $i $i $r $r $r $r $r',intArgs=(/i,ktop(i),k/),realArgs=(/zuo(i,k), &
+!                       up_massdetro(i,k),up_massdetr(i,k),up_massentro(i,k),up_massentr(i,k)/))
+!          enddo
+!          call mpas_log_write(' ')
+!       endif
+!    enddo
 
 !
 !   note: ktop here already includes overshooting, ktopdby is without
@@ -981,8 +995,10 @@ contains
               exit
            endif
         enddo
-        ktop(i)=ktopkeep(i)
-        if(ierr(i).eq.0)ktop(i)=ktopkeep(i)
+!--- MPAS: do not update ktop.
+!       ktop(i)=ktopkeep(i)
+!       if(ierr(i).eq.0)ktop(i)=ktopkeep(i)
+!--- MPAS end.
       enddo
       do 37 i=its,itf
          kzdown(i)=0
@@ -1093,6 +1109,16 @@ contains
 !    includes the calculation of the in-cloud "ice-" and "water-friendly" aerosols (nifa_up and
 !    nwfa-up) from the Thompson cloud microphysics. for now, nc_up and ni_up are simply holders.
 !    cup_up_moisture_ctrans does not work with the "berry" autoconversion option.
+!    call mpas_log_write('--- before subroutine cup_up_moisture_ctrans:')
+!    do i = its,ite
+!       if(ierr(i).eq.0) then
+!          do k = kts,ktop(i)+10
+!             call mpas_log_write('$i $i $i $r $r $r $r $r',intArgs=(/i,ktop(i),k/),realArgs=(/zuo(i,k), &
+!                       up_massdetro(i,k),up_massdetr(i,k),up_massentro(i,k),up_massentr(i,k)/))
+!          enddo
+!          call mpas_log_write(' ')
+!       endif
+!    enddo
          call cup_up_moisture_ctrans('deep',ierr,k22,kbcon,ktop,autoconv,zo_cup,  &
                      tn_cup,qo_cup,qeso_cup,gammao_cup,qo,dbyo,c1d,up_massentr,   &
                      up_massdetr,zuo,qco,qrco,pwo,clw_all,pwavo,psum,             &
@@ -1171,8 +1197,10 @@ contains
               exit
            endif
         enddo
-        ktop(i)=ktopkeep(i)
-        if(ierr(i).eq.0)ktop(i)=ktopkeep(i)
+!--- MPAS: do not update ktop.
+!       ktop(i)=ktopkeep(i)
+!       if(ierr(i).eq.0)ktop(i)=ktopkeep(i)
+!--- MPAS end.
       enddo
 41    continue
       do i=its,itf
@@ -2143,9 +2171,23 @@ contains
 !
 #ifdef ATM_CHEMISTRY
       call mpas_timer_start('atm_chem: physics - GF')
-      call ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,jmin,naer,use_thom_scaven,use_thom_evap,dtime,g, &
-                           edto,xmb,po,po_cup,z_cup,aerosol_w,nifa,nwfa,aerosol_scav,nifa_scav,nwfa_scav,pwavo, &
-                           pwevo,pwo,pwdo,zuo,up_massentr,up_massdetr,zdo,dd_massentro,dd_massdetro,outnifa,outnwfa)
+!     call mpas_log_write('--- before subroutine ctrans_thompson:')
+!     do i = its,ite
+!        if(ierr(i).eq.0) then
+!           do k = kts,ktop(i)+10
+!              call mpas_log_write('$i $i $i $r $r $r $r $r',intArgs=(/i,ktop(i),k/),realArgs=(/zuo(i,k), &
+!                        up_massdetro(i,k),up_massdetr(i,k),up_massentro(i,k),up_massentr(i,k)/))
+!           enddo
+!           call mpas_log_write(' ')
+!        endif
+!     enddo
+      if(is_mp) then
+         call ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,jmin,naer,use_thom_scaven,use_thom_evap, &
+                             use_thom_implicit,dtime,g,edto,xmb,po,po_cup,z_cup,nifa,nwfa,pwavo,pwevo,pwo, &
+                             pwdo,zuo,up_massentr,up_massdetr,zdo,dd_massentro,dd_massdetro,nifa_evap,     &
+                             nifa_scav,nwfa_evap,nwfa_scav,nifa_evapt,nifa_scavt,nwfa_evapt,nwfa_scavt,    &
+                             outnifa,outnwfa)
+      endif
       call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo, &
                                p_cup,nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,      &
                                tracer_up,tracer_dn,outtracer)
