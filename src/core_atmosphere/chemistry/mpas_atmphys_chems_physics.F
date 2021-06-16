@@ -25,7 +25,14 @@
     real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_p        => null()
     real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_weight_p => null()
     real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_scav_p   => null()
+
+    real(kind=RKIND),dimension(:,:),pointer:: nifa_evapt_p => null()
+    real(kind=RKIND),dimension(:,:),pointer:: nifa_scavt_p => null()
+    real(kind=RKIND),dimension(:,:),pointer:: nwfa_evapt_p => null()
+    real(kind=RKIND),dimension(:,:),pointer:: nwfa_scavt_p => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: nifa_evap_p => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: nifa_scav_p => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: nwfa_evap_p => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: nwfa_scav_p => null()
 
     contains
@@ -88,8 +95,15 @@
  if(.not.associated(this%aerosols_p)       ) allocate(this%aerosols_p(ims:ime,kms:kme,jms:jme,this%naers)       )
  if(.not.associated(this%aerosols_weight_p)) allocate(this%aerosols_weight_p(ims:ime,kms:kme,jms:jme,this%naers))
  if(.not.associated(this%aerosols_scav_p)  ) allocate(this%aerosols_scav_p(ims:ime,kms:kme,jms:jme,this%naers)  )
- if(.not.associated(this%nifa_scav_p)) allocate(this%nifa_scav_p(ims:ime,kms:kme,jms:jme))
- if(.not.associated(this%nwfa_scav_p)) allocate(this%nwfa_scav_p(ims:ime,kms:kme,jms:jme))
+
+ if(.not.associated(this%nifa_evapt_p)) allocate(this%nifa_evapt_p(ims:ime,jms:jme))
+ if(.not.associated(this%nifa_scavt_p)) allocate(this%nifa_scavt_p(ims:ime,jms:jme))
+ if(.not.associated(this%nwfa_evapt_p)) allocate(this%nwfa_evapt_p(ims:ime,jms:jme))
+ if(.not.associated(this%nwfa_scavt_p)) allocate(this%nwfa_scavt_p(ims:ime,jms:jme))
+ if(.not.associated(this%nifa_evap_p) ) allocate(this%nifa_evap_p(ims:ime,kms:kme,jms:jme))
+ if(.not.associated(this%nifa_scav_p) ) allocate(this%nifa_scav_p(ims:ime,kms:kme,jms:jme))
+ if(.not.associated(this%nwfa_evap_p) ) allocate(this%nwfa_evap_p(ims:ime,kms:kme,jms:jme))
+ if(.not.associated(this%nwfa_scav_p) ) allocate(this%nwfa_scav_p(ims:ime,kms:kme,jms:jme))
 
  call mpas_log_write('--- end subroutine mpas_chems_allocate:')
 
@@ -112,8 +126,15 @@
  if(associated(this%aerosols_p)       ) deallocate(this%aerosols_p       )
  if(associated(this%aerosols_weight_p)) deallocate(this%aerosols_weight_p)
  if(associated(this%aerosols_scav_p)  ) deallocate(this%aerosols_scav_p  )
- if(associated(this%nifa_scav_p)) deallocate(this%nifa_scav_p)
- if(associated(this%nwfa_scav_p)) deallocate(this%nwfa_scav_p)
+
+ if(associated(this%nifa_evapt_p)) deallocate(this%nifa_evapt_p)
+ if(associated(this%nifa_scavt_p)) deallocate(this%nifa_scavt_p)
+ if(associated(this%nwfa_evapt_p)) deallocate(this%nwfa_evapt_p)
+ if(associated(this%nwfa_scavt_p)) deallocate(this%nwfa_scavt_p)
+ if(associated(this%nifa_evap_p) ) deallocate(this%nifa_evap_p )
+ if(associated(this%nifa_scav_p) ) deallocate(this%nifa_scav_p )
+ if(associated(this%nwfa_evap_p) ) deallocate(this%nwfa_evap_p )
+ if(associated(this%nwfa_scav_p) ) deallocate(this%nwfa_scav_p )
 
  call mpas_log_write('--- end subroutine mpas_chems_deallocate:')
  call mpas_log_write(' ')
@@ -148,7 +169,9 @@
  integer,pointer:: index_oc,index_so4,index_seas1,index_seas2
  real(kind=RKIND),dimension(:,:,:),pointer  :: aerosols,aerosols_weight
  real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_p,aerosols_weight_p,aerosols_scav_p
- real(kind=RKIND),dimension(:,:,:),pointer  :: nifa_scav_p,nwfa_scav_p
+
+ real(kind=RKIND),dimension(:,:),pointer  :: nifa_evapt_p,nifa_scavt_p,nwfa_evapt_p,nwfa_scavt_p
+ real(kind=RKIND),dimension(:,:,:),pointer:: nifa_evap_p,nifa_scav_p,nwfa_evap_p,nwfa_scav_p
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -217,8 +240,14 @@
  aerosols_p        => this%aerosols_p
  aerosols_weight_p => this%aerosols_weight_p
  aerosols_scav_p   => this%aerosols_scav_p
- nifa_scav_p => this%nifa_scav_p
- nwfa_scav_p => this%nwfa_scav_p
+ nifa_evapt_p => this%nifa_evapt_p
+ nifa_scavt_p => this%nifa_scavt_p
+ nwfa_evapt_p => this%nwfa_evapt_p
+ nwfa_scavt_p => this%nwfa_scavt_p
+ nifa_evap_p  => this%nifa_evap_p
+ nifa_scav_p  => this%nifa_scav_p
+ nwfa_evap_p  => this%nwfa_evap_p
+ nwfa_scav_p  => this%nwfa_scav_p
 
  do n = 1,naers
     do j = jts,jte
@@ -233,9 +262,17 @@
  enddo
 
  do j = jts,jte
+    do i = its,ite
+       nifa_evapt_p(i,j) = 0._RKIND
+       nifa_scavt_p(i,j) = 0._RKIND
+       nwfa_evapt_p(i,j) = 0._RKIND
+       nwfa_scavt_p(i,j) = 0._RKIND
+    enddo
     do k = kts,kte
        do i = its,ite
+          nifa_evap_p(i,k,j) = 0._RKIND
           nifa_scav_p(i,k,j) = 0._RKIND
+          nwfa_evap_p(i,k,j) = 0._RKIND
           nwfa_scav_p(i,k,j) = 0._RKIND
        enddo
     enddo
@@ -264,14 +301,16 @@
  integer:: nchems
  integer:: naers
  real(kind=RKIND),dimension(:,:,:,:),pointer:: rchemsblten_p,rchemscuten_p
- real(kind=RKIND),dimension(:,:,:),pointer  :: nifa_scav_p,nwfa_scav_p
+ real(kind=RKIND),dimension(:,:),pointer    :: nifa_evapt_p,nifa_scavt_p,nwfa_evapt_p,nwfa_scavt_p
+ real(kind=RKIND),dimension(:,:,:),pointer  :: nifa_evap_p,nifa_scav_p,nwfa_evap_p,nwfa_scav_p
  real(kind=RKIND),dimension(:,:,:,:),pointer:: aerosols_scav_p
 
  integer,pointer:: num_bl_chems
  integer,pointer:: num_cu_chems
  real(kind=RKIND),dimension(:,:,:),pointer:: bl_chems,cu_chems
 
- real(kind=RKIND),dimension(:,:),pointer  :: nifa_scav,nwfa_scav
+ real(kind=RKIND),dimension(:),pointer  :: nifa_evapt,nifa_scavt,nwfa_evapt,nwfa_scavt
+ real(kind=RKIND),dimension(:,:),pointer:: nifa_evap,nifa_scav,nwfa_evap,nwfa_scav
  real(kind=RKIND),dimension(:,:,:),pointer:: aerosols_scav
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -287,16 +326,28 @@
  call mpas_pool_get_array(tend_chems,'cu_chems',cu_chems)
 
  call mpas_pool_get_array(diag_chems,'aerosols_scav',aerosols_scav)
- call mpas_pool_get_array(diag_chems,'nifa_scav',nifa_scav)
- call mpas_pool_get_array(diag_chems,'nwfa_scav',nwfa_scav)
+ call mpas_pool_get_array(diag_chems,'nifa_evapt',nifa_evapt)
+ call mpas_pool_get_array(diag_chems,'nifa_scavt',nifa_scavt)
+ call mpas_pool_get_array(diag_chems,'nwfa_evapt',nwfa_evapt)
+ call mpas_pool_get_array(diag_chems,'nwfa_scavt',nwfa_scavt)
+ call mpas_pool_get_array(diag_chems,'nifa_evap' ,nifa_evap )
+ call mpas_pool_get_array(diag_chems,'nifa_scav' ,nifa_scav )
+ call mpas_pool_get_array(diag_chems,'nwfa_evap' ,nwfa_evap )
+ call mpas_pool_get_array(diag_chems,'nwfa_scav' ,nwfa_scav )
 
  nchems = this%nchems
  rchemsblten_p => this%rchemsblten_p
  rchemscuten_p => this%rchemscuten_p
 
  naers = this%naers
- nifa_scav_p => this%nifa_scav_p
- nwfa_scav_p => this%nwfa_scav_p
+ nifa_evapt_p => this%nifa_evapt_p
+ nifa_scavt_p => this%nifa_scavt_p
+ nwfa_evapt_p => this%nwfa_evapt_p
+ nwfa_scavt_p => this%nwfa_scavt_p
+ nifa_evap_p  => this%nifa_evap_p
+ nifa_scav_p  => this%nifa_scav_p
+ nwfa_evap_p  => this%nwfa_evap_p
+ nwfa_scav_p  => this%nwfa_scav_p
  aerosols_scav_p => this%aerosols_scav_p
 
  call mpas_log_write('--- nchems       = $i',intArgs=(/nchems/))
@@ -322,9 +373,17 @@
     enddo
  enddo
  do j = jts,jte
+    do i = its,ite
+       nifa_evapt(i) = nifa_evapt_p(i,j)
+       nifa_scavt(i) = nifa_scavt_p(i,j)
+       nwfa_evapt(i) = nwfa_evapt_p(i,j)
+       nwfa_scavt(i) = nwfa_scavt_p(i,j)
+    enddo
     do k = kts,kte
        do i = its,ite
+          nifa_evap(k,i) = nifa_evap_p(i,k,j)
           nifa_scav(k,i) = nifa_scav_p(i,k,j)
+          nwfa_evap(k,i) = nwfa_evap_p(i,k,j)
           nwfa_scav(k,i) = nwfa_scav_p(i,k,j)
        enddo
     enddo
