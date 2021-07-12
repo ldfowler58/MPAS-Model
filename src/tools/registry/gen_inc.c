@@ -154,16 +154,17 @@ int add_package_to_list(const char * package, const char * package_list){/*{{{*/
 	token = strsep(&string, ";");
 
 	if(strcmp(package, token) == 0){
+		if(tofree) free(tofree);
 		return 0;
 	}
 
 	while( (token = strsep(&string, ";")) != NULL){
 		if(strcmp(package, token) == 0){
-
+			if(tofree) free(tofree);
 			return 0;
 		}
 	}
-
+	if(tofree) free(tofree);
 	return 1;
 }/*}}}*/
 
@@ -226,12 +227,13 @@ int build_struct_package_lists(ezxml_t currentPosition, char * out_packages){/*{
 				if(out_packages[0] == '\0'){
 					sprintf(out_packages, "%s", token);
 				} else if(add_package_to_list(token, out_packages)){
-					sprintf(out_packages, "%s;%s", out_packages, token);
+					strcat(out_packages, ";");
+					strcat(out_packages, token);
 				}
 
 				while( (token = strsep(&string, ";")) != NULL){
 					if(add_package_to_list(token, out_packages)){
-						sprintf(out_packages, "%s;%s", out_packages, token);
+						strcat(out_packages, token-1);
 					}
 				}
 
@@ -250,12 +252,13 @@ int build_struct_package_lists(ezxml_t currentPosition, char * out_packages){/*{
 					if(out_packages[0] == '\0'){
 						sprintf(out_packages, "%s", token);
 					} else if(add_package_to_list(token, out_packages)){
-						sprintf(out_packages, "%s;%s", out_packages, token);
+						strcat(out_packages, ";");
+						strcat(out_packages, token);
 					}
 
 					while( (token = strsep(&string, ";")) != NULL){
 						if(add_package_to_list(token, out_packages)){
-							sprintf(out_packages, "%s;%s", out_packages, token);
+							strcat(out_packages, token-1);
 						}
 					}
 
@@ -276,12 +279,13 @@ int build_struct_package_lists(ezxml_t currentPosition, char * out_packages){/*{
 				if(out_packages[0] == '\0'){
 					sprintf(out_packages, "%s", token);
 				} else if(add_package_to_list(token, out_packages)){
-					sprintf(out_packages, "%s;%s", out_packages, token);
+					strcat(out_packages, ";");
+					strcat(out_packages, token);
 				}
 
 				while( (token = strsep(&string, ";")) != NULL){
 					if(add_package_to_list(token, out_packages)){
-						sprintf(out_packages, "%s;%s", out_packages, token);
+						strcat(out_packages, token-1);
 					}
 				}
 
@@ -388,12 +392,14 @@ int build_dimension_information(ezxml_t registry, ezxml_t var, int *ndims, int *
 				(*decomp) = dim_decomp;
 			} else if ( (*decomp) != -1 && dim_decomp != -1) {
 				fprintf(stderr, "ERROR: Variable %s contains multiple decomposed dimensions in list: %s\n", varname, vardims);
+				if(tofree) free(tofree);
 				return 1;
 			}
         } else if (is_time) {
             (*has_time) = 1;
 		} else if (!dim_exists) {
 			fprintf(stderr, "ERROR: Dimension %s on variable %s doesn't exist.\n", token, varname);
+			if(tofree) free(tofree);
 			return 1;
 		}
 	}
@@ -409,17 +415,19 @@ int build_dimension_information(ezxml_t registry, ezxml_t var, int *ndims, int *
 				(*decomp) = dim_decomp;
 			} else if ( (*decomp) != -1 && dim_decomp != -1) {
 				fprintf(stderr, "ERROR: Variable %s contains multiple decomposed dimensions in list: %s\n", varname, vardims);
+				if(tofree) free(tofree);
 				return 1;
 			}
         } else if (is_time) {
             (*has_time) = 1;
 		} else if (!dim_exists) {
 			fprintf(stderr, "ERROR: Dimension %s on variable %s doesn't exist.\n", token, varname);
+			if(tofree) free(tofree);
 			return 1;
 		}
 	}
 
-	free(tofree);
+	if(tofree) free(tofree);
 
 	return 0;
 }/*}}}*/
@@ -1157,6 +1165,7 @@ int parse_var_array(FILE *fd, ezxml_t registry, ezxml_t superStruct, ezxml_t var
 
 				fortprintf(fd, ") then\n");
 				snprintf(sub_spacing, 1024, "   ");
+				if(tofree) free(tofree);
 			}
 
 			fortprintf(fd, "      %sindex_counter = index_counter + 1\n", sub_spacing);
@@ -1222,6 +1231,7 @@ int parse_var_array(FILE *fd, ezxml_t registry, ezxml_t superStruct, ezxml_t var
 
 							fortprintf(fd, ") then\n");
 							snprintf(sub_spacing, 1024, "   ");
+							if(tofree) free(tofree);
 						}
 
 						fortprintf(fd, "      %sindex_counter = index_counter + 1\n", sub_spacing);
@@ -1383,7 +1393,8 @@ int parse_var_array(FILE *fd, ezxml_t registry, ezxml_t superStruct, ezxml_t var
 				sprintf(temp_str, "%s", token);
 
 				while ( ( token = strsep(&string, "'") ) != NULL ) {
-					sprintf(temp_str, "%s''%s", temp_str, token);
+					strcat(temp_str,"''");
+					strcat(temp_str,token);
 				}
 
 				free(tofree);
@@ -1399,7 +1410,8 @@ int parse_var_array(FILE *fd, ezxml_t registry, ezxml_t superStruct, ezxml_t var
 				sprintf(temp_str, "%s", token);
 
 				while ( ( token = strsep(&string, "'") ) != NULL ) {
-					sprintf(temp_str, "%s''%s", temp_str, token);
+					strcat(temp_str,"''");
+					strcat(temp_str,token);
 				}
 
 				free(tofree);
@@ -1434,6 +1446,7 @@ int parse_var_array(FILE *fd, ezxml_t registry, ezxml_t superStruct, ezxml_t var
 			fortprintf(fd, " .or. %sActive", token);
 		}
 		fortprintf(fd, ") then\n");
+		if(tofree) free(tofree);
 	}
 
 	for(time_lev = 1; time_lev <= time_levs; time_lev++){
@@ -1610,7 +1623,8 @@ int parse_var(FILE *fd, ezxml_t registry, ezxml_t superStruct, ezxml_t currentVa
 			sprintf(temp_str, "%s", token);
 
 			while ( ( token = strsep(&string, "'") ) != NULL ) {
-				sprintf(temp_str, "%s''%s", temp_str, token);
+				strcat(temp_str,"''");
+				strcat(temp_str,token);
 			}
 
 			free(tofree);
@@ -1626,7 +1640,8 @@ int parse_var(FILE *fd, ezxml_t registry, ezxml_t superStruct, ezxml_t currentVa
 			sprintf(temp_str, "%s", token);
 
 			while ( ( token = strsep(&string, "'") ) != NULL ) {
-				sprintf(temp_str, "%s''%s", temp_str, token);
+				strcat(temp_str,"''");
+				strcat(temp_str,token);
 			}
 
 			free(tofree);
@@ -1659,6 +1674,7 @@ int parse_var(FILE *fd, ezxml_t registry, ezxml_t superStruct, ezxml_t currentVa
 		}
 
 		fortprintf(fd, ") then\n");
+		if(tofree) free(tofree);
 	}
 
 	for(time_lev = 1; time_lev <= time_levs; time_lev++){
@@ -1714,7 +1730,7 @@ int parse_struct(FILE *fd, ezxml_t registry, ezxml_t superStruct, int subpool, c
 
 	structname = ezxml_attr(superStruct, "name");
 	structnameincode = ezxml_attr(superStruct, "name_in_code");
-	
+
 	if(!structnameincode){
 		structnameincode = ezxml_attr(superStruct, "name");
 	}
@@ -1960,7 +1976,6 @@ int generate_immutable_streams(ezxml_t registry){/*{{{*/
 											fortprintf(fd, "   call MPAS_stream_mgr_add_field(manager, \'%s\', \'%s\', packages=packages, ierr=ierr)\n", optname, optvarname);
 										else
 											fortprintf(fd, "   call MPAS_stream_mgr_add_field(manager, \'%s\', \'%s\', ierr=ierr)\n", optname, optvarname);
-										
 									}
 
 									/* Loop over arrays of fields listed within the stream */
@@ -2408,5 +2423,3 @@ int parse_structs_from_registry(ezxml_t registry)/*{{{*/
 
 	return 0;
 }/*}}}*/
-
-
