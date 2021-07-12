@@ -4500,7 +4500,7 @@ call mpas_log_write('Done with soil consistency check')
       if (allocated(maskslab)) deallocate(maskslab)
 
       ! Freeze really cold ocean
-      where (sst < 271.0 .and. landmask == 0) xice = 1.0
+      !where (sst < 271.0 .and. landmask == 0) xice = 1.0
 
       ! Limit XICE to values between 0 and 1. Although the input meteorological field is between 0.
       ! and 1., interpolation to the MPAS grid can yield values of XiCE less than 0. and greater
@@ -4760,7 +4760,8 @@ call mpas_log_write('Done with soil consistency check')
             t(k,iCell) = t(k,iCell) * (p0 / pressure(k,iCell)) ** (rgas / cp)
 
             ! RHO_ZZ
-            rho_zz(k,iCell) = pressure(k,iCell) / rgas / (p(k,iCell) * t(k,iCell))
+            rho_zz(k,iCell) = pressure(k,iCell) / rgas / &
+                              (p(k,iCell) * t(k,iCell) * (1.0 + (rvord - 1.0) * scalars(index_qv,k,iCell)))
             rho_zz(k,iCell) = rho_zz(k,iCell) / (1.0 + scalars(index_qv,k,iCell))
          end do
       end do
