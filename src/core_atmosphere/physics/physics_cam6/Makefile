@@ -8,6 +8,7 @@ dummy:
 OBJS = \
 	micro_pumas_utils.o \
 	micro_mg3_0.o \
+	mp_pumas_mpas.o \
 	wv_sat_methods.o
 
 physics_cam6_utils:
@@ -21,6 +22,9 @@ physics_cam6: $(OBJS)
 micro_mg3_0.o: \
 	micro_pumas_utils.o \
 	wv_sat_methods.o
+
+mp_pumas_mpas.o: \
+	micro_mg3_0.o
 
 
 clean:

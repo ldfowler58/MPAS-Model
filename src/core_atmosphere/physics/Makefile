@@ -26,6 +26,7 @@ OBJS = \
 	mpas_atmphys_driver_gwdo.o            \
 	mpas_atmphys_driver_lsm.o             \
 	mpas_atmphys_driver_microphysics.o    \
+	mpas_atmphys_driver_microphysics_pumas.o \
 	mpas_atmphys_driver_oml.o             \
 	mpas_atmphys_driver_pbl.o             \
 	mpas_atmphys_driver_radiation_lw.o    \
@@ -127,6 +128,9 @@ mpas_atmphys_driver_microphysics.o: \
 	mpas_atmphys_interface.o \
 	mpas_atmphys_vars.o
 
+mpas_atmphys_driver_microphysics_pumas.o: \
+	mpas_atmphys_constants.o
+
 mpas_atmphys_driver_oml.o: \
 	mpas_atmphys_constants.o \
 	mpas_atmphys_landuse.o \
@@ -221,7 +225,7 @@ clean:
 	$(RM) $@ $*.mod
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I./physics_wrf -I./physics_sima -I.. -I../../framework -I../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I./physics_cam6 -I./physics_wrf -I./physics_sima -I.. -I../../framework -I../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(COREDEF) $(HYDROSATIC) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./physics_wrf -I./physics_sima -I.. -I../../framework -I../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(COREDEF) $(HYDROSATIC) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./physics_cam6 -I./physics_wrf -I./physics_sima -I.. -I../../framework -I../../external/esmf_time_f90
 endif

@@ -1,0 +1,82 @@
+<!-- ========================================================================================================= -->
+<!-- PHYSICS CAM6:                                                                                             -->
+<!-- ========================================================================================================= -->
+
+ <nml_record name="physics_cam6_pumas" in_defaults="false">
+      <nml_option name="config_pumas_do_graupel" type="logical" default_value="true" in_defaults="true"
+                  units="-"
+                  description="true: configure pumas with graupel, false: no graupel (hail possible)"
+                  possible_values="true or false"/>
+
+      <nml_option name="config_pumas_do_hail" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description="true: configure pumas with hail, false: no hail (graupel possible)"
+                  possible_values="true or false"/>
+
+      <nml_option name="config_pumas_uniform" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description="true: configure uniform for subcolumns, false: use without subcolumns (default)"
+                  possible_values="true or false"/>
+
+      <nml_option name="config_pumas_docldice" type="logical" default_value="true" in_defaults="true"
+                  units="-"
+                  description="true: do all processes, false: skip all processes affecting cloud ice"
+                  possible_values="true or false"/>
+
+      <nml_option name="config_pumas_hetfrz_classnuc" type="logical" default_value="true" in_defaults="true"
+                  units="-"
+                  description="true: use heterogeneous freezing, false: skip heterogeneous freezing"
+                  possible_values="true or false"/>
+
+      <nml_option name="config_pumas_rm_supersat" type="logical" default_value="true" in_defaults="true"
+                  units="-"
+                  description="true: remove supersaturation after sedimentation loop, false: do not"
+                  possible_values="true or false"/>
+
+      <nml_option name="config_pumas_do_sbphysics" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description="true: do SB autoconversion and accretion physics, false: use default process"
+                  possible_values="true or false"/>
+
+      <!-- IFS-like switches: -->
+      <nlm_option name="config_pumas_evap_sed_off" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description=""
+                  possible_values="true or false"/>
+
+      <nlm_option name="config_pumas_icenuc_rh_off" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description=""
+                  possible_values="true or false"/>
+
+      <nlm_option name="config_pumas_icenuc_use_meyers" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description=""
+                  possible_values="true or false"/>
+
+      <nlm_option name="config_pumas_evap_scl_ifs" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description=""
+                  possible_values="true or false"/>
+
+      <nlm_option name="config_pumas_evap_rhthrsh_ifs" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description=""
+                  possible_values="true or false"/>
+
+      <nlm_option name="config_pumas_rainfreeze_ifs" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description=""
+                  possible_values="true or false"/>
+
+      <nlm_option name="config_pumas_ifs_sed" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description=""
+                  possible_values="true or false"/>
+
+      <nlm_option name="config_pumas_precip_fall_corr" type="logical" default_value="false" in_defaults="false"
+                  units="-"
+                  description=""
+                  possible_values="true or false"/>
+ </nml_record>
+

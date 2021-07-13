@@ -3698,6 +3698,7 @@
 <!-- **************************************************************************************** -->
 
 #include "diagnostics/Registry_diagnostics.xml"
+#include "physics/physics_cam6/Registry_physics_cam6.xml"
 
         <!-- ================================================================================================== -->
         <!-- ... FIRST-GUESS DATA NEEDED FOR INTERPOLATION OF PHYSICS DIAGNOSTICS:                              -->
