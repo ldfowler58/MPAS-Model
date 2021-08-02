@@ -17,7 +17,7 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2019-12-02.
 
 !=================================================================================================================
- module module_cu_gf_wrf390
+ module module_cu_gf
  use mpas_log
  use mpas_atmphys_constants,only: cp,g=>gravity,r_v=>R_v,xlv
  use module_cu_gf_deep,only  : cu_gf_deep_run
@@ -26,12 +26,12 @@
 
  implicit none
  private
- public:: cu_grell_freitas_wrf390
+ public:: cu_grell_freitas
 
  contains
 
 !-----------------------------------------------------------------------------------------------------------------
- subroutine cu_grell_freitas_wrf390( &
+ subroutine cu_grell_freitas( &
                dt,dx,area,u,v,w,t,q,rho,p,pi,p8w,dz8w,       &
                ht,xland,hfx,qfx,kpbl,rthraten,rthften,       &
                rqvften,rqvblten,rthblten,                    &
@@ -158,7 +158,7 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
-!call mpas_log_write('--- enter subroutine cu_grell_freitas_wrf390:')
+!call mpas_log_write('--- enter subroutine cu_grell_freitas:')
 
 !--- initialization of local dimensions:
  itf = min(ite,ide-1)
@@ -765,8 +765,8 @@
 
  enddo j_loop
 
- end subroutine cu_grell_freitas_wrf390
+ end subroutine cu_grell_freitas
 
 !=================================================================================================================
- end module module_cu_gf_wrf390
+ end module module_cu_gf
 !=================================================================================================================

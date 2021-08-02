@@ -13,7 +13,7 @@ OBJS = \
 	module_cam_error_function.o      \
 	module_cam_shr_kind_mod.o        \
 	module_cam_support.o             \
-	module_cu_gf.mpas.wrf-3.9.0.o    \
+	module_cu_gf.o                   \
 	module_cu_gf_ctrans.o            \
 	module_cu_gf_deep.o              \
 	module_cu_gf_sh.o                \
@@ -67,7 +67,7 @@ module_cu_gf_deep.o: \
 module_cu_gf_sh.o: \
 	module_cu_gf_shared.o
 
-module_cu_gf.mpas.wrf-3.9.0.o:  \
+module_cu_gf.o:  \
 	module_cu_gf_deep.o \
 	module_cu_gf_sh.o \
 	module_cu_gf_shared.o

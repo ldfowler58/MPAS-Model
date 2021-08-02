@@ -17,7 +17,6 @@
 
 !wrf physics:
  use module_cu_gf
- use module_cu_gf_wrf390
  use module_cu_kfeta
  use module_cu_mskf
  use module_cu_ntiedtke
@@ -133,6 +132,9 @@
 !   and rnwfacuten_p so that convection_from_MPAS works when using a convection scheme other than the Grell-
 !   Freitas scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2020-02-13.
+! * deleted the old GF convection scheme (call cu_grell_freitas) and renamed cu_grell_freitas_wrf390 to
+!   cu_grell_freitas.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-06-16.
 
 
  contains
@@ -219,7 +221,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        if(.not.allocated(ht_p)           ) allocate(ht_p(ims:ime,jms:jme)               )
        if(.not.allocated(cubot_p)        ) allocate(cubot_p(ims:ime,jms:jme)            )
        if(.not.allocated(cutop_p)        ) allocate(cutop_p(ims:ime,jms:jme)            )
@@ -422,7 +424,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        if(allocated(ht_p)           ) deallocate(ht_p           )
        if(allocated(cubot_p)        ) deallocate(cubot_p        )
        if(allocated(cutop_p)        ) deallocate(cutop_p        )
@@ -660,9 +662,9 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        call mpas_log_write('')
-       call mpas_log_write('--- enter subroutine cu_grell_freitas_wrf390:')
+       call mpas_log_write('--- enter subroutine cu_grell_freitas:')
 
        call mpas_pool_get_config(configs,'config_gfconv_deepc',gfconv_deepc)
        call mpas_pool_get_config(configs,'config_gfconv_midlc',gfconv_midlc)
@@ -678,8 +680,8 @@
        call mpas_log_write('gfconv_closure_midlc = $i',intArgs=(/gfconv_closure_midlc/))
        call mpas_log_write('gfconv_closure_shalc = $i',intArgs=(/gfconv_closure_shalc/))
 
-       call mpas_timer_start('cu_grell_freitas_wrf390')
-       call cu_grell_freitas_wrf390( &
+       call mpas_timer_start('cu_grell_freitas')
+       call cu_grell_freitas( &
                dt           = dt_dyn               , dx           = dx_p                 , &
                area         = area_p               , u            = u_p                  , &
                v            = v_p                  , w            = w_p                  , &
@@ -724,9 +726,8 @@
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme     , &
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
                                    )
-       call mpas_timer_stop('cu_grell_freitas_wrf390')
-
-       call mpas_log_write('--- end subroutine cu_grell_freitas_wrf390.')
+       call mpas_timer_stop('cu_grell_freitas')
+       call mpas_log_write('--- end subroutine cu_grell_freitas.')
        call mpas_log_write('')
 
     case ("cu_kain_fritsch")
@@ -1326,7 +1327,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        call mpas_pool_get_config(configs,'config_len_disp',len_disp)
 
        call mpas_pool_get_array(mesh,'areaCell'   ,areaCell   )
@@ -1913,7 +1914,7 @@
 
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        call mpas_pool_get_dimension(mesh,'nClosures',nclosures)
 
        call mpas_pool_get_array(diag_physics,'cubot'    ,cubot    )
@@ -2184,7 +2185,7 @@
 !end of each dynamic time-step:
  convection_select: select case(convection_scheme)
 
-    case ("cu_grell_freitas_wrf390")
+    case ("cu_grell_freitas")
        call mpas_pool_get_dimension(mesh,'nClosures',nclosures)
 
        call mpas_pool_get_array(diag_physics,'cuprecd',cuprecd)
