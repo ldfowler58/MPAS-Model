@@ -41,6 +41,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2018-02-23.
 ! * changed the definition of DM_BCAST_MACRO to compile table_ccnAct with the default DOUBLE PRECISION.
 !   Laura D. Fowler (laura@ucar.edu) / 2018-03-07.
+! * in subroutine init_thompson_aerosols_fromMPAS, corrected the calculation of the surface emissions of nwfa,
+!   following the correction made by Greg Thompson in module_mp_thompson (WRFv-4.3.1).
 
 
  contains
@@ -249,10 +251,8 @@
  do iCell = 1, nCellsSolve
     airmass = rho_zz(k,iCell)*zz(k,iCell)
     airmass = airmass*(zgrid(k+1,iCell)-zgrid(k,iCell))*areaCell(iCell) ! (in kg)
-    nwfa2d(iCell) = nwfa(k,iCell)*0.000196*(airmass*2.E-10)
+    nwfa2d(iCell) = nwfa(k,iCell)*0.000196*(airmass*0.5E-10)
     nifa2d(iCell) = 0._RKIND
-!   call mpas_log_write('$i $r $r $r $r',intArgs=(/iCell/),realArgs=(/airmass,nwfa2d(iCell), &
-!                       nwfa2d(iCell)*450.,nifa2d(iCell)/))
  enddo
 
 !... deallocate local arrays:
