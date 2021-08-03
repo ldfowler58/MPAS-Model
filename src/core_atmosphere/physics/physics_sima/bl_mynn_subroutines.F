@@ -1,4 +1,60 @@
 !=================================================================================================================
+ module bl_mynn_common
+ use mpas_kind_types,only: kind_phys => RKIND
+
+ implicit none
+ save
+
+
+ real(kind=kind_phys):: cp
+ real(kind=kind_phys):: cpv
+ real(kind=kind_phys):: cice
+ real(kind=kind_phys):: cliq
+
+ real(kind=kind_phys):: ep_1
+ real(kind=kind_phys):: ep_2
+
+ real(kind=kind_phys):: g
+
+ real(kind=kind_phys):: karman
+ real(kind=kind_phys):: p1000mb
+
+ real(kind=kind_phys):: rcp
+ real(kind=kind_phys):: r_d
+ real(kind=kind_phys):: r_v
+ real(kind=kind_phys):: rvovrd
+
+ real(kind=kind_phys):: svp1
+ real(kind=kind_phys):: svp2
+ real(kind=kind_phys):: svp3
+ real(kind=kind_phys):: svpt0
+
+ real(kind=kind_phys):: xlf
+ real(kind=kind_phys):: xlv
+ real(kind=kind_phys):: xls
+
+
+!---
+ real(kind=kind_phys),parameter:: tref  = 300.0
+
+ real(kind=kind_phys):: ep_3
+ real(kind=kind_phys):: ev
+ real(kind=kind_phys):: gtr
+ real(kind=kind_phys):: p608
+ real(kind=kind_phys):: rd
+ real(kind=kind_phys):: rk
+ real(kind=kind_phys):: rv
+ real(kind=kind_phys):: svp11
+ real(kind=kind_phys):: tv0
+ real(kind=kind_phys):: tv1
+ real(kind=kind_phys):: vk
+ real(kind=kind_phys):: xlscp
+ real(kind=kind_phys):: xlvcp
+
+
+ end module bl_mynn_common
+
+!=================================================================================================================
 !reference: WRF-v4.2.1
 !Laura D. Fowler (laura@ucar.edu) / 2021-01-11.
 
@@ -134,30 +190,32 @@
 !-------------------------------------------------------------------
 
 MODULE bl_mynn_subroutines
+  use bl_mynn_common
+
 #if defined(mpas)
   use mpas_kind_types
   use mpas_log
-  use mpas_atmphys_constants,only: &
-        karman,          &
-        g => gravity,    &
-        p1000mb => P0,   &
-        cp,              &
-        r_d => R_d,      &
-        r_v => R_v,      &
-        rcp,             &
-        xlv,             &
-        xlf,             &
-        xls,             &
-        svp1,            &
-        svp2,            &
-        svp3,            &
-        svpt0,           &
-        ep_1,            &
-        ep_2,            &
-        rvovrd => rvord, &
-        cpv,             &
-        cliq,            &
-        cice
+! use mpas_atmphys_constants,only: &
+!       karman,          &
+!       g => gravity,    &
+!       p1000mb => P0,   &
+!       cp,              &
+!       r_d => R_d,      &
+!       r_v => R_v,      &
+!       rcp,             &
+!       xlv,             &
+!       xlf,             &
+!       xls,             &
+!       svp1,            &
+!       svp2,            &
+!       svp3,            &
+!       svpt0,           &
+!       ep_1,            &
+!       ep_2,            &
+!       rvovrd => rvord, &
+!       cpv,             &
+!       cliq,            &
+!       cice
 
   use mpas_atmphys_utilities,only: physics_message
   use error_function, only: erf
@@ -181,19 +239,19 @@ MODULE bl_mynn_subroutines
   integer,parameter,public:: &
      bl_mynn_topdown = 1
 
-  real(kind=RKIND),parameter,public:: &
-     p608 = ep_1,      &
-     tref = 300.0,     &
-     tv0  = p608*tref, &
-     ev   = xlv,       &
-     rd   = r_d
+! real(kind=RKIND),parameter,public:: &
+!    p608 = ep_1,      &
+!    tref = 300.0,     &
+!    tv0  = p608*tref, &
+!    ev   = xlv,       &
+!    rd   = r_d
 
   real(kind=RKIND),parameter,public:: &
      b1  = 24.0, &
      b2  = 15.0
 
-  real(kind=RKIND),parameter,public:: &
-     xlvcp=xlv/cp, xlscp=(xlv+xlf)/cp
+! real(kind=RKIND),parameter,public:: &
+!    xlvcp=xlv/cp, xlscp=(xlv+xlf)/cp
 
   real(kind=RKIND),parameter,public:: &
      scaleaware = 1.
@@ -206,14 +264,14 @@ MODULE bl_mynn_subroutines
      zero = 0.0, half = 0.5, one = 1.0, two = 2.0, &
      onethird = 1./3., twothirds = 2./3.
 
-  real(kind=RKIND),parameter:: rk=cp/rd, svp11=svp1*1.e3, ep_3=1.-ep_2
+! real(kind=RKIND),parameter:: rk=cp/rd, svp11=svp1*1.e3, ep_3=1.-ep_2
 
   real(kind=RKIND),parameter:: tkmin=253.0    !< for total water conversion, Tripoli and Cotton (1981)
-  real(kind=RKIND),parameter:: tv1=(1.+p608)*tref, gtr=g/tref
+! real(kind=RKIND),parameter:: tv1=(1.+p608)*tref, gtr=g/tref
 
 !closure constants:
   real(kind=RKIND),parameter:: &
-     vk  = karman, &
+!    vk  = karman, &
      pr  =  0.74,  &
      g1  =  0.235, &  ! NN2009 = 0.235
      c2  =  0.729, &  ! 0.729, & !0.75, &
@@ -2722,7 +2780,8 @@ CONTAINS
            tlk = thl(k)*(p(k)/p1000mb)**rcp    ! recover liquid temp (tl) from thl
            qsat_tl = qsat_blend(tlk,p(k))      ! get saturation water vapor mixing ratio
                                                !   at tl and p
-           rsl = xl*qsat_tl / (r_v*tlk**2)     ! slope of C-C curve at t = tl
+!          rsl = xl*qsat_tl / (r_v*tlk**2)     ! slope of C-C curve at t = tl
+           rsl = xl*qsat_tl / (rv*tlk**2)     ! slope of C-C curve at t = tl
                                                ! CB02, Eqn. 4
            cpm = cp + qw(k)*cpv                ! CB02, sec. 2, para. 1
            a(k) = 1./(1. + xl*rsl/cpm)         ! CB02 variable "a"
@@ -6469,7 +6528,8 @@ ENDIF
             tlk = thl(k)*(p(k)/p1000mb)**rcp    ! recover liquid temp (tl) from thl
             qsat_tl = qsat_blend(tlk,p(k))      ! get saturation water vapor mixing ratio
                                                 !   at tl and p
-            rsl = xl*qsat_tl / (r_v*tlk**2)     ! slope of C-C curve at t = tl
+!           rsl = xl*qsat_tl / (r_v*tlk**2)     ! slope of C-C curve at t = tl
+            rsl = xl*qsat_tl / (rv*tlk**2)      ! slope of C-C curve at t = tl
                                                 ! CB02, Eqn. 4
             cpm = cp + qt(k)*cpv                ! CB02, sec. 2, para. 1
             a   = 1./(1. + xl*rsl/cpm)          ! CB02 variable "a"
