@@ -3,9 +3,6 @@
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_log
 
- use mpas_atmphys_constants,only: &
-    rcp,     &
-    xlv
  use bl_mynn,only: bl_mynn_run
  use bl_mynn_mpas,only: bl_mynn_mpas_run
 
@@ -460,8 +457,6 @@
              spp_pbl          , pattern_spp_hv     , rthraten_hv      , &
              f_qc             , f_qi               , f_nc             , &
              f_ni             , f_nwfa             , f_nifa           , &
-             !--- constants:
-             rcp , xlv                                                , &
              its, ite , kts , kte , kme , errmsg , errflg               &
             )
 
