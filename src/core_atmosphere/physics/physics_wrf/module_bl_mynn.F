@@ -4,8 +4,6 @@
  use mpas_log
 
  use mpas_atmphys_constants,only: &
-    gravity, &
-    P0,      &
     rcp,     &
     xlv
  use bl_mynn,only: bl_mynn_run
@@ -463,7 +461,7 @@
              f_qc             , f_qi               , f_nc             , &
              f_ni             , f_nwfa             , f_nifa           , &
              !--- constants:
-             gravity , P0 , rcp   , xlv                               , &
+             rcp , xlv                                                , &
              its, ite , kts , kte , kme , errmsg , errflg               &
             )
 
