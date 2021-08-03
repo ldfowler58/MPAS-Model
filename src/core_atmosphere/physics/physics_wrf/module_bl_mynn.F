@@ -4,8 +4,6 @@
  use mpas_log
 
  use mpas_atmphys_constants,only: &
-    cp,      &
-    karman,  &
     gravity, &
     P0,      &
     rcp,     &
@@ -465,7 +463,7 @@
              f_qc             , f_qi               , f_nc             , &
              f_ni             , f_nwfa             , f_nifa           , &
              !--- constants:
-             cp , karman , gravity , P0 , rcp    , xlv                , &
+             gravity , P0 , rcp   , xlv                               , &
              its, ite , kts , kte , kme , errmsg , errflg               &
             )
 
