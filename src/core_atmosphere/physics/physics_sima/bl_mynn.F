@@ -3,7 +3,7 @@
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_log
 
- use bl_mynn_common,only: rd,xlscp,xlvcp
+ use bl_mynn_common,only: ep_1,ep_2,rd,xlscp,xlvcp
  use bl_mynn_subroutines
 
  implicit none
@@ -69,7 +69,7 @@
              flag_qc          , flag_qi            , flag_qnc         , &
              flag_qni         , flag_qnwfa         , flag_qnifa       , &
              !--- constants:
-             cp , karman , grav , p1000mb , ep_1 , ep_2 , rcp , xlv ,   &
+             cp , karman , grav , p1000mb , rcp , xlv                 , &
              its, ite , kts , kte , kme , errmsg , errflg               &
             )    
 
@@ -95,7 +95,7 @@
     bl_mynn_mixqt,bl_mynn_tkebudget
  
  real(kind=kind_phys),intent(in):: &
-    cp,karman,grav,p1000mb,ep_1,ep_2,rcp,xlv
+    cp,karman,grav,p1000mb,rcp,xlv
 
  real(kind=kind_phys),intent(in):: &
     delt

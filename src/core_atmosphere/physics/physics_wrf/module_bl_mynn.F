@@ -8,8 +8,6 @@
     karman,  &
     gravity, &
     P0,      &
-    ep_1,    &
-    ep_2,    &
     rcp,     &
     xlv
  use bl_mynn,only: bl_mynn_run
@@ -467,7 +465,7 @@
              f_qc             , f_qi               , f_nc             , &
              f_ni             , f_nwfa             , f_nifa           , &
              !--- constants:
-             cp , karman , gravity , P0 , ep_1 , ep_2 , rcp , xlv     , &
+             cp , karman , gravity , P0 , rcp    , xlv                , &
              its, ite , kts , kte , kme , errmsg , errflg               &
             )
 
