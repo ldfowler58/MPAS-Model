@@ -6,6 +6,7 @@
  save
 
 
+!--- physics constants that need to be initialized with physics constants from the host model:
  real(kind=kind_phys):: cp
  real(kind=kind_phys):: cpv
  real(kind=kind_phys):: cice
@@ -33,8 +34,7 @@
  real(kind=kind_phys):: xlv
  real(kind=kind_phys):: xls
 
-
-!---
+!--- derived physics constants:
  real(kind=kind_phys),parameter:: tref  = 300.0
 
  real(kind=kind_phys):: ep_3
@@ -50,6 +50,26 @@
  real(kind=kind_phys):: vk
  real(kind=kind_phys):: xlscp
  real(kind=kind_phys):: xlvcp
+
+!--- physics constants also needed in subroutine bl_mynn_run:
+ integer,parameter:: bl_mynn_topdown = 1
+
+ real(kind=kind_phys),parameter:: b1 = 24.0
+ real(kind=kind_phys),parameter:: b2 = 15.0
+
+ real(kind=kind_phys),parameter:: zero  = 0.0
+ real(kind=kind_phys),parameter:: half  = 0.5
+ real(kind=kind_phys),parameter:: one   = 1.0
+ real(kind=kind_phys),parameter:: two   = 2.0
+ real(kind=kind_phys),parameter:: onethird = 1./3.
+ real(kind=kind_phys),parameter:: twothirds = 2./3.
+
+ real(kind=kind_phys),parameter:: cphh_st   = 5.0
+ real(kind=kind_phys),parameter:: cphm_st   = 5.0
+ real(kind=kind_phys),parameter:: cphh_unst = 16.0
+ real(kind=kind_phys),parameter:: cphm_unst = 16.0
+
+ real(kind=kind_phys),parameter:: scaleaware = 1.0
 
 
  end module bl_mynn_common
@@ -191,33 +211,6 @@
 
 MODULE bl_mynn_subroutines
   use bl_mynn_common
-
-#if defined(mpas)
-  use mpas_kind_types
-  use mpas_log
-! use mpas_atmphys_constants,only: &
-!       karman,          &
-!       g => gravity,    &
-!       p1000mb => P0,   &
-!       cp,              &
-!       r_d => R_d,      &
-!       r_v => R_v,      &
-!       rcp,             &
-!       xlv,             &
-!       xlf,             &
-!       xls,             &
-!       svp1,            &
-!       svp2,            &
-!       svp3,            &
-!       svpt0,           &
-!       ep_1,            &
-!       ep_2,            &
-!       rvovrd => rvord, &
-!       cpv,             &
-!       cliq,            &
-!       cice
-
-  use mpas_atmphys_utilities,only: physics_message
   use error_function, only: erf
 
   implicit none
@@ -236,134 +229,29 @@ MODULE bl_mynn_subroutines
            scale_aware,              &
            xl_blend
 
-  integer,parameter,public:: &
-     bl_mynn_topdown = 1
-
-! real(kind=RKIND),parameter,public:: &
-!    p608 = ep_1,      &
-!    tref = 300.0,     &
-!    tv0  = p608*tref, &
-!    ev   = xlv,       &
-!    rd   = r_d
-
-  real(kind=RKIND),parameter,public:: &
-     b1  = 24.0, &
-     b2  = 15.0
-
-! real(kind=RKIND),parameter,public:: &
-!    xlvcp=xlv/cp, xlscp=(xlv+xlf)/cp
-
-  real(kind=RKIND),parameter,public:: &
-     scaleaware = 1.
-
-  real(kind=RKIND),parameter,public:: &
-     cphm_st=5.0, cphm_unst=16.0, &
-     cphh_st=5.0, cphh_unst=16.0
-
-  real(kind=RKIND),parameter,public:: &
-     zero = 0.0, half = 0.5, one = 1.0, two = 2.0, &
-     onethird = 1./3., twothirds = 2./3.
-
-! real(kind=RKIND),parameter:: rk=cp/rd, svp11=svp1*1.e3, ep_3=1.-ep_2
-
-  real(kind=RKIND),parameter:: tkmin=253.0    !< for total water conversion, Tripoli and Cotton (1981)
-! real(kind=RKIND),parameter:: tv1=(1.+p608)*tref, gtr=g/tref
-
-!closure constants:
-  real(kind=RKIND),parameter:: &
-!    vk  = karman, &
-     pr  =  0.74,  &
-     g1  =  0.235, &  ! NN2009 = 0.235
-     c2  =  0.729, &  ! 0.729, & !0.75, &
-     c3  =  0.340, &  ! 0.340, & !0.352, &
-     c4  =  0.0, &
-     c5  =  0.2, &
-     a1  = b1*( 1.0-3.0*g1 )/6.0, &
-     c1  = g1 -1.0/( 3.0*a1*2.88449914061481660), &
-     a2  = a1*( g1-c1 )/( g1*pr ), &
-     g2  = b2/b1*( 1.0-c3 ) +2.0*a1/b1*( 3.0-2.0*c2 )
-
-#else
-!==================================================================
-!FV3 CONSTANTS
-       use physcons, only : cp     => con_cp,              &
-      &                     g      => con_g,               &
-      &                     r_d    => con_rd,              &
-      &                     r_v    => con_rv,              &
-      &                     cpv    => con_cvap,            &
-      &                     cliq   => con_cliq,            &
-      &                     Cice   => con_csol,            &
-      &                     rcp    => con_rocp,            &
-      &                     XLV    => con_hvap,            &
-      &                     XLF    => con_hfus,            &
-      &                     EP_1   => con_fvirt,           &
-      &                     EP_2   => con_eps
-
-  IMPLICIT NONE
-
-   REAL    , PARAMETER :: karman       = 0.4
-   REAL    , PARAMETER :: XLS          = 2.85E6
-   REAL    , PARAMETER :: p1000mb      = 100000.
-   REAL    , PARAMETER :: rvovrd       = r_v/r_d
-   REAL    , PARAMETER :: SVP1         = 0.6112
-   REAL    , PARAMETER :: SVP2         = 17.67
-   REAL    , PARAMETER :: SVP3         = 29.65
-   REAL    , PARAMETER :: SVPT0        = 273.15
-
-   INTEGER , PARAMETER :: param_first_scalar = 1, &
-       &                  p_qc = 2, &
-       &                  p_qr = 0, &
-       &                  p_qi = 2, &
-       &                  p_qs = 0, &
-       &                  p_qg = 0, &
-       &                  p_qnc= 0, &
-       &                  p_qni= 0
-
-!END FV3 CONSTANTS
-!====================================================================
-!WRF CONSTANTS
-!  USE module_model_constants, only: &
-!       &karman, g, p1000mb, &
-!       &cp, r_d, r_v, rcp, xlv, xlf, xls, &
-!       &svp1, svp2, svp3, svpt0, ep_1, ep_2, rvovrd, &
-!       &cpv, cliq, cice
-!
-!  USE module_state_description, only: param_first_scalar, &
-!       &p_qc, p_qr, p_qi, p_qs, p_qg, p_qnc, p_qni
-!
-!  IMPLICIT NONE
-!
-!END WRF CONSTANTS
 !===================================================================
 ! From here on, these are used for any model
 ! The parameters below depend on stability functions of module_sf_mynn.
-  REAL, PARAMETER :: cphm_st=5.0, cphm_unst=16.0, &
-                     cphh_st=5.0, cphh_unst=16.0
+! REAL, PARAMETER :: cphm_st=5.0, cphm_unst=16.0, &
+!                    cphh_st=5.0, cphh_unst=16.0
 
-  REAL, PARAMETER :: xlvcp=xlv/cp, xlscp=(xlv+xlf)/cp, ev=xlv, rd=r_d, &
-       &rk=cp/rd, svp11=svp1*1.e3, p608=ep_1, ep_3=1.-ep_2
-
-  REAL, PARAMETER :: tref=300.0     !< reference temperature (K)
   REAL, PARAMETER :: TKmin=253.0    !< for total water conversion, Tripoli and Cotton (1981)
-  REAL, PARAMETER :: tv0=p608*tref, tv1=(1.+p608)*tref, gtr=g/tref
 
 ! Closure constants
   REAL, PARAMETER :: &
-       &vk  = karman, &
        &pr  =  0.74,  &
        &g1  =  0.235, &  ! NN2009 = 0.235
-       &b1  = 24.0, &
-       &b2  = 15.0, &    ! CKmod     NN2009
+!      &b1  = 24.0, &
+!      &b2  = 15.0, &    ! CKmod     NN2009
        &c2  =  0.729, &  ! 0.729, & !0.75, &
        &c3  =  0.340, &  ! 0.340, & !0.352, &
        &c4  =  0.0, &
        &c5  =  0.2, &
        &a1  = b1*( 1.0-3.0*g1 )/6.0, &
-!       &c1  = g1 -1.0/( 3.0*a1*b1**(1.0/3.0) ), &
+!      &c1  = g1 -1.0/( 3.0*a1*b1**(1.0/3.0) ), &
        &c1  = g1 -1.0/( 3.0*a1*2.88449914061481660), &
        &a2  = a1*( g1-c1 )/( g1*pr ), &
        &g2  = b2/b1*( 1.0-c3 ) +2.0*a1/b1*( 3.0-2.0*c2 )
-#endif
 
   REAL, PARAMETER :: &
        &cc2 =  1.0-c2, &
