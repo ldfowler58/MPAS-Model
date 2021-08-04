@@ -211,12 +211,12 @@
 
 MODULE bl_mynn_subroutines
   use bl_mynn_common
-  use error_function, only: erf
+  use mynn_shared,only: esat_blend,qsat_blend,xl_blend
+  use error_function,only: erf
 
   implicit none
   private
   public:: dmp_mf,                   &
-           esat_blend,               &
            get_pblh,                 &
            mym_condensation,         &
            mym_initialize,           &
@@ -224,10 +224,8 @@ MODULE bl_mynn_subroutines
            mym_turbulence,           &
            mynn_bl_driver,           &
            mynn_tendencies,          &
-           qsat_blend,               &
            retrieve_exchange_coeffs, &
-           scale_aware,              &
-           xl_blend
+           scale_aware
 
 !===================================================================
 ! From here on, these are used for any model
@@ -309,32 +307,6 @@ MODULE bl_mynn_subroutines
 
   !option to print out more stuff for debugging purposes
   LOGICAL, PARAMETER :: debug_code = .false.
-
-! JAYMES-
-!> Constants used for empirical calculations of saturation
-!! vapor pressures (in function "esat") and saturation mixing ratios
-!! (in function "qsat"), reproduced from module_mp_thompson.F, 
-!! v3.6 
-  REAL, PARAMETER:: J0= .611583699E03
-  REAL, PARAMETER:: J1= .444606896E02
-  REAL, PARAMETER:: J2= .143177157E01
-  REAL, PARAMETER:: J3= .264224321E-1
-  REAL, PARAMETER:: J4= .299291081E-3
-  REAL, PARAMETER:: J5= .203154182E-5
-  REAL, PARAMETER:: J6= .702620698E-8
-  REAL, PARAMETER:: J7= .379534310E-11
-  REAL, PARAMETER:: J8=-.321582393E-13
-
-  REAL, PARAMETER:: K0= .609868993E03
-  REAL, PARAMETER:: K1= .499320233E02
-  REAL, PARAMETER:: K2= .184672631E01
-  REAL, PARAMETER:: K3= .402737184E-1
-  REAL, PARAMETER:: K4= .565392987E-3
-  REAL, PARAMETER:: K5= .521693933E-5
-  REAL, PARAMETER:: K6= .307839583E-7
-  REAL, PARAMETER:: K7= .105785160E-9
-  REAL, PARAMETER:: K8= .161444444E-12
-! end-
 
 !JOE & JAYMES'S mods
 !
@@ -2655,7 +2627,8 @@ CONTAINS
            alp(k) = 1.0/( 1.0+dqsl*xlvcp )
            bet(k) = dqsl*exner(k)
 
-           xl = xl_blend(t)                    ! obtain latent heat
+!          xl = xl_blend(t)                       ! obtain latent heat
+           xl = xl_blend(t,cice,cliq,cpv,xls,xlv) ! obtain latent heat
            tlk = thl(k)*(p(k)/p1000mb)**rcp    ! recover liquid temp (tl) from thl
            qsat_tl = qsat_blend(tlk,p(k))      ! get saturation water vapor mixing ratio
                                                !   at tl and p
@@ -2808,7 +2781,8 @@ CONTAINS
            ENDIF
            Fng = MIN(Fng, 20.)
 
-           xl    = xl_blend(t)
+!          xl    = xl_blend(t)
+           xl    = xl_blend(t,cice,cliq,cpv,xls,xlv)
            bb = b(k)*t/th(k) ! bb is "b" in BCMT95.  Their "b" differs from 
                              ! "b" in CB02 (i.e., b(k) above) by a factor 
                              ! of T/theta.  Strictly, b(k) above is formulated in
@@ -6397,7 +6371,8 @@ ENDIF
 
             !COMPUTE CLDFRA & QC_BL FROM MASS-FLUX SCHEME and recompute vt & vq
 
-            xl = xl_blend(tk(k))                ! obtain blended heat capacity 
+!           xl = xl_blend(tk(k))                       ! obtain blended heat capacity
+            xl = xl_blend(tk(k),cice,cliq,cpv,xls,xlv) ! obtain blended heat capacity
             tlk = thl(k)*(p(k)/p1000mb)**rcp    ! recover liquid temp (tl) from thl
             qsat_tl = qsat_blend(tlk,p(k))      ! get saturation water vapor mixing ratio
                                                 !   at tl and p
@@ -6698,106 +6673,6 @@ SUBROUTINE SCALE_AWARE(dx,PBL1,Psig_bl,Psig_shcu)
     If(Psig_shcu < 0.0) Psig_shcu=0.0
 
   END SUBROUTINE SCALE_AWARE
-
-! =====================================================================
-!>\ingroup gsd_mynn_edmf
-!! \author JAYMES- added 22 Apr 2015
-!! This function calculates saturation vapor pressure.  Separate ice and liquid functions
-!! are used (identical to those in module_mp_thompson.F, v3.6). Then, the
-!! final returned value is a temperature-dependant "blend". Because the final
-!! value is "phase-aware", this formulation may be preferred for use throughout
-!! the module (replacing "svp").
-  FUNCTION esat_blend(t) 
-
-      IMPLICIT NONE
-      
-      REAL, INTENT(IN):: t
-      REAL :: esat_blend,XC,ESL,ESI,chi
-
-      XC=MAX(-80.,t-273.16)
-
-! For 253 < t < 273.16 K, the vapor pressures are "blended" as a function of temperature, 
-! using the approach of Chaboureau and Bechtold (2002), JAS, p. 2363.  The resulting 
-! values are returned from the function.
-      IF (t .GE. 273.16) THEN
-          esat_blend = J0+XC*(J1+XC*(J2+XC*(J3+XC*(J4+XC*(J5+XC*(J6+XC*(J7+XC*J8))))))) 
-      ELSE IF (t .LE. 253.) THEN
-          esat_blend = K0+XC*(K1+XC*(K2+XC*(K3+XC*(K4+XC*(K5+XC*(K6+XC*(K7+XC*K8)))))))
-      ELSE
-          ESL  = J0+XC*(J1+XC*(J2+XC*(J3+XC*(J4+XC*(J5+XC*(J6+XC*(J7+XC*J8)))))))
-          ESI  = K0+XC*(K1+XC*(K2+XC*(K3+XC*(K4+XC*(K5+XC*(K6+XC*(K7+XC*K8)))))))
-          chi  = (273.16-t)/20.16
-          esat_blend = (1.-chi)*ESL  + chi*ESI
-      END IF
-
-  END FUNCTION esat_blend
-
-! ====================================================================
-
-!>\ingroup gsd_mynn_edmf
-!! This function extends function "esat" and returns a "blended"
-!! saturation mixing ratio.
-!!\author JAYMES
-  FUNCTION qsat_blend(t, P, waterice)
-
-      IMPLICIT NONE
-
-      REAL, INTENT(IN):: t, P
-      CHARACTER(LEN=1), OPTIONAL, INTENT(IN) :: waterice
-      CHARACTER(LEN=1) :: wrt
-      REAL :: qsat_blend,XC,ESL,ESI,RSLF,RSIF,chi
-
-      IF ( .NOT. PRESENT(waterice) ) THEN 
-          wrt = 'b'
-      ELSE
-          wrt = waterice
-      ENDIF
-
-      XC=MAX(-80.,t-273.16)
-
-      IF ((t .GE. 273.16) .OR. (wrt .EQ. 'w')) THEN
-          ESL  = J0+XC*(J1+XC*(J2+XC*(J3+XC*(J4+XC*(J5+XC*(J6+XC*(J7+XC*J8))))))) 
-          qsat_blend = 0.622*ESL/(P-ESL) 
-      ELSE IF (t .LE. 253.) THEN
-          ESI  = K0+XC*(K1+XC*(K2+XC*(K3+XC*(K4+XC*(K5+XC*(K6+XC*(K7+XC*K8)))))))
-          qsat_blend = 0.622*ESI/(P-ESI)
-      ELSE
-          ESL  = J0+XC*(J1+XC*(J2+XC*(J3+XC*(J4+XC*(J5+XC*(J6+XC*(J7+XC*J8)))))))
-          ESI  = K0+XC*(K1+XC*(K2+XC*(K3+XC*(K4+XC*(K5+XC*(K6+XC*(K7+XC*K8)))))))
-          RSLF = 0.622*ESL/(P-ESL)
-          RSIF = 0.622*ESI/(P-ESI)
-          chi  = (273.16-t)/20.16
-          qsat_blend = (1.-chi)*RSLF + chi*RSIF
-      END IF
-
-  END FUNCTION qsat_blend
-
-! ===================================================================
-
-!>\ingroup gsd_mynn_edmf
-!! This function interpolates the latent heats of vaporization and sublimation into
-!! a single, temperature-dependent, "blended" value, following 
-!! Chaboureau and Bechtold (2002) \cite Chaboureau_2002, Appendix.
-!!\author JAYMES
-  FUNCTION xl_blend(t)
-
-      IMPLICIT NONE
-
-      REAL, INTENT(IN):: t
-      REAL :: xl_blend,xlvt,xlst,chi
-
-      IF (t .GE. 273.16) THEN
-          xl_blend = xlv + (cpv-cliq)*(t-273.16)  !vaporization/condensation
-      ELSE IF (t .LE. 253.) THEN
-          xl_blend = xls + (cpv-cice)*(t-273.16)  !sublimation/deposition
-      ELSE
-          xlvt = xlv + (cpv-cliq)*(t-273.16)  !vaporization/condensation
-          xlst = xls + (cpv-cice)*(t-273.16)  !sublimation/deposition
-          chi  = (273.16-t)/20.16
-          xl_blend = (1.-chi)*xlvt + chi*xlst     !blended
-      END IF
-
-  END FUNCTION xl_blend
 
 ! ===================================================================
 ! ===================================================================
