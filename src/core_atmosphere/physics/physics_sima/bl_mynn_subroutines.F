@@ -361,11 +361,6 @@ MODULE bl_mynn_subroutines
 !
 !JOE & JAYMES- end
 
-
-
-  INTEGER :: mynn_level
-
-
 CONTAINS
 
 ! **********************************************************************
@@ -2144,7 +2139,6 @@ CONTAINS
     REAL :: vkz,pdk1,phm,pdt1,pdq1,pdc1,b1l,b2l,onoff
     REAL, DIMENSION(kts:kte) :: dtz
     REAL, DIMENSION(kts:kte) :: a,b,c,d,x
-
 
     ! REGULATE THE MOMENTUM MIXING FROM THE MASS-FLUX SCHEME (on or off)
     IF (bl_mynn_edmf_tke == 0) THEN
@@ -4308,9 +4302,6 @@ ENDIF
     ITF=ITE
     KTF=KTE
 
-!WRF
-!    levflag=mynn_level
-
     IF (bl_mynn_edmf > 0) THEN
       ! setup random seed
       !call init_random_seed
@@ -5291,8 +5282,6 @@ ENDIF
           ENDDO
        ENDDO
     ENDIF
-
-    mynn_level=level
 
   END SUBROUTINE mynn_bl_init_driver
 #endif
