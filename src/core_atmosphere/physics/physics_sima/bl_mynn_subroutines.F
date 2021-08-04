@@ -365,9 +365,6 @@ MODULE bl_mynn_subroutines
 
   INTEGER :: mynn_level
 
-  CHARACTER*128 :: mynn_message
-
-  INTEGER, PARAMETER :: kdebug=27
 
 CONTAINS
 
@@ -4544,7 +4541,6 @@ ENDIF
              ENDIF
 
 !***  Begin debugging
-!             k=kdebug
 !             IF(I==IMD .AND. J==JMD)THEN
 !               PRINT*,"MYNN DRIVER INIT: k=",1," sh=",sh(k)
 !               PRINT*," sqw=",sqw(k)," thl=",thl(k)," k_m=",exch_m(i,k,j)
