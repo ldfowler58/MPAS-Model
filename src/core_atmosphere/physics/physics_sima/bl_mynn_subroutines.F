@@ -210,7 +210,19 @@
 !-------------------------------------------------------------------
 
 MODULE bl_mynn_subroutines
-  use bl_mynn_common
+  use bl_mynn_common,only: &
+        cp      , cpv       , cliq      , cice       , &
+        ep_1    , ep_2      , ep_3      , ev         , &
+        gtr     , g         , karman    , p1000mb    , &
+        p608    , rcp       , rd        , rk         , &
+        rv      , rvovrd    , svp1      , svp2       , &
+        svp3    , svpt0     , tref      , tv0        , &
+        tv1     , vk        , xlf       , xls        , &
+        xlscp   , xlv       , xlvcp     , b1         , &
+        b2      , zero      , half      , one        , &
+        two     , onethird  , twothirds , cphh_st    , &
+        cphm_st , cphh_unst , cphm_unst , scaleaware , &
+        bl_mynn_topdown
   use mynn_shared,only: esat_blend,qsat_blend,xl_blend
   use error_function,only: erf
 
