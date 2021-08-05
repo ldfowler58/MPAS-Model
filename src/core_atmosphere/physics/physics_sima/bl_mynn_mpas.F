@@ -211,7 +211,7 @@
 
 
 !--- inout arguments:
- real(kind=kind_phys),intent(in),dimension(its:ite,1:kte):: &
+ real(kind=kind_phys),intent(inout),dimension(its:ite,1:kte):: &
     dqv,  &!
     dqc,  &!
     dqi    !
@@ -235,10 +235,10 @@
 !---
  do i = its,ite
     do k = kts,kte
-       sq = qv(i,k)/(1.+qv(i,k))     !conversion of qv at time-step n from mixing ratio to specific humidity.
-       sqv(i,k) = sq + dqv(i,k)*delt !calculation of specific humidity at time-step n+1.
-       rq = sqv(i,k)/(1.-sqv(i,k))   !conversion of qv at time-step n+1 from specific humidity to mixing ratio.
-       tem = (rq - qv(i,k))/delt     !calculation of the tendency.
+       sq = qv(i,k)/(1.+qv(i,k))      !conversion of qv at time-step n from mixing ratio to specific humidity.
+       sqv(i,k) = sq + dqv(i,k)*delt  !calculation of specific humidity at time-step n+1.
+       rq = sqv(i,k)/(1.-sqv(i,k))    !conversion of qv at time-step n+1 from specific humidity to mixing ratio.
+       dqv(i,k) = (rq - qv(i,k))/delt !calculation of the tendency.
 !      call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/dqv(i,k),tem,qv(i,k),rq, &
 !                          sq,sqv(i,k)/))
     enddo
@@ -251,7 +251,7 @@
           sq = qc(i,k)/(1.+qv(i,k))
           sqc(i,k) = sq + dqc(i,k)*delt
           rq  = sqc(i,k)*(1.+sqv(i,k))
-          tem = (rq - qc(i,k))/delt
+          dqc(i,k) = (rq - qc(i,k))/delt
 !         if(dqc(i,k).gt.0._kind_phys) &
 !            call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/dqc(i,k),tem,qc(i,k), &
 !                          rq,sq,sqc(i,k)/))
@@ -265,7 +265,7 @@
           sq = qi(i,k)/(1.+qv(i,k))
           sqi(i,k) = sq + dqi(i,k)*delt
           rq = sqi(i,k)*(1.+sqv(i,k))
-          tem = (rq - qi(i,k))/delt
+          dqi(i,k) = (rq - qi(i,k))/delt
 !         if(dqi(i,k).gt.0._kind_phys) &
 !            call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/dqi(i,k),tem,qi(i,k), &
 !                          rq,sq,sqi(i,k)/))
