@@ -3,17 +3,9 @@
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_log
 
- use mpas_atmphys_constants,only: &
-    cp,      &
-    karman,  &
-    gravity, &
-    P0,      &
-    ep_1,    &
-    ep_2,    &
-    rcp,     &
-    xlv
  use bl_mynn,only: bl_mynn_run
- use bl_mynn_mpas,only: bl_mynn_mpas_run
+ use bl_mynn_mpas,only: bl_mynn_mpas_timestep_init, &
+                        bl_mynn_mpas_timestep_final
 
  implicit none
  private
@@ -372,7 +364,8 @@
     endif
 
     !--- conversion from mixing ratios to specific contents:
-    call bl_mynn_mpas_run(its,ite,kte,f_qc,f_qi,qv_hv,qc_hv,qi_hv,sqv_hv,sqc_hv,sqi_hv,errmsg,errflg)
+    call bl_mynn_mpas_timestep_init(its,ite,kte,f_qc,f_qi,qv_hv,qc_hv,qi_hv,sqv_hv,sqc_hv,sqi_hv, &
+                                    errmsg,errflg)
 
     !--- initialization of the stochastic forcing in the PBL:
     do k = kts,kte
@@ -466,12 +459,12 @@
              spp_pbl          , pattern_spp_hv     , rthraten_hv      , &
              f_qc             , f_qi               , f_nc             , &
              f_ni             , f_nwfa             , f_nifa           , &
-             !--- constants:
-             cp , karman , gravity , P0 , ep_1 , ep_2 , rcp , xlv     , &
              its, ite , kts , kte , kme , errmsg , errflg               &
             )
 
-
+    !--- conversion of tendencies in terms of specific contents to in terms of mixing ratios:
+    call  bl_mynn_mpas_timestep_final(its,ite,kte,f_qc,f_qi,delt,qv_hv,qc_hv,qi_hv,rqvblten_hv, &
+                                rqcblten_hv,rqiblten_hv,errmsg,errflg)
 
     !--- inout arguments:
     do i = its,ite

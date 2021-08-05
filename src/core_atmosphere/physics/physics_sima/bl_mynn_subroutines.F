@@ -6,6 +6,7 @@
  save
 
 
+!--- physics constants that need to be initialized with physics constants from the host model:
  real(kind=kind_phys):: cp
  real(kind=kind_phys):: cpv
  real(kind=kind_phys):: cice
@@ -14,13 +15,14 @@
  real(kind=kind_phys):: ep_1
  real(kind=kind_phys):: ep_2
 
- real(kind=kind_phys):: grav
+ real(kind=kind_phys):: g
 
  real(kind=kind_phys):: karman
+ real(kind=kind_phys):: p1000mb
 
  real(kind=kind_phys):: rcp
- real(kind=kind_phys):: rd
- real(kind=kind_phys):: rv
+ real(kind=kind_phys):: r_d
+ real(kind=kind_phys):: r_v
  real(kind=kind_phys):: rvovrd
 
  real(kind=kind_phys):: svp1
@@ -32,9 +34,28 @@
  real(kind=kind_phys):: xlv
  real(kind=kind_phys):: xls
 
+!--- derived physics constants:
+ real(kind=kind_phys),parameter:: tref  = 300.0
 
-!---
+ real(kind=kind_phys):: ep_3
+ real(kind=kind_phys):: ev
+ real(kind=kind_phys):: gtr
+ real(kind=kind_phys):: p608
+ real(kind=kind_phys):: rd
+ real(kind=kind_phys):: rk
+ real(kind=kind_phys):: rv
+ real(kind=kind_phys):: svp11
+ real(kind=kind_phys):: tv0
+ real(kind=kind_phys):: tv1
+ real(kind=kind_phys):: vk
+ real(kind=kind_phys):: xlscp
+ real(kind=kind_phys):: xlvcp
+
+!--- physics constants also needed in subroutine bl_mynn_run:
  integer,parameter:: bl_mynn_topdown = 1
+
+ real(kind=kind_phys),parameter:: b1 = 24.0
+ real(kind=kind_phys),parameter:: b2 = 15.0
 
  real(kind=kind_phys),parameter:: zero  = 0.0
  real(kind=kind_phys),parameter:: half  = 0.5
@@ -49,45 +70,6 @@
  real(kind=kind_phys),parameter:: cphm_unst = 16.0
 
  real(kind=kind_phys),parameter:: scaleaware = 1.0
-
- real(kind=kind_phys),parameter:: tkmin = 300.0
- real(kind=kind_phys),parameter:: tref  = 300.0
-
- real(kind=kind_phys):: ep_3
- real(kind=kind_phys):: ev
- real(kind=kind_phys):: gtr
- real(kind=kind_phys):: p1000mb
- real(kind=kind_phys):: p608
- real(kind=kind_phys):: rk
- real(kind=kind_phys):: svp11
- real(kind=kind_phys):: tv0
- real(kind=kind_phys):: tv1
- real(kind=kind_phys):: vk
- real(kind=kind_phys):: xlscp
- real(kind=kind_phys):: xlvcp
-
-
-!--- parameters that define closure constants:
- real(kind=kind_phys),parameter:: pr = 0.74
- real(kind=kind_phys),parameter:: g1 = 0.235 ! NN2009 = 0.235
- real(kind=kind_phys),parameter:: c2 = 0.729 ! 0.729, & !0.75
- real(kind=kind_phys),parameter:: c3 = 0.340 ! 0.340, & !0.352
- real(kind=kind_phys),parameter:: c4 = 0.0
- real(kind=kind_phys),parameter:: c5 = 0.2
- real(kind=kind_phys),parameter:: b1 = 24.0
- real(kind=kind_phys),parameter:: b2 = 15.0
- real(kind=kind_phys),parameter:: a1 = b1*( 1.0-3.0*g1 )/6.0
- real(kind=kind_phys),parameter:: c1 = g1 -1.0/( 3.0*a1*2.88449914061481660)
- real(kind=kind_phys),parameter:: a2 = a1*( g1-c1 )/( g1*pr )
- real(kind=kind_phys),parameter:: g2 = b2/b1*( 1.0-c3 ) +2.0*a1/b1*( 3.0-2.0*c2 )
-
- real(kind=kind_phys),parameter:: cc2 = 1.0-c2
- real(kind=kind_phys),parameter:: cc3 = 1.0-c3
- real(kind=kind_phys),parameter:: e1c = 3.0*a2*b2*cc3
- real(kind=kind_phys),parameter:: e2c = 9.0*a1*a2*cc2
- real(kind=kind_phys),parameter:: e3c = 9.0*a2*a2*cc2*( 1.0-c5 )
- real(kind=kind_phys),parameter:: e4c = 12.0*a1*a2*cc2
- real(kind=kind_phys),parameter:: e5c = 6.0*a1*a1
 
 
  end module bl_mynn_common
@@ -228,26 +210,21 @@
 !-------------------------------------------------------------------
 
 MODULE bl_mynn_subroutines
-  use mpas_kind_types
   use bl_mynn_common,only: &
-        cp        , cpv       , cliq       , cice      , &
-        ep_1      , ep_2      , ep_3       , ev        , &
-        gtr       , grav      , karman     , p1000mb   , &
-        p608      , rcp       , rd         , rk        , &
-        rv        , rvovrd    , svp1       , svp2      , &
-        svp3      , svpt0     , tkmin      , tref      , &
-        tv0       , tv1       , vk         , xlf       , &
-        xls       , xlscp     , xlv        , xlvcp     , &
-        a1        , a2        , b1         , b2        , &
-        c1        , c2        , c5         , cc3       , &
-        e1c       , e2c       , e3c        , e4c       , &
-        e5c       , g1        , g2         ,             &
-        zero      , half      , one        , two       , &
-        onethird  , twothirds , cphh_st    , cphm_st   , &
-        cphh_unst , cphm_unst , scaleaware , bl_mynn_topdown
-
-  use error_function, only: erf
-  use mynn_shared
+        cp      , cpv       , cliq      , cice       , &
+        ep_1    , ep_2      , ep_3      , ev         , &
+        gtr     , g         , karman    , p1000mb    , &
+        p608    , rcp       , rd        , rk         , &
+        rv      , rvovrd    , svp1      , svp2       , &
+        svp3    , svpt0     , tref      , tv0        , &
+        tv1     , vk        , xlf       , xls        , &
+        xlscp   , xlv       , xlvcp     , b1         , &
+        b2      , zero      , half      , one        , &
+        two     , onethird  , twothirds , cphh_st    , &
+        cphm_st , cphh_unst , cphm_unst , scaleaware , &
+        bl_mynn_topdown
+  use mynn_shared,only: esat_blend,qsat_blend,xl_blend
+  use error_function,only: erf
 
   implicit none
   private
@@ -262,6 +239,38 @@ MODULE bl_mynn_subroutines
            retrieve_exchange_coeffs, &
            scale_aware
 
+!===================================================================
+! From here on, these are used for any model
+! The parameters below depend on stability functions of module_sf_mynn.
+! REAL, PARAMETER :: cphm_st=5.0, cphm_unst=16.0, &
+!                    cphh_st=5.0, cphh_unst=16.0
+
+  REAL, PARAMETER :: TKmin=253.0    !< for total water conversion, Tripoli and Cotton (1981)
+
+! Closure constants
+  REAL, PARAMETER :: &
+       &pr  =  0.74,  &
+       &g1  =  0.235, &  ! NN2009 = 0.235
+!      &b1  = 24.0, &
+!      &b2  = 15.0, &    ! CKmod     NN2009
+       &c2  =  0.729, &  ! 0.729, & !0.75, &
+       &c3  =  0.340, &  ! 0.340, & !0.352, &
+       &c4  =  0.0, &
+       &c5  =  0.2, &
+       &a1  = b1*( 1.0-3.0*g1 )/6.0, &
+!      &c1  = g1 -1.0/( 3.0*a1*b1**(1.0/3.0) ), &
+       &c1  = g1 -1.0/( 3.0*a1*2.88449914061481660), &
+       &a2  = a1*( g1-c1 )/( g1*pr ), &
+       &g2  = b2/b1*( 1.0-c3 ) +2.0*a1/b1*( 3.0-2.0*c2 )
+
+  REAL, PARAMETER :: &
+       &cc2 =  1.0-c2, &
+       &cc3 =  1.0-c3, &
+       &e1c =  3.0*a2*b2*cc3, &
+       &e2c =  9.0*a1*a2*cc2, &
+       &e3c =  9.0*a2*a2*cc2*( 1.0-c5 ), &
+       &e4c = 12.0*a1*a2*cc2, &
+       &e5c =  6.0*a1*a1
 
 ! Constants for min tke in elt integration (qmin), max z/L in els (zmax), 
 ! and factor for eddy viscosity for TKE (Kq = Sqfac*Km):
@@ -335,7 +344,6 @@ MODULE bl_mynn_subroutines
 !    Also, This option is  scale-aware in dx if "scaleaware" = 1. (Following Ito et al. 2015). 
 !
 !JOE & JAYMES- end
-
 
 CONTAINS
 
@@ -1228,7 +1236,7 @@ CONTAINS
      dlu=zw(kte+1)-zw(k)-dz(k)/2.
      zzz=0.
      zup_inf=0.
-     beta=grav/theta(k)           !Buoyancy coefficient
+     beta=g/theta(k)           !Buoyancy coefficient
 
      !print*,"FINDING Dup, k=",k," zw=",zw(k)
 
@@ -1382,7 +1390,7 @@ CONTAINS
         dlu(iz)=zw(kte+1)-zw(iz)-dz(iz)/2.
         zzz=0.
         zup_inf=0.
-        beta=grav/theta(iz)           !Buoyancy coefficient
+        beta=g/theta(iz)           !Buoyancy coefficient
 
         !print*,"FINDING Dup, k=",iz," zw=",zw(iz)
 
@@ -1789,13 +1797,13 @@ CONTAINS
 !     **  Limitation on c3sq (0.12 =< cw =< 0.76) **
           !JOE: use Janjic's (2001; p 13-17) methodology (eqs 4.11-414 and 5.7-5.10)
           ! to calculate an exact limit for c3sq:
-          auh = 27.*a1*((a2/a2den)**2)*b2*(grav/tref)**2
-          aum = 54.*(a1**2)*(a2/a2den)*b2*c1*(grav/tref)
-          adh = 9.*a1*((a2/a2den)**2)*(12.*a1 + 3.*b2)*(grav/tref)**2
-          adm = 18.*(a1**2)*(a2/a2den)*(b2 - 3.*(a2/a2den))*(grav/tref)
+          auh = 27.*a1*((a2/a2den)**2)*b2*(g/tref)**2
+          aum = 54.*(a1**2)*(a2/a2den)*b2*c1*(g/tref)
+          adh = 9.*a1*((a2/a2den)**2)*(12.*a1 + 3.*b2)*(g/tref)**2
+          adm = 18.*(a1**2)*(a2/a2den)*(b2 - 3.*(a2/a2den))*(g/tref)
 
           aeh = (9.*a1*((a2/a2den)**2)*b1 +9.*a1*((a2/a2den)**2)* &
-                (12.*a1 + 3.*b2))*(grav/tref)
+                (12.*a1 + 3.*b2))*(g/tref)
           aem = 3.*a1*(a2/a2den)*b1*(3.*(a2/a2den) + 3.*b2*c1 + &
                 (18.*a1*c1 - b2)) + &
                 (18.)*(a1**2)*(a2/a2den)*(b2 - 3.*(a2/a2den))
@@ -1986,7 +1994,7 @@ CONTAINS
        !!!Buoyancy Term    
        !!!qBUOY1D(k)=g*Tpwp/thl(k)
        !qBUOY1D(k)= elq*(sh(k)*gh(k) + gamv)
-       qBUOY1D(k) = elq*(sh(k)*(-dTdz*grav/thl(k)) + gamv)
+       qBUOY1D(k) = elq*(sh(k)*(-dTdz*g/thl(k)) + gamv)
 
        !!!Dissipation Term
        qDISS1D(k) = (q3sq**(3./2.))/(b1*MAX(el(k),1.))
@@ -2115,7 +2123,6 @@ CONTAINS
     REAL :: vkz,pdk1,phm,pdt1,pdq1,pdc1,b1l,b2l,onoff
     REAL, DIMENSION(kts:kte) :: dtz
     REAL, DIMENSION(kts:kte) :: a,b,c,d,x
-
 
     ! REGULATE THE MOMENTUM MIXING FROM THE MASS-FLUX SCHEME (on or off)
     IF (bl_mynn_edmf_tke == 0) THEN
@@ -2637,7 +2644,8 @@ CONTAINS
            tlk = thl(k)*(p(k)/p1000mb)**rcp    ! recover liquid temp (tl) from thl
            qsat_tl = qsat_blend(tlk,p(k))      ! get saturation water vapor mixing ratio
                                                !   at tl and p
-           rsl = xl*qsat_tl / (rv*tlk**2)      ! slope of C-C curve at t = tl
+!          rsl = xl*qsat_tl / (r_v*tlk**2)     ! slope of C-C curve at t = tl
+           rsl = xl*qsat_tl / (rv*tlk**2)     ! slope of C-C curve at t = tl
                                                ! CB02, Eqn. 4
            cpm = cp + qw(k)*cpv                ! CB02, sec. 2, para. 1
            a(k) = 1./(1. + xl*rsl/cpm)         ! CB02 variable "a"
@@ -2657,7 +2665,7 @@ CONTAINS
              dzk = dz(k)
            end if
 
-           cdhdz = dtl/dzk + (grav/cpm)*(1.+qw(k))  ! expression below Eq. 9
+           cdhdz = dtl/dzk + (g/cpm)*(1.+qw(k))  ! expression below Eq. 9
                                                  ! in CB02
            zagl = zagl + dz(k)
            !Use analog to surface layer length scale to make the cloud mixing length scale
@@ -4280,9 +4288,6 @@ ENDIF
     ITF=ITE
     KTF=KTE
 
-!WRF
-!    levflag=mynn_level
-
     IF (bl_mynn_edmf > 0) THEN
       ! setup random seed
       !call init_random_seed
@@ -4513,7 +4518,6 @@ ENDIF
              ENDIF
 
 !***  Begin debugging
-!             k=kdebug
 !             IF(I==IMD .AND. J==JMD)THEN
 !               PRINT*,"MYNN DRIVER INIT: k=",1," sh=",sh(k)
 !               PRINT*," sqw=",sqw(k)," thl=",thl(k)," k_m=",exch_m(i,k,j)
@@ -4781,7 +4785,7 @@ ENDIF
           end if
 
           !-- Estimate wstar & delta for GRIMS shallow-cu-------
-          govrth = grav/th1(kts)
+          govrth = g/th1(kts)
           sflux = hfx(i,j)/rho(i,kts,j)/cpm + &
                   qfx(i,j)/rho(i,kts,j)*ep_1*th1(kts)
           bfx0 = max(sflux,0.)
@@ -4855,8 +4859,8 @@ ENDIF
 
                 radsum=0.
                 DO kk = MAX(1,kpbl(i,j)-3),kpbl(i,j)+3
-                   radflux=rthraten(i,kk,j)*ex1(kk)          !converts theta/s to temp/s
-                   radflux=radflux*cp/grav*(p1(kk)-p1(kk+1)) !converts temp/s to W/m^2
+                   radflux=rthraten(i,kk,j)*ex1(kk)         !converts theta/s to temp/s
+                   radflux=radflux*cp/g*(p1(kk)-p1(kk+1)) ! converts temp/s to W/m^2
                    if (radflux < 0.0 ) radsum=abs(radflux)+radsum
                 ENDDO
 
@@ -4870,7 +4874,7 @@ ENDIF
                 endif
 
                 !entrainment from PBL top thermals
-                wm3    = grav/thetav(k)*bfx0*MIN(pblh(i,j),1500.) ! this is wstar3(i)
+                wm3    = g/thetav(k)*bfx0*MIN(pblh(i,j),1500.) ! this is wstar3(i)
                 wm2    = wm2 + wm3**h2
                 bfxpbl = - ent_eff * bfx0
                 dthvx  = max(thetav(k+1)-thetav(k),0.1)
@@ -5264,8 +5268,6 @@ ENDIF
           ENDDO
        ENDDO
     ENDIF
-
-    mynn_level=level
 
   END SUBROUTINE mynn_bl_init_driver
 #endif
@@ -5835,7 +5837,7 @@ ENDIF
     pwmin=0.1       ! was 0.5
     pwmax=0.4       ! was 3.0
 
-    wstar=max(1.E-2,(grav/thv(1)*fltv*pblh)**(1./3.))
+    wstar=max(1.E-2,(g/thv(1)*fltv*pblh)**(1./3.))
     qstar=max(flq,1.0E-5)/wstar
     thstar=flt/wstar
 
@@ -5985,7 +5987,7 @@ ENDIF
           THVkm1=(THV(k-1)*DZ(k)+THV(k)*DZ(k-1))/(DZ(k-1)+DZ(k))
 
 !          B=g*(0.5*(THVn+UPTHV(k-1,I))/THV(k-1) - 1.0)
-          B=grav*(THVn/THVk - 1.0)
+          B=g*(THVn/THVk - 1.0)
           IF(B>0.)THEN
             BCOEFF = 0.15        !w typically stays < 2.5, so doesnt hit the limits nearly as much
           ELSE
@@ -6381,11 +6383,12 @@ ENDIF
 
             !COMPUTE CLDFRA & QC_BL FROM MASS-FLUX SCHEME and recompute vt & vq
 
-!           xl = xl_blend(tk(k))                ! obtain blended heat capacity
+!           xl = xl_blend(tk(k))                       ! obtain blended heat capacity
             xl = xl_blend(tk(k),cice,cliq,cpv,xls,xlv) ! obtain blended heat capacity
             tlk = thl(k)*(p(k)/p1000mb)**rcp    ! recover liquid temp (tl) from thl
             qsat_tl = qsat_blend(tlk,p(k))      ! get saturation water vapor mixing ratio
                                                 !   at tl and p
+!           rsl = xl*qsat_tl / (r_v*tlk**2)     ! slope of C-C curve at t = tl
             rsl = xl*qsat_tl / (rv*tlk**2)      ! slope of C-C curve at t = tl
                                                 ! CB02, Eqn. 4
             cpm = cp + qt(k)*cpv                ! CB02, sec. 2, para. 1
@@ -6683,6 +6686,8 @@ SUBROUTINE SCALE_AWARE(dx,PBL1,Psig_bl,Psig_shcu)
 
   END SUBROUTINE SCALE_AWARE
 
+! ===================================================================
+! ===================================================================
 ! ===================================================================
 
 END MODULE bl_mynn_subroutines
