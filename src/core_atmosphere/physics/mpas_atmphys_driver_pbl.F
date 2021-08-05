@@ -751,6 +751,7 @@
  pbl_select: select case (trim(pbl_scheme))
 
     case("bl_mynn")
+       call mpas_log_write(" ")
        call mpas_log_write('--- enter subroutine bl_mynn_mpas_init:')
        call bl_mynn_mpas_init(cp,cpv,cice,cliq,ep_1,ep_2,gravity,karman,P0,R_d,R_v,svp1,svp2,svp3,svpt0, &
                               xlf,xls,xlv,errmsg,errflg)
