@@ -4,7 +4,8 @@
  use mpas_log
 
  use bl_mynn,only: bl_mynn_run
- use bl_mynn_mpas,only: bl_mynn_mpas_run
+ use bl_mynn_mpas,only: bl_mynn_mpas_timestep_init, &
+                        bl_mynn_mpas_timestep_final
 
  implicit none
  private
@@ -363,7 +364,8 @@
     endif
 
     !--- conversion from mixing ratios to specific contents:
-    call bl_mynn_mpas_run(its,ite,kte,f_qc,f_qi,qv_hv,qc_hv,qi_hv,sqv_hv,sqc_hv,sqi_hv,errmsg,errflg)
+    call bl_mynn_mpas_timestep_init(its,ite,kte,f_qc,f_qi,qv_hv,qc_hv,qi_hv,sqv_hv,sqc_hv,sqi_hv, &
+                                    errmsg,errflg)
 
     !--- initialization of the stochastic forcing in the PBL:
     do k = kts,kte
@@ -460,7 +462,9 @@
              its, ite , kts , kte , kme , errmsg , errflg               &
             )
 
-
+    !--- conversion of tendencies in terms of specific contents to in terms of mixing ratios:
+    call  bl_mynn_mpas_timestep_final(its,ite,kte,f_qc,f_qi,delt,qv,qc,qi,rqvblten_hv,rqcblten_hv, &
+                                      rqiblten_hv,errmsg,errflg)
 
     !--- inout arguments:
     do i = its,ite
