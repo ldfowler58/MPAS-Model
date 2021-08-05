@@ -463,8 +463,8 @@
             )
 
     !--- conversion of tendencies in terms of specific contents to in terms of mixing ratios:
-    call  bl_mynn_mpas_timestep_final(its,ite,kte,f_qc,f_qi,delt,qv,qc,qi,rqvblten_hv,rqcblten_hv, &
-                                      rqiblten_hv,errmsg,errflg)
+    call  bl_mynn_mpas_timestep_final(its,ite,kte,f_qc,f_qi,delt,qv_hv,qc_hv,qi_hv,rqvblten_hv, &
+                                rqcblten_hv,rqiblten_hv,errmsg,errflg)
 
     !--- inout arguments:
     do i = its,ite
