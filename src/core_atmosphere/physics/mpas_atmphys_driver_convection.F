@@ -686,7 +686,6 @@
                area         = area_p               , u            = u_p                  , &
                v            = v_p                  , w            = w_p                  , &
                t            = t_p                  , q            = qv_p                 , &
-               nifa         = nifa_p               , nwfa         = nwfa_p               , &
                rho          = rho_p                , p            = pres_hyd_p           , &
                pi           = pi_p                 , p8w          = pres2_hyd_p          , &
                dz8w         = dz_p                 , ht           = ht_p                 , &
@@ -719,13 +718,12 @@
                rqccuten_midlc = rqccuten_midlc_p   , rqicuten_midlc = rqicuten_midlc_p   , &
                rthcuten_shalc = rthcuten_shalc_p   , rqvcuten_shalc = rqvcuten_shalc_p   , &
                rqccuten_shalc = rqccuten_shalc_p   , rqicuten_shalc = rqicuten_shalc_p   , &
-               rnifacuten   = rnifacuten_p         , rnwfacuten     = rnwfacuten_p       , &
                gdc          = qccu_p               , gdc2         = qicu_p               , &
                nclos        = nclosures            , weights_clos = weights_clos_p       , &
                ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde     , &
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme     , &
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
-                                   )
+                            )
        call mpas_timer_stop('cu_grell_freitas')
        call mpas_log_write('--- end subroutine cu_grell_freitas.')
        call mpas_log_write('')
