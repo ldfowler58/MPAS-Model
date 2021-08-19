@@ -203,7 +203,7 @@
 
 !--- convective transport in convective_updrafts:
  call ctrans_thompson_up(its,ite,kts,kte,ierr,k22,kbcon,ktop,nthom,use_thom_scaven,c0,grav,thom_wetscav,p, &
-                      p_cup,z_cup,nifa,nifal2,nwfa,nwfal2,zu,up_entr,up_detr,nifa_up,nwfa_up,nifa_up_scav, &  
+                      p_cup,z_cup,nifa,nifal2,nwfa,nwfal2,zu,up_entr,up_detr,nifa_up,nwfa_up,nifa_up_scav, &
                       nwfa_up_scav)
 
 
@@ -322,7 +322,7 @@
                 dterm(k) = dterm(k) + dtime*nifa_out_scav(i,k)
              enddo
           endif
-          if(use_thom_evap) then
+          if(use_thom_evap .gt. 0) then
              do k = kts,kt
                 dterm(k) = dterm(k) + dtime*nifa_out_evap(i,k)
              enddo
@@ -338,12 +338,12 @@
                       - edt(i)*(zd(i,k)*nwfa_dn(i,k)-zd(i,k+1)*nwfa_dn(i,k+1))
              dterm(k) = nwfa(i,k) + mult(k)*dtime*dterm(k)
           enddo
-          if(use_thom_scaven > 0) then
+          if(use_thom_scaven .gt. 0) then
              do k = kts,kt
                 dterm(k) = dterm(k) + dtime*nwfa_out_scav(i,k)
              enddo
           endif
-          if(use_thom_evap) then
+          if(use_thom_evap .gt. 0) then
              do k = kts,kt
                 dterm(k) = dterm(k) + dtime*nwfa_out_evap(i,k)
              enddo
@@ -488,7 +488,7 @@
 
           !wet scavenging:
           !formulation as in GOCART (using sourcecode in ConvPar_GF_GEOS5 provided by Saulo Freitas):
-          if(use_thom_scaven == 1) then
+          if(use_thom_scaven .eq. 1) then
              nifa_up_scav(i,k) = max(0.,nifa_up(i,k)*(1.-exp(-fscav_i*(dz/1000.))))
              nwfa_up_scav(i,k) = max(0.,nwfa_up(i,k)*(1.-exp(-fscav_w*(dz/1000.))))
 
@@ -590,9 +590,6 @@
     nwfa_dn_evap(i,k) = - pwdper*nwfa_up_scav(i,k)
     nifa_dn(i,k) = nifa_dn(i,k) - nifa_dn_evap(i,k)
     nwfa_dn(i,k) = nwfa_dn(i,k) - nwfa_dn_evap(i,k)
-!   call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r $r $r',intArgs=(/i,k2,kb,kd,kt,k/),realArgs= &
-!            (/pwdper,nifa_dn(i,k),nwfa_dn(i,k),nifa_up_scav(i,k),nwfa_up_scav(i,k),nifa_dn_evap(i,k), &
-!            nwfa_dn_evap(i,k)/))
 
     !--- calculates the downdraft mass terms:
     do k = kd-1,kts,-1
@@ -617,11 +614,7 @@
        nwfa_dn_evap(i,k) = - pwdper*nwfa_up_scav(i,k)
        nifa_dn(i,k) = nifa_dn(i,k) - nifa_dn_evap(i,k)
        nwfa_dn(i,k) = nwfa_dn(i,k) - nwfa_dn_evap(i,k)
-!      call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r $r $r',intArgs=(/i,k2,kb,kd,kt,k/),realArgs= &
-!               (/pwdper,nifa_dn(i,k),nwfa_dn(i,k),nifa_up_scav(i,k),nwfa_up_scav(i,k),nifa_dn_evap(i,k), &
-!               nwfa_dn_evap(i,k)/))
     enddo
-!   call mpas_log_write(' ')
  enddo
 
  call mpas_log_write('--- end subroutine ctrans_thompson_dn:')
