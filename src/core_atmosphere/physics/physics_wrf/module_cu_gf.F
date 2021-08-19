@@ -650,17 +650,25 @@
     if(do_midlc) then
        call mpas_log_write('  ')
        call mpas_log_write('--- enter subroutine cu_gf_deep_run - mid-level convection:')
-!      call cu_gf_deep_run( &
-!               itf,ktf,its,ite,kts,kte,                                       &
-!               dicycle_m,ichoice_m,ipr,ccn,dt,imidc,kpbli,dhdt,               &
-!               xlandi,zo,forcingm,t2d,q2d,ter11,tshall,qshall,p2d,            &
-!               psur,us,vs,rhoi,hfxi,qfxi,areai,dxi,mconv,omeg,cactiv,         &
-!               cnvwtm,zum,zdm,dummy,edtm,dummy,xmbm,dummy,xmbs,pretm,         &
-!               outum,outvm,outtm,outqm,outqcm,kbconm,ktopm,k22m,cupclwm,      &
-!               ierrm,ierrcm,nc2d,ni2d,nifa2d,nwfa2d,ntrans,qtrans2d,          &
-!               outncm,outnim,outnifam,outnwfam,outqtransm,rand_mom,rand_vmas, &
-!               rand_clos,nranflag,jminm,tropics                               &
-!                 )
+       call cu_gf_deep_run( &
+                itf,ktf,its,ite,kts,kte,                                  &
+                dicycle_m,ichoice_m,ipr,ccn,dt,imidc,kpbli,dhdt,          &
+                xlandi,zo,forcingm,t2d,q2d,ter11,tshall,qshall,p2d,       &
+                psur,us,vs,rhoi,hfxi,qfxi,areai,dxi,mconv,omeg,cactiv,    &
+                cnvwtm,zum,zdm,dummy,edtm,dummy,xmbm,dummy,xmbs,pretm,    &
+                outum,outvm,outtm,outqm,outqcm,kbconm,ktopm,k22m,cupclwm, &
+                ierrm,ierrcm,rand_mom,rand_vmas,rand_clos,nranflag        &
+#ifdef ATM_CHEMISTRY
+               ,use_thom_scaven,use_thom_evap,use_thom_implicit,is_mp     & !transport of "Thompson" aerosols.
+               ,nifa2d,nwfa2d,outnifam,outnwfam                           & !transport of "Thompson" aerosols.
+               ,naer,aerosol2d_w,aerosol2d_scav                           & !transport of "Thompson" aerosols.
+               ,nifa2d_evapt,nifa2d_scavt,nwfa2d_evapt,nwfa2d_scavt       & !transport of "Thompson" aerosols.
+               ,nifa2d_evap,nifa2d_scav,nwfa2d_evap,nwfa2d_scav           & !transport of "Thompson" aerosols.
+               ,nchem,chem2d,outchem                                      & !transport of chemical species.
+               ,ntracer,tracer2d,outtracer                                & !transport of passive tracers.
+#endif
+               ,jminm,tropics                                             &
+                          )
 
        do k = kts, ktf
           do i = its, itf
@@ -711,7 +719,7 @@
                ,ntracer,tracer2d,outtracer                                & !transport of passive tracers.
 #endif
               ,jmin,tropics                                               &
-                  )
+                          )
 
        do k = kts, ktf
           do i = its, itf
