@@ -574,6 +574,9 @@
                         <var name="rho_base" packages="met_stage_out"/>
                         <var name="theta_base" packages="met_stage_out"/>
                         <var name="surface_pressure" packages="met_stage_out"/>
+                        <var name="pressure_base" packages="met_stage_out"/>
+                        <var name="pressure_p" packages="met_stage_out"/>
+                        <var name="pressure" packages="met_stage_out"/>
                         <var name="precipw" packages="met_stage_out"/>
                         <var name="h_oml_initial" packages="met_stage_out"/>
                         <var name="u10" packages="met_stage_out"/>
