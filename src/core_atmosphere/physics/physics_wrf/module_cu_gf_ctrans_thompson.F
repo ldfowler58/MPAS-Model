@@ -302,14 +302,14 @@
                    - edt(i)*(zd(i,k)*nifa_dn(i,k)-zd(i,k+1)*nifa_dn(i,k+1))
           dterm(k) = nifa(i,k) + mult(k)*dtime*dterm(k)
        enddo
-       if(use_thom_scaven > 0) then
+       if(use_thom_scaven == 1) then
           do k = kts,kt
              nifa_out(i,k) = nifa_out(i,k) &
                  - 0.5*(zu(i,k)*nifa_up_scav(i,k)+zu(i,k+1)*nifa_up_scav(i,k+1))*mult(k)*dtime
              dterm(k) = dterm(k) + nifa_out(i,k)
           enddo
        endif
-       if(use_thom_evap) then
+       if(use_thom_evap == 1) then
           do k = kts,kt
              nifa_out(i,k) = nifa_out(i,k) &
                  - 0.5*(zd(i,k)*nifa_dn_scav(i,k)+zd(i,k+1)*nifa_dn_scav(i,k+1))*edt(i)**mult(k)*dtime
@@ -340,14 +340,14 @@
                    - edt(i)*(zd(i,k)*nwfa_dn(i,k)-zd(i,k+1)*nwfa_dn(i,k+1))
           dterm(k) = nwfa(i,k) + mult(k)*dtime*dterm(k)
        enddo
-       if(use_thom_scaven > 0) then
+       if(use_thom_scaven == 1) then
           do k = kts,kt
              nwfa_out(i,k) = nwfa_out(i,k) &
                  - 0.5*(zu(i,k)*nwfa_up_scav(i,k)+zu(i,k+1)*nwfa_up_scav(i,k+1))*mult(k)*dtime
              dterm(k) = dterm(k) + nwfa_out(i,k)
           enddo
        endif
-       if(use_thom_evap) then
+       if(use_thom_evap == 1) then
           do k = kts,kt
              nwfa_out(i,k) = nwfa_out(i,k) &
                  - 0.5*(zd(i,k)*nwfa_dn_scav(i,k)+zd(i,k+1)*nwfa_dn_scav(i,k+1))*edt(i)**mult(k)*dtime
@@ -367,14 +367,14 @@
              dterm(k) = thom(i,k,n) + mult(k)*dtime*dterm(k)
           enddo
           !include scavenging:
-          if(use_thom_scaven > 0) then
+          if(use_thom_scaven == 1) then
              do k = kts,kt
                 thom_out(i,k,n) = thom_out(i,k,n) &
                     - 0.5*(zu(i,k)*thom_up_scav(i,k,n)+zu(i,k+1)*thom_up_scav(i,k+1,n))*mult(k)*dtime
                 dterm(k) = dterm(k) + thom_out(i,k,n)
              enddo
           endif
-          if(use_thom_scaven > 0) then
+          if(use_thom_scaven == 1) then
              do k = kts,kt
                 thom_out(i,k,n) = thom_out(i,k,n) &
                     - 0.5*(zd(i,k)*thom_dn_scav(i,k,n)+zd(i,k+1)*thom_dn_scav(i,k+1,n))*edt(i)**mult(k)*dtime
@@ -714,9 +714,6 @@
        thom_dn(i,k,n) = thom_dn(i,k,n) - thom_dn_scav(i,k,n)
     enddo
 
-    call mpas_log_write('$i $i $i $r $r $r $r $r $r $r $r',intArgs=(/i,kd,k/),realArgs=(/pwdper,dp, &
-              nifa_dn_scav(i,k),nwfa_dn_scav(i,k),(thom_dn_scav(i,k,n),n=6,nthom)/))
-
     !--- calculates the downdraft mass terms:
     do k = kd-1,kts,-1
        dz = z_cup(i,k+1)-z_cup(i,k)
@@ -755,10 +752,7 @@
           thom_dn_scav(i,k,n) = -pwdper*thom_up_scav_tot(i,n)*grav/dp
           thom_dn(i,k,n) = thom_dn(i,k,n) - thom_dn_scav(i,k,n)
        enddo
-       call mpas_log_write('$i $i $i $r $r $r $r $r $r $r $r',intArgs=(/i,kd,k/),realArgs=(/pwdper,dp, &
-                 nifa_dn_scav(i,k),nwfa_dn_scav(i,k),(thom_dn_scav(i,k,n),n=6,nthom)/))
     enddo
-    call mpas_log_write(' ')
  enddo
 
  call mpas_log_write('--- end subroutine ctrans_thompson_dn:')
