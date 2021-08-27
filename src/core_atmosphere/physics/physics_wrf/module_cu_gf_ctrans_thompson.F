@@ -14,9 +14,10 @@
 
 
 !=================================================================================================================
- subroutine ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,use_thom_scaven,use_thom_evap,dtime, &
-                        grav,edt,xmb,p,p_cup,z_cup,thom_w,nifa,nwfa,thom_scav,nifa_scav,nwfa_scav,pwavo,pwevo, &
-                        pwo,pwdo,zu,up_entr,up_detr,zd,dn_entr,dn_detr,outnifa,outnwfa)
+ subroutine ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,use_thom_scaven,use_thom_evap, &
+                        use_thom_implicit,dtime,grav,edt,xmb,p,p_cup,z_cup,thom_w,nifa,nwfa,thom_scav,   &
+                        nifa_scav,nwfa_scav,pwavo,pwevo,pwo,pwdo,zu,up_entr,up_detr,zd,dn_entr,dn_detr,  &
+                        outnifa,outnwfa)
 !=================================================================================================================
 
 !--- input arguments:
@@ -27,7 +28,8 @@
 
  integer,intent(in):: &
     use_thom_scaven, &!
-    use_thom_evap     !
+    use_thom_evap,   &!
+    use_thom_implicit !
 
  integer,intent(in),dimension(its:ite):: &
     ierr,     &!
@@ -109,6 +111,9 @@
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine ctrans_thompson: nthom = $i',intArgs=(/nthom/))
+ call mpas_log_write('--- use_thom_implicit = $i',intArgs=(/use_thom_implicit/))
+ call mpas_log_write('--- use_thom_scaven   = $i',intArgs=(/use_thom_scaven/))
+ call mpas_log_write('--- use_thom_evap     = $i',intArgs=(/use_thom_evap/))
 
 
 !--- allocate the different aerosol components of "water-friendly" and "ice-friendly" aerosols:
@@ -239,165 +244,167 @@
 !--- updates the "water-friendly" and "ice-friendly" aerosols, and computes tendencies of "water-friendly"
 !    and "ice-friendly" aerosols due transport,activation,and wet scavenging in convective updrafts and
 !    downdrafts.
- do i = its,ite
-    if(ierr(i) .eq. 0) then
-       k2 = k22(i)
-       kb = kbcon(i)
-       kt = ktop(i)
-       kd = kdn(i)
-       kc = kt-kts+1
+ if(use_thom_implicit == 1) then
+    do i = its,ite
+       if(ierr(i) .eq. 0) then
+          k2 = k22(i)
+          kb = kbcon(i)
+          kt = ktop(i)
+          kd = kdn(i)
+          kc = kt-kts+1
 
-       do k = kts,kte
-          znet(k) = zu(i,k)-edt(i)*zd(i,k)
-          fp(k)   = 0.5*(znet(k)+abs(znet(k)))
-          fm(k)   = 0.5*(znet(k)-abs(znet(k)))
+          do k = kts,kte
+             znet(k) = zu(i,k)-edt(i)*zd(i,k)
+             fp(k)   = 0.5*(znet(k)+abs(znet(k)))
+             fm(k)   = 0.5*(znet(k)-abs(znet(k)))
 
-          aeri(k)    = 0._RKIND
-          aerw(k)    = 0._RKIND
-          aeri_up(k) = 0._RKIND
-          aerw_up(k) = 0._RKIND
-          aeri_dn(k) = 0._RKIND
-          aerw_dn(k) = 0._RKIND
-          do n = 1,5
-             aeri_dn(k) = aeri_dn(k) + thom_dn(i,k,n)
-             aeri_up(k) = aeri_up(k) + thom_up(i,k,n)
+             aeri(k)    = 0._RKIND
+             aerw(k)    = 0._RKIND
+             aeri_up(k) = 0._RKIND
+             aerw_up(k) = 0._RKIND
+             aeri_dn(k) = 0._RKIND
+             aerw_dn(k) = 0._RKIND
+             do n = 1,5
+                aeri_dn(k) = aeri_dn(k) + thom_dn(i,k,n)
+                aeri_up(k) = aeri_up(k) + thom_up(i,k,n)
+             enddo
+             do n = 6,nthom
+                aerw_dn(k) = aerw_dn(k) + thom_dn(i,k,n)
+                aerw_up(k) = aerw_up(k) + thom_up(i,k,n)
+             enddo
           enddo
-          do n = 6,nthom
-             aerw_dn(k) = aerw_dn(k) + thom_dn(i,k,n)
-             aerw_up(k) = aerw_up(k) + thom_up(i,k,n)
-          enddo
-       enddo
 
-       if(.not.allocated(mult) ) allocate(mult(kts:kt) )
-       if(.not.allocated(aterm)) allocate(aterm(kts:kt))
-       if(.not.allocated(bterm)) allocate(bterm(kts:kt))
-       if(.not.allocated(cterm)) allocate(cterm(kts:kt))
-       if(.not.allocated(dterm)) allocate(dterm(kts:kt))
-       do k = kts,kt
-          mult(k)  = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
-          mult(k)  = xmb(i)*mult(k)
-
-          aterm(k) = mult(k)*dtime*fm(k)
-          bterm(k) = 1.+mult(k)*dtime*(fp(k)-fm(k+1))
-          cterm(k) = -mult(k)*dtime*fp(k+1)
-       enddo
-
-       !--- "ice-friendly" aerosols:
-       do k = kts,kt
-          dterm(k) = (zu(i,k)*aeri_up(k)-zu(i,k+1)*aeri_up(k+1)) &
-                   - edt(i)*(zd(i,k)*aeri_dn(k)-zd(i,k+1)*aeri_dn(k+1))
-          dterm(k) = nifa(i,k) + mult(k)*dtime*dterm(k)
-       enddo
-       
-       call tridiag(kc,aterm,bterm,cterm,dterm)
-       do k = kts,kt
-          nifa_scav(i,k) = dterm(k)
-       enddo
-       do k = kt+1,kte
-          nifa_scav(i,k) = nifa(i,k)
-       enddo
-
-       do k = kts,kt
-          dterm(k) = (zu(i,k)*nifa_up(i,k)-zu(i,k+1)*nifa_up(i,k+1)) &
-                   - edt(i)*(zd(i,k)*nifa_dn(i,k)-zd(i,k+1)*nifa_dn(i,k+1))
-          dterm(k) = nifa(i,k) + mult(k)*dtime*dterm(k)
-       enddo
-       if(use_thom_scaven == 1) then
+          if(.not.allocated(mult) ) allocate(mult(kts:kt) )
+          if(.not.allocated(aterm)) allocate(aterm(kts:kt))
+          if(.not.allocated(bterm)) allocate(bterm(kts:kt))
+          if(.not.allocated(cterm)) allocate(cterm(kts:kt))
+          if(.not.allocated(dterm)) allocate(dterm(kts:kt))
           do k = kts,kt
-             nifa_out(i,k) = nifa_out(i,k) &
-                 - 0.5*(zu(i,k)*nifa_up_scav(i,k)+zu(i,k+1)*nifa_up_scav(i,k+1))*mult(k)*dtime
-             dterm(k) = dterm(k) + nifa_out(i,k)
-          enddo
-       endif
-       if(use_thom_evap == 1) then
-          do k = kts,kt
-             nifa_out(i,k) = nifa_out(i,k) &
-                 - 0.5*(zd(i,k)*nifa_dn_scav(i,k)+zd(i,k+1)*nifa_dn_scav(i,k+1))*edt(i)**mult(k)*dtime
-             dterm(k) = dterm(k) + nifa_out(i,k)
-          enddo
-       endif
-       call tridiag(kc,aterm,bterm,cterm,dterm)
-       do k = kts,kt
-          outnifa(i,k) = (dterm(k)-nifa(i,k))/dtime
-       enddo
+             mult(k)  = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
+             mult(k)  = xmb(i)*mult(k)
 
-       !--- "water-friendly" aerosols:
-       do k = kts,kt
-          dterm(k) = (zu(i,k)*aerw_up(k)-zu(i,k+1)*aerw_up(k+1)) &
-                   - edt(i)*(zd(i,k)*aerw_dn(k)-zd(i,k+1)*aerw_dn(k+1))
-          dterm(k) = nwfa(i,k) + mult(k)*dtime*dterm(k)
-       enddo
-       call tridiag(kc,aterm,bterm,cterm,dterm)
-       do k = kts,kt
-          nwfa_scav(i,k) = dterm(k)
-       enddo
-       do k = kt+1,kte
-          nwfa_scav(i,k) = nwfa(i,k)
-       enddo
+             aterm(k) = mult(k)*dtime*fm(k)
+             bterm(k) = 1.+mult(k)*dtime*(fp(k)-fm(k+1))
+             cterm(k) = -mult(k)*dtime*fp(k+1)
+          enddo
 
-       do k = kts,kt
-          dterm(k) = (zu(i,k)*nwfa_up(i,k)-zu(i,k+1)*nwfa_up(i,k+1)) &
-                   - edt(i)*(zd(i,k)*nwfa_dn(i,k)-zd(i,k+1)*nwfa_dn(i,k+1))
-          dterm(k) = nwfa(i,k) + mult(k)*dtime*dterm(k)
-       enddo
-       if(use_thom_scaven == 1) then
+          !--- "ice-friendly" aerosols:
           do k = kts,kt
-             nwfa_out(i,k) = nwfa_out(i,k) &
-                 - 0.5*(zu(i,k)*nwfa_up_scav(i,k)+zu(i,k+1)*nwfa_up_scav(i,k+1))*mult(k)*dtime
-             dterm(k) = dterm(k) + nwfa_out(i,k)
+             dterm(k) = (zu(i,k)*aeri_up(k)-zu(i,k+1)*aeri_up(k+1)) &
+                      - edt(i)*(zd(i,k)*aeri_dn(k)-zd(i,k+1)*aeri_dn(k+1))
+             dterm(k) = nifa(i,k) + mult(k)*dtime*dterm(k)
           enddo
-       endif
-       if(use_thom_evap == 1) then
-          do k = kts,kt
-             nwfa_out(i,k) = nwfa_out(i,k) &
-                 - 0.5*(zd(i,k)*nwfa_dn_scav(i,k)+zd(i,k+1)*nwfa_dn_scav(i,k+1))*edt(i)**mult(k)*dtime
-             dterm(k) = dterm(k) + nwfa_out(i,k)
-          enddo
-       endif
-       call tridiag(kc,aterm,bterm,cterm,dterm)
-       do k = kts,kt
-          outnwfa(i,k) = (dterm(k)-nwfa(i,k))/dtime
-       enddo
 
-       !--- separate "Thompson" aerosols:
-       do n = 1,nthom
+          call tridiag(kc,aterm,bterm,cterm,dterm)
           do k = kts,kt
-             dterm(k) = (zu(i,k)*thom_up(i,k,n)-zu(i,k+1)*thom_up(i,k+1,n)) &
-                      - edt(i)*(zd(i,k)*thom_dn(i,k,n)-zd(i,k+1)*thom_dn(i,k+1,n))
-             dterm(k) = thom(i,k,n) + mult(k)*dtime*dterm(k)
+             nifa_scav(i,k) = dterm(k)
           enddo
-          !include scavenging:
+          do k = kt+1,kte
+             nifa_scav(i,k) = nifa(i,k)
+          enddo
+
+          do k = kts,kt
+             dterm(k) = (zu(i,k)*nifa_up(i,k)-zu(i,k+1)*nifa_up(i,k+1)) &
+                      - edt(i)*(zd(i,k)*nifa_dn(i,k)-zd(i,k+1)*nifa_dn(i,k+1))
+             dterm(k) = nifa(i,k) + mult(k)*dtime*dterm(k)
+          enddo
           if(use_thom_scaven == 1) then
              do k = kts,kt
-                thom_out(i,k,n) = thom_out(i,k,n) &
-                    - 0.5*(zu(i,k)*thom_up_scav(i,k,n)+zu(i,k+1)*thom_up_scav(i,k+1,n))*mult(k)*dtime
-                dterm(k) = dterm(k) + thom_out(i,k,n)
+                nifa_out(i,k) = nifa_out(i,k) &
+                    - 0.5*(zu(i,k)*nifa_up_scav(i,k)+zu(i,k+1)*nifa_up_scav(i,k+1))*mult(k)*dtime
+                dterm(k) = dterm(k) + nifa_out(i,k)
              enddo
           endif
-          if(use_thom_scaven == 1) then
+          if(use_thom_evap == 1) then
              do k = kts,kt
-                thom_out(i,k,n) = thom_out(i,k,n) &
-                    - 0.5*(zd(i,k)*thom_dn_scav(i,k,n)+zd(i,k+1)*thom_dn_scav(i,k+1,n))*edt(i)**mult(k)*dtime
-                dterm(k) = dterm(k) + thom_out(i,k,n)
+                nifa_out(i,k) = nifa_out(i,k) &
+                    - 0.5*(zd(i,k)*nifa_dn_scav(i,k)+zd(i,k+1)*nifa_dn_scav(i,k+1))*edt(i)**mult(k)*dtime
+                dterm(k) = dterm(k) + nifa_out(i,k)
              enddo
           endif
           call tridiag(kc,aterm,bterm,cterm,dterm)
           do k = kts,kt
-             thom_scav(i,k,n) = dterm(k)
+             outnifa(i,k) = (dterm(k)-nifa(i,k))/dtime
+          enddo
+
+          !--- "water-friendly" aerosols:
+          do k = kts,kt
+             dterm(k) = (zu(i,k)*aerw_up(k)-zu(i,k+1)*aerw_up(k+1)) &
+                      - edt(i)*(zd(i,k)*aerw_dn(k)-zd(i,k+1)*aerw_dn(k+1))
+             dterm(k) = nwfa(i,k) + mult(k)*dtime*dterm(k)
+          enddo
+          call tridiag(kc,aterm,bterm,cterm,dterm)
+          do k = kts,kt
+             nwfa_scav(i,k) = dterm(k)
           enddo
           do k = kt+1,kte
-             thom_scav(i,k,n) = thom(i,k,n)
+             nwfa_scav(i,k) = nwfa(i,k)
           enddo
-       enddo
 
-       if(allocated(mult) ) deallocate(mult )
-       if(allocated(aterm)) deallocate(aterm)
-       if(allocated(bterm)) deallocate(bterm)
-       if(allocated(cterm)) deallocate(cterm)
-       if(allocated(dterm)) deallocate(dterm)
+          do k = kts,kt
+             dterm(k) = (zu(i,k)*nwfa_up(i,k)-zu(i,k+1)*nwfa_up(i,k+1)) &
+                      - edt(i)*(zd(i,k)*nwfa_dn(i,k)-zd(i,k+1)*nwfa_dn(i,k+1))
+             dterm(k) = nwfa(i,k) + mult(k)*dtime*dterm(k)
+          enddo
+          if(use_thom_scaven == 1) then
+             do k = kts,kt
+                nwfa_out(i,k) = nwfa_out(i,k) &
+                    - 0.5*(zu(i,k)*nwfa_up_scav(i,k)+zu(i,k+1)*nwfa_up_scav(i,k+1))*mult(k)*dtime
+                dterm(k) = dterm(k) + nwfa_out(i,k)
+             enddo
+          endif
+          if(use_thom_evap == 1) then
+             do k = kts,kt
+                nwfa_out(i,k) = nwfa_out(i,k) &
+                    - 0.5*(zd(i,k)*nwfa_dn_scav(i,k)+zd(i,k+1)*nwfa_dn_scav(i,k+1))*edt(i)**mult(k)*dtime
+                dterm(k) = dterm(k) + nwfa_out(i,k)
+             enddo
+          endif
+          call tridiag(kc,aterm,bterm,cterm,dterm)
+          do k = kts,kt
+             outnwfa(i,k) = (dterm(k)-nwfa(i,k))/dtime
+          enddo
 
-    endif
- enddo
+          !--- separate "Thompson" aerosols:
+          do n = 1,nthom
+             do k = kts,kt
+                dterm(k) = (zu(i,k)*thom_up(i,k,n)-zu(i,k+1)*thom_up(i,k+1,n)) &
+                         - edt(i)*(zd(i,k)*thom_dn(i,k,n)-zd(i,k+1)*thom_dn(i,k+1,n))
+                dterm(k) = thom(i,k,n) + mult(k)*dtime*dterm(k)
+             enddo
+             !include scavenging:
+             if(use_thom_scaven == 1) then
+                do k = kts,kt
+                   thom_out(i,k,n) = thom_out(i,k,n) &
+                       - 0.5*(zu(i,k)*thom_up_scav(i,k,n)+zu(i,k+1)*thom_up_scav(i,k+1,n))*mult(k)*dtime
+                   dterm(k) = dterm(k) + thom_out(i,k,n)
+                enddo
+             endif
+             if(use_thom_scaven == 1) then
+                do k = kts,kt
+                   thom_out(i,k,n) = thom_out(i,k,n) &
+                       - 0.5*(zd(i,k)*thom_dn_scav(i,k,n)+zd(i,k+1)*thom_dn_scav(i,k+1,n))*edt(i)**mult(k)*dtime
+                   dterm(k) = dterm(k) + thom_out(i,k,n)
+                enddo
+             endif
+             call tridiag(kc,aterm,bterm,cterm,dterm)
+             do k = kts,kt
+                thom_scav(i,k,n) = dterm(k)
+             enddo
+             do k = kt+1,kte
+                thom_scav(i,k,n) = thom(i,k,n)
+             enddo
+          enddo
+
+          if(allocated(mult) ) deallocate(mult )
+          if(allocated(aterm)) deallocate(aterm)
+          if(allocated(bterm)) deallocate(bterm)
+          if(allocated(cterm)) deallocate(cterm)
+          if(allocated(dterm)) deallocate(dterm)
+
+       endif
+    enddo
+ endif
 
 
 !--- conservation of mass:

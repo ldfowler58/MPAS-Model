@@ -643,7 +643,7 @@
  real(kind=RKIND):: cudtacttime
 
 #ifdef ATM_CHEMISTRY
- integer,pointer:: gfconv_thom_scaven,gfconv_thom_evap
+ integer,pointer:: gfconv_thom_scaven,gfconv_thom_evap,gfconv_thom_implicit
 #endif
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -740,8 +740,9 @@
        call mpas_log_write('gfconv_closure_midlc = $i',intArgs=(/gfconv_closure_midlc/))
        call mpas_log_write('gfconv_closure_shalc = $i',intArgs=(/gfconv_closure_shalc/))
 #ifdef ATM_CHEMISTRY
-       call mpas_pool_get_config(configs,'config_gfconv_thom_scaven',gfconv_thom_scaven)
-       call mpas_pool_get_config(configs,'config_gfconv_thom_evap'  ,gfconv_thom_evap  )
+       call mpas_pool_get_config(configs,'config_gfconv_thom_scaven'  ,gfconv_thom_scaven  )
+       call mpas_pool_get_config(configs,'config_gfconv_thom_evap'    ,gfconv_thom_evap    )
+       call mpas_pool_get_config(configs,'config_gfconv_thom_implicit',gfconv_thom_implicit)
 
        call mpas_log_write('naer = $i',intArgs=(/mpas_chems%naers/))
        call mpas_log_write('gfconv_thom_scaven   = $i',intArgs=(/gfconv_thom_scaven/))
@@ -790,6 +791,7 @@
                nclos        = nclosures            , weights_clos = weights_clos_p       , &
 #ifdef ATM_CHEMISTRY
                use_thom_scaven = gfconv_thom_scaven           , use_thom_evap = gfconv_thom_evap             , &
+               use_thom_implicit = gfconv_thom_implicit       ,                                                &
                nifa            = nifa_p                       , nwfa          = nwfa_p                       , &
                rnifacuten      = rnifacuten_p                 , rnwfacuten    = rnwfacuten_p                 , &
                naer            = mpas_chems%naers             , aerosol3d_w   = mpas_chems%aerosols_weight_p , &
