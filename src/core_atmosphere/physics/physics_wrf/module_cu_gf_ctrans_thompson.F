@@ -228,10 +228,9 @@
 
 
 !--- convective transport in convective_updrafts:
- call ctrans_thompson_up(its,ite,kts,kte,ierr,k22,kbcon,ktop,nthom,use_thom_scaven,c0,grav,thom_wetscav,p,   &
-                         p_cup,z_cup,thom,thoml2,nifa,nifal2,nwfa,nwfal2,zu,up_entr,up_detr,thom_up,nifa_up, &
-                         nwfa_up,thom_up_scav,nifa_up_scav,nwfa_up_scav,thom_up_scav_tot,nifa_up_scav_tot,   &
-                         nwfa_up_scav_tot)
+ call ctrans_thompson_up(its,ite,kts,kte,ierr,k22,kbcon,ktop,nthom,use_thom_scaven,grav,thom_wetscav,p,p_cup, &
+                         z_cup,nifa,nifal2,nwfa,nwfal2,zu,up_entr,up_detr,nifa_up,nwfa_up,nifa_up_scav,       &
+                         nwfa_up_scav,nifa_up_scav_tot,nwfa_up_scav_tot)
 
 
 !--- convective transport in convective downdrafts:
@@ -429,9 +428,9 @@
  end subroutine ctrans_thompson
 
 !=================================================================================================================
- subroutine ctrans_thompson_up(its,ite,kts,kte,ierr,k22,kbcon,ktop,nthom,use_thom_scaven,c0,grav,fscav,p,p_cup, &
-                       z_cup,thom,thoml2,nifa,nifal2,nwfa,nwfal2,zu,up_entr,up_detr,thom_up,nifa_up,nwfa_up,    &
-                       thom_up_scav,nifa_up_scav,nwfa_up_scav,thom_up_scav_tot,nifa_up_scav_tot,nwfa_up_scav_tot)
+ subroutine ctrans_thompson_up(its,ite,kts,kte,ierr,k22,kbcon,ktop,nthom,use_thom_scaven,grav,fscav,p,p_cup,  &
+                               z_cup,nifa,nifal2,nwfa,nwfal2,zu,up_entr,up_detr,nifa_up,nwfa_up,nifa_up_scav, &
+                               nwfa_up_scav,nifa_up_scav_tot,nwfa_up_scav_tot)
 !=================================================================================================================
 
 !--- input arguments:
@@ -448,7 +447,6 @@
     ktop            !
 
  real(kind=RKIND),intent(in):: &
-    c0,            &!
     grav            !
 
  real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
@@ -470,18 +468,11 @@
  real(kind=RKIND),intent(in),dimension(nthom):: &
     fscav           !
 
- real(kind=RKIND),intent(in),dimension(its:ite,kts:kte,nthom):: &
-    thom,          &!
-    thoml2          !
-
 
 !--- inout arguments:
  real(kind=RKIND),intent(inout),dimension(its:ite):: &
     nifa_up_scav_tot, &!
     nwfa_up_scav_tot   !
-
- real(kind=RKIND),intent(inout),dimension(its:ite,nthom):: &
-    thom_up_scav_tot   !
 
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
     nifa_up,     &!
@@ -489,17 +480,13 @@
     nifa_up_scav,&!
     nwfa_up_scav  !
 
- real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte,nthom):: &
-    thom_up,     &!
-    thom_up_scav  !
 
 !--- local variables and arrays:
- integer:: i,k,n
+ integer:: i,k
  integer:: k2,kb,kt
 
  real(kind=RKIND):: fscav_i,fscav_w
- real(kind=RKIND):: denom,dp,dz,thom_b,thom_c,thom_g,thom_l,thom_r
- real(kind=RKIND):: coef1,coef2
+ real(kind=RKIND):: denom,dp,dz
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write('--- enter subroutine ctrans_thompson_up: nthom = $i',intArgs=(/nthom/))
@@ -545,49 +532,8 @@
              nwfa_up(i,k) = nwfa_up(i,k) - nwfa_up_scav(i,k)
              nifa_up(i,k) = nifa_up(i,k) - nifa_up_scav(i,k)
           endif
-
-!         thom_b = nwfa_up(i,k)
-!         thom_c = nwfa_wetr*thom_b        ! nb of activated (liquid water+rain) water-friendly aerosols.
-!         thom_g = thom_b - thom_c         ! nb of non-activated (gas) water-friendly aerosols.
-!         thom_l = thom_c/(1.+c0*dz)       ! nb of activated (liquid) water-friendly aerosols.
-!         thom_r = c0*dz*thom_c/(1.+c0*dz) ! nb of activated (rain) water-friendly aerosols.
-!         nwfa_up(i,k)   = thom_g + thom_l
-!         nwfa_scav(i,k) = thom_r
-!         coef1 = 1./(1.+c0*dz)
-!         coef2 = c0*dz/(1.+c0*dz)
        enddo
 
-       !--- convective transport of individual aerosols in updrafts (use upstream method to define the
-       !    in-cloud variables at the k2 levels):
-       k = k2
-       do n = 1, nthom
-          thom_up(i,k,n) = thoml2(i,k-1,n)
-       enddo
-       do k = k2+1,kte
-          dz = z_cup(i,k)-z_cup(i,k-1)
-          denom = zu(i,k-1)-.5*up_detr(i,k-1)+up_entr(i,k-1)
-          if(denom .lt. 1.e-16) exit
-
-          !transport in updrafts:
-          do n = 1,nthom
-             thom_up(i,k,n) = (thom_up(i,k-1,n)*zu(i,k-1) - .5*up_detr(i,k-1)*thom_up(i,k-1,n) &
-                            + up_entr(i,k-1)*thom(i,k-1,n))/denom
-          enddo
-
-          !wet scavenging:
-          !formulation as in GOCART (using sourcecode in ConvPar_GF_GEOS5 provided by Saulo Freitas):
-          if(use_thom_scaven == 1) then
-             do n = 1,nthom
-                thom_up_scav(i,k,n) = max(0.,thom_up(i,k,n)*(1.-exp(-fscav(n)*(dz/1000.))))
-
-                !do we assume that nifa_up_scav_tot is at in-cloud levels or enviromnental levels?
-                dp = 100._RKIND*(p_cup(i,k) - p_cup(i,k+1))/grav
-                thom_up_scav_tot(i,n) = thom_up_scav_tot(i,n) + thom_up_scav(i,k,n)*dp
-
-                thom_up(i,k,n) = thom_up(i,k,n) - thom_up_scav(i,k,n)
-             enddo
-          endif
-       enddo
     endif
  enddo
 
