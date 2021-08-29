@@ -94,8 +94,8 @@
  real(kind=RKIND):: denom
  real(kind=RKIND),dimension(kts:kte):: fm,fp,znet
  real(kind=RKIND),dimension(its:ite):: nifa_up_scav_tot,nwfa_up_scav_tot
- real(kind=RKIND),dimension(its:ite,kts:kte):: nifal2,nifa_dn,nifa_up,nifa_dn_scav,nifa_up_scav,nifa_out
- real(kind=RKIND),dimension(its:ite,kts:kte):: nwfal2,nwfa_dn,nwfa_up,nwfa_dn_scav,nwfa_up_scav,nwfa_out
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nifal2,nifa_dn,nifa_up,nifa_dn_evap,nifa_up_scav,nifa_out
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nwfal2,nwfa_dn,nwfa_up,nwfa_dn_evap,nwfa_up_scav,nwfa_out
 
  real(kind=RKIND),dimension(nthom):: thom_wetscav,thom_conv
  real(kind=RKIND),dimension(its:ite,kts:kte,nthom):: thom
@@ -121,9 +121,9 @@
        nwfa_up(i,k)   = 0._RKIND
        nwfa_out(i,k)  = 0._RKIND
 
-       nifa_dn_scav(i,k) = 0._RKIND
+       nifa_dn_evap(i,k) = 0._RKIND
        nifa_up_scav(i,k) = 0._RKIND
-       nwfa_dn_scav(i,k) = 0._RKIND
+       nwfa_dn_evap(i,k) = 0._RKIND
        nwfa_up_scav(i,k) = 0._RKIND
     enddo
  enddo
@@ -203,10 +203,9 @@
 
 
 !--- convective transport in convective downdrafts:
- call ctrans_thompson_dn(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,use_thom_evap,'deep',grav,p,p_cup,    &
-                         z_cup,nifa,nifal2,nifa_up,nwfa,nwfal2,nwfa_up,zd,dn_entr,dn_detr,pwavo,pwevo, &
-                         pwo,pwdo,nifa_up_scav_tot,nwfa_up_scav_tot,nifa_dn,nifa_dn_scav,nwfa_dn,      &
-                         nwfa_dn_scav)
+ call ctrans_thompson_dn(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,use_thom_evap,'deep',z_cup,nifa,    &
+                         nifa_up_scav,nwfa,nwfa_up_scav,zd,dn_entr,dn_detr,pwavo,pwevo,pwdo,nifa_dn, &
+                         nifa_dn_evap,nwfa_dn,nwfa_dn_evap)
 
 
 !--- updates the "water-friendly" and "ice-friendly" aerosols, and computes tendencies of "water-friendly"
@@ -256,7 +255,7 @@
           if(use_thom_evap == 1) then
              do k = kts,kt
                 nifa_out(i,k) = nifa_out(i,k) &
-                    - 0.5*(zd(i,k)*nifa_dn_scav(i,k)+zd(i,k+1)*nifa_dn_scav(i,k+1))*edt(i)**mult(k)*dtime
+                    - 0.5*(zd(i,k)*nifa_dn_evap(i,k)+zd(i,k+1)*nifa_dn_evap(i,k+1))*edt(i)**mult(k)*dtime
                 dterm(k) = dterm(k) + nifa_out(i,k)
              enddo
           endif
@@ -281,7 +280,7 @@
           if(use_thom_evap == 1) then
              do k = kts,kt
                 nwfa_out(i,k) = nwfa_out(i,k) &
-                    - 0.5*(zd(i,k)*nwfa_dn_scav(i,k)+zd(i,k+1)*nwfa_dn_scav(i,k+1))*edt(i)**mult(k)*dtime
+                    - 0.5*(zd(i,k)*nwfa_dn_evap(i,k)+zd(i,k+1)*nwfa_dn_evap(i,k+1))*edt(i)**mult(k)*dtime
                 dterm(k) = dterm(k) + nwfa_out(i,k)
              enddo
           endif
@@ -421,71 +420,60 @@
  end subroutine ctrans_thompson_up
 
 !=================================================================================================================
- subroutine ctrans_thompson_dn(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,use_thom_evap,cumulus,grav,p,p_cup,   &
-                               z_cup,nifa,nifal2,nifa_up,nwfa,nwfal2,nwfa_up,zd,dn_entr,dn_detr,pwavo,pwevo, &
-                               pwo,pwdo,nifa_up_scav_tot,nwfa_up_scav_tot,nifa_dn,nifa_dn_scav,nwfa_dn,      &
-                               nwfa_dn_scav)
+ subroutine ctrans_thompson_dn(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,use_thom_evap,cumulus,z_cup,nifa, &
+                               nifa_up_scav,nwfa,nwfa_up_scav,zd,dn_entr,dn_detr,pwav,pwev,pwd,nifa_dn,  &
+                               nifa_dn_evap,nwfa_dn,nwfa_dn_evap)
 !=================================================================================================================
 
 !--- input arguments:
  character(len=*),intent(in):: &
-    cumulus            !
+    cumulus        !
 
  integer,intent(in):: its,ite,kts,kte
 
  integer,intent(in):: &
-    use_thom_evap      !                       
+    use_thom_evap  !
 
  integer,intent(in),dimension(its:ite):: &
-    ierr,             &!
-    k22,              &!
-    kbcon,            &!
-    ktop,             &!
-    kdn                !
-
- real(kind=RKIND):: &
-    grav               !
+    ierr,         &!
+    k22,          &!
+    kbcon,        &!
+    ktop,         &!
+    kdn            !
 
  real(kind=RKIND),intent(in),dimension(its:ite):: &
-    pwavo,            &!total rain in each updraft.
-    pwevo,            &!total evaporation in each downdraft.
-    nifa_up_scav_tot, &!
-    nwfa_up_scav_tot   !
+    pwav,         &!total rain in each updraft.
+    pwev           !total evaporation in each downdraft.
 
  real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
-    p,                &!
-    p_cup,            &!
-    z_cup ,           &!
-    pwo,              &!rain in each layer of updraft.
-    pwdo               !evaporation in each layer of updraft.
+    z_cup ,       &!
+    pwd            !evaporation in each layer of updraft.
 
  real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
-    dn_entr,          &!
-    dn_detr,          &!
-    zd                 !
+    dn_entr,      &!
+    dn_detr,      &!
+    zd             !
 
  real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
-    nifa,             &!
-    nifal2,           &!
-    nifa_up,          &!
-    nwfa,             &!
-    nwfal2,           &!
-    nwfa_up            !
+    nifa,         &!
+    nwfa,         &!
+    nifa_up_scav, &!
+    nwfa_up_scav   !
 
 
 !--- inout arguments:
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
-    nifa_dn,          &!
-    nwfa_dn,          &!
-    nifa_dn_scav,     &!
-    nwfa_dn_scav       !
+    nifa_dn,      &!
+    nwfa_dn,      &!
+    nifa_dn_evap, &!
+    nwfa_dn_evap   !
 
 
 !--- local variables and arrays:
  integer:: i,k,k2,kb,kd,kt
 
  real(kind=RKIND):: frac_evap,pwdper
- real(kind=RKIND):: denom,dp,dz
+ real(kind=RKIND):: denom,dz
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write('--- enter subroutine ctrans_thompson_dn:')
@@ -500,7 +488,7 @@
     kt = ktop(i)
 
     !--- fraction of the total rain that was evaporated:
-    frac_evap = - pwevo(i)/(1.e-16+pwavo(i))
+    frac_evap = - pwev(i)/(1.e-16+pwav(i))
 
     !--- initializes downdrafts at kd level with a mixture of 90% environmental and 10% in-cloud mixing ratios,
     !    or initializes downdrafts using upstream approximation:
@@ -510,14 +498,13 @@
     nifa_dn(i,k) = nifa(i,k)
     nwfa_dn(i,k) = nwfa(i,k)
 
-    pwdper = pwdo(i,k)/(1.e-16+pwevo(i))*frac_evap ! > 0
+    pwdper = pwd(i,k)/(1.e-16+pwev(i))*frac_evap ! > 0
+!   pwdper = pwd(i,k)/(1.e-16+pwav(i))
     if(use_thom_evap == 0) pwdper = 0._RKIND
-
-    dp= 100.*(p_cup(i,k)-p_cup(i,k+1))
-    nifa_dn_scav(i,k) = -pwdper*nifa_up_scav_tot(i)*grav/dp
-    nifa_dn(i,k) = nifa_dn(i,k) - nifa_dn_scav(i,k)
-    nwfa_dn_scav(i,k) = -pwdper*nwfa_up_scav_tot(i)*grav/dp
-    nwfa_dn(i,k) = nwfa_dn(i,k) - nwfa_dn_scav(i,k)
+    nifa_dn_evap(i,k) = - pwdper*nifa_up_scav(i,k)
+    nwfa_dn_evap(i,k) = - pwdper*nwfa_up_scav(i,k)
+    nifa_dn(i,k) = nifa_dn(i,k) - nifa_dn_evap(i,k)
+    nwfa_dn(i,k) = nwfa_dn(i,k) - nwfa_dn_evap(i,k)
 
     !--- calculates the downdraft mass terms:
     do k = kd-1,kts,-1
@@ -535,14 +522,13 @@
        endif
 
        !--- evaporation:
-       pwdper = pwdo(i,k)/(1.e-16+pwevo(i))*frac_evap ! > 0
-       if(use_thom_evap == 0) cycle
-
-       dp = 100.*(p_cup(i,k)-p_cup(i,k+1))
-       nifa_dn_scav(i,k) = -pwdper*nifa_up_scav_tot(i)*grav/dp
-       nifa_dn(i,k) = nifa_dn(i,k) -nifa_dn_scav(i,k)
-       nwfa_dn_scav(i,k) = -pwdper*nwfa_up_scav_tot(i)*grav/dp
-       nwfa_dn(i,k) = nwfa_dn(i,k) -nwfa_dn_scav(i,k)
+       pwdper = pwd(i,k)/(1.e-16+pwev(i))*frac_evap ! > 0
+!      pwdper = pwd(i,k)/(1.e-16+pwav(i))
+       if(use_thom_evap == 0) pwdper = 0._RKIND
+       nifa_dn_evap(i,k) = - pwdper*nifa_up_scav(i,k)
+       nwfa_dn_evap(i,k) = - pwdper*nwfa_up_scav(i,k)
+       nifa_dn(i,k) = nifa_dn(i,k) - nifa_dn_evap(i,k)
+       nwfa_dn(i,k) = nwfa_dn(i,k) - nwfa_dn_evap(i,k)
     enddo
  enddo
 
