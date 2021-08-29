@@ -235,10 +235,10 @@
 
 
 !--- convective transport in convective downdrafts:
- call ctrans_thompson_dn(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,use_thom_evap,'deep',grav,thom_wetscav,    &
-                         p,p_cup,z_cup,thom,thoml2,thom_up,nifa,nifal2,nifa_up,nwfa,nwfal2,nwfa_up,zd,dn_entr,    &
-                         dn_detr,pwavo,pwevo,pwo,pwdo,thom_up_scav_tot,nifa_up_scav_tot,nwfa_up_scav_tot,thom_dn, &
-                         thom_dn_scav,nifa_dn,nifa_dn_scav,nwfa_dn,nwfa_dn_scav)
+ call ctrans_thompson_dn(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,use_thom_evap,'deep',grav,p,p_cup,    &
+                         z_cup,nifa,nifal2,nifa_up,nwfa,nwfal2,nwfa_up,zd,dn_entr,dn_detr,pwavo,pwevo, &
+                         pwo,pwdo,nifa_up_scav_tot,nwfa_up_scav_tot,nifa_dn,nifa_dn_scav,nwfa_dn,      &
+                         nwfa_dn_scav)
 
 
 !--- updates the "water-friendly" and "ice-friendly" aerosols, and computes tendencies of "water-friendly"
@@ -596,10 +596,10 @@
  end subroutine ctrans_thompson_up
 
 !=================================================================================================================
- subroutine ctrans_thompson_dn(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,use_thom_evap,cumulus,grav,fscav, &
-                      p,p_cup,z_cup,thom,thoml2,thom_up,nifa,nifal2,nifa_up,nwfa,nwfal2,nwfa_up,zd,dn_entr,    &
-                      dn_detr,pwavo,pwevo,pwo,pwdo,thom_up_scav_tot,nifa_up_scav_tot,nwfa_up_scav_tot,thom_dn, &
-                      thom_dn_scav,nifa_dn,nifa_dn_scav,nwfa_dn,nwfa_dn_scav)
+ subroutine ctrans_thompson_dn(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,use_thom_evap,cumulus,grav,p,p_cup,   &
+                               z_cup,nifa,nifal2,nifa_up,nwfa,nwfal2,nwfa_up,zd,dn_entr,dn_detr,pwavo,pwevo, &
+                               pwo,pwdo,nifa_up_scav_tot,nwfa_up_scav_tot,nifa_dn,nifa_dn_scav,nwfa_dn,      &
+                               nwfa_dn_scav)
 !=================================================================================================================
 
 !--- input arguments:
@@ -609,7 +609,6 @@
  integer,intent(in):: its,ite,kts,kte
 
  integer,intent(in):: &
-    nthom,            &! number of aerosols that describe "water-friendly" and "ice-friendly" aerosols.
     use_thom_evap      !                       
 
  integer,intent(in),dimension(its:ite):: &
@@ -648,17 +647,6 @@
     nwfal2,           &!
     nwfa_up            !
 
- real(kind=RKIND),intent(in),dimension(nthom):: &
-    fscav              !
-
- real(kind=RKIND),intent(in),dimension(its:ite,nthom):: &
-    thom_up_scav_tot   !
-
- real(kind=RKIND),intent(in),dimension(its:ite,kts:kte,nthom):: &
-    thom,             &!
-    thoml2,           &!
-    thom_up            !
-
 
 !--- inout arguments:
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
@@ -667,19 +655,15 @@
     nifa_dn_scav,     &!
     nwfa_dn_scav       !
 
- real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte,nthom):: &
-    thom_dn,          &!
-    thom_dn_scav       !
-
 
 !--- local variables and arrays:
- integer:: i,k,k2,kb,kd,kt,n
+ integer:: i,k,k2,kb,kd,kt
 
  real(kind=RKIND):: frac_evap,pwdper
  real(kind=RKIND):: denom,dp,dz
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine ctrans_thompson_dn: nthom = $i',intArgs=(/nthom/))
+ call mpas_log_write('--- enter subroutine ctrans_thompson_dn:')
 
  if(cumulus == 'shallow') return
 
@@ -698,14 +682,8 @@
     k = kd
 !   nifa_dn(i,k) = 0.9*nifa(i,k) + 0.1*nifa_up(i,k)
 !   nwfa_dn(i,k) = 0.9*nwfa(i,k) + 0.1*nwfa_up(i,k)
-!   do n = 1,nthom
-!      thom_dn(i,k,n) = 0.9*thom(i,k,n) + 0.1*thom_up(i,k,n)
-!   enddo
     nifa_dn(i,k) = nifa(i,k)
     nwfa_dn(i,k) = nwfa(i,k)
-    do n = 1, nthom
-       thom_dn(i,k,n) = thom(i,k,n)
-    enddo
 
     pwdper = pwdo(i,k)/(1.e-16+pwevo(i))*frac_evap ! > 0
     if(use_thom_evap == 0) pwdper = 0._RKIND
@@ -715,11 +693,6 @@
     nifa_dn(i,k) = nifa_dn(i,k) - nifa_dn_scav(i,k)
     nwfa_dn_scav(i,k) = -pwdper*nwfa_up_scav_tot(i)*grav/dp
     nwfa_dn(i,k) = nwfa_dn(i,k) - nwfa_dn_scav(i,k)
-
-    do n = 1,nthom
-       thom_dn_scav(i,k,n) = -pwdper*thom_up_scav_tot(i,n)*grav/dp
-       thom_dn(i,k,n) = thom_dn(i,k,n) - thom_dn_scav(i,k,n)
-    enddo
 
     !--- calculates the downdraft mass terms:
     do k = kd-1,kts,-1
@@ -731,18 +704,9 @@
 
           nwfa_dn(i,k) = (nwfa_dn(i,k+1)*zd(i,k+1) - .5*dn_detr(i,k)*nwfa_dn(i,k+1) &
                        +  dn_entr(i,k)*nwfa(i,k))/denom
-
-          do n = 1,nthom
-             thom_dn(i,k,n) = (thom_dn(i,k+1,n)*zd(i,k+1) - .5*dn_detr(i,k)*thom_dn(i,k+1,n) &
-                            +  dn_entr(i,k)*thom(i,k,n))/denom
-          enddo
        else
           nifa_dn(i,k) = nifa(i,k+1)
           nwfa_dn(i,k) = nwfa(i,k+1)
-
-          do n = 1,nthom
-             thom_dn(i,k,n) = thom_dn(i,k+1,n)
-          enddo
        endif
 
        !--- evaporation:
@@ -754,11 +718,6 @@
        nifa_dn(i,k) = nifa_dn(i,k) -nifa_dn_scav(i,k)
        nwfa_dn_scav(i,k) = -pwdper*nwfa_up_scav_tot(i)*grav/dp
        nwfa_dn(i,k) = nwfa_dn(i,k) -nwfa_dn_scav(i,k)
-
-       do n = 1,nthom
-          thom_dn_scav(i,k,n) = -pwdper*thom_up_scav_tot(i,n)*grav/dp
-          thom_dn(i,k,n) = thom_dn(i,k,n) - thom_dn_scav(i,k,n)
-       enddo
     enddo
  enddo
 
