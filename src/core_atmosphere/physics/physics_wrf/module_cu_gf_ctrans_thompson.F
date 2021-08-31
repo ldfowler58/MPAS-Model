@@ -91,7 +91,7 @@
  integer:: k2,kb,kc,kd,kt
 
  real(kind=RKIND),parameter:: c0 = 0.004
- real(kind=RKIND):: denom
+ real(kind=RKIND):: denom,dp
  real(kind=RKIND),dimension(kts:kte):: fm,fp,znet
  real(kind=RKIND),dimension(its:ite):: nifa_up_scav_tot,nwfa_up_scav_tot
  real(kind=RKIND),dimension(its:ite,kts:kte):: nifal2,nifa_dn,nifa_up,nifa_dn_evap,nifa_up_scav,nifa_out
@@ -199,7 +199,24 @@
 !--- convective transport in convective_updrafts:
  call ctrans_thompson_up(its,ite,kts,kte,ierr,k22,kbcon,ktop,nthom,use_thom_scaven,grav,thom_wetscav,p,p_cup, &
                          z_cup,nifa,nifal2,nwfa,nwfal2,zu,up_entr,up_detr,nifa_up,nwfa_up,nifa_up_scav,       &
-                         nwfa_up_scav,nifa_up_scav_tot,nwfa_up_scav_tot)
+                         nwfa_up_scav)
+
+ !temporary calculation of the arrays nifa_up_scav_tot and nw_up_scav_tot:
+ if(use_thom_scaven == 1) then
+    do i = its,ite
+       if(ierr(i).eq.0) then
+          k2 = k22(i)
+          kb = kbcon(i)
+          kt = ktop(i)
+          do k = k2+1,kt+1
+             !do we assume that nifa_up_scav_tot is at in-cloud levels or enviromnental levels?
+             dp = 100._RKIND*(p_cup(i,k) - p_cup(i,k+1))/grav
+             nifa_up_scav_tot(i) = nifa_up_scav_tot(i) + nifa_up_scav(i,k)*dp
+             nwfa_up_scav_tot(i) = nwfa_up_scav_tot(i) + nwfa_up_scav(i,k)*dp
+          enddo
+       endif
+    enddo
+ endif
 
 
 !--- convective transport in convective downdrafts:
@@ -308,7 +325,7 @@
 !=================================================================================================================
  subroutine ctrans_thompson_up(its,ite,kts,kte,ierr,k22,kbcon,ktop,nthom,use_thom_scaven,grav,fscav,p,p_cup,  &
                                z_cup,nifa,nifal2,nwfa,nwfal2,zu,up_entr,up_detr,nifa_up,nwfa_up,nifa_up_scav, &
-                               nwfa_up_scav,nifa_up_scav_tot,nwfa_up_scav_tot)
+                               nwfa_up_scav)
 !=================================================================================================================
 
 !--- input arguments:
@@ -348,10 +365,6 @@
 
 
 !--- inout arguments:
- real(kind=RKIND),intent(inout),dimension(its:ite):: &
-    nifa_up_scav_tot, &!
-    nwfa_up_scav_tot   !
-
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
     nifa_up,     &!
     nwfa_up,     &!
@@ -364,7 +377,7 @@
  integer:: k2,kb,kt
 
  real(kind=RKIND):: fscav_i,fscav_w
- real(kind=RKIND):: denom,dp,dz
+ real(kind=RKIND):: denom,dz
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write('--- enter subroutine ctrans_thompson_up: nthom = $i',intArgs=(/nthom/))
@@ -402,16 +415,10 @@
              nifa_up_scav(i,k) = max(0.,nifa_up(i,k)*(1.-exp(-fscav_i*(dz/1000.))))
              nwfa_up_scav(i,k) = max(0.,nwfa_up(i,k)*(1.-exp(-fscav_w*(dz/1000.))))
 
-             !do we assume that nifa_up_scav_tot is at in-cloud levels or enviromnental levels?
-             dp = 100._RKIND*(p_cup(i,k) - p_cup(i,k+1))/grav
-             nifa_up_scav_tot(i) = nifa_up_scav_tot(i) + nifa_up_scav(i,k)*dp
-             nwfa_up_scav_tot(i) = nwfa_up_scav_tot(i) + nwfa_up_scav(i,k)*dp
-
-             nwfa_up(i,k) = nwfa_up(i,k) - nwfa_up_scav(i,k)
              nifa_up(i,k) = nifa_up(i,k) - nifa_up_scav(i,k)
+             nwfa_up(i,k) = nwfa_up(i,k) - nwfa_up_scav(i,k)
           endif
        enddo
-
     endif
  enddo
 
