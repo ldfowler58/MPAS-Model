@@ -15,9 +15,8 @@
 
 !=================================================================================================================
  subroutine ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,use_thom_scaven,use_thom_evap, &
-                        use_thom_implicit,dtime,grav,edt,xmb,p,p_cup,z_cup,thom_w,nifa,nwfa,thom_scav,   &
-                        nifa_scav,nwfa_scav,pwavo,pwevo,pwo,pwdo,zu,up_entr,up_detr,zd,dn_entr,dn_detr,  &
-                        outnifa,outnwfa)
+                        use_thom_implicit,dtime,grav,edt,xmb,p,p_cup,z_cup,thom_w,nifa,nwfa,pwavo,pwevo, &
+                        pwo,pwdo,zu,up_entr,up_detr,zd,dn_entr,dn_detr,outnifa,outnwfa)
 !=================================================================================================================
 
 !--- input arguments:
@@ -77,13 +76,6 @@
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
     outnifa,  &! "ice-friendly" aerosols   (# per kg).
     outnwfa    ! "water-friendly" aerosols (# per kg).
-
- real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
-    nifa_scav,&!
-    nwfa_scav  !
-
- real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte,nthom):: &
-    thom_scav  !
 
 
 !--- local variables and arrays:

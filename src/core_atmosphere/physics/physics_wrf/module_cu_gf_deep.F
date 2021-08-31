@@ -2145,9 +2145,8 @@ contains
 #ifdef ATM_CHEMISTRY
       call mpas_timer_start('atm_chem: physics - GF')
       call ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,jmin,naer,use_thom_scaven,use_thom_evap, &
-                           use_thom_implicit,dtime,g,edto,xmb,po,po_cup,z_cup,aerosol_w,nifa,           &
-                           nwfa,aerosol_scav,nifa_scav,nwfa_scav,pwavo,pwevo,pwo,pwdo,zuo,up_massentr,  &
-                           up_massdetr,zdo,dd_massentro,dd_massdetro,outnifa,outnwfa)
+                    use_thom_implicit,dtime,g,edto,xmb,po,po_cup,z_cup,aerosol_w,nifa,nwfa,pwavo,pwevo, &
+                    pwo,pwdo,zuo,up_massentr,up_massdetr,zdo,dd_massentro,dd_massdetro,outnifa,outnwfa)
       call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo, &
                                p_cup,nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,      &
                                tracer_up,tracer_dn,outtracer)
