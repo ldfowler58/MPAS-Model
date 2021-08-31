@@ -180,7 +180,7 @@
     do k = kts,kte
        do n = 1,nthom
           thom_mult(i,k,n)  = thom_w(i,k,n)
-          thom_multo(i,k,n) = 1./thom_mult(i,k,n)
+!         thom_multo(i,k,n) = 1./thom_mult(i,k,n)
        enddo
     enddo
     do k = kts,kte
