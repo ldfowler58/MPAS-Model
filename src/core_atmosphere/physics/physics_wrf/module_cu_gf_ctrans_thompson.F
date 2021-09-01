@@ -16,7 +16,7 @@
 !=================================================================================================================
  subroutine ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,use_thom_scaven,use_thom_evap, &
                         use_thom_implicit,dtime,grav,edt,xmb,p,p_cup,z_cup,thom_w,nifa,nwfa,pwavo,pwevo, &
-                        pwo,pwdo,zu,up_entr,up_detr,zd,dn_entr,dn_detr,outnifa,outnwfa)
+                        pwo,pwdo,zuo,up_massentro,up_massdetro,zdo,dn_massentro,dn_massdetro,outnifa,outnwfa)
 !=================================================================================================================
 
 !--- input arguments:
@@ -57,12 +57,12 @@
     pwo        !
 
  real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
-    up_entr,  &!
-    up_detr,  &!
-    zu,       &!
-    dn_entr,  &!
-    dn_detr,  &!
-    zd         !
+    zuo,          &! normalized mass flux in updrafts               (-).
+    up_massentro, &! normalized entrainment mass flux in updrafts   (-).
+    up_massdetro, &! normalized detraiment mass flux in updrafts    (-).
+    zdo,          &! normalized mass flux in downdrafts (-).
+    dn_massentro, &! normalized entrainment mass flux in downdrafts (-).
+    dn_massdetro   ! normalized detrainment mass flux in downdrafts (-).
 
  real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
     nifa,     &! "ice-friendly" aerosols   (# per kg).
@@ -85,7 +85,10 @@
  real(kind=RKIND),parameter:: c0 = 0.004
  real(kind=RKIND):: denom,dp
  real(kind=RKIND),dimension(kts:kte):: fm,fp,znet
+ real(kind=RKIND),dimension(its:ite):: pwav,pwev
  real(kind=RKIND),dimension(its:ite):: nifa_up_scav_tot,nwfa_up_scav_tot
+ real(kind=RKIND),dimension(its:ite,kts:kte):: pw,pwd
+ real(kind=RKIND),dimension(its:ite,kts:kte):: up_entr,up_detr,zu,dn_entr,dn_detr,zd
  real(kind=RKIND),dimension(its:ite,kts:kte):: nifal2,nifa_dn,nifa_up,nifa_dn_evap,nifa_up_scav,nifa_out
  real(kind=RKIND),dimension(its:ite,kts:kte):: nwfal2,nwfa_dn,nwfa_up,nwfa_dn_evap,nwfa_up_scav,nwfa_out
 
@@ -122,6 +125,27 @@
  do i = its,ite
     nifa_up_scav_tot(i) = 0._RKIND
     nwfa_up_scav_tot(i) = 0._RKIND
+ enddo
+
+
+!--- conversion of all normalized mass fluxes, etc:
+ do i = its,ite
+    if(ierr(i) .eq. 0) then
+       pwav(i) = xmb(i)*pwavo(i)
+       pwev(i) = xmb(i)*pwevo(i)
+
+       do k = kts,kte
+          zu(i,k) = xmb(i)*zuo(i,k)
+          zd(i,k) = xmb(i)*zdo(i,k)
+          up_entr(i,k) = xmb(i)*up_massentro(i,k)
+          up_detr(i,k) = xmb(i)*up_massdetro(i,k)
+          dn_entr(i,k) = xmb(i)*dn_massentro(i,k)
+          dn_detr(i,k) = xmb(i)*dn_massdetro(i,k)
+
+          pw(i,k)  = xmb(i)*pwo(i,k)
+          pwd(i,k) = xmb(i)*pwdo(i,k)
+       enddo
+    endif
  enddo
 
 
@@ -216,6 +240,16 @@
                          nifa_up_scav,nwfa,nwfa_up_scav,zd,dn_entr,dn_detr,pwavo,pwevo,pwdo,nifa_dn, &
                          nifa_dn_evap,nwfa_dn,nwfa_dn_evap)
 
+!do i = its,ite
+!   if(ierr(i) .eq. 0) then
+!      do k = kts,kte
+!         call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/nwfa(i,k),nwfa_up(i,k), &
+!                   nwfa_dn(i,k),nifa(i,k),nifa_up(i,k),nifa_dn(i,k)/))
+!      enddo
+!      call mpas_log_write('')
+!   endif
+!enddo
+
 
 !--- updates the "water-friendly" and "ice-friendly" aerosols, and computes tendencies of "water-friendly"
 !    and "ice-friendly" aerosols due transport,activation,and wet scavenging in convective updrafts and
@@ -241,7 +275,6 @@
           if(.not.allocated(dterm)) allocate(dterm(kts:kt))
           do k = kts,kt
              mult(k)  = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
-             mult(k)  = xmb(i)*mult(k)
 
              aterm(k) = mult(k)*dtime*fm(k)
              bterm(k) = 1.+mult(k)*dtime*(fp(k)-fm(k+1))
