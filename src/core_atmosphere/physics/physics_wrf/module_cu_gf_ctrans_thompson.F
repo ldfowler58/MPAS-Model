@@ -5,6 +5,9 @@
  use mpas_log
  use module_cu_gf_ctrans,only:tridiag
 
+ use mpas_atmphys_utilities,only: physics_error_fatal
+
+
  implicit none
  private
  public:: ctrans_thompson
@@ -79,6 +82,8 @@
 
 
 !--- local variables and arrays:
+ character(len=StrKIND):: errmess
+
  integer:: i,k,n
  integer:: k2,kb,kc,kd,kt
 
@@ -240,21 +245,33 @@
                          nifa_up_scav,nwfa,nwfa_up_scav,zd,dn_entr,dn_detr,pwavo,pwevo,pwdo,nifa_dn, &
                          nifa_dn_evap,nwfa_dn,nwfa_dn_evap)
 
-!do i = its,ite
-!   if(ierr(i) .eq. 0) then
-!      do k = kts,kte
-!         call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/nwfa(i,k),nwfa_up(i,k), &
-!                   nwfa_dn(i,k),nifa(i,k),nifa_up(i,k),nifa_dn(i,k)/))
-!      enddo
-!      call mpas_log_write('')
-!   endif
-!enddo
-
 
 !--- updates the "water-friendly" and "ice-friendly" aerosols, and computes tendencies of "water-friendly"
 !    and "ice-friendly" aerosols due transport,activation,and wet scavenging in convective updrafts and
 !    downdrafts.
- if(use_thom_implicit == 1) then
+
+
+!explicit computation of the tendencies:
+ if(use_thom_implicit == 0) then
+    do i = its,ite
+       if(ierr(i) .eq. 0) then
+          kt = ktop(i)
+
+          do k = kts,kt
+             dp = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
+             outnifa(i,k) = - dp*(zu(i,k+1)*(nifa_up(i,k+1)-nifal2(i,k+1))-zu(i,k)*(nifa_up(i,k)-nifal2(i,k))) &
+                     + edt(i)*dp*(zd(i,k+1)*(nifa_dn(i,k+1)-nifal2(i,k+1))-zd(i,k)*(nifa_dn(i,k)-nifal2(i,k)))
+             outnifa(i,k) = outnifa(i,k) + nifa_out(i,k)
+
+             outnwfa(i,k) = - dp*(zu(i,k+1)*(nwfa_up(i,k+1)-nwfal2(i,k+1))-zu(i,k)*(nwfa_up(i,k)-nwfal2(i,k))) &
+                     + edt(i)*dp*(zd(i,k+1)*(nwfa_dn(i,k+1)-nwfal2(i,k+1))-zd(i,k)*(nwfa_dn(i,k)-nwfal2(i,k)))
+             outnwfa(i,k) = outnwfa(i,k) + nwfa_out(i,k)
+          enddo
+       endif
+    enddo
+
+!implicit computation of the tendencies:
+ elseif(use_thom_implicit == 1) then
     do i = its,ite
        if(ierr(i) .eq. 0) then
           k2 = k22(i)
@@ -275,7 +292,6 @@
           if(.not.allocated(dterm)) allocate(dterm(kts:kt))
           do k = kts,kt
              mult(k)  = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
-
              aterm(k) = mult(k)*dtime*fm(k)
              bterm(k) = 1.+mult(k)*dtime*(fp(k)-fm(k+1))
              cterm(k) = -mult(k)*dtime*fp(k+1)
@@ -339,6 +355,12 @@
 
        endif
     enddo
+
+ else
+    write(errmess,'(A,I4)') 'subroutine ctrans_thompson: change value of use_thom_implicit to 0 or 1: '// &
+                            'use_thom_implicit = ',use_thom_implicit
+    call physics_error_fatal(errmess)
+
  endif
 
 
