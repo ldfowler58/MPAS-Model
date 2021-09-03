@@ -91,11 +91,18 @@
  real(kind=RKIND):: denom,dp
  real(kind=RKIND),dimension(kts:kte):: fm,fp,znet
  real(kind=RKIND),dimension(its:ite):: pwav,pwev
- real(kind=RKIND),dimension(its:ite):: nifa_up_scav_tot,nwfa_up_scav_tot
+ real(kind=RKIND),dimension(its:ite):: nifa_dn_evapt,nifa_up_scavt
+ real(kind=RKIND),dimension(its:ite):: nwfa_dn_evapt,nwfa_up_scavt
  real(kind=RKIND),dimension(its:ite,kts:kte):: pw,pwd
  real(kind=RKIND),dimension(its:ite,kts:kte):: up_entr,up_detr,zu,dn_entr,dn_detr,zd
- real(kind=RKIND),dimension(its:ite,kts:kte):: nifal2,nifa_dn,nifa_up,nifa_dn_evap,nifa_up_scav,nifa_out
- real(kind=RKIND),dimension(its:ite,kts:kte):: nwfal2,nwfa_dn,nwfa_up,nwfa_dn_evap,nwfa_up_scav,nwfa_out
+
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nifal2,nifa_dn,nifa_up
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nifa_dn_evap,nifa_up_scav
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nifa_out_evap,nifa_out_scav,nifa_out
+
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nwfal2,nwfa_dn,nwfa_up
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nwfa_dn_evap,nwfa_up_scav
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nwfa_out_evap,nwfa_out_scav,nwfa_out
 
  real(kind=RKIND),dimension(nthom):: thom_wetscav,thom_conv
  real(kind=RKIND),dimension(its:ite,kts:kte,nthom):: thom
@@ -111,25 +118,32 @@
  call mpas_log_write('--- use_thom_evap     = $i',intArgs=(/use_thom_evap/))
 
 
-!--- allocate the different aerosol components of "water-friendly" and "ice-friendly" aerosols:
+!--- initialization of local arrays:
  do k = kts,kte
     do i = its,ite
-       nifa_dn(i,k)   = 0._RKIND
-       nifa_up(i,k)   = 0._RKIND
-       nifa_out(i,k)  = 0._RKIND
-       nwfa_dn(i,k)   = 0._RKIND
-       nwfa_up(i,k)   = 0._RKIND
-       nwfa_out(i,k)  = 0._RKIND
+       nifa_dn(i,k)      = 0._RKIND
+       nifa_up(i,k)      = 0._RKIND
+       nifa_out(i,k)     = 0._RKIND
+       nwfa_dn(i,k)      = 0._RKIND
+       nwfa_up(i,k)      = 0._RKIND
+       nwfa_out(i,k)     = 0._RKIND
 
        nifa_dn_evap(i,k) = 0._RKIND
        nifa_up_scav(i,k) = 0._RKIND
        nwfa_dn_evap(i,k) = 0._RKIND
        nwfa_up_scav(i,k) = 0._RKIND
+
+       nifa_out_evap(i,k) = 0._RKIND
+       nifa_out_scav(i,k) = 0._RKIND
+       nwfa_out_evap(i,k) = 0._RKIND
+       nwfa_out_scav(i,k) = 0._RKIND
     enddo
  enddo
  do i = its,ite
-    nifa_up_scav_tot(i) = 0._RKIND
-    nwfa_up_scav_tot(i) = 0._RKIND
+    nifa_dn_evapt(i) = 0._RKIND
+    nifa_up_scavt(i) = 0._RKIND
+    nwfa_dn_evapt(i) = 0._RKIND
+    nwfa_up_scavt(i) = 0._RKIND
  enddo
 
 
@@ -222,28 +236,62 @@
                          z_cup,nifa,nifal2,nwfa,nwfal2,zu,up_entr,up_detr,nifa_up,nwfa_up,nifa_up_scav,       &
                          nwfa_up_scav)
 
- !temporary calculation of the arrays nifa_up_scav_tot and nw_up_scav_tot:
- if(use_thom_scaven == 1) then
-    do i = its,ite
-       if(ierr(i).eq.0) then
-          k2 = k22(i)
-          kb = kbcon(i)
-          kt = ktop(i)
-          do k = k2+1,kt+1
-             !do we assume that nifa_up_scav_tot is at in-cloud levels or enviromnental levels?
-             dp = 100._RKIND*(p_cup(i,k) - p_cup(i,k+1))/grav
-             nifa_up_scav_tot(i) = nifa_up_scav_tot(i) + nifa_up_scav(i,k)*dp
-             nwfa_up_scav_tot(i) = nwfa_up_scav_tot(i) + nwfa_up_scav(i,k)*dp
-          enddo
-       endif
-    enddo
- endif
-
 
 !--- convective transport in convective downdrafts:
  call ctrans_thompson_dn(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,use_thom_evap,'deep',z_cup,nifa,    &
                          nifa_up_scav,nwfa,nwfa_up_scav,zd,dn_entr,dn_detr,pwavo,pwevo,pwdo,nifa_dn, &
                          nifa_dn_evap,nwfa_dn,nwfa_dn_evap)
+
+
+!--- computation budget terms due to wet scavenging in updrafts and evaporation in downdrafts:
+ do i = its,ite
+    if(ierr(i) .eq. 0) then
+       k2 = k22(i)
+       kb = kbcon(i)
+       kt = ktop(i)
+       kd = kdn(i)
+
+       if(use_thom_scaven == 1) then
+          do k = kts,kt
+             nifa_up_scavt(i) = nifa_up_scavt(i) - zu(i,k)*nifa_up_scav(i,k)
+             nwfa_up_scavt(i) = nwfa_up_scavt(i) - zu(i,k)*nwfa_up_scav(i,k)
+
+             dp = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
+             nifa_out_scav(i,k) = - 0.5*dp*(zu(i,k)*nifa_up_scav(i,k)+zu(i,k+1)*nifa_up_scav(i,k+1))
+             nifa_out(i,k) = nifa_out_scav(i,k)
+
+             nwfa_out_scav(i,k) = - 0.5*dp*(zu(i,k)*nwfa_up_scav(i,k)+zu(i,k+1)*nwfa_up_scav(i,k+1))
+             nwfa_out(i,k) = nwfa_out_scav(i,k)
+          enddo
+       endif
+       if(use_thom_evap == 1) then
+          do k = kts,kt
+             nifa_dn_evapt(i) = nifa_dn_evapt(i) + edt(i)*zd(i,k)*nifa_dn_evap(i,k)
+             nwfa_dn_evapt(i) = nwfa_dn_evapt(i) + edt(i)*zd(i,k)*nwfa_dn_evap(i,k)
+
+             dp = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
+             nifa_out_evap(i,k) = - 0.5*dp*edt(i)*(zd(i,k)*nifa_dn_evap(i,k)+zd(i,k+1)*nifa_dn_evap(i,k+1))
+             nifa_out(i,k) = nifa_out(i,k) + nifa_out_evap(i,k)
+
+             nwfa_out_evap(i,k) = - 0.5*dp*edt(i)*(zd(i,k)*nwfa_dn_evap(i,k)+zd(i,k+1)*nwfa_dn_evap(i,k+1))
+             nwfa_out(i,k) = nwfa_out(i,k) + nwfa_out_evap(i,k)
+          enddo
+       endif
+!      do k = kts,kte
+!         call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r $r $r',intArgs=(/i,k2,kb,kd,kt,k/), &
+!                            realArgs=(/nwfal2(i,k),nwfa_up(i,k),nwfa_dn(i,k),nwfa_up_scav(i,k),nwfa_dn_evap(i,k), &
+!                            nwfa_out_scav(i,k),nwfa_out(i,k)/))
+!         call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r $r $r $r $r $r $r $r',intArgs=(/i,k2,kb,kd,kt,k/), &
+!                            realArgs=(/nifal2(i,k),nifa_up(i,k),nifa_dn(i,k),nifa_up_scav(i,k),nifa_dn_evap(i,k), &
+!                            nifa_out(i,k),nwfal2(i,k),nwfa_up(i,k),nwfa_dn(i,k),nwfa_up_scav(i,k),nwfa_dn_evap(i,k), &
+!                            nwfa_out(i,k)/))
+!      enddo
+!      call mpas_log_write('$i nwfa_up_scavt = $r',intArgs=(/i/),realArgs=(/nwfa_up_scavt(i)/))
+!      call mpas_log_write('$i nwfa_dn_evapt = $r',intArgs=(/i/),realArgs=(/nwfa_dn_evapt(i)/))
+!      call mpas_log_write(' ')
+    endif
+ enddo
+
 
 
 !--- updates the "water-friendly" and "ice-friendly" aerosols, and computes tendencies of "water-friendly"
@@ -261,11 +309,11 @@
              dp = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
              outnifa(i,k) = - dp*(zu(i,k+1)*(nifa_up(i,k+1)-nifal2(i,k+1))-zu(i,k)*(nifa_up(i,k)-nifal2(i,k))) &
                      + edt(i)*dp*(zd(i,k+1)*(nifa_dn(i,k+1)-nifal2(i,k+1))-zd(i,k)*(nifa_dn(i,k)-nifal2(i,k)))
-             outnifa(i,k) = outnifa(i,k) + nifa_out(i,k)
+             outnifa(i,k) = outnifa(i,k) + dtime*nifa_out(i,k)
 
              outnwfa(i,k) = - dp*(zu(i,k+1)*(nwfa_up(i,k+1)-nwfal2(i,k+1))-zu(i,k)*(nwfa_up(i,k)-nwfal2(i,k))) &
                      + edt(i)*dp*(zd(i,k+1)*(nwfa_dn(i,k+1)-nwfal2(i,k+1))-zd(i,k)*(nwfa_dn(i,k)-nwfal2(i,k)))
-             outnwfa(i,k) = outnwfa(i,k) + nwfa_out(i,k)
+             outnwfa(i,k) = outnwfa(i,k) + dtime*nwfa_out(i,k)
           enddo
        endif
     enddo
@@ -305,16 +353,12 @@
           enddo
           if(use_thom_scaven == 1) then
              do k = kts,kt
-                nifa_out(i,k) = nifa_out(i,k) &
-                    - 0.5*(zu(i,k)*nifa_up_scav(i,k)+zu(i,k+1)*nifa_up_scav(i,k+1))*mult(k)*dtime
-                dterm(k) = dterm(k) + nifa_out(i,k)
+                dterm(k) = dterm(k) + dtime*nifa_out_scav(i,k)
              enddo
           endif
           if(use_thom_evap == 1) then
              do k = kts,kt
-                nifa_out(i,k) = nifa_out(i,k) &
-                    - 0.5*(zd(i,k)*nifa_dn_evap(i,k)+zd(i,k+1)*nifa_dn_evap(i,k+1))*edt(i)**mult(k)*dtime
-                dterm(k) = dterm(k) + nifa_out(i,k)
+                dterm(k) = dterm(k) + dtime*nifa_out_evap(i,k)
              enddo
           endif
           call tridiag(kc,aterm,bterm,cterm,dterm)
@@ -330,16 +374,12 @@
           enddo
           if(use_thom_scaven == 1) then
              do k = kts,kt
-                nwfa_out(i,k) = nwfa_out(i,k) &
-                    - 0.5*(zu(i,k)*nwfa_up_scav(i,k)+zu(i,k+1)*nwfa_up_scav(i,k+1))*mult(k)*dtime
-                dterm(k) = dterm(k) + nwfa_out(i,k)
+                dterm(k) = dterm(k) + dtime*nwfa_out_scav(i,k)
              enddo
           endif
           if(use_thom_evap == 1) then
              do k = kts,kt
-                nwfa_out(i,k) = nwfa_out(i,k) &
-                    - 0.5*(zd(i,k)*nwfa_dn_evap(i,k)+zd(i,k+1)*nwfa_dn_evap(i,k+1))*edt(i)**mult(k)*dtime
-                dterm(k) = dterm(k) + nwfa_out(i,k)
+                dterm(k) = dterm(k) + dtime*nwfa_out_evap(i,k)
              enddo
           endif
           call tridiag(kc,aterm,bterm,cterm,dterm)
