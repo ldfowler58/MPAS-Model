@@ -17,9 +17,11 @@
 
 
 !=================================================================================================================
- subroutine ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,use_thom_scaven,use_thom_evap, &
-                        use_thom_implicit,dtime,grav,edt,xmb,p,p_cup,z_cup,thom_w,nifa,nwfa,pwavo,pwevo, &
-                        pwo,pwdo,zuo,up_massentro,up_massdetro,zdo,dn_massentro,dn_massdetro,outnifa,outnwfa)
+ subroutine ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,use_thom_scaven,use_thom_evap,   &
+                        use_thom_implicit,dtime,grav,edt,xmb,p,p_cup,z_cup,thom_w,nifa,nwfa,pwavo,pwevo,   &
+                        pwo,pwdo,zuo,up_massentro,up_massdetro,zdo,dn_massentro,dn_massdetro,nifa_dn_evap, &
+                        nifa_up_scav,nwfa_dn_evap,nwfa_up_scav,nifa_dn_evapt,nifa_up_scavt,nwfa_dn_evapt,  &
+                        nwfa_up_scavt,outnifa,outnwfa)
 !=================================================================================================================
 
 !--- input arguments:
@@ -60,25 +62,35 @@
     pwo        !
 
  real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
-    zuo,          &! normalized mass flux in updrafts               (-).
-    up_massentro, &! normalized entrainment mass flux in updrafts   (-).
-    up_massdetro, &! normalized detraiment mass flux in updrafts    (-).
-    zdo,          &! normalized mass flux in downdrafts (-).
-    dn_massentro, &! normalized entrainment mass flux in downdrafts (-).
-    dn_massdetro   ! normalized detrainment mass flux in downdrafts (-).
+    zuo,             &! normalized mass flux in updrafts               (-).
+    up_massentro,    &! normalized entrainment mass flux in updrafts   (-).
+    up_massdetro,    &! normalized detraiment mass flux in updrafts    (-).
+    zdo,             &! normalized mass flux in downdrafts (-).
+    dn_massentro,    &! normalized entrainment mass flux in downdrafts (-).
+    dn_massdetro      ! normalized detrainment mass flux in downdrafts (-).
 
  real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: &
-    nifa,     &! "ice-friendly" aerosols   (# per kg).
-    nwfa       ! "water-friendly" aerosols (# per kg).
+    nifa,            &! number concentration of "ice-friendly" aerosols   (# kg^-1).
+    nwfa              ! number concentration of "water-friendly" aerosols (# kg^-1).
 
  real(kind=RKIND),intent(in),dimension(its:ite,kts:kte,nthom):: &
-    thom_w     ! weight of individual aerosols to "water-friendly" and "ice-friendly" aerosols (-).
+    thom_w            ! weight of individual aerosols to "water-friendly" and "ice-friendly" aerosols (-).
 
 
 !--- inout arguments:
+ real(kind=RKIND),intent(inout),dimension(its:ite):: &
+    nifa_dn_evapt,   &!
+    nifa_up_scavt,   &!
+    nwfa_dn_evapt,   &!
+    nwfa_up_scavt     !
+
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: &
-    outnifa,  &! "ice-friendly" aerosols   (# per kg).
-    outnwfa    ! "water-friendly" aerosols (# per kg).
+    nifa_dn_evap,    &!
+    nifa_up_scav,    &!
+    nwfa_dn_evap,    &!
+    nwfa_up_scav,    &!
+    outnifa,         &! tendency of number concentration of "ice-friendly" aerosols   (# kg^-1 s^-1).
+    outnwfa           ! tendency of number concentration of "water-friendly" aerosols (# kg^-1 s^-1).
 
 
 !--- local variables and arrays:
@@ -91,17 +103,11 @@
  real(kind=RKIND):: denom,dp
  real(kind=RKIND),dimension(kts:kte):: fm,fp,znet
  real(kind=RKIND),dimension(its:ite):: pwav,pwev
- real(kind=RKIND),dimension(its:ite):: nifa_dn_evapt,nifa_up_scavt
- real(kind=RKIND),dimension(its:ite):: nwfa_dn_evapt,nwfa_up_scavt
  real(kind=RKIND),dimension(its:ite,kts:kte):: pw,pwd
  real(kind=RKIND),dimension(its:ite,kts:kte):: up_entr,up_detr,zu,dn_entr,dn_detr,zd
-
  real(kind=RKIND),dimension(its:ite,kts:kte):: nifal2,nifa_dn,nifa_up
- real(kind=RKIND),dimension(its:ite,kts:kte):: nifa_dn_evap,nifa_up_scav
  real(kind=RKIND),dimension(its:ite,kts:kte):: nifa_out_evap,nifa_out_scav,nifa_out
-
  real(kind=RKIND),dimension(its:ite,kts:kte):: nwfal2,nwfa_dn,nwfa_up
- real(kind=RKIND),dimension(its:ite,kts:kte):: nwfa_dn_evap,nwfa_up_scav
  real(kind=RKIND),dimension(its:ite,kts:kte):: nwfa_out_evap,nwfa_out_scav,nwfa_out
 
  real(kind=RKIND),dimension(nthom):: thom_wetscav,thom_conv
@@ -118,7 +124,7 @@
  call mpas_log_write('--- use_thom_evap     = $i',intArgs=(/use_thom_evap/))
 
 
-!--- initialization of local arrays:
+!--- initialization of inout and local arrays:
  do k = kts,kte
     do i = its,ite
        nifa_dn(i,k)      = 0._RKIND

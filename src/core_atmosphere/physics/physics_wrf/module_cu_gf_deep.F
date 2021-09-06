@@ -29,16 +29,18 @@ module module_cu_gf_deep
  use mpas_kind_types,only: kind_phys => RKIND
  use mpas_atmphys_constants,only: cp,g=>gravity,r_v=>R_v,xlv
 
+ use module_cu_gf_shared,only: cup_env,cup_env_clev,cup_kbcon,cup_minimi,cup_up_aa0,   &
+                               get_cloud_bc,get_inversion_layers,get_lateral_massflux, &
+                               get_zu_zd_pdf_fim,rates_up_pdf
+
+#ifdef ATM_CHEMISTRY
  use module_cu_gf_ctrans,only: ctrans_clev,           &
                                cup_transport_dn,      &
                                cup_transport_tends,   &
                                cup_up_moisture_ctrans
 
  use module_cu_gf_ctrans_thompson,only: ctrans_thompson
-
- use module_cu_gf_shared,only: cup_env,cup_env_clev,cup_kbcon,cup_minimi,cup_up_aa0,   &
-                               get_cloud_bc,get_inversion_layers,get_lateral_massflux, &
-                               get_zu_zd_pdf_fim,rates_up_pdf
+#endif
 
  implicit none
  private
@@ -157,7 +159,9 @@ contains
 #ifdef ATM_CHEMISTRY
               ,use_thom_scaven,use_thom_evap,use_thom_implicit,is_mp & !transport of "Thompson" aerosols.
               ,nifa,nwfa,outnifa,outnwfa                             & !transport of "Thompson" aerosols.
-              ,naer,aerosol_w,aerosol_scav,nifa_scav,nwfa_scav       & !transport of "Thompson" aerosols.
+              ,naer,aerosol_w,aerosol_scav                           & !transport of "Thompson" aerosols.
+              ,nifa_evapt,nifa_scavt,nwfa_evapt,nwfa_scavt           & !transport of "Thompson" aerosols.
+              ,nifa_evap,nifa_scav,nwfa_evap,nwfa_scav               & !transport of "Thompson" aerosols.
               ,nchem,chem,outchem                                    & !transport of chemical species.
               ,ntracer,tracer,outtracer                              & !transport of passive tracers.
 #endif
@@ -418,7 +422,8 @@ contains
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,ntracer):: outtracer
      integer,intent(in):: naer
      real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte,naer)   :: aerosol_w
-     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte)     :: nifa_scav,nwfa_scav
+     real(kind=kind_phys),intent(inout),dimension(its:ite)             :: nifa_evapt,nifa_scavt,nwfa_evapt,nwfa_scavt
+     real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte)     :: nifa_evap,nifa_scav,nwfa_evap,nwfa_scav
      real(kind=kind_phys),intent(inout),dimension(its:ite,kts:kte,naer):: aerosol_scav
 
      !local variables:
@@ -2144,9 +2149,10 @@ contains
 !
 #ifdef ATM_CHEMISTRY
       call mpas_timer_start('atm_chem: physics - GF')
-      call ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,jmin,naer,use_thom_scaven,use_thom_evap, &
-                    use_thom_implicit,dtime,g,edto,xmb,po,po_cup,z_cup,aerosol_w,nifa,nwfa,pwavo,pwevo, &
-                    pwo,pwdo,zuo,up_massentr,up_massdetr,zdo,dd_massentro,dd_massdetro,outnifa,outnwfa)
+      call ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,jmin,naer,use_thom_scaven,use_thom_evap,     &
+                    use_thom_implicit,dtime,g,edto,xmb,po,po_cup,z_cup,aerosol_w,nifa,nwfa,pwavo,pwevo,     &
+                    pwo,pwdo,zuo,up_massentr,up_massdetr,zdo,dd_massentro,dd_massdetro,nifa_evap,nifa_scav, &
+                    nwfa_evap,nwfa_scav,nifa_evapt,nifa_scavt,nwfa_evapt,nwfa_scavt,outnifa,outnwfa)
       call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo, &
                                p_cup,nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,      &
                                tracer_up,tracer_dn,outtracer)
