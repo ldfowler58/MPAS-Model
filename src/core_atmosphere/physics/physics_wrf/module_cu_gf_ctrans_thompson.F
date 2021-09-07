@@ -259,8 +259,8 @@
 
        if(use_thom_scaven == 1) then
           do k = kts,kt
-             nifa_up_scavt(i) = nifa_up_scavt(i) - zu(i,k)*nifa_up_scav(i,k)
-             nwfa_up_scavt(i) = nwfa_up_scavt(i) - zu(i,k)*nwfa_up_scav(i,k)
+             nifa_up_scavt(i) = nifa_up_scavt(i) + zu(i,k)*nifa_up_scav(i,k)
+             nwfa_up_scavt(i) = nwfa_up_scavt(i) + zu(i,k)*nwfa_up_scav(i,k)
 
              dp = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
              nifa_out_scav(i,k) = - 0.5*dp*(zu(i,k)*nifa_up_scav(i,k)+zu(i,k+1)*nifa_up_scav(i,k+1))
@@ -272,8 +272,8 @@
        endif
        if(use_thom_evap == 1) then
           do k = kts,kt
-             nifa_dn_evapt(i) = nifa_dn_evapt(i) + edt(i)*zd(i,k)*nifa_dn_evap(i,k)
-             nwfa_dn_evapt(i) = nwfa_dn_evapt(i) + edt(i)*zd(i,k)*nwfa_dn_evap(i,k)
+             nifa_dn_evapt(i) = nifa_dn_evapt(i) - edt(i)*zd(i,k)*nifa_dn_evap(i,k)
+             nwfa_dn_evapt(i) = nwfa_dn_evapt(i) - edt(i)*zd(i,k)*nwfa_dn_evap(i,k)
 
              dp = 0.01_RKIND*grav/(p_cup(i,k)-p_cup(i,k+1))
              nifa_out_evap(i,k) = - 0.5*dp*edt(i)*(zd(i,k)*nifa_dn_evap(i,k)+zd(i,k+1)*nifa_dn_evap(i,k+1))
@@ -284,13 +284,9 @@
           enddo
        endif
 !      do k = kts,kte
-!         call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r $r $r',intArgs=(/i,k2,kb,kd,kt,k/), &
-!                            realArgs=(/nwfal2(i,k),nwfa_up(i,k),nwfa_dn(i,k),nwfa_up_scav(i,k),nwfa_dn_evap(i,k), &
-!                            nwfa_out_scav(i,k),nwfa_out(i,k)/))
-!         call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r $r $r $r $r $r $r $r',intArgs=(/i,k2,kb,kd,kt,k/), &
-!                            realArgs=(/nifal2(i,k),nifa_up(i,k),nifa_dn(i,k),nifa_up_scav(i,k),nifa_dn_evap(i,k), &
-!                            nifa_out(i,k),nwfal2(i,k),nwfa_up(i,k),nwfa_dn(i,k),nwfa_up_scav(i,k),nwfa_dn_evap(i,k), &
-!                            nwfa_out(i,k)/))
+!         call mpas_log_write('$i $i $i $i $i $i $r $r $r $r $r',intArgs=(/i,k2,kb,kd,kt,k/), &
+!                realArgs=(/nwfa_up_scav(i,k),nwfa_out_scav(i,k),nwfa_dn_evap(i,k),nwfa_out_evap(i,k), &
+!                           nwfa_out(i,k)/))
 !      enddo
 !      call mpas_log_write('$i nwfa_up_scavt = $r',intArgs=(/i/),realArgs=(/nwfa_up_scavt(i)/))
 !      call mpas_log_write('$i nwfa_dn_evapt = $r',intArgs=(/i/),realArgs=(/nwfa_dn_evapt(i)/))

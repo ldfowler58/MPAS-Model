@@ -745,8 +745,9 @@
        call mpas_pool_get_config(configs,'config_gfconv_thom_implicit',gfconv_thom_implicit)
 
        call mpas_log_write('naer = $i',intArgs=(/mpas_chems%naers/))
-       call mpas_log_write('gfconv_thom_scaven   = $i',intArgs=(/gfconv_thom_scaven/))
-       call mpas_log_write('gfconv_thom_evap     = $i',intArgs=(/gfconv_thom_evap/)  )
+       call mpas_log_write('gfconv_thom_scaven   = $i',intArgs=(/gfconv_thom_scaven/)  )
+       call mpas_log_write('gfconv_thom_evap     = $i',intArgs=(/gfconv_thom_evap/)    )
+       call mpas_log_write('gfconv_thom_implicit = $i',intArgs=(/gfconv_thom_implicit/))
 #endif
 
        call mpas_timer_start('cu_grell_freitas_wrf390')
@@ -790,20 +791,23 @@
                gdc          = qccu_p               , gdc2         = qicu_p               , &
                nclos        = nclosures            , weights_clos = weights_clos_p       , &
 #ifdef ATM_CHEMISTRY
-               use_thom_scaven = gfconv_thom_scaven           , use_thom_evap = gfconv_thom_evap             , &
-               use_thom_implicit = gfconv_thom_implicit       ,                                                &
-               nifa            = nifa_p                       , nwfa          = nwfa_p                       , &
-               rnifacuten      = rnifacuten_p                 , rnwfacuten    = rnwfacuten_p                 , &
-               naer            = mpas_chems%naers             , aerosol3d_w   = mpas_chems%aerosols_weight_p , &
-               aerosol3d_scav  = mpas_chems%aerosols_scav_p   , nifa3d_scav   = mpas_chems%nifa_scav_p       , &
-               nwfa3d_scav     = mpas_chems%nwfa_scav_p       , nchem         = mpas_chems%nchems            , &
-               ntracer         = mpas_tracers%ntracers        , tracer3d      = mpas_tracers%tracers_p       , &
-               rtracercuten    = mpas_tracers%rtracerscuten_p ,                                                &
+               use_thom_scaven   = gfconv_thom_scaven           , use_thom_evap = gfconv_thom_evap             , &
+               use_thom_implicit = gfconv_thom_implicit         ,                                                &
+               nifa              = nifa_p                       , nwfa          = nwfa_p                       , &
+               rnifacuten        = rnifacuten_p                 , rnwfacuten    = rnwfacuten_p                 , &
+               naer              = mpas_chems%naers             , aerosol3d_w   = mpas_chems%aerosols_weight_p , &
+               aerosol3d_scav    = mpas_chems%aerosols_scav_p   , nifa3d_evapt  = mpas_chems%nifa_evapt_p      , &
+               nifa3d_scavt      = mpas_chems%nifa_scavt_p      , nwfa3d_evapt  = mpas_chems%nwfa_evapt_p      , &
+               nwfa3d_scavt      = mpas_chems%nwfa_scavt_p      , nifa3d_evap   = mpas_chems%nifa_evap_p       , &
+               nifa3d_scav       = mpas_chems%nifa_scav_p       , nwfa3d_evap   = mpas_chems%nwfa_evap_p       , &
+               nwfa3d_scav       = mpas_chems%nwfa_scav_p       , nchem         = mpas_chems%nchems            , &
+               ntracer           = mpas_tracers%ntracers        , tracer3d      = mpas_tracers%tracers_p       , &
+               rtracercuten      = mpas_tracers%rtracerscuten_p ,                                                &
 #endif
                ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde     , &
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme     , &
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
-                                   )
+                            )
        call mpas_timer_stop('cu_grell_freitas_wrf390')
 !#ifdef ATM_CHEMISTRY
 !      do j = jts,jte
