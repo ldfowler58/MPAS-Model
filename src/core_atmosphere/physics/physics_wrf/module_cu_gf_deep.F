@@ -703,13 +703,6 @@ contains
            ierr,z1,                                                &
            itf,ktf,                                                &
            its,ite, kts,kte)
-!     call mpas_log_write('--- end cup_env_clev:')
-!     do i = its,ite
-!        do k = kts,kte
-!           call mpas_log_write('--- cup_env_clev: $i $i $r $r $r $r',intArgs=(/i,k/), &
-!                     realArgs=(/t(i,k),t_cup(i,k),tn(i,k),tn_cup(i,k)/))
-!        enddo
-!     enddo
 !---meltglac-------------------------------------------------
 !> - Call get_partition_liq_ice() to calculate partition between liq/ice cloud contents
       call get_partition_liq_ice(ierr,tn,po_cup,p_liq_ice,melting_layer,&
@@ -987,8 +980,10 @@ contains
               exit
            endif
         enddo
-        ktop(i)=ktopkeep(i)
-        if(ierr(i).eq.0)ktop(i)=ktopkeep(i)
+!--- MPAS: do not update ktop.
+!       ktop(i)=ktopkeep(i)
+!       if(ierr(i).eq.0)ktop(i)=ktopkeep(i)
+!--- MPAS end.
       enddo
       do 37 i=its,itf
          kzdown(i)=0
@@ -1177,8 +1172,10 @@ contains
               exit
            endif
         enddo
-        ktop(i)=ktopkeep(i)
-        if(ierr(i).eq.0)ktop(i)=ktopkeep(i)
+!--- MPAS: do not update ktop.
+!       ktop(i)=ktopkeep(i)
+!       if(ierr(i).eq.0)ktop(i)=ktopkeep(i)
+!--- MPAS end.
       enddo
 41    continue
       do i=its,itf
@@ -1659,12 +1656,6 @@ contains
         if(ierr(i)/=0)cycle
             edto(i)=edtc(i,1)
         enddo
-!       call mpas_log_write('--- end subroutine cup_dd_edt:')
-!       do i = its,ite
-!           do k = kts,kte
-!              call mpas_log_write('$i $r',intArgs=(/i/),realArgs=(/pwo(i,k)/))
-!           enddo
-!       enddo
 
 !> - Call get_melting_profile() to get melting profile
      call get_melting_profile(ierr,tn_cup,po_cup, p_liq_ice,melting_layer,qrco    &
@@ -2217,10 +2208,6 @@ contains
       endif
       enddo
       endif
-!     call mpas_log_write('--- before end subroutine cu_gf_deep_run:')
-!     do i = its,ite
-!        call mpas_log_write('$i $r',intArgs=(/i/),realArgs=(/pre(i)/))
-!     enddo
 !
 ! since kinetic energy is being dissipated, add heating accordingly (from ecmwf)
 !
