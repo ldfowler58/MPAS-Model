@@ -1081,7 +1081,7 @@ contains
      !
 !> - Call cup_up_moisture() to calculate moisture properties of updraft
      !
-!     if(imid.eq.1)then
+!     if(imid.eq.1) then
 !       call cup_up_moisture('mid',ierr,zo_cup,qco,qrco,pwo,pwavo,               &
 !            p_cup,kbcon,ktop,dbyo,clw_all,xland1,                               &
 !            qo,gammao_cup,zuo,qeso_cup,k22,qo_cup,                              &
@@ -1089,11 +1089,24 @@ contains
 !            1,itf,ktf,                                                          &
 !            its,ite, kts,kte)
 !     else
-!--- for deep convection, replaced the subroutine cup_up_moisture with cup_up_moisture_ctrans in
-!    module_cu_gf_ctrans.F. cup_up_moisture_ctrans is a cleaned-up version of cup_up_moisture and
-!    includes the calculation of the in-cloud "ice-" and "water-friendly" aerosols (nifa_up and
-!    nwfa-up) from the Thompson cloud microphysics. for now, nc_up and ni_up are simply holders.
-!    cup_up_moisture_ctrans does not work with the "berry" autoconversion option.
+!        call cup_up_moisture('deep',ierr,zo_cup,qco,qrco,pwo,pwavo,             &
+!            p_cup,kbcon,ktop,dbyo,clw_all,xland1,                               &
+!            qo,gammao_cup,zuo,qeso_cup,k22,qo_cup,                              &
+!            zqexec,ccn,rho,c1d,tn_cup,up_massentr,up_massdetr,psum,psumh,       &
+!            1,itf,ktf,                                                          &
+!            its,ite, kts,kte)
+!     endif
+!--- for mid-level and deep convection, replaced the subroutine cup_up_moisture with
+!    cup_up_moisture_ctrans in module_cu_gf_ctrans.F.
+      if(imid.eq.1) then
+         call cup_up_moisture_ctrans('mid',ierr,k22,kbcon,ktop,autoconv,zo_cup,   &
+                     tn_cup,qo_cup,qeso_cup,gammao_cup,qo,dbyo,c1d,up_massentr,   &
+                     up_massdetr,zuo,qco,qrco,pwo,clw_all,pwavo,psum,             &
+#ifdef ATM_CHEMISTRY
+                     nchem,chem,cheml2,chem_up,ntracer,tracer,tracerl2,tracer_up, &
+#endif
+                     its,ite,itf,kts,kte,ktf)
+      else
          call cup_up_moisture_ctrans('deep',ierr,k22,kbcon,ktop,autoconv,zo_cup,  &
                      tn_cup,qo_cup,qeso_cup,gammao_cup,qo,dbyo,c1d,up_massentr,   &
                      up_massdetr,zuo,qco,qrco,pwo,clw_all,pwavo,psum,             &
@@ -1101,13 +1114,7 @@ contains
                      nchem,chem,cheml2,chem_up,ntracer,tracer,tracerl2,tracer_up, &
 #endif
                      its,ite,itf,kts,kte,ktf)
-!        call cup_up_moisture('deep',ierr,zo_cup,qco,qrco,pwo,pwavo,             &
-!            p_cup,kbcon,ktop,dbyo,clw_all,xland1,                               &
-!            qo,gammao_cup,zuo,qeso_cup,k22,qo_cup,                              &
-!            zqexec,ccn,rho,c1d,tn_cup,up_massentr,up_massdetr,psum,psumh,       &
-!            1,itf,ktf,                                                          &
-!            its,ite, kts,kte)
-!    endif
+      endif
 !     !--- get melting profile 
 !     call get_melting_profile(ierr,tn_cup,po_cup, p_liq_ice,melting_layer,qrco    &
 !                             ,pwo,edto,pwdo,melting                                & 
@@ -2117,7 +2124,7 @@ contains
 
       k=1
       do i=its,itf
-          if(ierr(i).eq.0 .and.pre(i).gt.0.) then
+          if(ierr(i).eq.0 .and. pre(i).gt.0.) then
              pre(i)=max(pre(i),0.)
              xmb_out(i)=xmb(i)
              outu(i,1)=dellu(i,1)*xmb(i) 
@@ -2126,7 +2133,13 @@ contains
                outu(i,k)=.25*(dellu(i,k-1)+2.*dellu(i,k)+dellu(i,k+1))*xmb(i) 
                outv(i,k)=.25*(dellv(i,k-1)+2.*dellv(i,k)+dellv(i,k+1))*xmb(i) 
              enddo
-          elseif(ierr(i).ne.0 .or. pre(i).eq.0.)then
+!--- LDF: when imidc is equal to 1 (mid-level convection), there are instances when
+!    ierr is equal to zero and pre is also equal to 0. corrected the source code so
+!    that when it happens we set ierr = 997 so that that cloud is removed.
+!         elseif(ierr(i).ne.0 .or. pre(i).eq.0.)then
+          elseif((ierr(i).eq.0 .and. pre(i).eq.0.) .or. pre(i).eq.0.)then
+             if(ierr(i).eq.0 .and. pre(i).eq.0.) ierr(i) = 997
+!--- LDF end.
              ktop(i)=0
              do k=kts,kte
                outt(i,k)=0.
