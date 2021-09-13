@@ -194,8 +194,8 @@
 !cloud microphysics scheme:
  if(.not. (config_microp_scheme .eq. 'off'                  .or. &
            config_microp_scheme .eq. 'mp_kessler'           .or. &
-           config_microp_scheme .eq. 'mp_thompson'          .or. &
            config_microp_scheme .eq. 'mp_pumas'             .or. &
+           config_microp_scheme .eq. 'mp_thompson'          .or. &
            config_microp_scheme .eq. 'mp_thompson_aerosols' .or. &
            config_microp_scheme .eq. 'mp_wsm6')) then
 
