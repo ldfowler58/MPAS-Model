@@ -34,6 +34,7 @@ OBJS = \
 	mpas_atmphys_driver_sfclayer.o        \
 	mpas_atmphys_finalize.o               \
 	mpas_atmphys_init.o                   \
+	mpas_atmphys_init_fromRegistry.o      \
 	mpas_atmphys_init_microphysics.o      \
 	mpas_atmphys_interface.o              \
 	mpas_atmphys_landuse.o                \
@@ -129,7 +130,8 @@ mpas_atmphys_driver_microphysics.o: \
 	mpas_atmphys_vars.o
 
 mpas_atmphys_driver_microphysics_pumas.o: \
-	mpas_atmphys_constants.o
+	mpas_atmphys_constants.o \
+	mpas_atmphys_init_fromRegistry.o
 
 mpas_atmphys_driver_oml.o: \
 	mpas_atmphys_constants.o \
@@ -161,6 +163,7 @@ mpas_atmphys_init.o: \
 	mpas_atmphys_driver_convection.o \
 	mpas_atmphys_driver_lsm.o \
 	mpas_atmphys_driver_microphysics.o \
+	mpas_atmphys_driver_microphysics_pumas.o \
 	mpas_atmphys_driver_radiation_lw.o \
 	mpas_atmphys_driver_radiation_sw.o \
 	mpas_atmphys_driver_sfclayer.o \

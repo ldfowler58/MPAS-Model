@@ -6,9 +6,10 @@ dummy:
 	echo "****** compiling physics_cam6 ******"
 
 OBJS = \
+	mp_pumas_mpas.o \
+	mp_pumas_vars.o \
 	micro_pumas_utils.o \
 	micro_mg3_0.o \
-	mp_pumas_mpas.o \
 	wv_sat_methods.o
 
 physics_cam6_utils:
@@ -24,8 +25,7 @@ micro_mg3_0.o: \
 	wv_sat_methods.o
 
 mp_pumas_mpas.o: \
-	micro_mg3_0.o
-
+	mp_pumas_vars.o
 
 clean:
 	$(RM) *.f90 *.o *.mod

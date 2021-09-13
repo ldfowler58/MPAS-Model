@@ -14,7 +14,8 @@
  use mpas_atmphys_driver_convection, only: init_convection
  use mpas_atmphys_driver_lsm,only: init_lsm
  use mpas_atmphys_driver_pbl,only: init_pbl
- use mpas_atmphys_driver_microphysics
+ use mpas_atmphys_driver_microphysics, only: init_microphysics
+ use mpas_atmphys_driver_microphysics_pumas, only: init_microphysics_pumas
  use mpas_atmphys_driver_radiation_lw, only: init_radiation_lw
  use mpas_atmphys_driver_radiation_sw, only: init_radiation_sw
  use mpas_atmphys_driver_sfclayer
@@ -379,8 +380,13 @@
     call init_convection(mesh,configs,diag_physics)
 
 !initialization of cloud microphysics processes:
- if(config_microp_scheme .ne. 'off') &
-    call init_microphysics(dminfo,configs,mesh,state,time_lev,sfc_input,diag_physics)
+ if(config_microp_scheme .ne. 'off') then
+    if(config_microp_scheme .eq. 'mp_pumas') then
+       call init_microphysics_pumas(configs,mesh)
+    else
+       call init_microphysics(dminfo,configs,mesh,state,time_lev,sfc_input,diag_physics)
+    endif
+ endif
 
 !initialization of PBL processes:
  if(config_pbl_scheme .ne. 'off') call init_pbl(configs)
