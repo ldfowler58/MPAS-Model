@@ -2288,11 +2288,11 @@
 
                 <var name="i_rainnc" type="integer" dimensions="nCells Time" units="unitless"
                      description="incidence of accumulated grid-scale precipitation greater than config_bucket_rainnc"
-                     packages="mp_kessler_in;mp_thompson_in;mp_wsm6_in"/>
+                     packages="mp_kessler_in;mp_pumas_in;mp_thompson_in;mp_wsm6_in"/>
 
                 <var name="rainncv" type="real" dimensions="nCells Time" units="mm"
                      description="time-step total grid-scale precipitation"
-                     packages="mp_kessler_in;mp_thompson_in;mp_wsm6_in"/>
+                     packages="mp_kessler_in;mp_pumas_in;mp_thompson_in;mp_wsm6_in"/>
 
                 <var name="snowncv" type="real" dimensions="nCells Time" units="mm"
                      description="time-step grid-scale precipitation of snow"
@@ -2304,7 +2304,7 @@
 
                 <var name="rainnc" type="real" dimensions="nCells Time" units="mm"
                      description="accumulated total grid-scale precipitation"
-                     packages="mp_kessler_in;mp_thompson_in;mp_wsm6_in"/>
+                     packages="mp_kessler_in;mp_pumas_in;mp_thompson_in;mp_wsm6_in"/>
 
                 <var name="snownc" type="real" dimensions="nCells Time" units="mm"
                      description="accumulated grid-scale precipitation of snow"
