@@ -179,9 +179,13 @@
 !local variables:
  logical:: is_mp
  integer:: ia,ic,it
- real,dimension(its:ite):: nifa2d_evapt,nifa2d_scavt,nwfa2d_evapt,nwfa2d_scavt
- real,dimension(its:ite,kts:kte):: nifa2d,nwfa2d,outnifam,outnifa,outnwfam,outnwfa
- real,dimension(its:ite,kts:kte):: nifa2d_evap,nifa2d_scav,nwfa2d_evap,nwfa2d_scav
+ real,dimension(its:ite):: nifa2d_evaptm,nifa2d_evapt,nifa2d_scavtm,nifa2d_scavt
+ real,dimension(its:ite):: nwfa2d_evaptm,nwfa2d_evapt,nwfa2d_scavtm,nwfa2d_scavt
+ real,dimension(its:ite,kts:kte):: nifa2d,nifa2d_evapm,nifa2d_evap,nifa2d_scavm,nifa2d_scav
+ real,dimension(its:ite,kts:kte):: nwfa2d,nwfa2d_evapm,nwfa2d_evap,nwfa2d_scavm,nwfa2d_scav
+ real,dimension(its:ite,kts:kte):: outnifam,outnifa
+ real,dimension(its:ite,kts:kte):: outnwfam,outnwfa
+
  real,dimension(its:ite,kts:kte,nchem):: chem2d,outchemm,outchem
  real,dimension(its:ite,kts:kte,naer) :: aerosol2d_w,aerosol2d_scav
  real,dimension(its:ite,kts:kte,ntracer):: tracer2d,outtracerm,outtracer
@@ -560,38 +564,46 @@
     endif
     if(present(nifa3d_evap) .and. present(nifa3d_scav) .and. &
        present(nwfa3d_evap) .and. present(nwfa3d_scav)) then
+!      do k = kts,kte
+!         do i = its,ite
+!            nifa2d_evap(i,k) = nifa3d_evap(i,k,j)
+!            nifa2d_scav(i,k) = nifa3d_scav(i,k,j)
+!            nwfa2d_evap(i,k) = nwfa3d_evap(i,k,j)
+!            nwfa2d_scav(i,k) = nwfa3d_scav(i,k,j)
+!         enddo
+!      enddo
+!   else
        do k = kts,kte
           do i = its,ite
-             nifa2d_evap(i,k) = nifa3d_evap(i,k,j)
-             nifa2d_scav(i,k) = nifa3d_scav(i,k,j)
-             nwfa2d_evap(i,k) = nwfa3d_evap(i,k,j)
-             nwfa2d_scav(i,k) = nwfa3d_scav(i,k,j)
-          enddo
-       enddo
-    else
-       do k = kts,kte
-          do i = its,ite
-             nifa2d_evap(i,k) = 0.
-             nifa2d_scav(i,k) = 0.
-             nwfa2d_evap(i,k) = 0.
-             nwfa2d_scav(i,k) = 0.
+             nifa2d_evap(i,k)  = 0.
+             nifa2d_scav(i,k)  = 0.
+             nwfa2d_evap(i,k)  = 0.
+             nwfa2d_scav(i,k)  = 0.
+             nifa2d_evapm(i,k) = 0.
+             nifa2d_scavm(i,k) = 0.
+             nwfa2d_evapm(i,k) = 0.
+             nwfa2d_scavm(i,k) = 0.
           enddo
        enddo
     endif
     if(present(nifa3d_evapt) .and. present(nifa3d_scavt) .and. &
        present(nwfa3d_evapt) .and. present(nwfa3d_scavt)) then
+!      do i = its,ite
+!         nifa2d_evapt(i) = nifa3d_evapt(i,j)
+!         nifa2d_scavt(i) = nifa3d_scavt(i,j)
+!         nwfa2d_evapt(i) = nwfa3d_evapt(i,j)
+!         nwfa2d_scavt(i) = nwfa3d_scavt(i,j)
+!      enddo
+!   else
        do i = its,ite
-          nifa2d_evapt(i) = nifa3d_evapt(i,j)
-          nifa2d_scavt(i) = nifa3d_scavt(i,j)
-          nwfa2d_evapt(i) = nwfa3d_evapt(i,j)
-          nwfa2d_scavt(i) = nwfa3d_scavt(i,j)
-       enddo
-    else
-       do i = its,ite
-          nifa2d_evapt(i) = 0.
-          nifa2d_scavt(i) = 0.
-          nwfa2d_evapt(i) = 0.
-          nwfa2d_scavt(i) = 0.
+          nifa2d_evapt(i)  = 0.
+          nifa2d_scavt(i)  = 0.
+          nwfa2d_evapt(i)  = 0.
+          nwfa2d_scavt(i)  = 0.
+          nifa2d_evaptm(i) = 0.
+          nifa2d_scavtm(i) = 0.
+          nwfa2d_evaptm(i) = 0.
+          nwfa2d_scavtm(i) = 0.
        enddo
     endif
     call mpas_timer_stop('atm_chem: physics - GF')
@@ -650,17 +662,25 @@
     if(do_midlc) then
        call mpas_log_write('  ')
        call mpas_log_write('--- enter subroutine cu_gf_deep_run - mid-level convection:')
-!      call cu_gf_deep_run( &
-!               itf,ktf,its,ite,kts,kte,                                       &
-!               dicycle_m,ichoice_m,ipr,ccn,dt,imidc,kpbli,dhdt,               &
-!               xlandi,zo,forcingm,t2d,q2d,ter11,tshall,qshall,p2d,            &
-!               psur,us,vs,rhoi,hfxi,qfxi,areai,dxi,mconv,omeg,cactiv,         &
-!               cnvwtm,zum,zdm,dummy,edtm,dummy,xmbm,dummy,xmbs,pretm,         &
-!               outum,outvm,outtm,outqm,outqcm,kbconm,ktopm,k22m,cupclwm,      &
-!               ierrm,ierrcm,nc2d,ni2d,nifa2d,nwfa2d,ntrans,qtrans2d,          &
-!               outncm,outnim,outnifam,outnwfam,outqtransm,rand_mom,rand_vmas, &
-!               rand_clos,nranflag,jminm,tropics                               &
-!                 )
+       call cu_gf_deep_run( &
+                itf,ktf,its,ite,kts,kte,                                  &
+                dicycle_m,ichoice_m,ipr,ccn,dt,imidc,kpbli,dhdt,          &
+                xlandi,zo,forcingm,t2d,q2d,ter11,tshall,qshall,p2d,       &
+                psur,us,vs,rhoi,hfxi,qfxi,areai,dxi,mconv,omeg,cactiv,    &
+                cnvwtm,zum,zdm,dummy,edtm,dummy,xmbm,dummy,xmbs,pretm,    &
+                outum,outvm,outtm,outqm,outqcm,kbconm,ktopm,k22m,cupclwm, &
+                ierrm,ierrcm,rand_mom,rand_vmas,rand_clos,nranflag        &
+#ifdef ATM_CHEMISTRY
+               ,use_thom_scaven,use_thom_evap,use_thom_implicit,is_mp     & !transport of "Thompson" aerosols.
+               ,nifa2d,nwfa2d,outnifam,outnwfam                           & !transport of "Thompson" aerosols.
+               ,naer,aerosol2d_w,aerosol2d_scav                           & !transport of "Thompson" aerosols.
+               ,nifa2d_evaptm,nifa2d_scavtm,nwfa2d_evaptm,nwfa2d_scavtm   & !transport of "Thompson" aerosols.
+               ,nifa2d_evapm,nifa2d_scavm,nwfa2d_evapm,nwfa2d_scavm       & !transport of "Thompson" aerosols.
+               ,nchem,chem2d,outchem                                      & !transport of chemical species.
+               ,ntracer,tracer2d,outtracer                                & !transport of passive tracers.
+#endif
+               ,jminm,tropics                                             &
+                          )
 
        do k = kts, ktf
           do i = its, itf
@@ -856,20 +876,20 @@
        present(nwfa3d_evap) .and. present(nwfa3d_scav)) then
        do k = kts,kte
           do i = its,ite
-             nifa3d_evap(i,k,j) = nifa2d_evap(i,k)
-             nifa3d_scav(i,k,j) = nifa2d_scav(i,k)
-             nwfa3d_evap(i,k,j) = nwfa2d_evap(i,k)
-             nwfa3d_scav(i,k,j) = nwfa2d_scav(i,k)
+             nifa3d_evap(i,k,j) = cutenm(i)*nifa2d_evapm(i,k) + cuten(i)*nifa2d_evap(i,k)
+             nifa3d_scav(i,k,j) = cutenm(i)*nifa2d_scavm(i,k) + cuten(i)*nifa2d_scav(i,k)
+             nwfa3d_evap(i,k,j) = cutenm(i)*nwfa2d_evapm(i,k) + cuten(i)*nwfa2d_evap(i,k)
+             nwfa3d_scav(i,k,j) = cutenm(i)*nwfa2d_scavm(i,k) + cuten(i)*nwfa2d_scav(i,k)
           enddo
        enddo
     endif
     if(present(nifa3d_evapt) .and. present(nifa3d_scavt) .and. &
        present(nwfa3d_evapt) .and. present(nwfa3d_scavt)) then
        do i = its,ite
-          nifa3d_evapt(i,j) = nifa2d_evapt(i)
-          nifa3d_scavt(i,j) = nifa2d_scavt(i)
-          nwfa3d_evapt(i,j) = nwfa2d_evapt(i)
-          nwfa3d_scavt(i,j) = nwfa2d_scavt(i)
+          nifa3d_evapt(i,j) = cutenm(i)*nifa2d_evaptm(i) + cuten(i)*nifa2d_evapt(i)
+          nifa3d_scavt(i,j) = cutenm(i)*nifa2d_scavtm(i) + cuten(i)*nifa2d_scavt(i)
+          nwfa3d_evapt(i,j) = cutenm(i)*nwfa2d_evaptm(i) + cuten(i)*nwfa2d_evapt(i)
+          nwfa3d_scavt(i,j) = cutenm(i)*nwfa2d_scavtm(i) + cuten(i)*nwfa2d_scavt(i)
        enddo
     endif
     call mpas_timer_stop('atm_chem: physics - GF')
