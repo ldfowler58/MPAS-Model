@@ -985,6 +985,14 @@
 			<var_array name="tracers"/>
 			<var_array name="bl_tracers"/>
 			<var_array name="cu_tracers"/>
+			<var name="nifa_evap"/>
+			<var name="nifa_scav"/>
+			<var name="nwfa_evap"/>
+			<var name="nwfa_scav"/>
+			<var name="nifa_evapt"/>
+			<var name="nifa_scavt"/>
+			<var name="nwfa_evapt"/>
+			<var name="nwfa_scavt"/>
 #endif
 		</stream>
 
