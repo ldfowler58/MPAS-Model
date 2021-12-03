@@ -271,7 +271,7 @@ module init_atm_cases
                call init_atm_gocart(block_ptr, mesh, block_ptr % configs, diag, state)
                call physics_initialize_real(mesh, fg, domain % dminfo, block_ptr % dimensions, block_ptr % configs)
 #ifdef ATM_CHEMISTRY
-               if(config_chems_interp) call init_atm_chems(block_ptr, mesh, block_ptr % configs, state)
+               if(config_chems_interp) call init_atm_chems()
                if(config_tracers_interp) call init_atm_tracers(block_ptr, mesh, block_ptr % configs, state)
 #endif
             end if

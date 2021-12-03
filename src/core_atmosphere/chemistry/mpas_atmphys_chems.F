@@ -7,80 +7,11 @@
 
  implicit none
  private
- public:: update_chems,   &
-          chems_get_tend
+ public:: chems_get_tend
 
 
  contains
 
-
-!=================================================================================================================
- subroutine update_chems(itimestep,configs,mesh,state,time_lev)
-!=================================================================================================================
-
-!input arguments:
- type(mpas_pool_type),intent(in):: configs
- type(mpas_pool_type),intent(in):: mesh
-
- integer,intent(in):: itimestep,time_lev
-
-!inout arguments:
- type(mpas_pool_type),intent(inout):: state
-
-!local variables and pointers:
- integer,pointer:: nCellsSolve,nVertLevels
- integer,pointer:: num_CO,num_chems
- integer,pointer:: CO_emissions_start,CO_emissions_end
- integer,pointer:: CO_chems_start,CO_chems_end
-
- integer:: iCell,k,n
-
- real(kind=RKIND),pointer:: dt
- real(kind=RKIND),dimension(:,:),pointer:: CO
- real(kind=RKIND),dimension(:,:,:),pointer:: chems,chems2
-
-!-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine update_chems: itimestep = $i',intArgs=(/itimestep/))
-
- call mpas_pool_get_config(configs,'config_dt',dt)
-
- call mpas_pool_get_dimension(mesh,'nCellsSolve',nCellsSolve)
- call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
-
- call mpas_pool_get_dimension(mesh,'num_CO',num_CO)
- call mpas_pool_get_dimension(state,'num_chems',num_chems)
-
- call mpas_pool_get_dimension(mesh,'CO_emissions_start',CO_emissions_start)
- call mpas_pool_get_dimension(mesh,'CO_emissions_end'  ,CO_emissions_end  )
- call mpas_log_write('--- num_CO             = $i',intArgs=(/num_CO/))
- call mpas_log_write('--- CO_emissions_start = $i',intArgs=(/CO_emissions_start/))
- call mpas_log_write('--- CO_emissions_end   = $i',intArgs=(/CO_emissions_end/)  )
- call mpas_log_write(' ')
-
- call mpas_pool_get_dimension(state,'CO_chems_start',CO_chems_start)
- call mpas_pool_get_dimension(state,'CO_chems_end'  ,CO_chems_end  )
- call mpas_log_write('--- num_chems          = $i',intArgs=(/num_chems/))
- call mpas_log_write('--- CO_chems_start     = $i',intArgs=(/CO_chems_start/))
- call mpas_log_write('--- CO_chems_end       = $i',intArgs=(/CO_chems_end/)  )
-
-!--- update CO chemical species in the layer adjacent to the surface:
- call mpas_pool_get_array(mesh,'CO',CO)
- call mpas_pool_get_array(state,'chems',chems,time_lev)
- call mpas_pool_get_array(state,'chems',chems2,2)
-
- do iCell = 1, nCellsSolve
-    k = 1
-    do n = CO_chems_start, CO_chems_end
-       chems(n,k,iCell) = chems(n,k,iCell) + CO(n,iCell)*dt
-    enddo
- enddo
- 
- call mpas_log_write('--- end subroutine update_chems.')
- call mpas_log_write(' ')
-
- 
- end subroutine update_chems
 
 !=================================================================================================================
  subroutine chems_get_tend(block,configs,mesh,state,tend,tend_chems)
