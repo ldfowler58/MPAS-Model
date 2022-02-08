@@ -17,6 +17,10 @@
  public:: init_atm_CAMS_emissions,init_atm_camchem
 
 
+!initialization of CAMS emissions and interpolation of CAM-Chem input data to the MPAS mesh.
+!Laura D. Fowler (laura@ucar.edu) / 2022-02-08.
+
+
  contains
 
 

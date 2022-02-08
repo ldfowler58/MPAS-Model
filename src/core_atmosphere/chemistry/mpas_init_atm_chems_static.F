@@ -21,7 +21,7 @@
 
 !additional interpolation of static fields to run the AFWA GOCART dust model: subroutine init_atm_chems_static
 !interpolate the variables clayfrac,sandfrac,and erod from WPS_GEOG to MPAS meshes.
-!Laura D. Fowler (laura@ucar.edu) / 2020-01-28.
+!Laura D. Fowler (laura@ucar.edu) / 2022-01-28.
 
 
  interface
