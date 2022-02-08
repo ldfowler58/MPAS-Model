@@ -833,6 +833,9 @@ module atm_core
       use mpas_kind_types
       use atm_time_integration
 #ifdef DO_PHYSICS
+#ifdef ATM_CHEMISTRY
+      use mpas_chemistry_gocart_driver
+#endif
       use mpas_atmphys_control
       use mpas_atmphys_driver
       use mpas_atmphys_manager
@@ -863,6 +866,10 @@ module atm_core
 
 
 #ifdef DO_PHYSICS
+#ifdef ATM_CHEMISTRY
+      !call driver for gocart chemistry:
+      call chemistry_driver(domain)
+#endif
       !proceed with physics if moist_physics is set to true:
       if(moist_physics) then
          call physics_timetracker(domain,dt,clock,itimestep,xtime_s)

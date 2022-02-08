@@ -524,10 +524,16 @@
 			<var name="ol4"/>
 			<var name="h_oml_initial"/>
 #ifdef ATM_CHEMISTRY
+			<var name="erod_gocart"/>
+			<var name="clayfrac_gocart"/>
+			<var name="sandfrac_gocart"/>
+			<var name="bc1_em_anthro"/>
+			<var name="co_em_anthro"/>
+			<var name="oc1_em_anthro"/>
+			<var name="nh3_em_anthro"/>
+			<var name="so2_em_anthro"/>
 			<var_array name="chems"/>
 			<var_array name="tracers"/>
-			<var_array name="aerosols"/>
-			<var_array name="aerosols_weight"/>
 #endif
 		</stream>
 
