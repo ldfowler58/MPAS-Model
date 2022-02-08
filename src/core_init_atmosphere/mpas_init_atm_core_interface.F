@@ -116,7 +116,9 @@ module init_atm_core_interface
       logical, pointer :: gwd_stage_in, gwd_stage_out, vertical_stage_in, vertical_stage_out, met_stage_in, met_stage_out
       logical, pointer :: config_native_gwd_static, config_static_interp, config_vertical_grid, config_met_interp
       integer, pointer :: config_init_case
-
+#ifdef ATM_CHEMISTRY
+      logical, pointer :: config_chems_static
+#endif
 
       ierr = 0
 
@@ -201,6 +203,16 @@ module init_atm_core_interface
                         (.not. config_static_interp) .and. &
                         (.not. config_vertical_grid)
          met_stage_out = config_met_interp
+
+#ifdef ATM_CHEMISTRY
+         call mpas_pool_get_config(configs,'config_chems_static',config_chems_static)
+         if(config_chems_static) then
+            if(.not.config_native_gwd_static .or. .not.config_met_interp .or. .not.config_vertical_grid) then
+               gwd_stage_in  = .true.
+               gwd_stage_out = .true.
+            endif
+         endif
+#endif
 
       else if (config_init_case == 8) then
          gwd_stage_in = .false.

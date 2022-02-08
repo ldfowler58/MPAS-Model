@@ -25,7 +25,8 @@ module init_atm_cases
    use mpas_atmphys_initialize_real
    use mpas_log, only : mpas_log_write
 #ifdef ATM_CHEMISTRY
-   use mpas_init_atm_chems
+   use mpas_init_atm_chems,only: init_atm_CAMS_emissions,init_atm_camchem
+   use mpas_init_atm_chems_static,only: init_atm_chems_static
    use mpas_init_atm_tracers
 #endif
 
@@ -73,8 +74,13 @@ module init_atm_cases
       logical, pointer :: config_met_interp
       logical, pointer :: config_blend_bdy_terrain
 #ifdef ATM_CHEMISTRY
+      logical, pointer :: config_chems_cams
       logical, pointer :: config_chems_interp
+      logical, pointer :: config_chems_static
       logical, pointer :: config_tracers_interp
+
+      type (mpas_pool_type), pointer :: CAMS_emissions
+      type (mpas_pool_type), pointer :: init_state
 #endif
       character (len=StrKIND), pointer :: config_start_time
       character (len=StrKIND), pointer :: config_met_prefix
@@ -182,7 +188,6 @@ module init_atm_cases
             call mpas_pool_get_config(block_ptr % configs, 'config_met_interp', config_met_interp)
             call mpas_pool_get_config(block_ptr % configs, 'config_blend_bdy_terrain', config_blend_bdy_terrain)
 #ifdef ATM_CHEMISTRY
-            call mpas_pool_get_config(block_ptr % configs, 'config_chems_interp', config_chems_interp)
             call mpas_pool_get_config(block_ptr % configs, 'config_tracers_interp', config_tracers_interp)
 #endif
 
@@ -271,13 +276,45 @@ module init_atm_cases
                call init_atm_gocart(block_ptr, mesh, block_ptr % configs, diag, state)
                call physics_initialize_real(mesh, fg, domain % dminfo, block_ptr % dimensions, block_ptr % configs)
 #ifdef ATM_CHEMISTRY
-               if(config_chems_interp) call init_atm_chems()
                if(config_tracers_interp) call init_atm_tracers(block_ptr, mesh, block_ptr % configs, state)
 #endif
             end if
 
             block_ptr => block_ptr % next
          end do
+
+#ifdef ATM_CHEMISTRY
+         block_ptr => domain % blocklist
+         do while (associated(block_ptr))
+            call mpas_pool_get_config(block_ptr%configs,'config_chems_cams',config_chems_cams)
+            call mpas_pool_get_config(block_ptr%configs,'config_chems_interp',config_chems_interp)
+            call mpas_pool_get_config(block_ptr%configs,'config_chems_static',config_chems_static)
+
+            if(config_chems_static) then
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
+               call init_atm_chems_static(block_ptr%configs,mesh)
+            endif
+
+            if(config_chems_cams) then
+               call mpas_log_write(' ')
+               call mpas_log_write('--- read CAMS anthropogenic surface emissions:')!
+               call mpas_pool_get_subpool(block_ptr%structs,'CAMS_emissions',CAMS_emissions)
+               call init_atm_CAMS_emissions(domain%clock,stream_manager,mesh,CAMS_emissions)
+               call mpas_log_write('--- end read CAMS anthropogenic surface emissions:')
+            endif
+
+            if(config_chems_interp) then
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh'      ,mesh      )
+               call mpas_pool_get_subpool(block_ptr%structs,'fg'        ,fg        )
+               call mpas_pool_get_subpool(block_ptr%structs,'diag'      ,diag      )
+               call mpas_pool_get_subpool(block_ptr%structs,'init_state',init_state)
+
+               call init_atm_camchem(block_ptr%configs,mesh,fg,diag,init_state)
+            endif
+
+            block_ptr => block_ptr % next
+         end do
+#endif
 
       else if (config_init_case == 8 ) then
 

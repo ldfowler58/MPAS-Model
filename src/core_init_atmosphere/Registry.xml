@@ -285,11 +285,6 @@
                      description="Whether to interpolate first-guess passive tracers and emissions from input data"
                      possible_values="true or false"/>
 
-                <nml_option name="config_chems_interp" type="logical" default_value="false"
-                     units="-"
-                     description="Whether to interpolate first-guess chemical species and emissions from input data"
-                     possible_values="true or false"/>
-
         </nml_record>
 
         <nml_record name="io" in_defaults="true">
@@ -415,16 +410,16 @@
                         <var name="shdmin" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="shdmax" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="albedo12m" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
-                        <var name="var2d" packages="vertical_stage_in;met_stage_in"/>
-                        <var name="con" packages="vertical_stage_in;met_stage_in"/>
-                        <var name="oa1" packages="vertical_stage_in;met_stage_in"/>
-                        <var name="oa2" packages="vertical_stage_in;met_stage_in"/>
-                        <var name="oa3" packages="vertical_stage_in;met_stage_in"/>
-                        <var name="oa4" packages="vertical_stage_in;met_stage_in"/>
-                        <var name="ol1" packages="vertical_stage_in;met_stage_in"/>
-                        <var name="ol2" packages="vertical_stage_in;met_stage_in"/>
-                        <var name="ol3" packages="vertical_stage_in;met_stage_in"/>
-                        <var name="ol4" packages="vertical_stage_in;met_stage_in"/>
+                        <var name="var2d" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="con" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="oa1" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="oa2" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="oa3" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="oa4" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="ol1" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="ol2" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="ol3" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="ol4" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="deriv_two" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="advCells" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
                         <var name="defc_a" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
@@ -589,9 +584,17 @@
                         <var name="pwif_clim" packages="met_stage_out"/>
 #ifdef ATM_CHEMISTRY
                         <var_array name="tracers" packages="met_stage_out"/>
-                        <var_array name="aerosols_clim" packages="met_stage_out"/>
-                        <var_array name="aerosols" packages="met_stage_out"/>
-                        <var_array name="aerosols_weight" packages="met_stage_out"/>
+                        <var name="bc1_em_anthro" packages="met_stage_out"/>
+                        <var name="co_em_anthro" packages="met_stage_out"/>
+                        <var name="oc1_em_anthro" packages="met_stage_out"/>
+                        <var name="nh3_em_anthro" packages="met_stage_out"/>
+                        <var name="so2_em_anthro" packages="met_stage_out"/>
+                        <var name="erod_gocart" packages="gwd_stage_out";"met_stage_out"/>
+                        <var name="clayfrac_gocart" packages="gwd_stage_out";"met_stage_out"/>
+                        <var name="sandfrac_gocart" packages="gwd_stage_out";"met_stage_out"/>
+                        <var name="pcam_fg" packages="met_stage_out"/>
+                        <var_array name="chems_fg" packages="met_stage_out"/>
+                        <var_array name="chems" packages="met_stage_out"/>
 #endif
 		</stream>
 

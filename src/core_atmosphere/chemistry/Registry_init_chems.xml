@@ -1,94 +1,189 @@
 <!-- ========================================================================================================= -->
 
+ <dims>
+      <dim name="nDustErosionDim" definition="3"
+           description="The number of erosion layers in the GOCART dust emission parameterization"/>
+
+      <dim name="nCAMLevels" definition="namelist:config_chems_levels"
+           description="The number of atmospheric levels in the first-guess CAM-Chem data set"/>
+ </dims>
+
+
+ <nml_record name="preproc_chemistry" in_defaults="true">
+
+      <nml_option name="config_chems_prefix" type="character" default_value="CAM-Chem"
+           units="-"
+           description="Filename prefix of the first guess CAM-Chem data set"
+           possible_values="Any alpha-numeric string"/>
+
+      <nml_option name="config_chems_levels" type="integer" default_value="56"
+           units="-"
+           description="The number of atmospheric levels in the first guess CAM-Chem data set"
+           possible_values="Positive integer values"/>
+
+      <nml_option name="config_chems_cams" type="logical" default_value="false"
+           units="-"
+           description="Whether to read the CAMS surface emissions file"
+           possible_values="true or false"/>
+
+      <nml_option name="config_chems_interp" type="logical" default_value="false"
+           units="-"
+           description="Whether to interpolate first-guess chemical species and emissions from input data"
+           possible_values="true or false"/>
+
+      <nml_option name="config_chems_static" type="logical" default_value="false"
+           units="-"
+           description="Whether to interpolate erod,clayfrac,and sandfrac WPS static data (case 7 only)"
+           possible_values="true or false"/>
+
+ </nml_record>
+
+
  <var_struct name="mesh" time_levs="1">
 
-      <var_array name="aerosols_clim" type="real" dimensions="nMonths nGocartLevels nCells">
-           <var name="dust1_clim" array_group="thompson_clim" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 1 to nifa"/>
+      <var name="erod_gocart" type="real" dimensions="nDustErosionDim nCells" units="-"
+                description="fraction of erodible surface for use in GOCART chemistry"/>
 
-           <var name="dust2_clim" array_group="thompson_clim" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 2 to nifa"/>
+      <var name="clayfrac_gocart" type="real" dimensions="nCells" units="-"
+                description="fraction of clay soil for use in GOCART chemistry"/>
 
-           <var name="dust3_clim" array_group="thompson_clim" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 3 to nifa"/>
+      <var name="sandfrac_gocart" type="real" dimensions="nCells" units="-"
+                description="fraction of sand soil fraction for use in GOCART chemistry"/>
 
-           <var name="dust4_clim" array_group="thompson_clim" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 4 to nifa"/>
+ </var_struct>
 
-           <var name="dust5_clim" array_group="thompson_clim" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 5 to nifa"/>
 
-           <var name="oc_clim" array_group="thompson_clim" units="# kg^{-1}"
-                     description="contribution of nb concentration of hydrophobic organic carbon to nwfa"/>
+ <var_struct name="CAMS_emissions" time_levs="1">
 
-           <var name="so4_clim" array_group="thompson_clim" units="# kg^{-1}"
-                     description="contribution of nb concentration of sulfates to nwfa"/>
+      <var name="bc1_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="BC1 - Black carbon hydrophobic anthropogenic surface emission - sector All"/>
 
-           <var name="seas1_clim" array_group="thompson_clim" units="# kg^{-1}"
-                     description="contribution of nb concentration of accumulation mode of sea salt to nwfa"/>
+      <var name="co_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="CO - Carbon monoxide anthropogenic surface emission - sector All"/>
 
-           <var name="seas2_clim" array_group="thompson_clim" units="# kg^{-1}"
-                     description="contribution of nb concentration of coarse mode of sea salt to nwfa"/>
+      <var name="oc1_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="OC1 - Organic carbon hydrophobic anthropogenic surface emission - sector All"/>
+
+      <var name="nh3_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="NH3 - Ammonia anthropogenic surface emission - sector All"/>
+
+      <var name="so2_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="SO2 - Sulfur dioxide anthropogenic surface emission - sector All"/>
+
+ </var_struct>
+
+ <var_struct name="fg" time_levs="1">
+
+      <var_array name="chems_fg" type="real" dimensions="nCAMLevels nCells Time">
+           <var name="qbc1_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="BC1 - First guess black carbon hydrophobic mixing ratio - sector All"/>
+
+           <var name="qbc2_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="BC2 - First guess black carbon hydrophilic mixing ratio - sector All"/>
+
+           <var name="qoc1_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="OC1 - First guess organic carbon hydrophobic mixing ratio - sector All"/>
+
+           <var name="qoc2_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="OC2 - First guess organic carbon hydrophilic mixing ratio - sector All"/>
+
+           <var name="qseas1_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SEAS1 - First guess sea-salt size bin 1 (0.3 um effective radius)"/>
+
+           <var name="qseas2_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SEAS2 - First guess sea-salt size bin 2 (1.0 um effective radius)"/>
+
+           <var name="qseas3_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SEAS3 - First guess sea-salt size bin 3 (3.2 um effective radius)"/>
+
+           <var name="qseas4_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SEAS4 - First guess sea-salt size bin 4 (7.5 um effective radius)"/>
+
+           <var name="qdust1_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="DUST1 - First guess dust size bin 1 (0.5 um effective radius)"/>
+
+           <var name="qdust2_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="DUST2 - First guess dust size bin 2 (1.4 um effective radius)"/>
+
+           <var name="qdust3_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="DUST3 - First guess dust size bin 3 (2.4 um effective radius)"/>
+
+           <var name="qdust4_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="DUST4 - First guess dust size bin 4 (4.5 um effective radius)"/>
+
+           <var name="qdust5_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="DUST5 - First guess dust size bin 5 (8.0 um effective radius)"/>
+
+           <var name="qco_fg" array_group="gocart_fg"  units="mole mole{-1}"
+                description="CO -  First guess carbon monoxide mixing ratio - sector All"/>
+
+           <var name="qnh3_fg" array_group="gocart_fg" units="mole mole{-1}"
+                description="NH3 - First guess ammonia mixig ratio - sector All"/>
+
+           <var name="qso2_fg" array_group="gocart_fg" units="mole mole{-1}"
+                description="SO2 - First guess sulfur dioxide mixing ratio - sector All"/>
       </var_array>
 
-      <var_array name="aerosols" type="real" dimensions="nVertLevels nCells">
-           <var name="dust1" array_group="thompson" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 1 to nifa"/>
+      <var name="pcam_fg" type="real" dimensions="nCAMLevels nCells Time" units="Pa"
+           description="First guess pressure levels"/>
 
-           <var name="dust2" array_group="thompson" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 2 to nifa"/>
+ </var_struct>
 
-           <var name="dust3" array_group="thompson" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 3 to nifa"/>
 
-           <var name="dust4" array_group="thompson" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 4 to nifa"/>
+ <var_struct name="init_state" time_levs="1">
 
-           <var name="dust5" array_group="thompson" units="# kg^{-1}"
-                     description="contribution of nb concentration of dust bin 5 to nifa"/>
+      <var_array name="chems" type="real" dimensions="nVertLevels nCells Time">
+           <var name="qbc1" array_group="gocart" units="ug kg^{-1}"
+                description="BC1 - Black carbon hydrophobic mixing ratio - sector All"/>
 
-           <var name="oc" array_group="thompson" units="# kg^{-1}"
-                     description="contribution of nb concentration of hydrophobic organic carbon to nwfa"/>
+           <var name="qbc2" array_group="gocart" units="ug kg^{-1}"
+                description="BC2 - Black carbon hydrophilic mixing ratio - sector All"/>
 
-           <var name="so4" array_group="thompson" units="# kg^{-1}"
-                     description="contribution of nb concentration of sulfates to nwfa"/>
+           <var name="qoc1" array_group="gocart" units="ug kg^{-1}"
+                description="OC1 - Organic carbon hydrophobic mixing ratio - sector All"/>
 
-           <var name="seas1" array_group="thompson" units="# kg^{-1}"
-                     description="contribution of nb concentration of accumulation mode of sea salt to nwfa"/>
+           <var name="qoc2" array_group="gocart" units="ug kg^{-1}"
+                description="OC2 - Organic carbon hydrophilic mixing ratio - sector All"/>
 
-           <var name="seas2" array_group="thompson" units="# kg^{-1}"
-                     description="contribution of nb concentration of coarse mode of sea salt to nwfa"/>
-      </var_array>
+           <var name="qseas1" array_group="gocart" units="ug kg^{-1}"
+                description="SEAS1 - Sea-salt size bin 1 (0.3 um effective radius)"/>
 
-      <var_array name="aerosols_weight" type="real" dimensions="nVertLevels nCells">
-           <var name="dust1_weight" array_group="thompson" units="unitless"
-                     description="weight of nb concentration of dust bin 1 to nifa"/>
+           <var name="qseas2" array_group="gocart" units="ug kg^{-1}"
+                description="SEAS2 - Sea-salt size bin 2 (1.0 um effective radius)"/>
 
-           <var name="dust2_weight" array_group="thompson" units="unitless"
-                     description="weight of nb concentration of dust bin 2 to nifa"/>
+           <var name="qseas3" array_group="gocart" units="ug kg^{-1}"
+                description="SEAS3 - Sea-salt size bin 3 (3.2 um effective radius)"/>
 
-           <var name="dust3_weight" array_group="thompson" units="unitless"
-                     description="weight of nb concentration of dust bin 3 to nifa"/>
+           <var name="qseas4" array_group="gocart" units="ug kg^{-1}"
+                description="SEAS4 - Sea-salt size bin 4 (7.5 um effective radius)"/>
 
-           <var name="dust4_weight" array_group="thompson" units="unitless"
-                     description="weight of nb concentration of dust bin 4 to nifa"/>
+           <var name="qdust1" array_group="gocart" units="ug kg^{-1}"
+                description="DUST1 - Dust size bin 1 (0.5 um effective radius)"/>
 
-           <var name="dust5_weight" array_group="thompson" units="unitless"
-                     description="weight of nb concentration of dust bin 5 to nifa"/>
+           <var name="qdust2" array_group="gocart" units="ug kg^{-1}"
+                description="DUST2 - Dust size bin 2 (1.4 um effective radius)"/>
 
-           <var name="oc_weight" array_group="thompson" units="unitless"
-                     description="weight of nb concentration of hydrophobic organic carbon to nwfa"/>
+           <var name="qdust3" array_group="gocart" units="ug kg^{-1}"
+                description="DUST3 - Dust size bin 3 (2.4 um effective radius)"/>
 
-           <var name="so4_weight" array_group="thompson" units="unitless"
-                     description="weight of nb concentration of sulfates to nwfa"/>
+           <var name="qdust4" array_group="gocart" units="ug kg^{-1}"
+                description="DUST4 - Dust size bin 4 (4.5 um effective radius)"/>
 
-           <var name="seas1_weight" array_group="thompson" units="unitless"
-                     description="weight of nb concentration of accumulation mode of sea salt to nwfa"/>
+           <var name="qdust5" array_group="gocart" units="ug kg^{-1}"
+                description="DUST5 - Dust size bin 5 (8.0 um effective radius)"/>
 
-           <var name="seas2_weight" array_group="thompson" units="unitless"
-                     description="weight of nb concentration of coarse mode of sea salt to nwfa"/>
+           <var name="qco" array_group="gocart" units="mole mole{-1}"
+                description="CO -  Carbon monoxide mixing ratio - sector All"/>
+
+           <var name="qnh3" array_group="gocart" units="mole mole{-1}"
+                description="NH3 - Ammonia mixig ratio - sector All"/>
+
+           <var name="qso2" array_group="gocart" units="mole mole{-1}"
+                description="SO2 - Sulfur dioxide mixing ratio - sector All"/>
       </var_array>
 
  </var_struct>
+
+
 
 <!-- ========================================================================================================= -->
