@@ -136,7 +136,7 @@
  end subroutine init_atm_CAMS_emissions
 
 !=================================================================================================================
- subroutine init_atm_camchem(configs,mesh,fg,diag,init_state)
+ subroutine init_atm_camchem(configs,mesh,fg,diag,chems_input,state)
 !=================================================================================================================
 
 !input arguments:
@@ -146,14 +146,16 @@
 
 !inout arguments:
  type(mpas_pool_type),intent(inout):: fg
- type(mpas_pool_type),intent(inout):: init_state
+ type(mpas_pool_type),intent(inout):: chems_input
+ type(mpas_pool_type),intent(inout):: state
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine init_atm_camchem:')
 
  call init_hinterp_camchem(configs,mesh,fg)
- call init_vinterp_camchem(configs,mesh,fg,diag,init_state)
+ call init_vinterp_camchem(configs,mesh,fg,diag,chems_input)
+ call init_camchem_tothompson(mesh,chems_input,state)
 
  call mpas_log_write('--- end subroutine init_atm_camchem.')
  call mpas_log_write(' ')
@@ -719,7 +721,7 @@
  end subroutine init_hinterp_camchem
 
 !=================================================================================================================
- subroutine init_vinterp_camchem(configs,mesh,fg,diag,init_state)
+ subroutine init_vinterp_camchem(configs,mesh,fg,diag,chems_input)
 !=================================================================================================================
 
 !input arguments:
@@ -729,7 +731,7 @@
  type(mpas_pool_type),intent(in):: diag
 
 !inout arguments:
- type(mpas_pool_type),intent(inout):: init_state
+ type(mpas_pool_type),intent(inout):: chems_input
 
 !local variables and arrays:
  integer:: iCell,k,kk,n
@@ -754,12 +756,12 @@
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
  call mpas_pool_get_dimension(mesh,'nCAMLevels' ,nCAMLevels )
 
- call mpas_pool_get_dimension(init_state,'num_chems'   ,num_chems   )
- call mpas_pool_get_dimension(init_state,'gocart_start',gocart_start)
- call mpas_pool_get_dimension(init_state,'gocart_end'  ,gocart_end  )
- call mpas_log_write('--- num_chems       = $i',intArgs=(/num_chems/)   )
- call mpas_log_write('--- gocart_start    = $i',intArgs=(/gocart_start/))
- call mpas_log_write('--- gocart_end      = $i',intArgs=(/gocart_end/)  )
+ call mpas_pool_get_dimension(chems_input,'num_chems_gocart',num_chems   )
+ call mpas_pool_get_dimension(chems_input,'gocart_start'    ,gocart_start)
+ call mpas_pool_get_dimension(chems_input,'gocart_end'      ,gocart_end  )
+ call mpas_log_write('--- num_chems_gocart = $i',intArgs=(/num_chems/)   )
+ call mpas_log_write('--- gocart_start     = $i',intArgs=(/gocart_start/))
+ call mpas_log_write('--- gocart_end       = $i',intArgs=(/gocart_end/)  )
  call mpas_log_write(' ')
 
  call mpas_pool_get_dimension(fg,'num_chems_fg'   ,num_chems_fg   )
@@ -774,11 +776,11 @@
 
  call mpas_pool_get_array(fg,'pcam_fg' ,pcam_fg )
  call mpas_pool_get_array(fg,'chems_fg',chems_fg) 
- call mpas_pool_get_array(init_state,'chems',chems)
+ call mpas_pool_get_array(chems_input,'chems_gocart',chems)
  chems(:,:,:) = 0._RKIND
 
  if(.not.allocated(sorted_arr)) allocate(sorted_arr(2,nCAMLevels))
- do n = 1,num_chems
+ do n = 1,num_chems_fg
     do iCell = 1,nCells
        sorted_arr(1,1:nCAMLevels) = 0._RKIND
        sorted_arr(1,1:nCAMLevels) = 0._RKIND
@@ -806,25 +808,67 @@
     enddo
  enddo
 
+ call mpas_log_write('--- end subroutine init_vinterp_camchem.')
 
-!--- convert black carbon,organic carbon,seasalt,and dust mixing ratios from kg per kg of dry air
-!    to microgram (ug) per kg of dry air:
- call mpas_pool_get_dimension(init_state,'index_qbc1'  ,index_qbc1  )
- call mpas_pool_get_dimension(init_state,'index_qbc2'  ,index_qbc2  )
- call mpas_pool_get_dimension(init_state,'index_qoc1'  ,index_qoc1  )
- call mpas_pool_get_dimension(init_state,'index_qoc2'  ,index_qoc2  )
- call mpas_pool_get_dimension(init_state,'index_qseas1',index_qseas1)
- call mpas_pool_get_dimension(init_state,'index_qseas2',index_qseas2)
- call mpas_pool_get_dimension(init_state,'index_qseas3',index_qseas3)
- call mpas_pool_get_dimension(init_state,'index_qseas4',index_qseas4)
- call mpas_pool_get_dimension(init_state,'index_qdust1',index_qdust1)
- call mpas_pool_get_dimension(init_state,'index_qdust2',index_qdust2)
- call mpas_pool_get_dimension(init_state,'index_qdust3',index_qdust3)
- call mpas_pool_get_dimension(init_state,'index_qdust4',index_qdust4)
- call mpas_pool_get_dimension(init_state,'index_qdust5',index_qdust5)
- call mpas_log_write('--- index_qbc1   = $i',intArgs=(/index_qbc1/)  )
- call mpas_log_write('--- index_qbc2   = $i',intArgs=(/index_qbc2/)  )
- call mpas_log_write('--- index_qoc1   = $i',intArgs=(/index_qoc1/)  )
+ end subroutine init_vinterp_camchem
+
+!=================================================================================================================
+ subroutine init_camchem_tothompson(mesh,chems_input,state)
+!=================================================================================================================
+
+!input arguments:
+ type(mpas_pool_type),intent(in):: mesh
+
+!inout arguments:
+ type(mpas_pool_type),intent(inout):: chems_input
+ type(mpas_pool_type),intent(inout):: state
+
+!local variables and arrays:
+ integer:: iCell,k
+ integer,pointer:: nCells,nVertLevels
+ integer,pointer:: index_nifa,index_nwfa,index_qifa,index_qwfa
+ integer,pointer:: index_qoc2,index_qseas1,index_qseas2,index_qseas3,index_qseas4
+ integer,pointer:: index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
+
+ real(kind=RKIND),parameter:: &
+    conv_dust1 = 1.58e-15, & ! conversion factor from mixing ratio to number concentration for dust1.
+    conv_dust2 = 1.68e-14, & ! conversion factor from mixing ratio to number concentration for dust2.
+    conv_dust3 = 8.46e-14, & ! conversion factor from mixing ratio to number concentration for dust3.
+    conv_dust4 = 5.58e-13, & ! conversion factor from mixing ratio to number concentration for dust4.
+    conv_dust5 = 3.13e-13    ! conversion factor from mixing ratio to number concentration for dust5.
+ real(kind=RKIND),parameter:: &
+    conv_oc2   = 6.61e-18    ! conversion factor from mixing ratio to number concentration for oc2.
+ real(kind=RKIND),parameter:: &
+    conv_seas1 = 1.04e-15, & ! conversion factor from mixing ratio to number concentration for seas1.
+    conv_seas2 = 3.88e-13    ! conversion factor from mixing ratio to number concentration for sea2.
+ real(kind=RKIND):: iconv_dust1,iconv_dust2,iconv_dust3,iconv_dust4,iconv_dust5
+ real(kind=RKIND):: iconv_oc2
+ real(kind=RKIND):: iconv_seas1,iconv_seas2
+
+ real(kind=RKIND),dimension(:,:),pointer:: nifa,nwfa,qifa,qwfa
+ real(kind=RKIND),dimension(:,:),pointer:: qoc2,qseas1,qseas2,qseas3,qseas4
+ real(kind=RKIND),dimension(:,:),pointer:: qdust1,qdust2,qdust3,qdust4,qdust5
+ real(kind=RKIND),dimension(:,:,:),pointer:: chems,scalars
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine init_camchem_tothompson:')
+
+ call mpas_pool_get_dimension(mesh,'nCells'     ,nCells     )
+ call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
+
+ call mpas_pool_get_dimension(chems_input,'index_qoc2'  ,index_qoc2  )
+ call mpas_pool_get_dimension(chems_input,'index_qseas1',index_qseas1)
+ call mpas_pool_get_dimension(chems_input,'index_qseas2',index_qseas2)
+ call mpas_pool_get_dimension(chems_input,'index_qseas3',index_qseas3)
+ call mpas_pool_get_dimension(chems_input,'index_qseas4',index_qseas4)
+ call mpas_pool_get_dimension(chems_input,'index_qdust1',index_qdust1)
+ call mpas_pool_get_dimension(chems_input,'index_qdust2',index_qdust2)
+ call mpas_pool_get_dimension(chems_input,'index_qdust3',index_qdust3)
+ call mpas_pool_get_dimension(chems_input,'index_qdust4',index_qdust4)
+ call mpas_pool_get_dimension(chems_input,'index_qdust5',index_qdust5)
+ call mpas_pool_get_dimension(chems_input,'index_qifa'  ,index_qifa  )
+ call mpas_pool_get_dimension(chems_input,'index_qwfa'  ,index_qwfa  )
  call mpas_log_write('--- index_qoc2   = $i',intArgs=(/index_qoc2/)  )
  call mpas_log_write('--- index_qseas1 = $i',intArgs=(/index_qseas1/))
  call mpas_log_write('--- index_qseas2 = $i',intArgs=(/index_qseas2/))
@@ -835,28 +879,66 @@
  call mpas_log_write('--- index_qdust3 = $i',intArgs=(/index_qdust3/))
  call mpas_log_write('--- index_qdust4 = $i',intArgs=(/index_qdust4/))
  call mpas_log_write('--- index_qdust5 = $i',intArgs=(/index_qdust5/))
+ call mpas_log_write('--- index_qifa   = $i',intArgs=(/index_qifa/)  )
+ call mpas_log_write('--- index_qwfa   = $i',intArgs=(/index_qwfa/)  )
+
+ call mpas_pool_get_array(chems_input,'chems_gocart',chems)
+ qoc2   => chems(index_qoc2,:,:)
+ qseas1 => chems(index_qseas1,:,:)
+ qseas2 => chems(index_qseas2,:,:)
+ qseas3 => chems(index_qseas3,:,:)
+ qseas4 => chems(index_qseas4,:,:)
+ qdust1 => chems(index_qdust1,:,:)
+ qdust2 => chems(index_qdust2,:,:)
+ qdust3 => chems(index_qdust3,:,:)
+ qdust4 => chems(index_qdust4,:,:)
+ qdust5 => chems(index_qdust5,:,:)
+ qifa   => chems(index_qifa,:,:)
+ qwfa   => chems(index_qwfa,:,:)
+
+ call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
+ call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
+ call mpas_log_write(' ')
+ call mpas_log_write('--- index_nifa   = $i',intArgs=(/index_nifa/))
+ call mpas_log_write('--- index_nwfa   = $i',intArgs=(/index_nwfa/))
+
+ call mpas_pool_get_array(state,'scalars',scalars)
+ nifa => scalars(index_nifa,:,:)
+ nwfa => scalars(index_nwfa,:,:)
+
+
+!--- initialization:
+ iconv_dust1 = 1._RKIND/conv_dust1
+ iconv_dust2 = 1._RKIND/conv_dust2
+ iconv_dust3 = 1._RKIND/conv_dust3
+ iconv_dust4 = 1._RKIND/conv_dust4
+ iconv_dust5 = 1._RKIND/conv_dust5
+
+ iconv_oc2   = 1._RKIND/conv_oc2
+ iconv_seas1 = 1._RKIND/conv_seas1
+ iconv_seas2 = 1._RKIND/conv_seas2
 
  do iCell = 1,nCells
     do k = 1,nVertLevels
-       chems(index_qbc1,k,iCell) = 1.e09*chems(index_qbc1,k,iCell)
-       chems(index_qbc2,k,iCell) = 1.e09*chems(index_qbc2,k,iCell)
-       chems(index_qoc1,k,iCell) = 1.e09*chems(index_qoc1,k,iCell)
-       chems(index_qoc2,k,iCell) = 1.e09*chems(index_qoc2,k,iCell)
-       chems(index_qseas1,k,iCell) = 1.e09*chems(index_qseas1,k,iCell)
-       chems(index_qseas2,k,iCell) = 1.e09*chems(index_qseas2,k,iCell)
-       chems(index_qseas3,k,iCell) = 1.e09*chems(index_qseas3,k,iCell)
-       chems(index_qseas4,k,iCell) = 1.e09*chems(index_qseas4,k,iCell)
-       chems(index_qdust1,k,iCell) = 1.e09*chems(index_qdust1,k,iCell)
-       chems(index_qdust2,k,iCell) = 1.e09*chems(index_qdust2,k,iCell)
-       chems(index_qdust3,k,iCell) = 1.e09*chems(index_qdust3,k,iCell)
-       chems(index_qdust4,k,iCell) = 1.e09*chems(index_qdust4,k,iCell)
-       chems(index_qdust5,k,iCell) = 1.e09*chems(index_qdust5,k,iCell)
+       !"ice-friendly" aerosols:
+       qifa(k,iCell) = qdust1(k,iCell) + qdust2(k,iCell) + qdust3(k,iCell) &
+                     + qdust4(k,iCell) + qdust5(k,iCell)
+
+       nifa(k,iCell) = iconv_dust1*qdust1(k,iCell) + iconv_dust2*qdust2(k,iCell) &
+                     + iconv_dust3*qdust3(k,iCell) + iconv_dust4*qdust4(k,iCell) &
+                     + iconv_dust5*qdust5(k,iCell)
+
+       !"water-friendly" aerosols:
+       qwfa(k,iCell) = 8*qoc2(k,iCell) + 9*qseas1(k,iCell) + 9*qseas2(k,iCell)
+
+       nwfa(k,iCell) = 8*iconv_oc2*qoc2(k,iCell) + 9*iconv_seas1*qseas1(k,iCell) &
+                     + 9*iconv_seas2*qseas2(k,iCell)
     enddo
  enddo
 
- call mpas_log_write('--- end subroutine init_vinterp_camchem.')
+ call mpas_log_write('--- end subroutine init_camchem_tothompson:')
 
- end subroutine init_vinterp_camchem
+ end subroutine init_camchem_tothompson
 
 !=================================================================================================================
  real(kind=RKIND) function pressure_interp(target_z,nz,zf,order,extrap,surface_val,sealev_val)
