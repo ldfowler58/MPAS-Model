@@ -596,7 +596,7 @@
                         <var name="so2_em_anthro" packages="met_stage_out"/>
                         <var name="erod_gocart" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
                         <var name="clayfrac_gocart" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
-                        <var name="sandfrac_gocart" packages="gwd_stage_out;vertical_stage_out;met_stage_out""/>
+                        <var name="sandfrac_gocart" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
                         <var name="pcam_fg" packages="met_stage_out"/>
                         <var_array name="chems_fg" packages="met_stage_out"/>
                         <var_array name="chems_gocart" packages="met_stage_out"/>
