@@ -187,18 +187,18 @@
 
  integer,pointer:: num_chems_fg
  integer,pointer:: gocart_fg_start,gocart_fg_end
- integer,pointer:: index_qco,index_qnh3,index_qso2,index_qbc1,index_qbc2,index_qoc1,index_qoc2,   &
-                   index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qdust1,index_qdust2, &
-                   index_qdust3,index_qdust4,index_qdust5
+ integer,pointer:: index_qco,index_qnh3,index_qso2,index_qso4a1,index_qso4a2,index_qso4a3,index_qbc1,    &
+                   index_qbc2,index_qoc1,index_qoc2,index_qseas1,index_qseas2,index_qseas3,index_qseas4, &
+                   index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
  integer,dimension(:),pointer:: landmask,mask_array
 
  real(kind=RKIND):: fillval,maskval,msgval
  real(kind=RKIND):: lat,lon,x,y
  real(kind=RKIND),dimension(:),pointer:: latCell,lonCell
  real(kind=RKIND),dimension(:),pointer:: latPoints,lonPoints
- real(kind=RKIND),dimension(:,:),pointer:: qco_fg,qnh3_fg,qso2_fg,qbc1_fg,qbc2_fg,qoc1_fg,qoc2_fg,      &
-                                           qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg,qdust1_fg,qdust2_fg, &
-                                           qdust3_fg,qdust4_fg,qdust5_fg,pcam_fg
+ real(kind=RKIND),dimension(:,:),pointer:: qco_fg,qnh3_fg,qso2_fg,qso4a1_fg,qso4a2_fg,qso4a3_fg,qbc1_fg,    &
+                                           qbc2_fg,qoc1_fg,qoc2_fg,qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg, &
+                                           qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg,pcam_fg
  real(kind=RKIND),dimension(:,:),pointer:: destField2d
  real(kind=RKIND),dimension(:,:,:),pointer:: chems_fg
 
@@ -232,6 +232,9 @@
  call mpas_pool_get_dimension(fg,'index_qco_fg'   ,index_qco   )
  call mpas_pool_get_dimension(fg,'index_qnh3_fg'  ,index_qnh3  )
  call mpas_pool_get_dimension(fg,'index_qso2_fg'  ,index_qso2  )
+ call mpas_pool_get_dimension(fg,'index_qso4a1_fg',index_qso4a1)
+ call mpas_pool_get_dimension(fg,'index_qso4a2_fg',index_qso4a2)
+ call mpas_pool_get_dimension(fg,'index_qso4a3_fg',index_qso4a3)
  call mpas_pool_get_dimension(fg,'index_qbc1_fg'  ,index_qbc1  )
  call mpas_pool_get_dimension(fg,'index_qbc2_fg'  ,index_qbc2  )
  call mpas_pool_get_dimension(fg,'index_qoc1_fg'  ,index_qoc1  )
@@ -261,12 +264,18 @@
  call mpas_log_write('--- index_qco_fg    = $i',intArgs=(/index_qco/)   )
  call mpas_log_write('--- index_qnh3_fg   = $i',intArgs=(/index_qnh3/)  )
  call mpas_log_write('--- index_qso2_fg   = $i',intArgs=(/index_qso2/)  )
+ call mpas_log_write('--- index_qso4a1_fg = $i',intArgs=(/index_qso4a1/))
+ call mpas_log_write('--- index_qso4a2_fg = $i',intArgs=(/index_qso4a2/))
+ call mpas_log_write('--- index_qso4a3_fg = $i',intArgs=(/index_qso4a3/))
  call mpas_log_write(' ')
 
  call mpas_pool_get_array(fg,'chems_fg',chems_fg)
  qco_fg    => chems_fg(index_qco,:,: )
  qnh3_fg   => chems_fg(index_qnh3,:,:)
  qso2_fg   => chems_fg(index_qso2,:,:)
+ qso4a1_fg => chems_fg(index_qso4a1,:,:)
+ qso4a2_fg => chems_fg(index_qso4a2,:,:)
+ qso4a3_fg => chems_fg(index_qso4a3,:,:)
  qbc1_fg   => chems_fg(index_qbc1,:,:)
  qbc2_fg   => chems_fg(index_qbc2,:,:)
  qoc1_fg   => chems_fg(index_qoc1,:,:)
@@ -358,6 +367,9 @@
     if(index(field % field, 'CO'    ) /= 0 .or. &
        index(field % field, 'NH3'   ) /= 0 .or. &
        index(field % field, 'SO2'   ) /= 0 .or. &
+       index(field % field, 'SO4A1' ) /= 0 .or. &
+       index(field % field, 'SO4A2' ) /= 0 .or. &
+       index(field % field, 'SO4A3' ) /= 0 .or. &
        index(field % field, 'BC1'   ) /= 0 .or. &
        index(field % field, 'BC2'   ) /= 0 .or. &
        index(field % field, 'OC1'   ) /= 0 .or. &
@@ -418,6 +430,27 @@
           latPoints => latCell
           lonPoints => lonCell
           destField2d => qso2_fg
+       elseif(index(field%field,'SO4A1') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SO4A1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qso4a1_fg
+       elseif(index(field%field,'SO4A2') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SO4A1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qso4a2_fg
+       elseif(index(field%field,'SO4A3') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SO4A1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qso4a3_fg
        elseif(index(field%field,'BC1') /= 0) then
           k = nCAMLevels+1-field%xlvl
           call mpas_log_write('Interpolating BC1 at $i',intArgs=(/k/))
@@ -702,6 +735,33 @@
        if(qso2_fg(k,iCell) .lt. 0._RKIND) then
           call mpas_log_write('--- negative qso2_fg: $i $i $r',intArgs=(/iCell,k/), &
                               realArgs=(/qso2_fg(k,iCell)/))
+       endif
+    enddo
+ enddo
+ call mpas_log_write('--- check for negative qso4a1_fg:')
+ do iCell = 1,nCells
+    do k = 1,nCAMLevels
+       if(qso4a1_fg(k,iCell) .lt. 0._RKIND) then
+          call mpas_log_write('--- negative qso4a1_fg: $i $i $r',intArgs=(/iCell,k/), &
+                              realArgs=(/qso4a1_fg(k,iCell)/))
+       endif
+    enddo
+ enddo
+ call mpas_log_write('--- check for negative qso4a2_fg:')
+ do iCell = 1,nCells
+    do k = 1,nCAMLevels
+       if(qso4a2_fg(k,iCell) .lt. 0._RKIND) then
+          call mpas_log_write('--- negative qso4a2_fg: $i $i $r',intArgs=(/iCell,k/), &
+                              realArgs=(/qso4a2_fg(k,iCell)/))
+       endif
+    enddo
+ enddo
+ call mpas_log_write('--- check for negative qso4a3_fg:')
+ do iCell = 1,nCells
+    do k = 1,nCAMLevels
+       if(qso4a3_fg(k,iCell) .lt. 0._RKIND) then
+          call mpas_log_write('--- negative qso4a3_fg: $i $i $r',intArgs=(/iCell,k/), &
+                              realArgs=(/qso4a3_fg(k,iCell)/))
        endif
     enddo
  enddo
