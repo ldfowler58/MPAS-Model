@@ -618,6 +618,9 @@
                         <var name="rho_base" packages="met_stage_out"/>
                         <var name="theta_base" packages="met_stage_out"/>
                         <var name="surface_pressure" packages="met_stage_out"/>
+                        <var name="pressure_base" packages="met_stage_out"/>
+                        <var name="pressure_p" packages="met_stage_out"/>
+                        <var name="pressure" packages="met_stage_out"/>
                         <var name="precipw" packages="met_stage_out"/>
                         <var name="h_oml_initial" packages="met_stage_out"/>
                         <var name="u10" packages="met_stage_out"/>
@@ -625,6 +628,8 @@
                         <var name="q2" packages="met_stage_out"/>
                         <var name="rh2" packages="met_stage_out"/>
                         <var name="t2m" packages="met_stage_out"/>
+                        <var name="p_fg" packages="met_stage_out"/>
+                        <var name="o3mr_fg" packages="met_stage_out"/>
 		</stream>
 
                 <stream name="ugwp_oro_data"
@@ -1171,6 +1176,9 @@
                         <var name="nwfa" array_group="number" units="nb kg^{-1}"
                              description="Gocart water-friendly aerosol number concentration"
                              packages="mp_thompson_aers_in"/>
+
+                        <var name="qo3" array_group="passive" units="kg kg^{-1}"
+                             description="Ozone mixing ratio"/>
                 </var_array>
 
                 <!-- Climatology for ocean mixed-layer depth -->
@@ -1247,6 +1255,9 @@
                 <var name="sh_fg" name_in_code="sh" type="real" dimensions="nFGLevels nCells Time" units="kg kg^{-1}"
                      description="First guess specific humidity"
                      packages="first_guess_field"/>
+
+                <var name="o3mr_fg" name_in_code="o3" type="real" dimensions="nFGLevels nCells Time" units="kg kg^{-1}"
+                     description="First guess ozone mixing ratio"/>
 
                 <var name="soilz_fg" name_in_code="soilz" type="real" dimensions="nCells Time" units="m"
                      description="First guess soil height"
