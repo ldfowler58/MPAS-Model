@@ -9,6 +9,8 @@
 ifeq ($(findstring MPAS_CAM_DYCORE,$(CPPFLAGS)),)
     PHYSICS = -DDO_PHYSICS
 endif
+CHEMISTRY=-DDO_CHEMISTRY
+#CHEMISTRY=
 
 ifdef PHYSICS
     PHYSCORE = physcore
@@ -21,7 +23,7 @@ OBJS = mpas_atm_core.o \
        mpas_atm_threading.o \
        mpas_atm_halos.o
 
-all: $(PHYSCORE) dycore diagcore atmcore utilities
+all: physcore_init chemcore $(PHYSCORE) dycore diagcore atmcore utilities
 
 core_reg:
 	$(CPP) $(CPPFLAGS) $(CPPINCLUDES) $(PHYSICS) Registry.xml > Registry_processed.xml
@@ -40,6 +42,9 @@ post_build:
 	cp default_inputs/* $(ROOT_DIR)/default_inputs/.
 	( cd $(ROOT_DIR)/default_inputs; for FILE in `ls -1`; do if [ ! -e ../$$FILE ]; then cp $$FILE ../.; fi; done )
 
+physcore_init:
+	(cd physics;  $(MAKE) core_physics_init )
+
 physcore: mpas_atm_dimensions.o
 	( cd physics; $(MAKE) all )
 	( mkdir libphys; cd libphys; ar -x ../physics/libphys.a )
@@ -47,17 +52,21 @@ physcore: mpas_atm_dimensions.o
 	( cd ../..; ln -sf ./src/core_atmosphere/physics/physics_wrf/files/*DATA* .)
 	( cd ../..; ln -sf ./src/core_atmosphere/physics/physics_noahmp/parameters/*TBL .)
 
-dycore: mpas_atm_dimensions.o $(PHYSCORE)
-	( cd dynamics; $(MAKE) all PHYSICS="$(PHYSICS)" )
+chemcore: physcore_init
+	( cd chemistry; $(MAKE) all )
+	( mkdir libchem; cd libchem; ar -x ../chemistry/libchem.a )
 
-diagcore: $(PHYSCORE) dycore
+dycore: mpas_atm_dimensions.o chemcore $(PHYSCORE)
+	( cd dynamics; $(MAKE) all PHYSICS="$(PHYSICS)" CHEMISTRY="$(CHEMISTRY)" )
+
+diagcore: chemcore $(PHYSCORE) dycore
 	( cd diagnostics; $(MAKE) all PHYSICS="$(PHYSICS)" )
 
 utilities: $(PHYSCORE)
 	( cd utils; $(MAKE) all PHYSICS="$(PHYSICS)" )
 
-atmcore: $(PHYSCORE) dycore diagcore $(OBJS)
-	ar -ru libdycore.a $(OBJS) dynamics/*.o $(PHYS_OBJS) diagnostics/*.o
+atmcore: chemcore $(PHYSCORE) dycore diagcore $(OBJS)
+	ar -ru libdycore.a $(OBJS) dynamics/*.o $(PHYS_OBJS) libchem/*.o diagnostics/*.o
 
 mpas_atm_core_interface.o: mpas_atm_core.o
 
@@ -67,12 +76,14 @@ mpas_atm_dimensions.o:
 
 clean:
 	( cd physics; $(MAKE) clean )
+	( cd chemistry; $(MAKE) clean )
 	( cd dynamics; $(MAKE) clean )
 	( cd diagnostics; $(MAKE) clean )
 	( cd utils; $(MAKE) clean )
 	( cd ../..; rm -f *TBL )
 	( cd ../..; rm -f *DATA* )
 	$(RM) -r libphys
+	$(RM) -r libchem
 	$(RM) *.o *.mod *.f90 libdycore.a
 	$(RM) Registry_processed.xml
 	@# Certain systems with intel compilers generate *.i files
@@ -84,7 +95,7 @@ clean:
 	$(RM) $@ $*.mod
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(PHYSICS) $(CPPINCLUDES) -I./inc $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I./physics/physics_mmm -I./physics/physics_noaa/UGWP -I../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../framework -I../operators -I./chemistry -I./physics -I./dynamics -I./diagnostics -I./chemistry/chemistry_opp -I./physics/physics_wrf -I./physics/physics_mmm -I./physics/physics_noaa/UGWP -I../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I./physics/physics_mmm -I./physics/physics_noaa/UGWP -I../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I./chemistry -I../operators -I./physics -I./dynamics -I./diagnostics -I./chemistry/chemistry_opp -I./physics/physics_wrf -I./physics/physics_mmm -I./physics/physics_noaa/UGWP -I../external/esmf_time_f90
 endif
