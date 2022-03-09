@@ -843,6 +843,11 @@ module atm_core
       use mpas_atmphys_driver
       use mpas_atmphys_manager
       use mpas_atmphys_update
+
+#ifdef DO_CHEMISTRY
+      use mpas_chemistry_driver,only : chemistry_driver
+      use mpas_chemistry_manager,only: chemistry_timetracker
+#endif
 #endif
    
       implicit none
@@ -874,6 +879,10 @@ module atm_core
          call physics_timetracker(domain,dt,clock,itimestep,xtime_s)
          call physics_driver(domain,itimestep,xtime_s)
       endif
+#ifdef DO_CHEMISTRY
+      call chemistry_timetracker(domain,clock)
+      call chemistry_driver(domain)
+#endif
 #endif
 
       call atm_timestep(domain, dt, currTime, itimestep)
