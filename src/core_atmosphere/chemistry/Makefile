@@ -10,7 +10,9 @@ dummy:
 	echo "****** compiling chemistry ******"
 
 OBJS = \
+	mpas_chemistry_driver.o \
 	mpas_chemistry_init.o \
+	mpas_chemistry_interface.o \
 	mpas_chemistry_manager.o
 
 core_chemistry_opp:
@@ -22,8 +24,9 @@ core_chemistry: core_chemistry_opp
 
 chem_interface: $(OBJS)
 
-
 # DEPENDENCIES:
+mpas_chemistry_driver.o: \
+	mpas_chemistry_interface.o
 
 clean:
 	$(RM) *.o *.mod *.f90 libchem.a
