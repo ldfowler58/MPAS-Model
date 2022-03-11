@@ -190,13 +190,13 @@
            <var name="qso2" array_group="gocart" units="mole mole{-1}"
                 description="SO2 - Sulfur dioxide mixing ratio"/>
 
-           <var name="qso4a1" array_group="gocart_fg" units="kg kg^{-1}"
+           <var name="qso4a1" array_group="gocart" units="kg kg^{-1}"
                 description="SO4 - Sulfate mixing ratio (accumulation mode)"/>
 
-           <var name="qso4a2" array_group="gocart_fg" units="kg kg^{-1}"
+           <var name="qso4a2" array_group="gocart" units="kg kg^{-1}"
                 description="SO4 - Sulfate mixing ratio (aitken mode)"/>
 
-           <var name="qso4a3" array_group="gocart_fg" units="kg kg^{-1}"
+           <var name="qso4a3" array_group="gocart" units="kg kg^{-1}"
                 description="SO4 - Sulfate mixing ratio (coarse mode)"/>
 
            <var name="qwfa" array_group="gocart" units="kg kg^{-1}"

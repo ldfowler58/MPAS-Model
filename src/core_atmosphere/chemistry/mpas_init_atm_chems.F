@@ -887,7 +887,8 @@
  integer:: iCell,k
  integer,pointer:: nCells,nVertLevels
  integer,pointer:: index_nifa,index_nwfa,index_qifa,index_qwfa
- integer,pointer:: index_qoc2,index_qseas1,index_qseas2,index_qseas3,index_qseas4
+ integer,pointer:: index_qoc2,index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qso4a1, &
+                   index_qso4a2,index_qso4a3
  integer,pointer:: index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
 
  real(kind=RKIND),parameter:: &
@@ -901,12 +902,15 @@
  real(kind=RKIND),parameter:: &
     conv_seas1 = 1.04e-15, & ! conversion factor from mixing ratio to number concentration for seas1.
     conv_seas2 = 3.88e-13    ! conversion factor from mixing ratio to number concentration for sea2.
+ real(kind=RKIND),parameter:: &
+    conv_so4   = 1.07e-17    ! conversion factor from mixing ratio to number concentration for so4.
  real(kind=RKIND):: iconv_dust1,iconv_dust2,iconv_dust3,iconv_dust4,iconv_dust5
  real(kind=RKIND):: iconv_oc2
  real(kind=RKIND):: iconv_seas1,iconv_seas2
+ real(kind=RKIND):: iconv_so4
 
  real(kind=RKIND),dimension(:,:),pointer:: nifa,nwfa,qifa,qwfa
- real(kind=RKIND),dimension(:,:),pointer:: qoc2,qseas1,qseas2,qseas3,qseas4
+ real(kind=RKIND),dimension(:,:),pointer:: qoc2,qseas1,qseas2,qseas3,qseas4,qso4a1,qso4a2,qso4a3
  real(kind=RKIND),dimension(:,:),pointer:: qdust1,qdust2,qdust3,qdust4,qdust5
  real(kind=RKIND),dimension(:,:,:),pointer:: chems,scalars
 
@@ -922,6 +926,9 @@
  call mpas_pool_get_dimension(chems_input,'index_qseas2',index_qseas2)
  call mpas_pool_get_dimension(chems_input,'index_qseas3',index_qseas3)
  call mpas_pool_get_dimension(chems_input,'index_qseas4',index_qseas4)
+ call mpas_pool_get_dimension(chems_input,'index_qso4a1',index_qso4a1)
+ call mpas_pool_get_dimension(chems_input,'index_qso4a2',index_qso4a2)
+ call mpas_pool_get_dimension(chems_input,'index_qso4a3',index_qso4a3)
  call mpas_pool_get_dimension(chems_input,'index_qdust1',index_qdust1)
  call mpas_pool_get_dimension(chems_input,'index_qdust2',index_qdust2)
  call mpas_pool_get_dimension(chems_input,'index_qdust3',index_qdust3)
@@ -934,6 +941,9 @@
  call mpas_log_write('--- index_qseas2 = $i',intArgs=(/index_qseas2/))
  call mpas_log_write('--- index_qseas3 = $i',intArgs=(/index_qseas3/))
  call mpas_log_write('--- index_qseas4 = $i',intArgs=(/index_qseas4/))
+ call mpas_log_write('--- index_qso4a1 = $i',intArgs=(/index_qso4a1/))
+ call mpas_log_write('--- index_qso4a2 = $i',intArgs=(/index_qso4a2/))
+ call mpas_log_write('--- index_qso4a3 = $i',intArgs=(/index_qso4a3/))
  call mpas_log_write('--- index_qdust1 = $i',intArgs=(/index_qdust1/))
  call mpas_log_write('--- index_qdust2 = $i',intArgs=(/index_qdust2/))
  call mpas_log_write('--- index_qdust3 = $i',intArgs=(/index_qdust3/))
@@ -948,6 +958,9 @@
  qseas2 => chems(index_qseas2,:,:)
  qseas3 => chems(index_qseas3,:,:)
  qseas4 => chems(index_qseas4,:,:)
+ qso4a1 => chems(index_qso4a1,:,:)
+ qso4a2 => chems(index_qso4a2,:,:)
+ qso4a3 => chems(index_qso4a3,:,:)
  qdust1 => chems(index_qdust1,:,:)
  qdust2 => chems(index_qdust2,:,:)
  qdust3 => chems(index_qdust3,:,:)
@@ -978,6 +991,8 @@
  iconv_seas1 = 1._RKIND/conv_seas1
  iconv_seas2 = 1._RKIND/conv_seas2
 
+ iconv_so4   = 1._RKIND/conv_so4
+
  do iCell = 1,nCells
     do k = 1,nVertLevels
        !"ice-friendly" aerosols:
@@ -989,10 +1004,11 @@
                      + iconv_dust5*qdust5(k,iCell)
 
        !"water-friendly" aerosols:
-       qwfa(k,iCell) = 8*qoc2(k,iCell) + 9*qseas1(k,iCell) + 9*qseas2(k,iCell)
+       qwfa(k,iCell) = 8*qoc2(k,iCell) + 5*qso4a1(k,iCell) + 5*qso4a2(k,iCell) &
+                     + 9*qseas1(k,iCell) + 9*qseas2(k,iCell)
 
-       nwfa(k,iCell) = 8*iconv_oc2*qoc2(k,iCell) + 9*iconv_seas1*qseas1(k,iCell) &
-                     + 9*iconv_seas2*qseas2(k,iCell)
+       nwfa(k,iCell) = 8*iconv_oc2*qoc2(k,iCell) + 5*iconv_so4*qso4a1(k,iCell) + 5*iconv_so4*qso4a2(k,iCell) &
+                     + 9*iconv_seas1*qseas1(k,iCell) + 9*iconv_seas2*qseas2(k,iCell)
     enddo
  enddo
 
