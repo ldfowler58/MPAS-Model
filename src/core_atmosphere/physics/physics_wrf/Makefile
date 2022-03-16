@@ -27,19 +27,10 @@ OBJS = \
 	module_ra_rrtmg_lw.o           \
 	module_ra_rrtmg_sw.o           \
 	module_ra_rrtmg_vinterp.o      \
-	module_sf_bem.o                \
-	module_sf_bep.o                \
-	module_sf_bep_bem.o            \
 	module_sf_sfcdiags.o           \
 	module_sf_mynn.o               \
-	module_sf_noahdrv.o            \
-	module_sf_noahlsm.o            \
-        module_sf_noahlsm_glacial_only.o \
-        module_sf_noah_seaice.o        \
-        module_sf_noah_seaice_drv.o    \
 	module_sf_oml.o                \
-	module_sf_sfclay.o             \
-	module_sf_urban.o
+	module_sf_sfclay.o
 
 physics_wrf: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
@@ -68,33 +59,10 @@ module_ra_rrtmg_sw.o: \
 	module_ra_rrtmg_lw.o \
 	module_ra_rrtmg_vinterp.o
 
-module_sf_bep.o: \
-	module_sf_urban.o
-
-module_sf_bep_bem.o: \
-	module_sf_bem.o \
-	module_sf_urban.o
-
 module_sf_mynn.o: \
 	module_bl_mynn.o \
 	module_sf_sfclay.o
 
-module_sf_noahdrv.o: \
-	module_sf_bem.o \
-	module_sf_bep.o \
-	module_sf_bep_bem.o \
-	module_sf_noahlsm.o \
-        module_sf_noahlsm_glacial_only.o \
-	module_sf_urban.o
-
-module_sf_noahlsm_glacial_only.o: \
-        module_sf_noahlsm.o
-
-module_sf_noah_seaice_drv.o: \
-        module_sf_noah_seaice.o
-
-module_sf_noah_seaice.o: \
-        module_sf_noahlsm.o
 
 clean:
 	$(RM) *.f90 *.o *.mod
