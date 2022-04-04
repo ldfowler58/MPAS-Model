@@ -14,6 +14,7 @@ OBJS = \
 	mpas_chemistry_init.o \
 	mpas_chemistry_interface.o \
 	mpas_chemistry_manager.o \
+	mpas_chemistry_opp.o \
 	mpas_chemistry_todynamics.o
 
 core_chemistry_opp:
@@ -28,6 +29,10 @@ chem_interface: $(OBJS)
 # DEPENDENCIES:
 mpas_chemistry_driver.o: \
 	mpas_chemistry_interface.o
+
+mpas_chemistry_init.o: \
+	mpas_chemistry_opp.o
+
 
 clean:
 	$(RM) *.o *.mod *.f90 libchem.a
