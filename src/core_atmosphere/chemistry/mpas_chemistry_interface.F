@@ -252,7 +252,7 @@
        enddo
     enddo
  enddo
- 
+
 
 !--- initializes local variables and arrays before call to o3_gfs_run:
  this%dt_c   = dt

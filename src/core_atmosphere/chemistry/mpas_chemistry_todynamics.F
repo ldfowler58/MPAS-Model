@@ -124,6 +124,7 @@
           tend_scalars(index_qo3,k,iCell) = tend_scalars(index_qo3,k,iCell) + qo3oppten(k,iCell)*mass(k,iCell)
        enddo
     enddo
+
  endif
  
  end subroutine chemistry_get_tend_work
