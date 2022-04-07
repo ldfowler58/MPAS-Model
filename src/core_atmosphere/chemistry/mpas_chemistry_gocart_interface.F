@@ -832,18 +832,24 @@
                      + iconv_dust3*this%qdust3(i,k) + iconv_dust4*this%qdust4(i,k) &
                      + iconv_dust5*this%qdust5(i,k)
 
-    !"water-friendly" aerosols:
-    this%qwfa_c(i,k) = 8*this%qoc2(i,k) + 5*this%qso4a1(i,k) + 5*this%qso4a2(i,k) &
-                     + 9*this%qseas1(i,k) + 9*this%qseas2(i,k)
+!   !"water-friendly" aerosols using Greg Thompson scaling of nwfa:
+!   this%qwfa_c(i,k) = 8*this%qoc2(i,k) + 5*this%qso4a1(i,k) + 5*this%qso4a2(i,k) &
+!                    + 9*this%qseas1(i,k) + 9*this%qseas2(i,k)
 
-    this%nwfa_c(i,k) = 8*iconv_oc2*this%qoc2(i,k) + 5*iconv_so4*this%qso4a1(i,k) + 5*iconv_so4*this%qso4a2(i,k) &
-                     + 9*iconv_seas1*this%qseas1(i,k) + 9*iconv_seas2*this%qseas2(i,k)
+!   this%nwfa_c(i,k) = 8*iconv_oc2*this%qoc2(i,k) + 5*iconv_so4*this%qso4a1(i,k) + 5*iconv_so4*this%qso4a2(i,k) &
+!                    + 9*iconv_seas1*this%qseas1(i,k) + 9*iconv_seas2*this%qseas2(i,k)
+
+    !"water-friendly" aerosols so that nwfa resembles the global distribution of the number
+    !concentration of CAM-Chem aerosols in the accumulation mode:
+    this%qwfa_c(i,k) = 3*this%qoc2(i,k) + 0.4*this%qso4a1(i,k)   &
+                     + 50*this%qseas1(i,k) + 50*this%qseas2(i,k)
+
+    this%nwfa_c(i,k) = 3*iconv_oc2*this%qoc2(i,k) + 0.5*iconv_so4*this%qso4a1(i,k) &
+                     + 50*iconv_seas1*this%qseas1(i,k) + 50*iconv_seas2*this%qseas2(i,k)
  enddo
 
- call mpas_log_write('--- end subroutine mpas_chemistry_to_gocart:')
 
-
-!--- update:
+!--- update diagnostics of the surface emissions of nwfa and nifa:
  call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
  call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
  call mpas_pool_get_array(diag_chems,'nwfa2d_oc'  ,nwfa2d_oc)
@@ -853,17 +859,15 @@
 
  k = kts
  do i = its,ite
-    nwfa2d(i) = 8*iconv_oc2*this%tend_qoc2(i,k)     &
-              + 5*iconv_so4*this%tend_qso4a1(i,k)   &
-              + 5*iconv_so4*this%tend_qso4a2(i,k)   &
-              + 9*iconv_seas1*this%tend_qseas1(i,k) &
-              + 9*iconv_seas2*this%tend_qseas2(i,k)
+    nwfa2d(i) = 3*iconv_oc2*this%tend_qoc2(i,k)      &
+              + 0.4*iconv_so4*this%tend_qso4a1(i,k)  &
+              + 50*iconv_seas1*this%tend_qseas1(i,k) &
+              + 50*iconv_seas2*this%tend_qseas2(i,k)
 
-    nwfa2d_oc(i)   = 8*iconv_oc2*this%tend_qoc2(i,k)
-    nwfa2d_so4(i)  = 5*iconv_so4*this%tend_qso4a1(i,k)   &
-                   + 5*iconv_so4*this%tend_qso4a2(i,k)
-    nwfa2d_seas(i) = 9*iconv_seas1*this%tend_qseas1(i,k) &
-                   + 9*iconv_seas2*this%tend_qseas2(i,k)
+    nwfa2d_oc(i)   = 3*iconv_oc2*this%tend_qoc2(i,k)
+    nwfa2d_so4(i)  = 0.4*iconv_so4*this%tend_qso4a1(i,k)
+    nwfa2d_seas(i) = 50*iconv_seas1*this%tend_qseas1(i,k) &
+                   + 50*iconv_seas2*this%tend_qseas2(i,k)
 
     nifa2d(i) = iconv_dust1*this%tend_qdust1(i,k) &
               + iconv_dust2*this%tend_qdust2(i,k) &
@@ -872,8 +876,9 @@
               + iconv_dust5*this%tend_qdust5(i,k)
 
     nifa2d_dust(i) = nifa2d(i)
-!   call mpas_log_write('$i $r $r',intArgs=(/i/),realArgs=(/nwfa2d(i),nifa2d(i)/))
  enddo
+
+ call mpas_log_write('--- end subroutine mpas_chemistry_to_gocart:')
 
  end subroutine mpas_chemistry_to_gocart
 
