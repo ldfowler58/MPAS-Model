@@ -24,10 +24,14 @@
 !=================================================================================================================
 
 !local variables and arrays:
- integer:: i,k,n,o3unit
+ integer:: i,k,ll,n,o3unit
  integer:: latsozc,levozc,timeozc
 
  real(kind=4),dimension(:),allocatable:: oz_lat4,oz_pres4,oz_time4,tempin
+
+ integer,dimension(:),allocatable:: coeff_min_loc,coeff_max_loc
+ real(kind=kind_phys):: tau_min,tau_max
+ real(kind=kind_phys),dimension(:),allocatable:: coeff_min,coeff_max
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -76,6 +80,21 @@
  oz_lat(:)  = oz_lat4(:)
  oz_time(:) = oz_time4(:)
 
+!call mpas_log_write(' ')
+!call mpas_log_write('--- pressure:')
+!do k = 1,levozp
+!   call mpas_log_write('$i $r $r',intArgs=(/k/),realArgs=(/oz_pres4(k),oz_pres(k)/))
+!enddo
+!call mpas_log_write(' ')
+!call mpas_log_write('--- latitude:')
+!do k = 1,latsozp
+!   call mpas_log_write('$i $r',intArgs=(/k/),realArgs=(/oz_lat(k)/))
+!enddo
+!call mpas_log_write(' ')
+ call mpas_log_write('--- oz_time:')
+ do k = 1,timeoz+1
+    call mpas_log_write('$i $r',intArgs=(/k/),realArgs=(/oz_time(k)/))
+ enddo
 
 !--- read in ozplin which is in order of (latitudes,ozone levels,coeff number,time) where latitudes are on
 !    a uniform gaussian grid:
@@ -89,6 +108,30 @@
        enddo
     enddo
  enddo
+
+!if(.not.allocated(coeff_min_loc)) allocate(coeff_min_loc(oz_coeff))
+!if(.not.allocated(coeff_max_loc)) allocate(coeff_max_loc(oz_coeff))
+!if(.not.allocated(coeff_min)    ) allocate(coeff_min(oz_coeff)    )
+!if(.not.allocated(coeff_max)    ) allocate(coeff_max(oz_coeff)    )
+!i = 7
+!do ll = 1,latsozp
+!   do n =1,oz_coeff
+!      coeff_min(n)     = minval(ozplin(ll,:,n,i))
+!      coeff_max(n)     = maxval(ozplin(ll,:,n,i))
+!   enddo
+!   tau_min = 0.
+!   tau_max = 0.
+!   if(abs(coeff_min(2)) .gt. 0_kind_phys) tau_min = -1./coeff_min(2)
+!   if(abs(coeff_max(2)) .gt. 0_kind_phys) tau_max = -1./coeff_max(2)
+!   tau_min = tau_min / 86400.
+!   tau_max = tau_max / 86400.
+!   call mpas_log_write('$i $r $r $r $r $r',intArgs=(/ll/),realArgs=(/oz_lat(ll), &
+!                   (coeff_min(n),n=2,2),(coeff_max(n),n=2,2),tau_min,tau_max/))
+!enddo
+!if(allocated(coeff_min_loc)) deallocate(coeff_min_loc)
+!if(allocated(coeff_max_loc)) deallocate(coeff_max_loc)
+!if(allocated(coeff_min)    ) deallocate(coeff_min    )
+!if(allocated(coeff_max)    ) deallocate(coeff_max    )
 
  if(allocated(oz_lat4) ) deallocate(oz_lat4 )
  if(allocated(oz_pres4)) deallocate(oz_pres4)
@@ -119,7 +162,7 @@
 
  real(kind=kind_phys),intent(in):: &
     dt,      &! time-step (s).
-    grav      ! igravitational acceleration (m s-2).
+    grav      ! gravitational acceleration (m s-2).
 
  real(kind=kind_phys),intent(in),dimension(im,levs):: &
     delp,    &! layer pressure thickness (Pa).
@@ -175,7 +218,19 @@
 !--- save input ozone profiles:
  do k = 1,levs
     do i = 1,im
-       ozi(i,k) = oz(i,k)
+       ozi(i,k)  = oz(i,k)
+       ozp1(i,k) = 0.
+       ozp2(i,k) = 0.
+       ozp3(i,k) = 0.
+       ozp4(i,k) = 0.
+    enddo
+ enddo
+
+!--- initialization of the overlying vertically-integrated mixing ratios:
+ do k = 1,levs+1
+    do i = 1,im
+       colo3(i,k) = 0.
+       coloz(i,k) = 0.
     enddo
  enddo
 
@@ -232,14 +287,38 @@
        prod(i,2)  = min(prod(i,2),0.0)
     enddo
 
+!   do i = 1,im
+!      ozib(i) = ozi(i,l)            ! no filling
+!      tem = prod(i,1) - prod(i,2) * prod(i,6)   &
+!          + prod(i,3) * (tin(i,l) - prod(i,5))  &
+!          + prod(i,4) * (colo3(i,l)-coloz(i,l))
+!      oz(i,l) = (ozib(i)  + tem*dt) / (1.0 - prod(i,2)*dt)
+!   enddo
     do i = 1,im
-       ozib(i) = ozi(i,l)            ! no filling
-       tem = prod(i,1) - prod(i,2) * prod(i,6)   &
-           + prod(i,3) * (tin(i,l) - prod(i,5))  &
-           + prod(i,4) * (colo3(i,l)-coloz(i,l))
-
-       oz(i,l) = (ozib(i)  + tem*dt) / (1.0 - prod(i,2)*dt)
+       ozib(i) = ozi(i,l)
+!--- test 1:
+!      oz(i,l) = ozib(i)/(1.-prod(i,2)*dt)
+!--- test 2:
+!      tem = - prod(i,2)*prod(i,6)*dt
+!      oz(i,l) = (ozib(i) + tem)/(1.-prod(i,2)*dt)
+!--- test 3:
+!      tem = prod(i,1)*dt - prod(i,2)*prod(i,6)*dt
+!      oz(i,l) = (ozib(i) + tem)/(1.-prod(i,2)*dt)
+!--- test 3:
+!      tem = prod(i,1)*dt - prod(i,2)*prod(i,6)*dt &
+!          + prod(i,3)*(tin(i,l)-prod(i,5))*dt
+!      oz(i,l) = (ozib(i) + tem)/(1.-prod(i,2)*dt)
+!--- test 4:
+       tem = prod(i,1)*dt - prod(i,2)*prod(i,6)*dt &
+           + prod(i,3)*(tin(i,l)-prod(i,5))*dt     &
+           + prod(i,4)*(colo3(i,l)-coloz(i,l))*dt
+       oz(i,l) = (ozib(i) + tem)/(1.-prod(i,2)*dt)
+!      tem = prod(i,1) - prod(i,2)*prod(i,6)  &
+!          + prod(i,3)*(tin(i,l)-prod(i,5))   &
+!          + prod(i,4)*(colo3(i,l)-coloz(i,l))
+!      oz(i,l) = (ozib(i) + tem*dt)/(1.-prod(i,2)*dt)
     enddo
+
     if(ldiag3d .and. qdiag3d) then ! ozone change diagnostics
        do i = 1,im
           ozp1(i,l) = ozp1(i,l) + (prod(i,1)-prod(i,2)*prod(i,6))*dt
