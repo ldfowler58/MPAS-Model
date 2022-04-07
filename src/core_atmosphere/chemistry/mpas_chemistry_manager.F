@@ -6,8 +6,10 @@
  use mpas_pool_routines
  use mpas_timekeeping
 
+!from physics:
  use mpas_atmphys_utilities
 
+ use mpas_chemistry_opp,only: opp_from_MPAS
 
  implicit none
  private
@@ -65,13 +67,13 @@
  julday = DoY
  curr_julday = real(julday-1) + utc_h / 24.0
  LeapYear = isLeapYear(year)
- call mpas_log_write('     YEAR        = $i', intArgs=(/year/))
- call mpas_log_write('     JULDAY      = $i', intArgs=(/julday/))
- call mpas_log_write('     GMT         = $r', realArgs=(/gmt/))
- call mpas_log_write('     UTC_H       = $r', realArgs=(/utc_h/))
- call mpas_log_write('     CURR_JULDAY = $r', realArgs=(/curr_julday/))
- call mpas_log_write('     LEAP_YEAR   = $l', logicArgs=(/LeapYear/))
- call mpas_log_write('     TIME STAMP  = '//trim(timeStamp))
+ call mpas_log_write('    YEAR        = $i', intArgs=(/year/))
+ call mpas_log_write('    JULDAY      = $i', intArgs=(/julday/))
+ call mpas_log_write('    GMT         = $r', realArgs=(/gmt/))
+ call mpas_log_write('    UTC_H       = $r', realArgs=(/utc_h/))
+ call mpas_log_write('    CURR_JULDAY = $r', realArgs=(/curr_julday/))
+ call mpas_log_write('    LEAP_YEAR   = $l', logicArgs=(/LeapYear/))
+ call mpas_log_write('    TIME STAMP  = '//trim(timeStamp))
 
 
  block => domain%blocklist
@@ -80,11 +82,11 @@
     call mpas_pool_get_subpool(block%structs,'chem_input',chem_input)
 
     !update the coefficients for the GFS linearized CHEM2D-OPP (Mc Cormack et al. 2006):
-!   if(mpas_is_alarm_ringing(clock,oppAlarmID,ierr=ierr)) then
-!      call mpas_reset_clock_alarm(clock,greenAlarmID,ierr=ierr)
+    if(mpas_is_alarm_ringing(clock,oppAlarmID,ierr=ierr)) then
+       call mpas_reset_clock_alarm(clock,oppAlarmID,ierr=ierr)
        call mpas_log_write('--- time to update CHEM2D-OPP coefficients.')
-       call chemistry_update_opp(julday,curr_julday,mesh,chem_input)
-!   endif
+       call opp_from_MPAS(julday,curr_julday,mesh,chem_input)
+    endif
 
     block => block%next
  end do
@@ -93,58 +95,6 @@
  call mpas_log_write('--- end subroutine chemistry_timetracker:')
 
  end subroutine chemistry_timetracker
-
-!=================================================================================================================
- subroutine chemistry_update_opp(julian,curr_julday,mesh,chem_input)
-!=================================================================================================================
-
-!input arguments:
- type(mpas_pool_type),intent(in):: mesh
- integer,intent(in):: julian
- real(kind=RKIND):: curr_julday
-
-!inout arguments:
- type(mpas_pool_type),intent(inout):: chem_input
-
-!local pointers:
- logical:: finddate
-
- integer,pointer:: nCells,nO3Coeffs,nO3Levels,nMonths
- integer:: iCell,imonth,k,n
-
- real(kind=RKIND),dimension(:),pointer      :: O3pres
- real(kind=RKIND),dimension(:,:,:),pointer  :: O3coeffs
- real(kind=RKIND),dimension(:,:,:,:),pointer:: O3data
-
-!-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine update_o3chem2dopp')
-
- call mpas_pool_get_dimension(mesh,'nCells'    ,nCells   )
- call mpas_pool_get_dimension(mesh,'nMonths'   ,nMonths  )
- call mpas_pool_get_dimension(mesh,'nOPPLevels',nO3Levels)
- call mpas_pool_get_dimension(mesh,'nOPPCoeffs',nO3Coeffs)
-
- call mpas_pool_get_array(chem_input,'OPPpres'  ,O3pres)
- call mpas_pool_get_array(chem_input,'OPPdata'  ,O3data)
- call mpas_pool_get_array(chem_input,'OPPcoeffs',O3coeffs)
-
-
-!--- for now, fix the array GFSO3coeffs to GFSO3data for July:
- imonth = 7
- O3coeffs(:,:,:) = O3data(imonth,:,:,:)
-
-!do iCell = 1,nCells
-!   do k = 1,nO3Levels
-!      call mpas_log_write('$i $i $r $r $r $r $r $r $r',intArgs=(/iCell,k/), &
-!                          realArgs=(/O3pres(k),(O3coeffs(n,k,iCell),n=1,nO3Coeffs)/))
-!   enddo
-!   call mpas_log_write(' ')
-!enddo
-
- call mpas_log_write('--- end subroutine update_o3chem2dopp')
-
- end subroutine chemistry_update_opp
 
 !=================================================================================================================
  subroutine chemistry_run_init(configs,clock)
@@ -181,7 +131,7 @@
  alarmStartTime = startTime
  call mpas_add_clock_alarm(clock,oppAlarmID,alarmStartTime,alarmTimeStep,ierr=ierr)
     if(ierr /= 0) &
-       call physics_error_fatal('subroutine chemistry_init: error creating alarm GFS CHEM2D-OPP')
+       call physics_error_fatal('subroutine chemistry_run_init: error creating alarm GFS CHEM2D-OPP')
 
  call mpas_log_write('--- end subroutine chemistry_run_init:')
 
