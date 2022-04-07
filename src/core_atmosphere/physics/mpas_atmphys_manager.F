@@ -181,8 +181,8 @@
  real(kind=RKIND):: xtime_m
 
 !-----------------------------------------------------------------------------------------------------------------
-!call mpas_log_write('')
-!call mpas_log_write('--- enter subroutine physics_timetracker: itimestep = $i', intArgs=(/itimestep/))
+ call mpas_log_write('')
+ call mpas_log_write('--- enter subroutine physics_timetracker: itimestep = $i', intArgs=(/itimestep/))
 
  call mpas_pool_get_config(domain%blocklist%configs,'config_convection_scheme',config_convection_scheme)
  call mpas_pool_get_config(domain%blocklist%configs,'config_radt_lw_scheme'   ,config_radt_lw_scheme   )
@@ -325,7 +325,7 @@
        call mpas_reset_clock_alarm(clock,camAlarmID,ierr=ierr)
        doabsems = .true.
     endif
-    call mpas_log_write('--- time to update CAM absorptivity and emissivity arrays DOABSEMS =$l',logicArgs=(/doabsems/))
+    call mpas_log_write('--- time to update CAM absorptivity and emissivity arrays DOABSEMS = $l',logicArgs=(/doabsems/))
  endif
 
 !check to see if it is time to save the local CAM arrays absnst_p, absnxt_p, and emstot_p to
@@ -419,8 +419,8 @@
  integer:: ierr
 
 !-----------------------------------------------------------------------------------------------------------------
-!call mpas_log_write('')
-!call mpas_log_write('--- enter subroutine physics_run_init:')
+ call mpas_log_write('')
+ call mpas_log_write('--- enter subroutine physics_run_init:')
 
  call mpas_pool_get_config(configs,'config_convection_scheme',config_convection_scheme)
  call mpas_pool_get_config(configs,'config_lsm_scheme'       ,config_lsm_scheme       )
@@ -461,11 +461,11 @@
  gmt    = utc_h
  julday = DoY
  curr_julday = real(julday-1)
-! call mpas_log_write('     YEAR        =$i', intArgs=(/year/))
-! call mpas_log_write('     JULDAY      =$i', intArgs=(/julday/))
-! call mpas_log_write('     GMT         =$r', realArgs=(/gmt/))
-! call mpas_log_write('     UTC_H       =$r', realArgs=(/utc_h/))
-! call mpas_log_write('     CURR_JULDAY =$r', realArgs=(/curr_julday/))
+ call mpas_log_write('     YEAR        = $i', intArgs=(/year/))
+ call mpas_log_write('     JULDAY      = $i', intArgs=(/julday/))
+ call mpas_log_write('     GMT         = $r', realArgs=(/gmt/))
+ call mpas_log_write('     UTC_H       = $r', realArgs=(/utc_h/))
+ call mpas_log_write('     CURR_JULDAY = $r', realArgs=(/curr_julday/))
 
 !set alarms for calling the longwave and shortwave radiation schemes, the convection schemes,
 !and the PBL schemes at intervals different (greater) than the dynamical time-step:
@@ -762,6 +762,8 @@
  call mpas_log_write('--- has_reqi  = $i', intArgs=(/has_reqi/))
  call mpas_log_write('--- has_reqs  = $i', intArgs=(/has_reqs/))
  call mpas_log_write(' ')
+
+ call mpas_log_write('--- end subroutine physics_run_init.')
 
  end subroutine physics_run_init
 
