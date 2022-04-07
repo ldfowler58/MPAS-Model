@@ -1003,12 +1003,20 @@
                      + iconv_dust3*qdust3(k,iCell) + iconv_dust4*qdust4(k,iCell) &
                      + iconv_dust5*qdust5(k,iCell)
 
-       !"water-friendly" aerosols:
+       !"water-friendly" aerosols using Greg Thompson scaling of nwfa:
        qwfa(k,iCell) = 8*qoc2(k,iCell) + 5*qso4a1(k,iCell) + 5*qso4a2(k,iCell) &
                      + 9*qseas1(k,iCell) + 9*qseas2(k,iCell)
 
        nwfa(k,iCell) = 8*iconv_oc2*qoc2(k,iCell) + 5*iconv_so4*qso4a1(k,iCell) + 5*iconv_so4*qso4a2(k,iCell) &
                      + 9*iconv_seas1*qseas1(k,iCell) + 9*iconv_seas2*qseas2(k,iCell)
+
+       !"water-friendly" aerosols so that nwfa resembles the global distribution of the number
+       !concentration of aerosols in the accumulation mode:
+       qwfa(k,iCell) = 3*qoc2(k,iCell) + 0.4*qso4a1(k,iCell) &
+                     + 50*qseas1(k,iCell) + 50*qseas2(k,iCell)
+
+       nwfa(k,iCell) = 3*iconv_oc2*qoc2(k,iCell) + 0.4*iconv_so4*qso4a1(k,iCell) &
+                     + 50*iconv_seas1*qseas1(k,iCell) + 50*iconv_seas2*qseas2(k,iCell)
     enddo
  enddo
 
