@@ -7,6 +7,9 @@ all: dummy physics_wrf
 dummy:
 	echo "****** compiling physics_wrf ******"
 
+OBJS_init = \
+	module_ra_cam_support.o
+
 OBJS = \
 	libmassv.o                     \
 	module_bep_bem_helper.o        \
@@ -27,7 +30,6 @@ OBJS = \
 	module_mp_thompson_cldfra3.o   \
 	module_mp_wsm6.o               \
 	module_ra_cam.o                \
-	module_ra_cam_support.o        \
 	module_ra_rrtmg_lw.o           \
 	module_ra_rrtmg_sw.o           \
 	module_ra_rrtmg_sw_aerosols.o  \
@@ -53,6 +55,9 @@ OBJS = \
 	sf_mynn_pre.o                  \
 	sf_sfclayrev_pre.o
 
+
+physics_wrf_init: $(OBJS_init)
+	ar -ru ./../libphys.a $(OBJS_init)
 
 physics_wrf: $(OBJS)
 

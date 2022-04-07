@@ -113,6 +113,7 @@ mpas_atmphys_driver.o: \
 
 mpas_atmphys_driver_cloudiness.o: \
 	mpas_atmphys_constants.o \
+	mpas_atmphys_functions.o \
 	mpas_atmphys_vars.o
 
 mpas_atmphys_driver_convection.o: \
