@@ -532,7 +532,7 @@
 			<var name="oc1_em_anthro"/>
 			<var name="nh3_em_anthro"/>
 			<var name="so2_em_anthro"/>
-			<var_array name="chems"/>
+			<var_array name="chems_gocart"/>
 			<var_array name="tracers"/>
 #endif
 		</stream>
@@ -970,6 +970,7 @@
 			<var name="sh2o"/>
 			<var name="smois"/>
 			<var name="tslb"/>
+			<var name="porosity"/>
 			<var name="var2d"/>
 			<var name="con"/>
 			<var name="oa1"/>
@@ -3538,6 +3539,9 @@
                 <var name="ter" type="real" dimensions="nCells" units="m"
                      description="terrain height"/>
 
+                <var name="porosity" type="real" dimensions="nCells" units="m^{3}"
+                     description="maximum soil moisture content (porosity)"/>
+
                 <var name="albedo12m" type="real" dimensions="nMonths nCells" units="unitless"
                      description="monthly-mean climatological aurface albedo"/>
 
@@ -3668,6 +3672,7 @@
 
 #include "diagnostics/Registry_diagnostics.xml"
 #ifdef ATM_CHEMISTRY
+#include "chemistry/Registry_chems_gocart.xml"
 #include "chemistry/Registry_chems.xml"
 #include "chemistry/Registry_tracers.xml"
 #endif
