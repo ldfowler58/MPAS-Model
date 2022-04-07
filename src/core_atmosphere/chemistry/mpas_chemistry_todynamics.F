@@ -90,7 +90,7 @@
 !
  if (size(qo3oppten) == 0) deallocate(qo3oppten)
 
- call mpas_log_write('-- end subroutine chemistry_get_tend:')
+ call mpas_log_write('--- end subroutine chemistry_get_tend:')
 
  end subroutine chemistry_get_tend
 
