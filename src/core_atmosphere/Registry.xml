@@ -853,6 +853,9 @@
 			<var name="hv_oml"/>
 			<var name="p_fg"/>
 			<var name="o3mr_fg"/>
+			<var name="OPPpres"/>
+			<var name="OPPdata"/>
+			<var name="OPPcoeffs"/>
 		</stream>
 
 		<stream name="output" 
