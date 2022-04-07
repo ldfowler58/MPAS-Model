@@ -44,9 +44,9 @@
 
 
 !--- initializes the input data need to run the CHEM2D-OPP of McCormack et al. (2006):
- if(o3prognostic) then
+!if(o3prognostic) then
     call init_opp(configs,mesh,chem_input)
- endif
+!endif
 
 
  call mpas_log_write('--- end subroutine chemistry_init:')
