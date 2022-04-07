@@ -17,8 +17,8 @@
 
 
 !=================================================================================================================
- subroutine ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,nthom,use_thom_scaven,use_thom_evap,   &
-                        use_thom_implicit,dtime,grav,edt,xmb,p,p_cup,z_cup,thom_w,nifa,nwfa,pwavo,pwevo,   &
+ subroutine ctrans_thompson(its,ite,kts,kte,ierr,k22,kbcon,ktop,kdn,use_thom_scaven,use_thom_evap,         &
+                        use_thom_implicit,dtime,grav,edt,xmb,p,p_cup,z_cup,nifa,nwfa,pwavo,pwevo,          &
                         pwo,pwdo,zuo,up_massentro,up_massdetro,zdo,dn_massentro,dn_massdetro,nifa_dn_evap, &
                         nifa_up_scav,nwfa_dn_evap,nwfa_up_scav,nifa_dn_evapt,nifa_up_scavt,nwfa_dn_evapt,  &
                         nwfa_up_scavt,outnifa,outnwfa)
@@ -26,9 +26,6 @@
 
 !--- input arguments:
  integer,intent(in):: its,ite,kts,kte
-
- integer,intent(in):: &
-    nthom      ! number of aerosols that describe "water-friendly" and "ice-friendly" aerosols.
 
  integer,intent(in):: &
     use_thom_scaven, &!
@@ -73,9 +70,6 @@
     nifa,            &! number concentration of "ice-friendly" aerosols   (# kg^-1).
     nwfa              ! number concentration of "water-friendly" aerosols (# kg^-1).
 
- real(kind=RKIND),intent(in),dimension(its:ite,kts:kte,nthom):: &
-    thom_w            ! weight of individual aerosols to "water-friendly" and "ice-friendly" aerosols (-).
-
 
 !--- inout arguments:
  real(kind=RKIND),intent(inout),dimension(its:ite):: &
@@ -96,6 +90,7 @@
 !--- local variables and arrays:
  character(len=StrKIND):: errmess
 
+ integer,parameter:: nthom = 9
  integer:: i,k,n
  integer:: k2,kb,kc,kd,kt
 
@@ -201,24 +196,24 @@
 
 !--- computes the different "environmental" aerosols that describe "water-friendly" and "ice-friendly"
 !    aerosols:
- do i = its,ite
-    do k = kts,kte
-       do n = 1,nthom
-          thom_mult(i,k,n)  = thom_w(i,k,n)
+!do i = its,ite
+!   do k = kts,kte
+!      do n = 1,nthom
+!         thom_mult(i,k,n)  = thom_w(i,k,n)
 !         thom_multo(i,k,n) = 1./thom_mult(i,k,n)
-       enddo
-    enddo
-    do k = kts,kte
-       !aerosols that describe "ice-friendly" aerosols:
-       do n = 1,5
-          thom(i,k,n) = thom_mult(i,k,n)*nifa(i,k)
-       enddo
-       !aerosols that describe "water-friendly" aerosols:
-       do n = 6,nthom
-          thom(i,k,n) = thom_mult(i,k,n)*nwfa(i,k)
-       enddo
-    enddo
- enddo
+!      enddo
+!   enddo
+!   do k = kts,kte
+!      !aerosols that describe "ice-friendly" aerosols:
+!      do n = 1,5
+!         thom(i,k,n) = thom_mult(i,k,n)*nifa(i,k)
+!      enddo
+!      !aerosols that describe "water-friendly" aerosols:
+!      do n = 6,nthom
+!         thom(i,k,n) = thom_mult(i,k,n)*nwfa(i,k)
+!      enddo
+!   enddo
+!enddo
 
 
 !--- computes the "ice-friendly", "water-friendly" aerosolos, and separate aerosols species at cloud
@@ -363,10 +358,13 @@
                 dterm(k) = dterm(k) + dtime*nifa_out_evap(i,k)
              enddo
           endif
-          call tridiag(kc,aterm,bterm,cterm,dterm)
-          do k = kts,kt
-             outnifa(i,k) = (dterm(k)-nifa(i,k))/dtime
-          enddo
+!         call tridiag(kc,aterm,bterm,cterm,dterm)
+!         do k = kts,kt
+!            outnifa(i,k) = (dterm(k)-nifa(i,k))/dtime
+!            call mpas_log_write('$i $i $r $r $r',intArgs=(/i,k/), &
+!                    realArgs=(/nifa(i,k),dterm(k),outnifa(i,k)/))
+!         enddo
+!         call mpas_log_write(' ')
 
           !--- "water-friendly" aerosols:
           do k = kts,kt

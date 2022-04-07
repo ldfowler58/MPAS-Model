@@ -58,7 +58,6 @@
 #ifdef ATM_CHEMISTRY
                use_thom_scaven,use_thom_evap,use_thom_implicit,       &
                nifa,nwfa,rnifacuten,rnwfacuten,                       &
-               naer,aerosol3d_w,aerosol3d_scav,                       &
                nifa3d_evapt,nifa3d_scavt,nwfa3d_evapt,nwfa3d_scavt,   &
                nifa3d_evap,nifa3d_scav,nwfa3d_evap,nwfa3d_scav,       &
                nchem,chem3d,rchemcuten,ntracer,tracer3d,rtracercuten, &
@@ -158,11 +157,9 @@
 #ifdef ATM_CHEMISTRY
 !input variables:
  integer,intent(in):: nchem
- integer,intent(in):: naer
  integer,intent(in):: ntracer
  integer,intent(in):: use_thom_scaven,use_thom_evap,use_thom_implicit
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme,nchem),optional:: chem3d
- real,intent(in),dimension(ims:ime,kms:kme,jms:jme,naer),optional :: aerosol3d_w
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: tracer3d
  real,intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: nifa,nwfa
 
@@ -170,7 +167,6 @@
  real,intent(inout),dimension(ims:ime,jms:jme),optional:: nifa3d_scavt,nwfa3d_scavt
  real,intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: nifa3d_evap,nwfa3d_evap
  real,intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: nifa3d_scav,nwfa3d_scav
- real,intent(inout),dimension(ims:ime,kms:kme,jms:jme,naer),optional::aerosol3d_scav
 
  real,intent(out),dimension(ims:ime,kms:kme,jms:jme,nchem),optional:: rchemcuten
  real,intent(out),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: rtracercuten
@@ -187,7 +183,6 @@
  real,dimension(its:ite,kts:kte):: outnwfam,outnwfa
 
  real,dimension(its:ite,kts:kte,nchem):: chem2d,outchemm,outchem
- real,dimension(its:ite,kts:kte,naer) :: aerosol2d_w,aerosol2d_scav
  real,dimension(its:ite,kts:kte,ntracer):: tracer2d,outtracerm,outtracer
 #endif
 
@@ -528,40 +523,6 @@
           enddo
        enddo
     enddo
-    if(present(aerosol3d_w)) then
-       do k = kts, kte
-          do i = its, ite
-             do ia = 1, naer
-                aerosol2d_w(i,k,ia) = aerosol3d_w(i,k,j,ia)
-             enddo
-          enddo
-       enddo
-    else
-       do k = kts, kte
-          do i = its, ite
-             do ia = 1, naer
-                aerosol2d_w(i,k,ia) = 0.
-             enddo
-          enddo
-       enddo
-    endif
-    if(present(aerosol3d_scav)) then
-!      do k = kts, kte
-!         do i = its, ite
-!            do ia = 1, naer
-!               aerosol2d_scav(i,k,ia) = aerosol3d_scav(i,k,j,ia)
-!            enddo
-!         enddo
-!      enddo
-!   else
-       do k = kts, kte
-          do i = its, ite
-             do ia = 1, naer
-                aerosol2d_scav(i,k,ia) = 0.
-             enddo
-          enddo
-       enddo
-    endif
     if(present(nifa3d_evap) .and. present(nifa3d_scav) .and. &
        present(nwfa3d_evap) .and. present(nwfa3d_scav)) then
 !      do k = kts,kte
@@ -662,25 +623,24 @@
     if(do_midlc) then
        call mpas_log_write('  ')
        call mpas_log_write('--- enter subroutine cu_gf_deep_run - mid-level convection:')
-       call cu_gf_deep_run( &
-                itf,ktf,its,ite,kts,kte,                                  &
-                dicycle_m,ichoice_m,ipr,ccn,dt,imidc,kpbli,dhdt,          &
-                xlandi,zo,forcingm,t2d,q2d,ter11,tshall,qshall,p2d,       &
-                psur,us,vs,rhoi,hfxi,qfxi,areai,dxi,mconv,omeg,cactiv,    &
-                cnvwtm,zum,zdm,dummy,edtm,dummy,xmbm,dummy,xmbs,pretm,    &
-                outum,outvm,outtm,outqm,outqcm,kbconm,ktopm,k22m,cupclwm, &
-                ierrm,ierrcm,rand_mom,rand_vmas,rand_clos,nranflag        &
-#ifdef ATM_CHEMISTRY
-               ,use_thom_scaven,use_thom_evap,use_thom_implicit,is_mp     & !transport of "Thompson" aerosols.
-               ,nifa2d,nwfa2d,outnifam,outnwfam                           & !transport of "Thompson" aerosols.
-               ,naer,aerosol2d_w,aerosol2d_scav                           & !transport of "Thompson" aerosols.
-               ,nifa2d_evaptm,nifa2d_scavtm,nwfa2d_evaptm,nwfa2d_scavtm   & !transport of "Thompson" aerosols.
-               ,nifa2d_evapm,nifa2d_scavm,nwfa2d_evapm,nwfa2d_scavm       & !transport of "Thompson" aerosols.
-               ,nchem,chem2d,outchem                                      & !transport of chemical species.
-               ,ntracer,tracer2d,outtracer                                & !transport of passive tracers.
-#endif
-               ,jminm,tropics                                             &
-                          )
+!      call cu_gf_deep_run( &
+!               itf,ktf,its,ite,kts,kte,                                  &
+!               dicycle_m,ichoice_m,ipr,ccn,dt,imidc,kpbli,dhdt,          &
+!               xlandi,zo,forcingm,t2d,q2d,ter11,tshall,qshall,p2d,       &
+!               psur,us,vs,rhoi,hfxi,qfxi,areai,dxi,mconv,omeg,cactiv,    &
+!               cnvwtm,zum,zdm,dummy,edtm,dummy,xmbm,dummy,xmbs,pretm,    &
+!               outum,outvm,outtm,outqm,outqcm,kbconm,ktopm,k22m,cupclwm, &
+!               ierrm,ierrcm,rand_mom,rand_vmas,rand_clos,nranflag        &
+!#ifdef ATM_CHEMISTRY
+!              ,use_thom_scaven,use_thom_evap,use_thom_implicit,is_mp     & !transport of "Thompson" aerosols.
+!              ,nifa2d,nwfa2d,outnifam,outnwfam                           & !transport of "Thompson" aerosols.
+!              ,nifa2d_evaptm,nifa2d_scavtm,nwfa2d_evaptm,nwfa2d_scavtm   & !transport of "Thompson" aerosols.
+!              ,nifa2d_evapm,nifa2d_scavm,nwfa2d_evapm,nwfa2d_scavm       & !transport of "Thompson" aerosols.
+!              ,nchem,chem2d,outchem                                      & !transport of chemical species.
+!              ,ntracer,tracer2d,outtracer                                & !transport of passive tracers.
+!#endif
+!              ,jminm,tropics                                             &
+!                         )
 
        do k = kts, ktf
           do i = its, itf
@@ -724,13 +684,12 @@
 #ifdef ATM_CHEMISTRY
                ,use_thom_scaven,use_thom_evap,use_thom_implicit,is_mp     & !transport of "Thompson" aerosols.
                ,nifa2d,nwfa2d,outnifa,outnwfa                             & !transport of "Thompson" aerosols.
-               ,naer,aerosol2d_w,aerosol2d_scav                           & !transport of "Thompson" aerosols.
                ,nifa2d_evapt,nifa2d_scavt,nwfa2d_evapt,nwfa2d_scavt       & !transport of "Thompson" aerosols.
                ,nifa2d_evap,nifa2d_scav,nwfa2d_evap,nwfa2d_scav           & !transport of "Thompson" aerosols.
                ,nchem,chem2d,outchem                                      & !transport of chemical species.
                ,ntracer,tracer2d,outtracer                                & !transport of passive tracers.
 #endif
-              ,jmin,tropics                                               &
+               ,jmin,tropics                                              &
                           )
 
        do k = kts, ktf
@@ -863,15 +822,6 @@
        enddo
     endif
 
-    if(present(aerosol3d_scav)) then
-       do k = kts, kte
-          do i = its, ite
-             do ia = 1, naer
-                aerosol3d_scav(i,k,j,ia) = aerosol2d_scav(i,k,ia)
-             enddo
-          enddo
-       enddo
-    endif
     if(present(nifa3d_evap) .and. present(nifa3d_scav) .and. &
        present(nwfa3d_evap) .and. present(nwfa3d_scav)) then
        do k = kts,kte
