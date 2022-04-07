@@ -71,10 +71,14 @@
           chmlos(imx,lmx,n) = 0.
        enddo
 
-       tc(imx,lmx,1) = qbc1(i,k)/mw_c*mw_dry*1.d-9
-       tc(imx,lmx,2) = qoc1(i,k)/mw_c*mw_dry*1.d-9
-       tc(imx,lmx,3) = qbc2(i,k)/mw_c*mw_dry*1.d-9
-       tc(imx,lmx,4) = qoc2(i,k)/mw_c*mw_dry*1.d-9
+!      tc(imx,lmx,1) = qbc1(i,k)/mw_c*mw_dry*1.d-9
+!      tc(imx,lmx,2) = qoc1(i,k)/mw_c*mw_dry*1.d-9
+!      tc(imx,lmx,3) = qbc2(i,k)/mw_c*mw_dry*1.d-9
+!      tc(imx,lmx,4) = qoc2(i,k)/mw_c*mw_dry*1.d-9
+       tc(imx,lmx,1) = qbc1(i,k)/mw_c*mw_dry
+       tc(imx,lmx,2) = qoc1(i,k)/mw_c*mw_dry
+       tc(imx,lmx,3) = qbc2(i,k)/mw_c*mw_dry
+       tc(imx,lmx,4) = qoc2(i,k)/mw_c*mw_dry
        tt1 = tc(imx,lmx,3)
 
        tem1 = qbc1(i,k)
@@ -87,18 +91,20 @@
 
        !how much bc is aged, oc production (since no soa) is made dependent on that (?):
        tt2 = tc(imx,lmx,3)-tt1
-       qbc1(i,k) = tc(imx,lmx,1)/mw_dry*mw_c*1.e9
-       qoc1(i,k) = tc(imx,lmx,2)/mw_dry*mw_c*1.e9
-       qbc2(i,k) = tc(imx,lmx,3)/mw_dry*mw_c*1.e9
-       qoc2(i,k) = (tc(imx,lmx,4)+8.*tt2)/mw_dry*mw_c*1.e9
+       qbc1(i,k) = tc(imx,lmx,1)/mw_dry*mw_c
+       qoc1(i,k) = tc(imx,lmx,2)/mw_dry*mw_c
+       qbc2(i,k) = tc(imx,lmx,3)/mw_dry*mw_c
+       qoc2(i,k) = (tc(imx,lmx,4)+8.*tt2)/mw_dry*mw_c
+!      qbc1(i,k) = tc(imx,lmx,1)/mw_dry*mw_c*1.e9
+!      qoc1(i,k) = tc(imx,lmx,2)/mw_dry*mw_c*1.e9
+!      qbc2(i,k) = tc(imx,lmx,3)/mw_dry*mw_c*1.e9
+!      qoc2(i,k) = (tc(imx,lmx,4)+8.*tt2)/mw_dry*mw_c*1.e9
 
        tem1 = qbc1(i,k) - tem1
        tem2 = qoc1(i,k) - tem2
        tem3 = qbc2(i,k) - tem3
        tem4 = qoc2(i,k) - tem4
-!      if(i.le.50) call mpas_log_write('$i $i $r $r $r $r',intArgs=(/i,k/),realArgs=(/tem1,tem2,tem3,tem4/))
     enddo
-!   if(i.le.50) call mpas_log_write(' ')
  enddo
  
  call mpas_log_write('--- end subroutine gocart_carbon_hydrophobic_to_hydrophilic:')
@@ -204,7 +210,4 @@
 !=================================================================================================================
  end module module_gocart_aerosols
 !=================================================================================================================
-
-
-
 

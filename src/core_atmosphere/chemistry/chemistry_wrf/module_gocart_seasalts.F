@@ -22,24 +22,29 @@
 
 
 !=================================================================================================================
- subroutine gocart_seasalts_emission(its,ite,kts,kte,ktep1,dt,qseas1,qseas2,qseas3,qseas4,xland,area,zgrid, &
-                                     u10,v10,rho,u,v,emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4)
+ subroutine gocart_seasalts_emission(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,qseas4,xland,area, &
+                                dpres,zgrid,u10,v10,rho,u,v,emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4)
+!subroutine gocart_seasalts_emission(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,qseas4,xland,area, &
+!                               dpres,zgrid,u10,v10,rho,u,v)
 !=================================================================================================================
 
 !input arguments:
  integer,intent(in):: its,ite,kts,kte,ktep1
 
- real(kind=RKIND),intent(in):: dt
+ real(kind=RKIND),intent(in):: dt,grav
  real(kind=RKIND),intent(in),dimension(its:ite):: area,xland
  real(kind=RKIND),intent(in),dimension(its:ite):: u10,v10
- real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: rho,u,v
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: dpres,rho,u,v
  real(kind=RKIND),intent(in),dimension(its:ite,kts:ktep1):: zgrid
 
 
 !inout arguments:
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte):: qseas1,qseas2,qseas3,qseas4
- real(kind=RKIND),intent(inout),dimension(its:ite),optional:: emis_qseas1,emis_qseas2, &
-                                                              emis_qseas3,emis_qseas4
+
+
+!output arguments:
+ real(kind=RKIND),intent(out),dimension(its:ite),optional:: emis_qseas1,emis_qseas2, &
+                                                            emis_qseas3,emis_qseas4
 
 
 !local variables and arrays:
@@ -50,14 +55,14 @@
  integer:: i,k,ndt1
  integer,dimension(imx):: ilwi
 
- real(kind=R8KIND):: conver,converi,dz
+ real(kind=R8KIND):: conver,converi,dz,gravi
  real(kind=R8KIND),dimension(imx):: w10m,gwet
  real(kind=R8KIND),dimension(imx):: dxy
  real(kind=R8KIND),dimension(imx,nmx):: bems
  real(kind=R8KIND),dimension(imx,lmx):: airmas
  real(kind=R8KIND),dimension(imx,lmx,nmx):: tc
 
- real(kind=RKIND):: tem1,tem2,tem3,tem4,item4
+ real(kind=RKIND):: tem1,tem2,tem3,tem4
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write('--- enter subroutine gocart_seasalts_emission:')
@@ -65,28 +70,33 @@
  ndt1 = ifix(dt)
  conver  = 1.d-9
  converi = 1.d9
+ gravi   = 1./grav
+
+!if(present(emis_qseas1) .and. present(emis_qseas2) .and. &
+!   present(emis_qseas3) .and. present(emis_qseas4)) then
+!   do i = its,ite
+!      emis_qseas1(i) = 0._RKIND
+!      emis_qseas2(i) = 0._RKIND
+!      emis_qseas3(i) = 0._RKIND
+!      emis_qseas4(i) = 0._RKIND
+!   enddo
+!endif
 
  k = kts
  do i = its,ite
 
-    if(xland(i).gt.1.5 .and. zgrid(i,kts).lt.1.e-3)then
+    if(xland(i).gt.1.5 .and. zgrid(i,k).lt.1.e-3)then
        ilwi(imx) = 0
        dxy(imx)  = area(i)
        dz = zgrid(i,k+1)-zgrid(i,k)
        dz = max(0.,dz)
-       airmas(imx,lmx) = rho(i,k)*dz*area(i)
+!      airmas(imx,lmx) = rho(i,k)*dz*area(i)
+       airmas(imx,lmx) = gravi*dpres(i,k)*area(i)
 
-       !--- conversion from ug/kg to kg/kg:
-       tc(imx,lmx,1) = qseas1(i,kts)*conver
-       tc(imx,lmx,2) = qseas2(i,kts)*conver
-       tc(imx,lmx,3) = qseas3(i,kts)*conver
-       tc(imx,lmx,4) = qseas4(i,kts)*conver
-
-       tem1 = qseas1(i,k)
-       tem2 = qseas2(i,k)
-       tem3 = qseas3(i,k)
-       tem4 = qseas4(i,k)
-       item4 = qseas4(i,k)
+       tc(imx,lmx,1) = qseas1(i,k)
+       tc(imx,lmx,2) = qseas2(i,k)
+       tc(imx,lmx,3) = qseas3(i,k)
+       tc(imx,lmx,4) = qseas4(i,k)
 
        w10m(imx) = sqrt(u10(i)*u10(i)+v10(i)*v10(i))
        !--- we don't trust the u10,v10 values if model layers are very thin near surface:
@@ -94,29 +104,28 @@
 
        call source_ss(imx,lmx,nmx,ndt1,tc,ilwi,dxy,w10m,airmas,bems)
 
-       !--- conversion from kg/kg to ug/kg:
-       qseas1(i,k) = tc(imx,lmx,1)*converi
-       qseas2(i,k) = tc(imx,lmx,2)*converi
-       qseas3(i,k) = tc(imx,lmx,3)*converi
-       qseas4(i,k) = tc(imx,lmx,4)*converi
+       qseas1(i,k) = real(tc(imx,lmx,1),RKIND)
+       qseas2(i,k) = real(tc(imx,lmx,2),RKIND)
+       qseas3(i,k) = real(tc(imx,lmx,3),RKIND)
+       qseas4(i,k) = real(tc(imx,lmx,4),RKIND)
 
-       tem1 = qseas1(i,k) - tem1
-       tem2 = qseas2(i,k) - tem2
-       tem3 = qseas3(i,k) - tem3
-       tem4 = qseas4(i,k) - tem4
-!      call mpas_log_write('$i $i $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/tem1,tem2,tem3,item4,tem4/))
+       tem1 = real(bems(imx,1),RKIND)
+       tem2 = real(bems(imx,2),RKIND)
+       tem3 = real(bems(imx,3),RKIND)
+       tem4 = real(bems(imx,4),RKIND)
+!      call mpas_log_write('$i $r $r $r $r',intArgs=(/i/),realArgs=(/tem1,tem2,tem3,tem4/))
     endif
  enddo
 
- if(present(emis_qseas1) .and. present(emis_qseas2) .and. &
-    present(emis_qseas3) .and. present(emis_qseas4)) then
-    do i = its,ite
-       emis_qseas1(i) = bems(imx,1)
-       emis_qseas2(i) = bems(imx,2)
-       emis_qseas3(i) = bems(imx,3)
-       emis_qseas4(i) = bems(imx,4)
-    enddo
- endif
+!if(present(emis_qseas1) .and. present(emis_qseas2) .and. &
+!   present(emis_qseas3) .and. present(emis_qseas4)) then
+!   do i = its,ite
+!      emis_qseas1(i) = bems(imx,1)
+!      emis_qseas2(i) = bems(imx,2)
+!      emis_qseas3(i) = bems(imx,3)
+!      emis_qseas4(i) = bems(imx,4)
+!   enddo
+!endif
 
  call mpas_log_write('--- end subroutine gocart_seasalts_emission:')
 

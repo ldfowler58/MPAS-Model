@@ -9,6 +9,7 @@
  use mpas_chemistry_gocart_driver_aerosols
  use mpas_chemistry_gocart_driver_dusts
  use mpas_chemistry_gocart_driver_seasalts
+ use mpas_chemistry_gocart_driver_sulfates
 
 
  implicit none
@@ -38,8 +39,10 @@
  type(mpas_pool_type),pointer:: mesh
  type(mpas_pool_type),pointer:: state
  type(mpas_pool_type),pointer:: diag
+ type(mpas_pool_type),pointer:: diag_chems
  type(mpas_pool_type),pointer:: diag_physics
  type(mpas_pool_type),pointer:: sfc_input
+ type(mpas_pool_type),pointer:: chems_input
  type(mpas_pool_type),pointer:: CAMS_emissions
  type(block_type),pointer:: block
 
@@ -60,8 +63,10 @@
     call mpas_pool_get_subpool(block%structs,'mesh'          ,mesh          )
     call mpas_pool_get_subpool(block%structs,'state'         ,state         )
     call mpas_pool_get_subpool(block%structs,'diag'          ,diag          )
+    call mpas_pool_get_subpool(block%structs,'diag_chems'    ,diag_chems    )
     call mpas_pool_get_subpool(block%structs,'diag_physics'  ,diag_physics  )
     call mpas_pool_get_subpool(block%structs,'sfc_input'     ,sfc_input     )
+    call mpas_pool_get_subpool(block%structs,'chems_input'   ,chems_input   )
     call mpas_pool_get_subpool(block%structs,'CAMS_emissions',CAMS_emissions)
 
 
@@ -74,7 +79,8 @@
 
 
     !--- fills local chemistry arrays with global chemistry arrays:
-    call mpas_chems%from_gocart(CAMS_emissions,block%configs,mesh,state,time_lev,diag,diag_physics,sfc_input)
+    call mpas_chems%from_gocart(CAMS_emissions,block%configs,mesh,chems_input,state,time_lev,diag, &
+                                diag_physics,sfc_input)
 
 
     !--- gocart chemistry for anthropogenic aerosols:
@@ -85,12 +91,16 @@
     call driver_gocart_dusts(mpas_chems)
 
 
-    !--- gocart chemistry for dusts:
+    !--- gocart chemistry for seasalts:
     call driver_gocart_seasalts(mpas_chems)
 
 
+    !--- gocart_chemistry for sulfates:
+    call driver_gocart_sulfates(mpas_chems)
+
+
     !--- fills global chemistry arrays with local chemistry arrays:
-    call mpas_chems%to_gocart(state,time_lev)
+    call mpas_chems%to_gocart(chems_input,state,time_lev,diag_chems,diag_physics)
 
 
     !--- deallocates local arrays used to run the GOCART chemistry:
