@@ -45,7 +45,7 @@ clean:
 	$(RM) $@ $*.mod
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(PHYSICS) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I. -I./chemistry_opp -I.. -I../dynamics -I../physics -I../../framework -I../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I. -I./chemistry_opp -I.. -I../dynamics -I../physics -I../physics/physics_wrf -I../../framework -I../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I. -I./chemistry_opp -I.. -I../dynamics -I../physics -I../../framework -I../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I. -I./chemistry_opp -I.. -I../dynamics -I../physics -I../physics/physics_wrf -I../../framework -I../../external/esmf_time_f90
 endif
