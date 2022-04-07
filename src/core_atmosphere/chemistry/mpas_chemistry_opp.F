@@ -7,12 +7,15 @@
  use mpas_atmphys_constants,only: degrad
  use mpas_atmphys_utilities,only: physics_error_fatal
 
+!from wrf physics:
+ use module_ra_cam_support,only: r8,getfactors
+
  use o3_gfs,only: latsozp,levozp,oz_coeff,timeoz,oz_lat,oz_pres,ozplin,read_o3data
 
 
  implicit none
  private
- public:: init_opp
+ public:: init_opp,opp_from_MPAS
 
 
 !initialization and interpolation to MPAS mesh of input data needed to run the CHEM2D Ozone Photochemistry
@@ -46,7 +49,7 @@
  real(kind=RKIND),dimension(:,:,:,:),pointer:: O3data
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine init_opp:')
 
  call mpas_pool_get_config(configs,'config_o3climatology',o3climatology)
@@ -136,9 +139,112 @@
 !enddo
 
  call mpas_log_write('--- end subroutine init_opp:')
- call mpas_log_write(' ')
 
  end subroutine init_opp
+
+!=================================================================================================================
+ subroutine opp_from_MPAS(julian,curr_julday,mesh,chem_input)
+!=================================================================================================================
+
+!input arguments:
+ type(mpas_pool_type),intent(in):: mesh
+ integer,intent(in):: julian
+ real(kind=RKIND):: curr_julday
+
+!inout arguments:
+ type(mpas_pool_type),intent(inout):: chem_input
+
+!local pointers:
+ integer,pointer:: nCellsSolve,nO3Coeffs,nO3Levels,nMonths
+ integer:: iCell,imonth,k,n
+
+ real(kind=RKIND),dimension(:,:,:),pointer  :: O3coeffs
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: O3data
+
+!local variables:
+ logical:: finddate
+ logical:: ozncyc
+
+ integer:: ijul,m,nm,np,np1
+ integer, dimension(12) ::  date_oz
+ data date_oz/16, 45, 75, 105, 136, 166, 197, 228, 258, 289, 319, 350/
+
+ real(kind=r8):: intjulian_r8
+ real(kind=r8):: cdayozp_r8, cdayozm_r8
+ real(kind=r8):: fact1_r8, fact2_r8
+ real(kind=RKIND):: fact1,fact2
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine opp_from_MPAS:')
+
+ call mpas_pool_get_dimension(mesh,'nCellsSolve',nCellsSolve)
+ call mpas_pool_get_dimension(mesh,'nMonths'    ,nMonths    )
+ call mpas_pool_get_dimension(mesh,'nOPPLevels' ,nO3Levels  )
+ call mpas_pool_get_dimension(mesh,'nOPPCoeffs' ,nO3Coeffs  )
+
+ call mpas_pool_get_array(chem_input,'OPPdata'  ,O3data  )
+ call mpas_pool_get_array(chem_input,'OPPcoeffs',O3coeffs)
+
+!--- for now, fix the array GFSO3coeffs to GFSO3data for July:
+!imonth = 7
+!O3coeffs(:,:,:) = O3data(imonth,:,:,:)
+
+ ozncyc = .true.
+
+!julian starts from 0.0 at 0Z on 1 Jan.
+ intjulian_r8 = real(julian + 1.0_RKIND, r8)    ! offset by one day
+
+!jan 1st 00z is julian=1.0 here
+ ijul=int(intjulian_r8)
+!note that following will drift. need to use actual month/day info to compute julian.
+ intjulian_r8 = intjulian_r8 - real(ijul, r8)
+ ijul = mod(ijul,365)
+ if(ijul .eq. 0) ijul=365
+ intjulian_r8 = intjulian_r8 + real(ijul, r8)
+ np1=1
+
+ finddate=.false.
+ do m = 1, nMonths
+    if(date_oz(m).gt.intjulian_r8 .and. .not.finddate) then
+       np1 = m
+       finddate = .true.
+    endif
+ enddo
+ cdayozp_r8=date_oz(np1)
+
+ if(np1 .gt. 1) then
+    cdayozm_r8 = date_oz(np1-1)
+    np = np1
+    nm = np-1
+ else
+    cdayozm_r8 = date_oz(12)
+    np = np1
+    nm = nMonths
+ endif
+ call getfactors(ozncyc,np1,cdayozm_r8,cdayozp_r8,intjulian_r8,fact1_r8,fact2_r8)
+ fact1 = real(fact1_r8, RKIND)
+ fact2 = real(fact2_r8, RKIND)
+
+ call mpas_log_write('--- end subroutine getfactors:')
+ call mpas_log_write('nm    = $i',intArgs =(/nm/))
+ call mpas_log_write('np    = $i',intArgs =(/np/))
+ call mpas_log_write('fact1 = $r',realArgs=(/fact1/))
+ call mpas_log_write('fact2 = $r',realArgs=(/fact2/))
+
+!time interpolation:
+ do iCell = 1,nCellsSolve
+    do k = 1,nO3Levels
+       do n = 1,nO3Coeffs
+          O3Coeffs(n,k,iCell) = fact1*O3data(nm,n,k,iCell) + fact2*O3data(np,n,k,iCell)
+       enddo
+    enddo
+ enddo
+
+
+ call mpas_log_write('--- end subroutine opp_from_MPAS:')
+
+ end subroutine opp_from_MPAS
 
 !=================================================================================================================
  end module mpas_chemistry_opp
