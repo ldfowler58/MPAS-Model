@@ -19,6 +19,7 @@ OBJS = \
 	mpas_chemistry_gocart_driver_aerosols.o \
 	mpas_chemistry_gocart_driver_dusts.o \
 	mpas_chemistry_gocart_driver_seasalts.o \
+	mpas_chemistry_gocart_driver_sulfates.o \
 	mpas_chemistry_gocart_driver.o \
 	mpas_chemistry_gocart_interface.o
 
@@ -46,6 +47,7 @@ mpas_chemistry_gocart_driver.o: \
 	mpas_chemistry_gocart_driver_aerosols.o \
 	mpas_chemistry_gocart_driver_dusts.o \
 	mpas_chemistry_gocart_driver_seasalts.o \
+	mpas_chemistry_gocart_driver_sulfates.o \
 	mpas_chemistry_gocart_interface.o
 
 
