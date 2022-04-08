@@ -16,6 +16,11 @@
 !initialization and interpolation to MPAS mesh of input data needed to run the CHEM2D Ozone Photochemistry
 !Parameterization (CHEM2D-OPP) of McCormack et al. (2006).
 
+!add-ons and modifications to sourcecode:
+!----------------------------------------
+! * in subroutine chemistry_init, hit return if config_o3prognostic is set to false.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-04-08.
+
 
  contains
 
@@ -37,16 +42,16 @@
  logical,pointer:: o3prognostic
 
 !-----------------------------------------------------------------------------------------------------------------
+
+!--- hit return if config_o3prognostic is set to false:
+ call mpas_pool_get_config(configs,'config_o3prognostic',o3prognostic)
+ if(.not. o3prognostic) return
+
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine chemistry_init:')
 
- call mpas_pool_get_config(configs,'config_o3prognostic',o3prognostic)
-
-
 !--- initializes the input data need to run the CHEM2D-OPP of McCormack et al. (2006):
-!if(o3prognostic) then
-    call init_opp(configs,mesh,chem_input)
-!endif
+ call init_opp(configs,mesh,chem_input)
 
 
  call mpas_log_write('--- end subroutine chemistry_init:')

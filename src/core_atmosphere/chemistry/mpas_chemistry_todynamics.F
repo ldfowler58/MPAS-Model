@@ -20,6 +20,11 @@
 
 !computation of dynamics tendency for use in the dynamical core.
 
+!add-ons and modifications to sourcecode:
+!----------------------------------------
+! * in subroutine chemistry_get_tend, hit return if config_o3prognostic is set to false.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-04-08.
+
 
  contains
 
@@ -38,7 +43,7 @@
  type(mpas_pool_type),intent(inout):: tend
 
 !local variables:
- logical,pointer:: config_o3prognostic
+ logical,pointer:: o3prognostic
 
  integer:: iCell,k
  integer,pointer:: nCells,nCellsSolve,nVertLevels
@@ -49,21 +54,25 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: tend_scalars
 
 !-----------------------------------------------------------------------------------------------------------------
+
+ call mpas_pool_get_dimension(state,'index_qo3'  ,index_qo3  )
+ call mpas_pool_get_dimension(state,'num_scalars',num_scalars)
+
+ call mpas_pool_get_array(tend,'scalars_tend',tend_scalars)
+ tend_scalars(index_qo3,:,:) = 0._RKIND
+
+!--- hit return if config_o3prognostic is set to false:
+ call mpas_pool_get_config(configs,'config_o3prognostic',o3prognostic)
+ if(.not. o3prognostic) return
+
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine chemistry_get_tend:')
-
- call mpas_pool_get_config(configs,'config_o3prognostic',config_o3prognostic)
 
  call mpas_pool_get_dimension(mesh,'nCells'     ,nCells     )
  call mpas_pool_get_dimension(mesh,'nCellsSolve',nCellsSolve)
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
 
- call mpas_pool_get_dimension(state,'index_qo3'  ,index_qo3  )
- call mpas_pool_get_dimension(state,'num_scalars',num_scalars)
-
  call mpas_pool_get_array(state,'rho_zz',mass,2)
-
- call mpas_pool_get_array(tend,'scalars_tend',tend_scalars)
 
  call mpas_pool_get_array(tend_chemistry,'qo3oppten',qo3oppten)
 
@@ -73,17 +82,8 @@
 !
  if (.not.associated(qo3oppten)) allocate(qo3oppten(0,0))
 
- tend_scalars(index_qo3,:,:) = 0._RKIND
- call chemistry_get_tend_work(nCells,nCellsSolve,nVertLevels,config_o3prognostic,index_qo3,num_scalars, &
-                              mass,qo3oppten,tend_scalars)
-
-!do iCell = 1,nCellsSolve
-!   do k = 1,nVertLevels
-!      call mpas_log_write('$i $i $r $r $r',intArgs=(/iCell,k/),realArgs=(/mass(k,iCell),qo3oppten(k,iCell), &
-!                          tend_scalars(index_qo3,k,iCell)/))
-!   enddo
-!   call mpas_log_write(' ')
-!enddo
+ call chemistry_get_tend_work(nCells,nCellsSolve,nVertLevels,o3prognostic,index_qo3,num_scalars,mass, &
+                              qo3oppten,tend_scalars)
 
 !
 !clean up any pointers that were allocated with zero size before the call to chemistry_get_tend_work:
@@ -95,12 +95,12 @@
  end subroutine chemistry_get_tend
 
 !=================================================================================================================
- subroutine chemistry_get_tend_work(nCells,nCellsSolve,nVertLevels,config_o3prognostic,index_qo3,num_scalars, &
-                                    mass,qo3oppten,tend_scalars)
+ subroutine chemistry_get_tend_work(nCells,nCellsSolve,nVertLevels,o3prognostic,index_qo3,num_scalars,mass, &
+                                    qo3oppten,tend_scalars)
 !=================================================================================================================
 
 !input arguments:
- logical,intent(in) :: config_o3prognostic
+ logical,intent(in) :: o3prognostic
 
  integer,intent(in):: nCells,nCellsSolve,nVertLevels
  integer,intent(in):: index_qo3,num_scalars
@@ -117,7 +117,7 @@
 !-----------------------------------------------------------------------------------------------------------------
 
 !--- add coupled tendency due to CHEM2D Ozone Photochemistry Parameterization (CHEM2D-OPP):
- if(config_o3prognostic) then
+ if(o3prognostic) then
 
     do iCell = 1,nCellsSolve
        do k = 1,nVertLevels

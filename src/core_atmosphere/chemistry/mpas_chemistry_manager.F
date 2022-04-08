@@ -18,6 +18,14 @@
 
 !defines alarm to update the coefficients used in the CHEM2D Ozone Photochemistry Parameterization (CHEM2D-OPP)
 !of McCormack et al.,2006).
+
+!add-ons and modifications to sourcecode:
+!----------------------------------------
+! * in subroutines chemistry_timetracker and chemistry_run_init, hit return if config_o3prognostic
+!   is set to false.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-04-08.
+
+
  character(len=*), parameter:: oppAlarmID = 'opp'
 
 
@@ -38,6 +46,7 @@
  type(mpas_pool_type),pointer:: mesh
  type(mpas_pool_type),pointer:: chem_input
 
+ logical,pointer:: o3prognostic
 
 !local variables:
  type(MPAS_Time_Type):: currTime
@@ -51,6 +60,12 @@
  real(kind=RKIND):: utc_h,utc_s
 
 !-----------------------------------------------------------------------------------------------------------------
+
+!--- hit return if config_o3prognostic is set to false:
+ call mpas_pool_get_config(domain%configs,'config_o3prognostic',o3prognostic)
+ if(.not. o3prognostic) return
+
+
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine chemistry_timetracker:')
 
@@ -106,7 +121,8 @@
 
 
 !local pointers:
- character(len=StrKIND),pointer:: config_OPP_update
+ character(len=StrKIND),pointer:: OPP_update
+ logical,pointer:: o3prognostic
 
 
 !local variables:
@@ -116,10 +132,15 @@
  integer:: ierr
 
 !-----------------------------------------------------------------------------------------------------------------
+
+!--- hit return if config_o3prognostic is set to false:
+ call mpas_pool_get_config(configs,'config_o3prognostic',o3prognostic)
+ if(.not. o3prognostic) return
+
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine chemistry_run_init:')
 
- call mpas_pool_get_config(configs,'config_OPP_update',config_OPP_update)
+ call mpas_pool_get_config(configs,'config_OPP_update',OPP_update)
 
 
 !--- get startTime prior to initializating alarms:
@@ -127,7 +148,7 @@
 
 
 !--- set alarm for updating the coefficients in the GFS linearized CHEM2D-OPP:
- call mpas_set_timeInterval(alarmTimeStep,timeString=config_OPP_update,ierr=ierr)
+ call mpas_set_timeInterval(alarmTimeStep,timeString=OPP_update,ierr=ierr)
  alarmStartTime = startTime
  call mpas_add_clock_alarm(clock,oppAlarmID,alarmStartTime,alarmTimeStep,ierr=ierr)
     if(ierr /= 0) &

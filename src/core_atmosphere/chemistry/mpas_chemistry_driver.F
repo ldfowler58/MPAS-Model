@@ -4,6 +4,7 @@
  use mpas_kind_types
  use mpas_derived_types
  use mpas_pool_routines,only: mpas_pool_get_subpool
+ use mpas_timer,only: mpas_timer_start,mpas_timer_stop
 
  use mpas_chemistry_interface
  use o3_gfs
@@ -19,6 +20,11 @@
 !
 !subroutine chemistry_driver is the top chemistry driver that calls the chemistry drivers for the treatment of
 !gocart aerosols,gocart seasalts,and gocart dusts.
+
+!add-ons and modifications to sourcecode:
+!----------------------------------------
+! * in subroutine chemistry_driver, hit return if config_o3prognostic is set to false.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-04-08.
 
 
  contains
@@ -45,7 +51,10 @@
 
 
  character(len=StrKIND):: errmsg
+
+ logical,pointer:: o3prognostic
  logical:: ldiag3d,qdiag3d
+
  integer:: i,k,n
  integer:: its,ite,im,levs,kts,kte,no3,no3levs
  integer:: errflg
@@ -55,12 +64,19 @@
  real(kind=RKIND),dimension(:,:),pointer:: qoz,temp
 
 !-----------------------------------------------------------------------------------------------------------------
+
+!--- hit return if config_o3prognostic is set to false:
+ call mpas_pool_get_config(domain%configs,'config_o3prognostic',o3prognostic)
+ if(.not. o3prognostic) return
+
+
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine mpas_chemistry_driver:')
 
  time_lev = 1
 
 
+ call mpas_timer_start('chemistry driver')
  block => domain % blocklist
  do while(associated(block))
 
@@ -137,6 +153,7 @@
 
     block => block % next
  end do
+ call mpas_timer_stop('chemistry driver')
 
 
  call mpas_log_write('--- end subroutine mpas_chemistry_driver:')
