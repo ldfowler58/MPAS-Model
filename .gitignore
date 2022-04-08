@@ -7,6 +7,10 @@ src/framework/*.f90
 src/driver/*.f90
 src/operators/*.f90
 
+src/core_atmosphere/*/*/*.f90
+src/core_atmosphere/*/*.f90
+src/external/esmf_time_f90/*.f90
+
 # All object files
 *.o
 
