@@ -91,10 +91,10 @@
 !   call mpas_log_write('$i $r',intArgs=(/k/),realArgs=(/oz_lat(k)/))
 !enddo
 !call mpas_log_write(' ')
- call mpas_log_write('--- oz_time:')
- do k = 1,timeoz+1
-    call mpas_log_write('$i $r',intArgs=(/k/),realArgs=(/oz_time(k)/))
- enddo
+!call mpas_log_write('--- oz_time:')
+!do k = 1,timeoz+1
+!   call mpas_log_write('$i $r',intArgs=(/k/),realArgs=(/oz_time(k)/))
+!enddo
 
 !--- read in ozplin which is in order of (latitudes,ozone levels,coeff number,time) where latitudes are on
 !    a uniform gaussian grid:
@@ -261,6 +261,7 @@
              wk3(i) = 1.0 - wk2(i)
           endif
        enddo
+
        do j = 1,pl_coeff
           do i = 1,im
              if(flg(i)) then
@@ -287,38 +288,13 @@
        prod(i,2)  = min(prod(i,2),0.0)
     enddo
 
-!   do i = 1,im
-!      ozib(i) = ozi(i,l)            ! no filling
-!      tem = prod(i,1) - prod(i,2) * prod(i,6)   &
-!          + prod(i,3) * (tin(i,l) - prod(i,5))  &
-!          + prod(i,4) * (colo3(i,l)-coloz(i,l))
-!      oz(i,l) = (ozib(i)  + tem*dt) / (1.0 - prod(i,2)*dt)
-!   enddo
     do i = 1,im
        ozib(i) = ozi(i,l)
-!--- test 1:
-!      oz(i,l) = ozib(i)/(1.-prod(i,2)*dt)
-!--- test 2:
-!      tem = - prod(i,2)*prod(i,6)*dt
-!      oz(i,l) = (ozib(i) + tem)/(1.-prod(i,2)*dt)
-!--- test 3:
-!      tem = prod(i,1)*dt - prod(i,2)*prod(i,6)*dt
-!      oz(i,l) = (ozib(i) + tem)/(1.-prod(i,2)*dt)
-!--- test 3:
-!      tem = prod(i,1)*dt - prod(i,2)*prod(i,6)*dt &
-!          + prod(i,3)*(tin(i,l)-prod(i,5))*dt
-!      oz(i,l) = (ozib(i) + tem)/(1.-prod(i,2)*dt)
-!--- test 4:
-       tem = prod(i,1)*dt - prod(i,2)*prod(i,6)*dt &
-           + prod(i,3)*(tin(i,l)-prod(i,5))*dt     &
-           + prod(i,4)*(colo3(i,l)-coloz(i,l))*dt
-       oz(i,l) = (ozib(i) + tem)/(1.-prod(i,2)*dt)
-!      tem = prod(i,1) - prod(i,2)*prod(i,6)  &
-!          + prod(i,3)*(tin(i,l)-prod(i,5))   &
-!          + prod(i,4)*(colo3(i,l)-coloz(i,l))
-!      oz(i,l) = (ozib(i) + tem*dt)/(1.-prod(i,2)*dt)
+       tem = prod(i,1) - prod(i,2) * prod(i,6)   &
+           + prod(i,3) * (tin(i,l) - prod(i,5))  &
+           + prod(i,4) * (colo3(i,l)-coloz(i,l))
+       oz(i,l) = (ozib(i)  + tem*dt) / (1.0 - prod(i,2)*dt)
     enddo
-
     if(ldiag3d .and. qdiag3d) then ! ozone change diagnostics
        do i = 1,im
           ozp1(i,l) = ozp1(i,l) + (prod(i,1)-prod(i,2)*prod(i,6))*dt
