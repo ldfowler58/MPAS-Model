@@ -555,6 +555,8 @@
                         <var name="relhum" packages="met_stage_out"/>
                         <var name="rho_base" packages="met_stage_out"/>
                         <var name="theta_base" packages="met_stage_out"/>
+                        <var name="exner" packages="met_stage_out"/>
+                        <var name="exner_base" packages="met_stage_out"/>
                         <var name="surface_pressure" packages="met_stage_out"/>
                         <var name="pressure_base" packages="met_stage_out"/>
                         <var name="pressure_p" packages="met_stage_out"/>
