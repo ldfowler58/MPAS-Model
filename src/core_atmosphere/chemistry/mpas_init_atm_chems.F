@@ -20,6 +20,12 @@
 !initialization of CAMS emissions and interpolation of CAM-Chem input data to the MPAS mesh.
 !Laura D. Fowler (laura@ucar.edu) / 2022-02-08.
 
+!add-ons and modifications to sourcecode:
+!----------------------------------------
+! * in subroutine init_vinterp_camchem, changed the initialization of qco from a diagnostic variable to a
+!   prognostic state variable so that carbon monoxide can be used as a passive tracer.
+!   Laura D. Fowler (laura@ucar.edu) / 2022-06-23.
+
 
  contains
 
@@ -154,7 +160,7 @@
  call mpas_log_write('--- enter subroutine init_atm_camchem:')
 
  call init_hinterp_camchem(configs,mesh,fg)
- call init_vinterp_camchem(configs,mesh,fg,diag,chems_input)
+ call init_vinterp_camchem(configs,mesh,fg,diag,chems_input,state)
  call init_camchem_tothompson(mesh,chems_input,state)
 
  call mpas_log_write('--- end subroutine init_atm_camchem.')
@@ -781,7 +787,7 @@
  end subroutine init_hinterp_camchem
 
 !=================================================================================================================
- subroutine init_vinterp_camchem(configs,mesh,fg,diag,chems_input)
+ subroutine init_vinterp_camchem(configs,mesh,fg,diag,chems_input,state)
 !=================================================================================================================
 
 !input arguments:
@@ -792,18 +798,18 @@
 
 !inout arguments:
  type(mpas_pool_type),intent(inout):: chems_input
+ type(mpas_pool_type),intent(inout):: state
 
 !local variables and arrays:
- integer:: iCell,k,kk,n
+ integer:: iCell,k,kk,n,nn
 
  integer,pointer:: nCells,nCAMLevels,nVertLevels
- integer,pointer:: num_chems,num_chems_fg
- integer,pointer:: gocart_start,gocart_end,gocart_fg_start,gocart_fg_end
- integer,pointer:: index_qbc1,index_qbc2,index_qoc1,index_qoc2,index_qseas1,index_qseas2,index_qseas3, &
-                   index_qseas4,index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
+ integer,pointer:: num_chems,num_chems_gocart,num_chems_fg
+ integer,pointer:: passive_start,passive_end,gocart_start,gocart_end,gocart_fg_start,gocart_fg_end
+ integer,pointer:: index_qco,index_qco_fg
 
  real(kind=RKIND),dimension(:,:),pointer:: pcam_fg,pressure
- real(kind=RKIND),dimension(:,:,:),pointer:: chems,chems_fg
+ real(kind=RKIND),dimension(:,:,:),pointer:: chems,chems_gocart,chems_fg
 
  real(kind=RKIND):: target_p
  real(kind=RKIND),dimension(:,:),allocatable:: sorted_arr
@@ -816,48 +822,92 @@
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
  call mpas_pool_get_dimension(mesh,'nCAMLevels' ,nCAMLevels )
 
- call mpas_pool_get_dimension(chems_input,'num_chems_gocart',num_chems   )
- call mpas_pool_get_dimension(chems_input,'gocart_start'    ,gocart_start)
- call mpas_pool_get_dimension(chems_input,'gocart_end'      ,gocart_end  )
- call mpas_log_write('--- num_chems_gocart = $i',intArgs=(/num_chems/)   )
- call mpas_log_write('--- gocart_start     = $i',intArgs=(/gocart_start/))
- call mpas_log_write('--- gocart_end       = $i',intArgs=(/gocart_end/)  )
+ call mpas_pool_get_dimension(state,'num_chems',num_chems        )
+ call mpas_pool_get_dimension(state,'passive_start',passive_start)
+ call mpas_pool_get_dimension(state,'passive_end'  ,passive_end  )
+ call mpas_pool_get_dimension(state,'index_qco'    ,index_qco    )
+ call mpas_log_write('--- num_chems        = $i',intArgs=(/num_chems/)    )
+ call mpas_log_write('--- passive_start    = $i',intArgs=(/passive_start/))
+ call mpas_log_write('--- passive_end      = $i',intArgs=(/passive_end/)  )
+ call mpas_log_write('--- index_qco        = $i',intArgs=(/index_qco/)    )
+ call mpas_log_write(' ')
+
+ call mpas_pool_get_dimension(chems_input,'num_chems_gocart',num_chems_gocart)
+ call mpas_pool_get_dimension(chems_input,'gocart_start'    ,gocart_start    )
+ call mpas_pool_get_dimension(chems_input,'gocart_end'      ,gocart_end      )
+ call mpas_log_write('--- num_chems_gocart = $i',intArgs=(/num_chems_gocart/))
+ call mpas_log_write('--- gocart_start     = $i',intArgs=(/gocart_start/)    )
+ call mpas_log_write('--- gocart_end       = $i',intArgs=(/gocart_end/)      )
  call mpas_log_write(' ')
 
  call mpas_pool_get_dimension(fg,'num_chems_fg'   ,num_chems_fg   )
  call mpas_pool_get_dimension(fg,'gocart_fg_start',gocart_fg_start)
  call mpas_pool_get_dimension(fg,'gocart_fg_end'  ,gocart_fg_end  )
+ call mpas_pool_get_dimension(fg,'index_qco_fg'   ,index_qco_fg   )
  call mpas_log_write('--- num_chems_fg    = $i',intArgs=(/num_chems_fg/)   )
  call mpas_log_write('--- gocart_fg_start = $i',intArgs=(/gocart_fg_start/))
  call mpas_log_write('--- gocart_fg_end   = $i',intArgs=(/gocart_fg_end/)  )
+ call mpas_log_write('--- index_qco_fg    = $i',intArgs=(/index_qco_fg/)   )
  call mpas_log_write(' ')
 
  call mpas_pool_get_array(diag,'pressure_base',pressure)
 
  call mpas_pool_get_array(fg,'pcam_fg' ,pcam_fg )
  call mpas_pool_get_array(fg,'chems_fg',chems_fg) 
- call mpas_pool_get_array(chems_input,'chems_gocart',chems)
- chems(:,:,:) = 0._RKIND
+ call mpas_pool_get_array(chems_input,'chems_gocart',chems_gocart)
+ call mpas_pool_get_array(state,'chems',chems)
+ chems_gocart(:,:,:) = 0._RKIND
+ chems(:,:,:)        = 0._RKIND
 
  if(.not.allocated(sorted_arr)) allocate(sorted_arr(2,nCAMLevels))
+ nn = 0
  do n = 1,num_chems_fg
-    do iCell = 1,nCells
-       sorted_arr(1,1:nCAMLevels) = 0._RKIND
-       sorted_arr(1,1:nCAMLevels) = 0._RKIND
-       do k = 1,nCAMLevels
-          sorted_arr(1,k) = pcam_fg(k,iCell)
-          sorted_arr(2,k) = chems_fg(n,k,iCell)
+    if(n .ne. index_qco_fg) then
+       nn = nn + 1
+       do iCell = 1,nCells
+          sorted_arr(1,1:nCAMLevels) = 0._RKIND
+          sorted_arr(1,1:nCAMLevels) = 0._RKIND
+          do k = 1,nCAMLevels
+             sorted_arr(1,k) = pcam_fg(k,iCell)
+             sorted_arr(2,k) = chems_fg(n,k,iCell)
+          enddo
+          do k = 1,nVertLevels
+             target_p = pressure(k,iCell)
+             chems_gocart(nn,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
+                                                order=1,extrap=0)
+          enddo
        enddo
-       do k = 1,nVertLevels
-          target_p = pressure(k,iCell)
-          chems(n,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
-                                             order=1,extrap=0)
+    endif
+ enddo
+ do n = 1,num_chems_fg
+    if(n .eq. index_qco_fg) then
+       do iCell = 1,nCells
+          sorted_arr(1,1:nCAMLevels) = 0._RKIND
+          sorted_arr(1,1:nCAMLevels) = 0._RKIND
+          do k = 1,nCAMLevels
+             sorted_arr(1,k) = pcam_fg(k,iCell)
+             sorted_arr(2,k) = chems_fg(n,k,iCell)
+          enddo
+          do k = 1,nVertLevels
+             target_p = pressure(k,iCell)
+             chems(index_qco,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
+                                                order=1,extrap=0)
+          enddo
        enddo
-    enddo
+    endif
  enddo
  if(allocated(sorted_arr)) deallocate(sorted_arr)
 
  call mpas_log_write('--- negative chem variables:')
+ do n = 1,num_chems_gocart
+    do iCell = 1,nCells
+       do k = 1,nVertLevels
+          if(chems_gocart(n,k,iCell) .lt. 0._RKIND) then
+             call mpas_log_write('$i $i $i $r',intArgs=(/n,iCell,k/),realArgs=(/chems_gocart(n,k,iCell)/))
+          endif
+       enddo
+    enddo
+ enddo
  do n = 1,num_chems
     do iCell = 1,nCells
        do k = 1,nVertLevels
@@ -867,7 +917,6 @@
        enddo
     enddo
  enddo
-
  call mpas_log_write('--- end subroutine init_vinterp_camchem.')
 
  end subroutine init_vinterp_camchem
