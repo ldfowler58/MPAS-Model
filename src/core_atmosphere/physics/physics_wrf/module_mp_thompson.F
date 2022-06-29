@@ -1200,8 +1200,8 @@
 !.. number tendency (number per kg per second).
          if (is_aerosol_aware) then
 !-GT        nwfa1d(kts) = nwfa1
-!           nwfa1d(kts) = nwfa1d(kts) + nwfa2d(i,j)*dt_in
-!           nifa1d(kts) = nifa1d(kts) + nifa2d(i,j)*dt_in
+            nwfa1d(kts) = nwfa1d(kts) + nwfa2d(i,j)*dt_in
+            nifa1d(kts) = nifa1d(kts) + nifa2d(i,j)*dt_in
 
             do k = kts, kte
                nc(i,k,j) = nc1d(k)
