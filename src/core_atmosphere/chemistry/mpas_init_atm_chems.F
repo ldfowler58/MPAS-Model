@@ -811,6 +811,9 @@
  real(kind=RKIND),dimension(:,:),pointer:: pcam_fg,pressure
  real(kind=RKIND),dimension(:,:,:),pointer:: chems,chems_gocart,chems_fg
 
+ real(kind=RKIND),parameter:: m_CO  = 28.01 ! molecular weight of carbon monoxide
+ real(kind=RKIND),parameter:: m_air = 28.97 ! molecular weight of dry air.
+ real(kind=RKIND):: conv
  real(kind=RKIND):: target_p
  real(kind=RKIND),dimension(:,:),allocatable:: sorted_arr
 
@@ -881,6 +884,7 @@
  enddo
  do n = 1,num_chems_fg
     if(n .eq. index_qco_fg) then
+       conv = m_CO / m_air
        do iCell = 1,nCells
           sorted_arr(1,1:nCAMLevels) = 0._RKIND
           sorted_arr(1,1:nCAMLevels) = 0._RKIND
@@ -892,6 +896,7 @@
              target_p = pressure(k,iCell)
              chems(index_qco,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
                                                 order=1,extrap=0)
+             chems(index_qco,k,iCell) = conv*chems(index_qco,k,iCell)
           enddo
        enddo
     endif
