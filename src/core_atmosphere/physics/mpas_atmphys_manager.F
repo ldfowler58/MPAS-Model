@@ -14,6 +14,7 @@
 
  use mpas_atmphys_constants
  use mpas_atmphys_vars
+ use mpas_atmphys_vars_noahmp,only: num_soilcs
  use mpas_atmphys_o3climatology
  use mpas_atmphys_update_surface
  use mpas_atmphys_utilities
@@ -406,7 +407,7 @@
  integer,pointer:: cam_dim1
  integer,pointer:: nMonths
  integer,pointer:: nAerosols,nAerLevels,nOznLevels
- integer,pointer:: nCellsSolve,nSoilLevels,nVertLevels
+ integer,pointer:: nCellsSolve,nSoilComps,nSoilLevels,nVertLevels
 
  real(kind=RKIND),pointer:: config_dt
 
@@ -446,6 +447,7 @@
  call mpas_pool_get_dimension(mesh,'nOznLevels' ,nOznLevels )
  call mpas_pool_get_dimension(mesh,'nCellsSolve',nCellsSolve)
  call mpas_pool_get_dimension(mesh,'nCellsSolve',nCellsSolve)
+ call mpas_pool_get_dimension(mesh,'nSoilComps' ,nSoilComps )
  call mpas_pool_get_dimension(mesh,'nSoilLevels',nSoilLevels)
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
 
@@ -672,6 +674,7 @@
 
 !initialization local physics variables:
  num_months = nMonths
+ num_soilcs = nSoilComps
  num_soils  = nSoilLevels
 
  if(trim(config_lsm_scheme) .eq. "sf_noah") sf_surface_physics = 2
