@@ -1,0 +1,284 @@
+<!-- ========================================================================================================= -->
+<!-- ARRAYS SPECIFIC TO NOAHMP LAND SURFACE SCHEME:                                                            -->
+<!-- ========================================================================================================= -->
+
+ <dims>
+
+      <dim name="FIVE" definition="5"
+                description="A constant value of 5"/>
+
+      <dim name="SIXTY" definition="60"
+                description="A constant value of 60"/>
+
+      <dim name="nSoilComps" definition="8"
+                description="The number of soil textures as needed as input in the NOAH-MP land surface model"/>
+
+      <dim name="nSnowLevels" definition="7"
+                description="The number of snow layers used by the NOAHMP land-surface scheme"/>
+ 
+ </dims>
+
+
+ <var_struct name="mesh" time_levs="1">
+      <var name="soilcomp" type="real" dimensions="nSoilComps nCells" units="unitless"
+                description="soil composition needed as input in the NOAH-MP land surface model"/>
+
+      <var name="soilcl1" type="real" dimensions="nCells" units="unitless"
+                description="soil texture class level 1 needed as input for the NOAH-MP land surface model"/>
+
+      <var name="soilcl2" type="real" dimensions="nCells" units="unitless"
+                description="soil texture class level 2 needed as input for the NOAH-MP land surface model"/>
+
+      <var name="soilcl3" type="real" dimensions="nCells" units="unitless"
+                description="soil texture class level 3 needed as input for the NOAH-MP land surface model"/>
+
+      <var name="soilcl4" type="real" dimensions="nCells" units="unitless"
+                description="soil texture class level 4 needed as input for the NOAH-MP land surface model"/>
+ </var_struct>
+
+
+ <var_struct name="diag_physics_noahmp" time_levs="1">
+
+      <var name="rs" type="real" dimensions="nCells Time" units="s m^{-1}"
+                description="surface resistance"
+                packages="sf_noahmp_in"/>
+
+      <var name="isnowxy" type="integer" dimensions="nCells Time" units="-"
+                description="number of snow layers"
+                packages="sf_noahmp_in"/>
+
+      <var name="tvxy" type="real" dimensions="nCells Time" units="K"
+                description="vegetation leaf temperature"
+                packages="sf_noahmp_in"/>
+
+      <var name="tgxy" type="real" dimensions="nCells Time" units="K"
+                description="bulk ground temperature"
+                packages="sf_noahmp_in"/>
+
+      <var name="canicexy" type="real" dimensions="nCells Time" units="mm"
+                description="intercepted ice mass"
+                packages="sf_noahmp_in"/>
+
+      <var name="canliqxy" type="real" dimensions="nCells Time" units="mm"
+                description="intercepted liquid water"
+                packages="sf_noahmp_in"/>
+
+      <var name="chstarxy" type="real" dimensions="nCells Time" units="mm"
+                description="dummy exchange coefficient"
+                packages="sf_noahmp_in"/>
+
+      <var name="eahxy" type="real" dimensions="nCells Time" units="Pa"
+                description="canopy air vapor pressure"
+                packages="sf_noahmp_in"/>
+
+      <var name="tahxy" type="real" dimensions="nCells Time" units="K"
+                description="canopy air temperature"
+                packages="sf_noahmp_in"/>
+
+      <var name="cmxy" type="real" dimensions="nCells Time" units="m s^{-1}"
+                description="surface exchange coefficient for momentum"
+                packages="sf_noahmp_in"/>
+
+      <var name="chxy" type="real" dimensions="nCells Time" units="m s^{-1}"
+                description="surface exchange coefficient for heat"
+                packages="sf_noahmp_in"/>
+
+      <var name="fwetxy" type="real" dimensions="nCells Time" units="-"
+                description="wetted or snowed canopy fraction"
+                packages="sf_noahmp_in"/>
+
+      <var name="sneqvoxy" type="real" dimensions="nCells Time" units="mm"
+                description="snow mass at last time step"
+                packages="sf_noahmp_in"/>
+
+      <var name="alboldxy" type="real" dimensions="nCells Time" units="-"
+                description="snow albedo at last timestep"
+                packages="sf_noahmp_in"/>
+
+      <var name="qrainxy" type="real" dimensions="nCells Time" units="mm s^{-1}"
+                description="rainfall on the ground"
+                packages="sf_noahmp_in"/>"
+
+      <var name="qsnowxy" type="real" dimensions="nCells Time" units="mm s^{-1}"
+                description="snowfall on the ground"
+                packages="sf_noahmp_in"/>
+
+      <var name="wslakexy" type="real" dimensions="nCells Time" units="mm"
+                description="lake water storage"
+                packages="sf_noahmp_in"/>
+
+      <var name="zwtxy" type="real" dimensions="nCells Time" units="m"
+                description="water table depth"
+                packages="sf_noahmp_in"/>
+
+      <var name="waxy" type="real" dimensions="nCells Time" units="mm"
+                description="water in the acquifer"
+                packages="sf_noahmp_in"/>
+
+      <var name="wtxy" type="real" dimensions="nCells Time" units="mm"
+                description="groundwater storage"
+                packages="sf_noahmp_in"/>
+
+      <var name="lfmassxy" type="real" dimensions="nCells Time" units="g m^{-2}"
+                description="leaf mass"
+                packages="sf_noahmp_in"/>
+
+      <var name="rtmassxy" type="real" dimensions="nCells Time" units="g m^{-2}"
+                description="mass of fine roots"
+                packages="sf_noahmp_in"/>
+
+      <var name="stmassxy" type="real" dimensions="nCells Time" units="g m^{-2}"
+                description="stem mass"
+                packages="sf_noahmp_in"/>
+
+      <var name="t2mbxy" type="real" dimensions="nCells Time" units="K"
+                description="2-meter temperature over bare ground"
+                packages="sf_noahmp_in"/>
+
+      <var name="t2mvxy" type="real" dimensions="nCells Time" units="K"
+                description="2-meter temperature over canopy"
+                packages="sf_noahmp_in"/>
+
+      <var name="woodxy" type="real" dimensions="nCells Time" units="g m^{-2}"
+                description="mass of wood"
+                packages="sf_noahmp_in"/>
+
+      <var name="grainxy" type="real" dimensions="nCells Time" units="g m^{-2}"
+                description="mass of grain"
+                packages="sf_noahmp_in"/>
+
+      <var name="gddxy" type="real" dimensions="nCells Time" units="-"
+                description="growing degree days"
+                packages="sf_noahmp_in"/>
+
+      <var name="pgsxy" type="real" dimensions="nCells Time" units="-"
+                description="pgs"
+                packages="sf_noahmp_in"/>
+
+      <var name="stblcpxy" type="real" dimensions="nCells Time" units="g m^{-2}"
+                description="stable carbon pool"
+                packages="sf_noahmp_in"/>
+
+      <var name="fastcpxy" type="real" dimensions="nCells Time" units="g m^{-2}"
+                description="short-lived carbon"
+                packages="sf_noahmp_in"/>
+
+      <var name="xsaixy" type="real" dimensions="nCells Time" units="-"
+                description="stem area index"
+                packages="sf_noahmp_in"/>
+
+      <var name="taussxy" type="real" dimensions="nCells Time" units="-"
+                description="non-dimensional snow age"
+                packages="sf_noahmp_in"/>
+
+      <var name="smcwtdxy" type="real" dimensions="nCells Time" units="m3 m^{-3}"
+                description="deep soil moisture"
+                packages="sf_noahmp_in"/>
+
+      <var name="deeprechxy" type="real" dimensions="nCells Time" units="mm"
+                description="deep water table recharge"
+                packages="sf_noahmp_in"/>
+
+      <var name="rechxy" type="real" dimensions="nCells Time" units="mm"
+                description="water table recharge"
+                packages="sf_noahmp_in"/>
+
+      <var name="tsnoxy" type="real" dimensions="THREE nCells Time" units="K"
+                description="snow temperature"
+                packages="sf_noahmp_in"/>
+
+      <var name="zsnsoxy" type="real" dimensions="nSnowLevels nCells Time" units="m"
+                description="layer-bottom depth from snow surf"
+                packages="sf_noahmp_in"/>
+
+      <var name="snicexy" type="real" dimensions="THREE nCells Time" units="mm"
+                description="snow layer ice"
+                packages="sf_noahmp_in"/>
+
+      <var name="snliqxy" type="real" dimensions="THREE nCells Time" units="mm"
+                description="snow layer liquid"
+                packages="sf_noahmp_in"/>
+
+      <var name="smoiseq" type="real" dimensions="nSoilLevels nCells Time" units="mm"
+                description="equivalent soil moisture"
+                packages="sf_noahmp_in"/>
+
+      <var name="cropcat" type="integer" dimensions="nCells Time" units="-"
+                description="dominant crop category"
+                packages="sf_noahmp_in"/>
+
+      <var name="croptype" type="real" dimensions="FIVE nCells Time" units="-"
+                description="dominant crop type"
+                packages="sf_noahmp_in"/>
+
+      <var name="qtdrain" type="real" dimensions="nCells Time" units="-"
+                description="tile drainage"
+                packages="sf_noahmp_in"/>
+
+      <var name="td_fraction" type="real" dimensions="nCells Time" units="-"
+                description="tile drainage map"
+                packages="sf_noahmp_in"/>
+
+      <var name="acc_ssoil" type="real" dimensions="nCells Time" units="W m^{-2}"
+                description="accumulated ssoil between dt_soil"
+                packages="sf_noahmp_in"/>
+
+      <var name="acc_qinsur" type="real" dimensions="nCells Time" units ="mm s^{-1}"                
+                description="accumulated qinsur between dt_soil"
+                packages="sf_noahmp_in"/>
+
+      <var name="acc_qseva" type="real" dimensions="nCells Time" units ="mm s^{-1}"
+                description="accumulated qsevap between dt_soil"
+                packages="sf_noahmp_in"/>
+
+      <var name="acc_dwater" type="real" dimensions="nCells Time" units ="mm"
+                description="accumulated canopy,snow,soil water change between dt_soil"
+                packages="sf_noahmp_in"/>
+
+      <var name="acc_prcp" type="real" dimensions="nCells Time" units ="mm"
+                description="accumulated precipitation between dt_soil"
+                packages="sf_noahmp_in"/>
+
+      <var name="acc_ecan" type="real" dimensions="nCells Time" units ="mm"
+                description="accumulated net canopy evaporation between dt_soil"
+                packages="sf_noahmp_in"/>
+
+      <var name="acc_etran" type="real" dimensions="nCells Time" units ="mm"
+                description="accumulated transpiration between dt_soil"
+                packages="sf_noahmp_in"/>
+
+      <var name="acc_edir" type="real" dimensions="nCells Time" units ="mm"
+                description="accumulated net soil evaporation between dt_soil"
+                packages="sf_noahmp_in"/>
+
+      <var name="acc_etrani" type="real" dimensions="nSoilLevels nCells Time" units ="mm s^{-1}"
+                description="accumulated etrani between dt_soil"
+                packages="sf_noahmp_in"/>
+
+      <var name="gecros_state" type="real" dimensions="SIXTY nCells Time" units="-"
+                description="gecros crop"
+                packages="sf_noahmp_in"/>
+
+      <var name="sfcheadrt" type="real" dimensions="nCells Time" units="mm"
+                description="surface water depth"
+                packages="sf_noahmp_in"/>
+
+      <var name="infxsrt" type="real" dimensions="nCells Time" units="mm"
+                description="time step infiltration excess"
+                packages="sf_noahmp_in"/>
+
+      <var name="soldrain" type="real" dimensions="nCells Time" units="mm"
+                description="soil column drainage"
+                packages="sf_noahmp_in"/>
+
+      <var name="qtiledrain" type="real" dimensions="nCells Time" units="mm"
+                description="tile drainage"
+                packages="sf_noahmp_in"/>
+
+      <var name="zwatble2d" type="real" dimensions="nCells Time" units="m"
+                description="water table depth for tile drainage"
+                packages="sf_noahmp_in"/>
+
+ </var_struct>
+
+<!-- ========================================================================================================= -->
