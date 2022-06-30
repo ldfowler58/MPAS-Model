@@ -124,6 +124,7 @@
  real (kind=RKIND), dimension(:), pointer :: soiltemp
  real (kind=RKIND), dimension(:), pointer :: snoalb
  real (kind=RKIND), dimension(:), pointer :: shdmin, shdmax
+ real (kind=RKIND), dimension(:), pointer :: soilcomp, soilcl1, soilcl2, soilcl3, soilcl4
  real (kind=RKIND), dimension(:,:), pointer :: greenfrac
  real (kind=RKIND), dimension(:,:), pointer :: albedo12m
  real (kind=RKIND) :: msgval, fillval
@@ -201,6 +202,11 @@
  call mpas_pool_get_array(mesh, 'albedo12m', albedo12m)
  call mpas_pool_get_array(mesh, 'shdmin', shdmin)
  call mpas_pool_get_array(mesh, 'shdmax', shdmax)
+ call mpas_pool_get_array(mesh, 'soilcomp', soilcomp)
+ call mpas_pool_get_array(mesh, 'soilcl1', soilcl1)
+ call mpas_pool_get_array(mesh, 'soilcl2', soilcl2)
+ call mpas_pool_get_array(mesh, 'soilcl3', soilcl3)
+ call mpas_pool_get_array(mesh, 'soilcl4', soilcl4)
 
  call mpas_pool_get_config(mesh, 'on_a_sphere', on_a_sphere)
  call mpas_pool_get_config(mesh, 'sphere_radius', sphere_radius)
@@ -269,988 +275,136 @@
 
 
 !
-! Interpolate HGT
+! Interpolate LU_INDEX
 !
-!nx = 126
-!ny = 126
- nx = 1206
- ny = 1206
- nz = 1
- isigned  = 1
- endian   = 0
- wordsize = 2
- scalefactor = 1.0
+
+!
+! Interpolate SOILCAT_TOP
+!
+
+!
+! Derive LANDMASK
+!
+
+!
+! Interpolate SOILTEMP:
+!
+
+!
+! Interpolate SNOALB
+!
+
+!
+! Interpolate GREENFRAC
+!
+
+!
+! Interpolate ALBEDO12M
+!
+
+!
+! Interpolate SOILCOMP
+!
+ nx = 1200
+ ny = 1200
+ nz = 8
+ isigned     = 0
+ endian      = 0
+ wordsize    = 1
+ scalefactor = 0.5
+ msgval      = 255.
+ fillval     = 0.0
  allocate(rarray(nx,ny,nz))
  allocate(nhs(nCells))
  nhs(:) = 0
- ter(:) = 0.0
+ soilcomp(:,:) = 0.0
 
  rarray_ptr = c_loc(rarray)
 
- start_lat = -89.99583
- select case(trim(config_topo_data))
-    case('GTOPO30')
-       call mpas_log_write('Using GTOPO30 terrain dataset')
-       geog_sub_path = 'topo_30s/'
-       start_lon = -179.99583
-    case('GMTED2010')
-       call mpas_log_write('Using GMTED2010 terrain dataset')
-       geog_sub_path = 'topo_gmted2010_30s/'
-       start_lon = 0.004166667
-    case('default')
-       call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-       call mpas_log_write('Invalid topography dataset '''//trim(config_topo_data) &
-                                     //''' selected for config_topo_data',                      messageType=MPAS_LOG_ERR)
-       call mpas_log_write('   Possible options are: ''GTOPO30'', ''GMTED2010''',               messageType=MPAS_LOG_ERR)
-       call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-       call mpas_log_write('Please correct the namelist.', messageType=MPAS_LOG_CRIT)
- end select
+ start_lat = -89.995833
+ start_lon = -179.995833
+ geog_sub_path = 'soilgrids/soilcomp/' 
 
- do jTileStart = 1,20401,ny-6
-    jTileEnd = jTileStart + ny - 1 - 6
+ do jTileStart = 1,20401,ny
+    jTileEnd = jTileStart + ny - 1
 
-    do iTileStart=1,42001,nx-6
-       iTileEnd = iTileStart + nx - 1 - 6
+    do iTileStart=1,42001,nx
+       iTileEnd = iTileStart + nx - 1
        write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)//trim(geog_sub_path), &
                     iTileStart,'-',iTileEnd,'.',jTileStart,'-',jTileEnd
        call mpas_log_write(trim(fname))
        call mpas_f_to_c_string(fname, c_fname)
 
-       call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                         scalefactor,wordsize,istatus)
+       call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,scalefactor,wordsize,istatus)
        call init_atm_check_read_error(istatus, fname)
 
-       iPoint = 1
-       do j=4,ny-3
-       do i=4,nx-3
-          lat_pt = start_lat + (jTileStart + j - 5) * 0.0083333333
-          lon_pt = start_lon + (iTileStart + i - 5) * 0.0083333333
-          lat_pt = lat_pt * PI / 180.0
-          lon_pt = lon_pt * PI / 180.0
+!      iPoint = 1
+!      do j=1,ny
+!      do i=1,nx
+!         lat_pt = start_lat + (jTileStart + j - 2) * 0.0083333333
+!         lon_pt = start_lon + (iTileStart + i - 2) * 0.0083333333
+!         lat_pt = lat_pt * PI / 180.0
+!         lon_pt = lon_pt * PI / 180.0
 
-          iPoint = nearest_cell(lat_pt,lon_pt,iPoint,nCells,maxEdges, &
-                                nEdgesOnCell,cellsOnCell, &
-                                latCell,lonCell)
+!         iPoint = nearest_cell(lat_pt,lon_pt,iPoint,nCells,maxEdges, &
+!                               nEdgesOnCell,cellsOnCell, &
+!                               latCell,lonCell)
 
-          !
-          ! For all but the outermost boundary cells, we can safely assume that the nearest
-          ! model grid cell contains the pixel (else, a different cell would be nearest)
-          !
-          if (bdyMaskCell(iPoint) < nBdyLayers) then
-             ter(iPoint) = ter(iPoint) + rarray(i,j,1)
-             nhs(iPoint) = nhs(iPoint) + 1
+!         !
+!         ! This field only matters for land cells, and for all but the outermost boundary cells,
+!         ! we can safely assume that the nearest model grid cell contains the pixel (else, a different
+!         ! cell would be nearest)
+!         !
+!         if (landmask(iPoint) == 1 .and. bdyMaskCell(iPoint) < nBdyLayers) then
+!            do k=1,nz
+!               if (rarray(i,j,k) == msgval) then
+!                  rarray(i,j,k) = fillval
+!               end if
+!               greenfrac(k,iPoint) = greenfrac(k,iPoint) + rarray(i,j,k)
+!            end do
+!            nhs(iPoint) = nhs(iPoint) + 1
 
-          ! For outermost boundary cells, additional work is needed to verify that the pixel
-          ! actually lies within the nearest cell
-          else
-             zPixel = sphere_radius * sin(lat_pt)                  ! Model cell coordinates assume a "full" sphere radius
-             xPixel = sphere_radius * cos(lon_pt) * cos(lat_pt)    ! at this point, so we need to ues the same radius
-             yPixel = sphere_radius * sin(lon_pt) * cos(lat_pt)    ! for source pixel coordinates
+!         ! For outermost land cells, additional work is needed to verify that the pixel
+!         ! actually lies within the nearest cell
+!         else if (landmask(iPoint) == 1) then
+!            zPixel = sphere_radius * sin(lat_pt)                  ! Model cell coordinates assume a "full" sphere radius
+!            xPixel = sphere_radius * cos(lon_pt) * cos(lat_pt)    ! at this point, so we need to ues the same radius
+!            yPixel = sphere_radius * sin(lon_pt) * cos(lat_pt)    ! for source pixel coordinates
 
-             if (in_cell(xPixel, yPixel, zPixel, xCell(iPoint), yCell(iPoint), zCell(iPoint), &
-                         nEdgesOnCell(iPoint), verticesOnCell(:,iPoint), xVertex, yVertex, zVertex)) then
-
-                ter(iPoint) = ter(iPoint) + rarray(i,j,1)
-                nhs(iPoint) = nhs(iPoint) + 1
-
-             end if
-          end if
-       end do
-       end do
+!            if (in_cell(xPixel, yPixel, zPixel, xCell(iPoint), yCell(iPoint), zCell(iPoint), &
+!                        nEdgesOnCell(iPoint), verticesOnCell(:,iPoint), xVertex, yVertex, zVertex)) then
+!               do k=1,nz
+!                  if (rarray(i,j,k) == msgval) then
+!                     rarray(i,j,k) = fillval
+!                  end if
+!                  greenfrac(k,iPoint) = greenfrac(k,iPoint) + rarray(i,j,k)
+!               end do
+!               nhs(iPoint) = nhs(iPoint) + 1
+!            end if
+!         end if
+!      end do
+!      end do
 
     end do
- end do
 
- do iCell = 1,nCells
-    ter(iCell) = ter(iCell) / real(nhs(iCell))
  end do
- deallocate(rarray)
- deallocate(nhs)
  call mpas_log_write('--- end interpolate TER')
 
+!
+! Interpolate SOILCL1
+!
 
 !
-! Interpolate LU_INDEX
+! Interpolate SOILCL2
 !
- surface_input_select1: select case(trim(config_landuse_data))
-    case('USGS')
-       call mpas_log_write('Using 24-class USGS 30-arc-second land cover dataset')
-       geog_sub_path = 'landuse_30s/'
-    case('MODIFIED_IGBP_MODIS_NOAH')
-       call mpas_log_write('Using 20-class MODIS 30-arc-second land cover dataset')
-       geog_sub_path = 'modis_landuse_20class_30s/'
-    case default
-       call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-       call mpas_log_write('Invalid land use dataset '''//trim(config_landuse_data) &
-                                     //''' selected for config_landuse_data',                   messageType=MPAS_LOG_ERR)
-       call mpas_log_write('   Possible options are: ''USGS'', ''MODIFIED_IGBP_MODIS_NOAH''',   messageType=MPAS_LOG_ERR)
-       call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-       call mpas_log_write('Please correct the namelist.', messageType=MPAS_LOG_CRIT)
- end select surface_input_select1
- nx = 1200
- ny = 1200
- nz = 1
- isigned  = 1
- endian   = 0
- wordsize = 1
- scalefactor = 1.0
- allocate(rarray(nx,ny,nz))
- allocate(ncat(ismax_lu,nCells))
- ncat(:,:) = 0
- lu_index(:) = 0.0
-
- rarray_ptr = c_loc(rarray)
-
- do jTileStart = 1,20401,ny
-    jTileEnd = jTileStart + ny - 1
-
-    do iTileStart = 1,42001,nx
-       iTileEnd = iTileStart + nx - 1
-       write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-             trim(geog_sub_path),iTileStart,'-',iTileEnd,'.',jTileStart,'-',jTileEnd
-       call mpas_log_write(trim(fname))
-       call mpas_f_to_c_string(fname, c_fname)
-
-       call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                         scalefactor,wordsize,istatus)
-       call init_atm_check_read_error(istatus, fname)
-
-       iPoint = 1
-       do j=1,ny
-       do i=1,nx
-!
-! The MODIS dataset appears to have zeros at the South Pole, possibly other places, too
-!
-if (rarray(i,j,1) == 0) cycle
-
-          lat_pt = -89.99583  + (jTileStart + j - 2) * 0.0083333333
-          lon_pt = -179.99583 + (iTileStart + i - 2) * 0.0083333333
-          lat_pt = lat_pt * PI / 180.0
-          lon_pt = lon_pt * PI / 180.0
-
-          iPoint = nearest_cell(lat_pt,lon_pt,iPoint,nCells,maxEdges, &
-                                nEdgesOnCell,cellsOnCell, &
-                                latCell,lonCell)
-
-          !
-          ! For all but the outermost boundary cells, we can safely assume that the nearest
-          ! model grid cell contains the pixel (else, a different cell would be nearest)
-          !
-          if (bdyMaskCell(iPoint) < nBdyLayers) then
-             ncat(int(rarray(i,j,1)),iPoint) = ncat(int(rarray(i,j,1)),iPoint) + 1
-
-          ! For outermost boundary cells, additional work is needed to verify that the pixel
-          ! actually lies within the nearest cell
-          else
-             zPixel = sphere_radius * sin(lat_pt)                  ! Model cell coordinates assume a "full" sphere radius
-             xPixel = sphere_radius * cos(lon_pt) * cos(lat_pt)    ! at this point, so we need to ues the same radius
-             yPixel = sphere_radius * sin(lon_pt) * cos(lat_pt)    ! for source pixel coordinates
-
-             if (in_cell(xPixel, yPixel, zPixel, xCell(iPoint), yCell(iPoint), zCell(iPoint), &
-                         nEdgesOnCell(iPoint), verticesOnCell(:,iPoint), xVertex, yVertex, zVertex)) then
-
-                ncat(int(rarray(i,j,1)),iPoint) = ncat(int(rarray(i,j,1)),iPoint) + 1
-
-             end if
-          end if
-       end do
-       end do
-
-    end do
- end do
-
- do iCell = 1,nCells
-    lu_index(iCell) = 1
-    do i = 2,ismax_lu
-       if(ncat(i,iCell) > ncat(lu_index(iCell),iCell)) then
-          lu_index(iCell) = i
-       end if
-    end do
- end do
- deallocate(rarray)
- deallocate(ncat)
- call mpas_log_write('--- end interpolate LU_INDEX')
-
 
 !
-! Interpolate SOILCAT_TOP
+! Interpolate SOILCL3
 !
- nx = 1200
- ny = 1200
- nz = 1
- isigned     = 1
- endian      = 0
- wordsize    = 1
- scalefactor = 1.0
- allocate(rarray(nx,ny,nz))
- allocate(ncat(16,nCells))
- ncat(:,:) = 0
- soilcat_top(:) = 0.0
-
- rarray_ptr = c_loc(rarray)
-
- do jTileStart = 1,20401,ny
-    jTileEnd = jTileStart + ny - 1
-
-    do iTileStart = 1,42001,nx
-       iTileEnd = iTileStart + nx - 1
-       write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-             'soiltype_top_30s/',iTileStart,'-',iTileEnd,'.',jTileStart,'-',jTileEnd
-       call mpas_log_write(trim(fname))
-       call mpas_f_to_c_string(fname, c_fname)
-
-       call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                         scalefactor,wordsize,istatus)
-       call init_atm_check_read_error(istatus, fname)
-
-       iPoint = 1
-       do j=1,ny
-       do i=1,nx
-          lat_pt = -89.99583  + (jTileStart + j - 2) * 0.0083333333
-          lon_pt = -179.99583 + (iTileStart + i - 2) * 0.0083333333
-          lat_pt = lat_pt * PI / 180.0
-          lon_pt = lon_pt * PI / 180.0
-
-          iPoint = nearest_cell(lat_pt,lon_pt,iPoint,nCells,maxEdges, &
-                                nEdgesOnCell,cellsOnCell, &
-                                latCell,lonCell)
-
-          !
-          ! For all but the outermost boundary cells, we can safely assume that the nearest
-          ! model grid cell contains the pixel (else, a different cell would be nearest)
-          !
-          if (bdyMaskCell(iPoint) < nBdyLayers) then
-             ncat(int(rarray(i,j,1)),iPoint) = ncat(int(rarray(i,j,1)),iPoint) + 1
-
-          ! For outermost boundary cells, additional work is needed to verify that the pixel
-          ! actually lies within the nearest cell
-          else
-             zPixel = sphere_radius * sin(lat_pt)                  ! Model cell coordinates assume a "full" sphere radius
-             xPixel = sphere_radius * cos(lon_pt) * cos(lat_pt)    ! at this point, so we need to ues the same radius
-             yPixel = sphere_radius * sin(lon_pt) * cos(lat_pt)    ! for source pixel coordinates
-
-             if (in_cell(xPixel, yPixel, zPixel, xCell(iPoint), yCell(iPoint), zCell(iPoint), &
-                         nEdgesOnCell(iPoint), verticesOnCell(:,iPoint), xVertex, yVertex, zVertex)) then
-
-                ncat(int(rarray(i,j,1)),iPoint) = ncat(int(rarray(i,j,1)),iPoint) + 1
-
-             end if
-          end if
-       end do
-       end do
-
-    end do
- end do
-
- do iCell = 1,nCells
-    soilcat_top(iCell) = 1
-    do i = 2,16
-       if(ncat(i,iCell) > ncat(soilcat_top(iCell),iCell)) then
-          soilcat_top(iCell) = i
-       end if
-    end do
- end do
- deallocate(rarray)
- deallocate(ncat)
- call mpas_log_write('--- end interpolate SOILCAT_TOP')
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! KLUDGE TO FIX SOIL TYPE OVER ANTARCTICA
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- where (lu_index == isice_lu) soilcat_top = 16
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! CORRECT INCONSISTENT SOIL AND LAND USE DATA
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- do iCell = 1,nCells
-    if (lu_index(iCell) == iswater_lu .or. &
-        soilcat_top(iCell) == 14) then
-        if (lu_index(iCell) /= iswater_lu) then
-            call mpas_log_write('Turning lu_index into water at $i', intArgs=(/iCell/))
-            lu_index(iCell) = iswater_lu
-        end if
-        if (soilcat_top(iCell) /= 14) then
-            call mpas_log_write('Turning soilcat_top into water at $i', intArgs=(/iCell/))
-            soilcat_top(iCell) = 14
-        end if
-    end if
- end do
-
 
 !
-! Derive LANDMASK
+! Interpolate SOILCL4
 !
- landmask(:) = 0
- do iCell=1, nCells
-    if (lu_index(iCell) /= iswater_lu) landmask(iCell) = 1
- end do
- call mpas_log_write('--- end interpolate LANDMASK')
-
-
-!
-! Interpolate SOILTEMP:
-!
- nx = 186
- ny = 186
- nz = 1
- isigned  = 0
- endian   = 0
- wordsize = 2
- scalefactor = 0.01
- allocate(rarray(nx,ny,nz))
- allocate(soiltemp_1deg(-2:363,-2:183))
- soiltemp(:) = 0.0
-
- rarray_ptr = c_loc(rarray)
-
- call map_set(PROJ_LATLON, proj,  &
-              latinc = 1.0_RKIND, &
-              loninc = 1.0_RKIND, &
-              knowni = 1.0_RKIND, &
-              knownj = 1.0_RKIND, &
-              lat1 = -89.5_RKIND, &
-              lon1 = -179.5_RKIND)
-
- write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-       'soiltemp_1deg/',1,'-',180,'.',1,'-',180
- call mpas_log_write(trim(fname))
- call mpas_f_to_c_string(fname, c_fname)
-
- call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned, endian, &
-                   scalefactor,wordsize,istatus)
- call init_atm_check_read_error(istatus, fname)
- soiltemp_1deg(-2:180,-2:183) = rarray(1:183,1:186,1)
-
- write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-            'soiltemp_1deg/',181,'-',360,'.',1,'-',180
- call mpas_log_write(trim(fname))
- call mpas_f_to_c_string(fname, c_fname)
-
- call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                        scalefactor,wordsize,istatus)
- call init_atm_check_read_error(istatus,fname)
- soiltemp_1deg(181:363,-2:183) = rarray(4:186,1:186,1)
-
- interp_list(1) = FOUR_POINT
- interp_list(2) = W_AVERAGE4
- interp_list(3) = W_AVERAGE16
- interp_list(4) = SEARCH
- interp_list(5) = 0
-
- do iCell = 1,nCells
-  
-    if(landmask(iCell) == 1) then
-       lat = latCell(iCell) * DEG_PER_RAD
-       lon = lonCell(iCell) * DEG_PER_RAD
-       call latlon_to_ij(proj, lat, lon, x, y)
-       if(x < 0.5) then
-          lon = lon + 360.0
-          call latlon_to_ij(proj, lat, lon, x, y)
-       else if (x >= 360.5) then
-          lon = lon - 360.0
-          call latlon_to_ij(proj, lat, lon, x, y)
-       end if
-       if (y < 1.0) y = 1.0
-       if (y > 179.0) y = 179.0
-       soiltemp(iCell) = interp_sequence(x,y,1,soiltemp_1deg,-2,363,-2,183, &
-                                           1,1,0.0_RKIND,interp_list,1)
-    else
-       soiltemp(iCell) = 0.0
-    end if
-
- end do
- deallocate(rarray)
- deallocate(soiltemp_1deg)
- call mpas_log_write('--- end interpolate SOILTEMP')
-
-
-!
-! Interpolate SNOALB
-!
- if (trim(config_maxsnowalbedo_data) == 'MODIS') then
-
-    call mpas_log_write('Using MODIS 0.05-deg data for maximum snow albedo')
-    if (supersample_fac > 1) then
-       call mpas_log_write('   Dataset will be supersampled by a factor of $i', intArgs=(/supersample_fac/))
-    end if
-
-    nx = 1206
-    ny = 1206
-    nz = 1
-    isigned  = 1
-    endian   = 0
-    wordsize = 2
-    scalefactor = 0.01
-    msgval = real(-999.0,kind=R4KIND)*real(0.01,kind=R4KIND)
-    fillval = 0.0
-    allocate(rarray(nx,ny,nz))
-    allocate(nhs(nCells))
-    nhs(:) = 0
-    snoalb(:) = 0.0
-
-    rarray_ptr = c_loc(rarray)
-
-    start_lat = 90.0 - 0.05 * 0.5 / supersample_fac
-    start_lon = -180.0 + 0.05 * 0.5 / supersample_fac
-    geog_sub_path = 'maxsnowalb_modis/'
-
-    do jTileStart = 1,02401,ny-6
-       jTileEnd = jTileStart + ny - 1 - 6
-
-       do iTileStart=1,06001,nx-6
-          iTileEnd = iTileStart + nx - 1 - 6
-          write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)//trim(geog_sub_path), &
-                       iTileStart,'-',iTileEnd,'.',jTileStart,'-',jTileEnd
-          call mpas_log_write(trim(fname))
-          call mpas_f_to_c_string(fname, c_fname)
-
-          call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                            scalefactor,wordsize,istatus)
-          call init_atm_check_read_error(istatus, fname)
-
-          iPoint = 1
-          do j=supersample_fac * 3 + 1, supersample_fac * (ny-3)
-          do i=supersample_fac * 3 + 1, supersample_fac * (nx-3)
-             ii = (i - 1) / supersample_fac + 1
-             jj = (j - 1) / supersample_fac + 1
-
-             lat_pt = start_lat - (supersample_fac*(jTileStart-1) + j - (supersample_fac*3+1)) * 0.05 / supersample_fac
-             lon_pt = start_lon + (supersample_fac*(iTileStart-1) + i - (supersample_fac*3+1)) * 0.05 / supersample_fac
-             lat_pt = lat_pt * PI / 180.0
-             lon_pt = lon_pt * PI / 180.0
-
-             iPoint = nearest_cell(lat_pt,lon_pt,iPoint,nCells,maxEdges, &
-                                   nEdgesOnCell,cellsOnCell, &
-                                   latCell,lonCell)
-             if (rarray(ii,jj,1) /= msgval) then
-
-                !
-                ! This field only matters for land cells, and for all but the outermost boundary cells,
-                ! we can safely assume that the nearest model grid cell contains the pixel (else, a different
-                ! cell would be nearest)
-                !
-                if (landmask(iPoint) == 1 .and. bdyMaskCell(iPoint) < nBdyLayers) then
-                   snoalb(iPoint) = snoalb(iPoint) + rarray(ii,jj,1)
-                   nhs(iPoint) = nhs(iPoint) + 1
-
-                ! For outermost land cells, additional work is needed to verify that the pixel
-                ! actually lies within the nearest cell
-                else if (landmask(iPoint) == 1) then
-                   zPixel = sphere_radius * sin(lat_pt)                  ! Model cell coordinates assume a "full" sphere radius
-                   xPixel = sphere_radius * cos(lon_pt) * cos(lat_pt)    ! at this point, so we need to ues the same radius
-                   yPixel = sphere_radius * sin(lon_pt) * cos(lat_pt)    ! for source pixel coordinates
-
-                   if (in_cell(xPixel, yPixel, zPixel, xCell(iPoint), yCell(iPoint), zCell(iPoint), &
-                               nEdgesOnCell(iPoint), verticesOnCell(:,iPoint), xVertex, yVertex, zVertex)) then
-                      snoalb(iPoint) = snoalb(iPoint) + rarray(ii,jj,1)
-                      nhs(iPoint) = nhs(iPoint) + 1
-                   end if
-                end if
-             end if
-          end do
-          end do
-
-       end do
-    end do
-
-    do iCell = 1,nCells
-       !
-       ! Mismatches in land mask can lead to MPAS land points with no maximum snow albedo.
-       ! Ideally, we would perform a search for nearby valid albedos, but for now using
-       ! the fill value will at least allow the model to run. In general, the number of cells
-       ! to be treated in this way tends to be a very small fraction of the total number of cells.
-       !
-       if (nhs(iCell) == 0) then
-          snoalb(iCell) = fillval
-       else
-          snoalb(iCell) = snoalb(iCell) / real(nhs(iCell))
-       end if
-       snoalb(iCell) = 0.01_RKIND * snoalb(iCell)        ! Convert from percent to fraction
-    end do
-    deallocate(rarray)
-    deallocate(nhs)
-
- else if (trim(config_maxsnowalbedo_data) == 'NCEP') then
-
-    call mpas_log_write('Using NCEP 1.0-deg data for maximum snow albedo')
-
-    nx = 186
-    ny = 186
-    nz = 1
-    isigned     = 0
-    endian      = 0
-    wordsize    = 1
-    scalefactor = 1.0
-    allocate(rarray(nx,ny,nz))
-    allocate(maxsnowalb(-2:363,-2:183))
-    snoalb(:) = 0.0
-
-    rarray_ptr = c_loc(rarray)
-
-    call map_set(PROJ_LATLON, proj,  &
-                 latinc = 1.0_RKIND, &
-                 loninc = 1.0_RKIND, &
-                 knowni = 1.0_RKIND, &
-                 knownj = 1.0_RKIND, &
-                 lat1 = -89.5_RKIND, &
-                 lon1 = -179.5_RKIND)
-
-    write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-          'maxsnowalb/',1,'-',180,'.',1,'-',180
-    call mpas_log_write(trim(fname))
-    call mpas_f_to_c_string(fname, c_fname)
-
-    call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                      scalefactor,wordsize,istatus)
-    call init_atm_check_read_error(istatus,fname)
-    maxsnowalb(-2:180,-2:183) = rarray(1:183,1:186,1)
-
-    write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-          'maxsnowalb/',181,'-',360,'.',1,'-',180
-    call mpas_log_write(trim(fname))
-    call mpas_f_to_c_string(fname, c_fname)
-
-    call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                      scalefactor,wordsize,istatus)
-    call init_atm_check_read_error(istatus, fname)
-    maxsnowalb(181:363,-2:183) = rarray(4:186,1:186,1)
-
-    interp_list(1) = FOUR_POINT
-    interp_list(2) = W_AVERAGE4
-    interp_list(3) = W_AVERAGE16
-    interp_list(4) = SEARCH
-    interp_list(5) = 0
-
-    do iCell = 1,nCells
-
-       if(landmask(iCell) == 1) then
-          lat = latCell(iCell) * DEG_PER_RAD
-          lon = lonCell(iCell) * DEG_PER_RAD
-          call latlon_to_ij(proj, lat, lon, x, y)
-          if(x < 0.5) then
-             lon = lon + 360.0
-             call latlon_to_ij(proj, lat, lon, x, y)
-          else if (x >= 360.5) then
-             lon = lon - 360.0
-             call latlon_to_ij(proj, lat, lon, x, y)
-          end if
-          if (y < 1.0) y = 1.0
-          if (y > 179.0) y = 179.0
-          snoalb(iCell) = interp_sequence(x,y,1,maxsnowalb,-2,363,-2,183, &
-                                            1,1,0.0_RKIND,interp_list,1)
-       else
-          snoalb(iCell) = 0.0
-       end if
-
-    end do
-    snoalb(:) = snoalb(:) / 100.0
-    deallocate(rarray)
-    deallocate(maxsnowalb)
-
- else
-
-    call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-    call mpas_log_write('Invalid maximum snow albedo dataset '''//trim(config_maxsnowalbedo_data) &
-                                  //''' selected for config_maxsnowalbedo_data',             messageType=MPAS_LOG_ERR)
-    call mpas_log_write('   Possible options are: ''MODIS'', ''NCEP''',                      messageType=MPAS_LOG_ERR)
-    call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-    call mpas_log_write('Please correct the namelist.', messageType=MPAS_LOG_CRIT)
-
- end if
-
- call mpas_log_write('--- end interpolate SNOALB')
-
-
-!
-! Interpolate GREENFRAC
-!
- if (trim(config_vegfrac_data) == 'MODIS') then
-
-    call mpas_log_write('Using MODIS FPAR 30-arc-second data for climatological monthly vegetation fraction')
-
-    nx = 1200
-    ny = 1200
-    nz = 12
-    isigned  = 0
-    endian   = 0
-    wordsize = 1
-    scalefactor = 1.0
-    msgval = 200.0
-    fillval = 0.0
-    allocate(rarray(nx,ny,nz))
-    allocate(nhs(nCells))
-    nhs(:) = 0
-    greenfrac(:,:) = 0.0
-
-    rarray_ptr = c_loc(rarray)
-
-    start_lat = -89.99583
-    start_lon = -179.99583
-    geog_sub_path = 'greenfrac_fpar_modis/'
-
-    do jTileStart = 1,20401,ny
-       jTileEnd = jTileStart + ny - 1
-
-       do iTileStart=1,42001,nx
-          iTileEnd = iTileStart + nx - 1
-          write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)//trim(geog_sub_path), &
-                       iTileStart,'-',iTileEnd,'.',jTileStart,'-',jTileEnd
-          call mpas_log_write(trim(fname))
-          call mpas_f_to_c_string(fname, c_fname)
-
-          call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                            scalefactor,wordsize,istatus)
-          call init_atm_check_read_error(istatus, fname)
-
-          iPoint = 1
-          do j=1,ny
-          do i=1,nx
-             lat_pt = start_lat + (jTileStart + j - 2) * 0.0083333333
-             lon_pt = start_lon + (iTileStart + i - 2) * 0.0083333333
-             lat_pt = lat_pt * PI / 180.0
-             lon_pt = lon_pt * PI / 180.0
-
-             iPoint = nearest_cell(lat_pt,lon_pt,iPoint,nCells,maxEdges, &
-                                   nEdgesOnCell,cellsOnCell, &
-                                   latCell,lonCell)
-
-             !
-             ! This field only matters for land cells, and for all but the outermost boundary cells,
-             ! we can safely assume that the nearest model grid cell contains the pixel (else, a different
-             ! cell would be nearest)
-             !
-             if (landmask(iPoint) == 1 .and. bdyMaskCell(iPoint) < nBdyLayers) then
-                do k=1,nz
-                   if (rarray(i,j,k) == msgval) then
-                      rarray(i,j,k) = fillval
-                   end if
-                   greenfrac(k,iPoint) = greenfrac(k,iPoint) + rarray(i,j,k)
-                end do
-                nhs(iPoint) = nhs(iPoint) + 1
-
-             ! For outermost land cells, additional work is needed to verify that the pixel
-             ! actually lies within the nearest cell
-             else if (landmask(iPoint) == 1) then
-                zPixel = sphere_radius * sin(lat_pt)                  ! Model cell coordinates assume a "full" sphere radius
-                xPixel = sphere_radius * cos(lon_pt) * cos(lat_pt)    ! at this point, so we need to ues the same radius
-                yPixel = sphere_radius * sin(lon_pt) * cos(lat_pt)    ! for source pixel coordinates
-
-                if (in_cell(xPixel, yPixel, zPixel, xCell(iPoint), yCell(iPoint), zCell(iPoint), &
-                            nEdgesOnCell(iPoint), verticesOnCell(:,iPoint), xVertex, yVertex, zVertex)) then
-                   do k=1,nz
-                      if (rarray(i,j,k) == msgval) then
-                         rarray(i,j,k) = fillval
-                      end if
-                      greenfrac(k,iPoint) = greenfrac(k,iPoint) + rarray(i,j,k)
-                   end do
-                   nhs(iPoint) = nhs(iPoint) + 1
-                end if
-             end if
-          end do
-          end do
-
-       end do
-    end do
-
-    do iCell = 1,nCells
-       ! For land points that have no overlap with valid data, and for water points,
-       ! just use the fill value...
-       if (nhs(iCell) == 0) then
-          greenfrac(:,iCell) = fillval
-       else
-          greenfrac(:,iCell) = greenfrac(:,iCell) / real(nhs(iCell))
-       end if
-       shdmin(iCell) = minval(greenfrac(:,iCell))
-       shdmax(iCell) = maxval(greenfrac(:,iCell))
-    end do
-    deallocate(rarray)
-    deallocate(nhs)
-
- else if (trim(config_vegfrac_data) == 'NCEP') then
-
-    call mpas_log_write('Using NCEP 0.144-deg data for climatological monthly vegetation fraction')
-
-    nx = 1256
-    ny = 1256
-    nz = 12
-    isigned     = 0
-    endian      = 0
-    wordsize    = 1
-    scalefactor = 1.0
-    allocate(rarray(nx,ny,nz))
-    allocate(vegfra(-2:2503,-2:1253,12))
-    greenfrac(:,:) = 0.0
-
-    rarray_ptr = c_loc(rarray)
-
-    call map_set(PROJ_LATLON, proj,    &
-                 latinc = 0.144_RKIND, &
-                 loninc = 0.144_RKIND, &
-                 knowni = 1.0_RKIND,   &
-                 knownj = 1.0_RKIND,   &
-                 lat1 = -89.928_RKIND, &
-                 lon1 = -179.928_RKIND)
-
-    write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-          'greenfrac/',1,'-',1250,'.',1,'-',1250
-    call mpas_log_write(trim(fname))
-    call mpas_f_to_c_string(fname, c_fname)
-
-    call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                      scalefactor,wordsize,istatus)
-    call init_atm_check_read_error(istatus,fname)
-    vegfra(-2:1250,-2:1253,1:12) = rarray(1:1253,1:1256,1:12)
-
-    write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-          'greenfrac/',1251,'-',2500,'.',1,'-',1250
-    call mpas_log_write(trim(fname))
-    call mpas_f_to_c_string(fname, c_fname)
-
-    call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                      scalefactor,wordsize,istatus)
-    call init_atm_check_read_error(istatus,fname)
-    vegfra(1251:2503,-2:1253,1:12) = rarray(4:1256,1:1256,1:12)
-
-    do iCell = 1,nCells
-
-       if (landmask(iCell) == 1) then
-          lat = latCell(iCell) * DEG_PER_RAD
-          lon = lonCell(iCell) * DEG_PER_RAD
-          call latlon_to_ij(proj, lat, lon, x, y)
-          if(x < 0.5) then
-             lon = lon + 360.0
-             call latlon_to_ij(proj, lat, lon, x, y)
-          else if(x >= 2500.5) then
-             lon = lon - 360.0
-             call latlon_to_ij(proj, lat, lon, x, y)
-          end if
-          if (y < 1.0) y = 1.0
-          if (y > 1249.0) y = 1249.0
-          do k = 1,12
-             greenfrac(k,iCell) = interp_sequence(x,y,k,vegfra,-2,2503,-2,1253, &
-                                                    1,12,-1.e30_RKIND,interp_list,1)
-          end do
-       else
-          greenfrac(:,iCell) = 0.0
-       end if
-       shdmin(iCell) = minval(greenfrac(:,iCell))
-       shdmax(iCell) = maxval(greenfrac(:,iCell))
-
-    end do
-    deallocate(rarray)
-    deallocate(vegfra)
-
- else
-
-    call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-    call mpas_log_write('Invalid monthly vegetation fraction dataset '''//trim(config_vegfrac_data) &
-                                  //''' selected for config_vegfrac_data',                   messageType=MPAS_LOG_ERR)
-    call mpas_log_write('   Possible options are: ''MODIS'', ''NCEP''',                      messageType=MPAS_LOG_ERR)
-    call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-    call mpas_log_write('Please correct the namelist.', messageType=MPAS_LOG_CRIT)
-
- end if
-
- call mpas_log_write('--- end interpolate GREENFRAC')
-
-
-!
-! Interpolate ALBEDO12M
-!
- if (trim(config_albedo_data) == 'MODIS') then
-
-    call mpas_log_write('Using MODIS 0.05-deg data for climatological monthly albedo')
-    if (supersample_fac > 1) then
-       call mpas_log_write('   Dataset will be supersampled by a factor of $i', intArgs=(/supersample_fac/))
-    end if
-
-    nx = 1206
-    ny = 1206
-    nz = 12
-    isigned  = 1
-    endian   = 0
-    wordsize = 2
-    scalefactor = 0.01
-    msgval = real(-999.0,kind=R4KIND)*real(0.01,kind=R4KIND)
-    fillval = 8.0
-    allocate(rarray(nx,ny,nz))
-    allocate(nhs(nCells))
-    nhs(:) = 0
-    albedo12m(:,:) = 0.0
-
-    rarray_ptr = c_loc(rarray)
-
-    start_lat = 90.0 - 0.05 * 0.5 / supersample_fac
-    start_lon = -180.0 + 0.05 * 0.5 / supersample_fac
-    geog_sub_path = 'albedo_modis/'
-
-    do jTileStart = 1,02401,ny-6
-       jTileEnd = jTileStart + ny - 1 - 6
-
-       do iTileStart=1,06001,nx-6
-          iTileEnd = iTileStart + nx - 1 - 6
-          write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)//trim(geog_sub_path), &
-                       iTileStart,'-',iTileEnd,'.',jTileStart,'-',jTileEnd
-          call mpas_log_write(trim(fname))
-          call mpas_f_to_c_string(fname, c_fname)
-
-          call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                            scalefactor,wordsize,istatus)
-          call init_atm_check_read_error(istatus, fname)
-
-          iPoint = 1
-          do j=supersample_fac * 3 + 1, supersample_fac * (ny-3)
-          do i=supersample_fac * 3 + 1, supersample_fac * (nx-3)
-             ii = (i - 1) / supersample_fac + 1
-             jj = (j - 1) / supersample_fac + 1
-
-             lat_pt = start_lat - (supersample_fac*(jTileStart-1) + j - (supersample_fac*3+1)) * 0.05 / supersample_fac
-             lon_pt = start_lon + (supersample_fac*(iTileStart-1) + i - (supersample_fac*3+1)) * 0.05 / supersample_fac
-             lat_pt = lat_pt * PI / 180.0
-             lon_pt = lon_pt * PI / 180.0
-
-             iPoint = nearest_cell(lat_pt,lon_pt,iPoint,nCells,maxEdges, &
-                                   nEdgesOnCell,cellsOnCell, &
-                                   latCell,lonCell)
-
-             !
-             ! This field only matters for land cells, and for all but the outermost boundary cells,
-             ! we can safely assume that the nearest model grid cell contains the pixel (else, a different
-             ! cell would be nearest)
-             !
-             if (landmask(iPoint) == 1 .and. bdyMaskCell(iPoint) < nBdyLayers) then
-                do k=1,nz
-                   if (rarray(ii,jj,k) == msgval) then
-                      rarray(ii,jj,k) = fillval
-                   end if
-                   albedo12m(k,iPoint) = albedo12m(k,iPoint) + rarray(ii,jj,k)
-                end do
-                nhs(iPoint) = nhs(iPoint) + 1
-
-             ! For outermost land cells, additional work is needed to verify that the pixel
-             ! actually lies within the nearest cell
-             else if (landmask(iPoint) == 1) then
-                zPixel = sphere_radius * sin(lat_pt)                  ! Model cell coordinates assume a "full" sphere radius
-                xPixel = sphere_radius * cos(lon_pt) * cos(lat_pt)    ! at this point, so we need to ues the same radius
-                yPixel = sphere_radius * sin(lon_pt) * cos(lat_pt)    ! for source pixel coordinates
-
-                if (in_cell(xPixel, yPixel, zPixel, xCell(iPoint), yCell(iPoint), zCell(iPoint), &
-                            nEdgesOnCell(iPoint), verticesOnCell(:,iPoint), xVertex, yVertex, zVertex)) then
-                   do k=1,nz
-                      if (rarray(ii,jj,k) == msgval) then
-                         rarray(ii,jj,k) = fillval
-                      end if
-                      albedo12m(k,iPoint) = albedo12m(k,iPoint) + rarray(ii,jj,k)
-                   end do
-                   nhs(iPoint) = nhs(iPoint) + 1
-                end if
-             end if
-          end do
-          end do
-
-       end do
-    end do
-
-    do iCell = 1,nCells
-       ! For land points that have no overlap with valid data, and for water points,
-       ! just use the fill value...
-       if (nhs(iCell) == 0) then
-          albedo12m(:,iCell) = fillval
-       else
-          albedo12m(:,iCell) = albedo12m(:,iCell) / real(nhs(iCell))
-       end if
-       if (lu_index(iCell) == isice_lu) then
-          albedo12m(:,iCell) = 70.0
-       end if
-    end do
-    deallocate(rarray)
-    deallocate(nhs)
-
- else if (trim(config_albedo_data) == 'NCEP') then
-
-    call mpas_log_write('Using NCEP 0.144-deg data for climatological monthly albedo')
-
-    nx = 1256
-    ny = 1256
-    nz = 12
-    isigned     = 0
-    endian      = 0
-    wordsize    = 1
-    scalefactor = 1.0
-    allocate(rarray(nx,ny,nz))
-    allocate(vegfra(-2:2503,-2:1253,12))
-    albedo12m(:,:) = 0.0
-
-    rarray_ptr = c_loc(rarray)
-
-    call map_set(PROJ_LATLON, proj,    &
-                 latinc = 0.144_RKIND, &
-                 loninc = 0.144_RKIND, &
-                 knowni = 1.0_RKIND,   &
-                 knownj = 1.0_RKIND,   &
-                 lat1 = -89.928_RKIND, &
-                 lon1 = -179.928_RKIND)
-
-    write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-          'albedo_ncep/',1,'-',1250,'.',1,'-',1250
-    call mpas_log_write(trim(fname))
-    call mpas_f_to_c_string(fname, c_fname)
-
-    call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                      scalefactor, wordsize, istatus)
-    call init_atm_check_read_error(istatus,fname)
-    vegfra(-2:1250,-2:1253,1:12) = rarray(1:1253,1:1256,1:12)
-
-    write(fname,'(a,i5.5,a1,i5.5,a1,i5.5,a1,i5.5)') trim(geog_data_path)// &
-          'albedo_ncep/',1251,'-',2500,'.',1,'-',1250
-    call mpas_log_write(trim(fname))
-    call mpas_f_to_c_string(fname, c_fname)
-
-    call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian, &
-                      scalefactor,wordsize,istatus)
-    call init_atm_check_read_error(istatus,fname)
-    vegfra(1251:2503,-2:1253,1:12) = rarray(4:1256,1:1256,1:12)
-
-    do iCell = 1,nCells
-
-       if (landmask(iCell) == 1) then
-          lat = latCell(iCell) * DEG_PER_RAD
-          lon = lonCell(iCell) * DEG_PER_RAD
-          call latlon_to_ij(proj, lat, lon, x, y)
-          if(x < 0.5) then
-             lon = lon + 360.0
-             call latlon_to_ij(proj, lat, lon, x, y)
-          else if(x >= 2500.5) then
-             lon = lon - 360.0
-             call latlon_to_ij(proj, lat, lon, x, y)
-          end if
-          if (y < 1.0) y = 1.0
-          if (y > 1249.0) y = 1249.0
-          do k = 1,12
-             albedo12m(k,iCell) = interp_sequence(x,y,k,vegfra,-2,2503,-2,1253, &
-                                                    1,12,0.0_RKIND,interp_list,1)
-          end do
-       else
-          albedo12m(:,iCell) = 8.0
-       end if
-    end do
-    deallocate(rarray)
-    deallocate(vegfra)
-
- else
-
-    call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-    call mpas_log_write('Invalid monthly albedo dataset '''//trim(config_albedo_data) &
-                                  //''' selected for config_albedo_data',                    messageType=MPAS_LOG_ERR)
-    call mpas_log_write('   Possible options are: ''MODIS'', ''NCEP''',                      messageType=MPAS_LOG_ERR)
-    call mpas_log_write('*****************************************************************', messageType=MPAS_LOG_ERR)
-    call mpas_log_write('Please correct the namelist.', messageType=MPAS_LOG_CRIT)
-
- end if
-
- call mpas_log_write('--- end interpolate ALBEDO12M')
-
 
  end subroutine init_atm_static
 
