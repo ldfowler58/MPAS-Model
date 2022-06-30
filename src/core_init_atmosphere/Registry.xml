@@ -38,6 +38,8 @@
                      description="The number of first-guess soil layers"/>
                 <dim name="nVertLevelsP1" definition="nVertLevels+1"
                      description="The number of atmospheric levels, always one more than the number of layers"/>
+                <dim name="nSoilComps" definition="8"
+                     description="The number of soil textures as needed as input in the NOAH-MP land surface model"/>
                 <dim name="nMonths" definition="namelist:config_months"
                      description="The number of months in a year"/>
         </dims>
@@ -771,6 +773,22 @@
 
                 <var name="iswater_lu" type="integer" dimensions="" units="unitless" default_value="16"
                      description="Index category for water"/>
+
+                <!-- SOIL COMPOSITION fields -->
+                <var name="soilcomp" type="real" dimensions="nSoilComps nCells" units="unitless"
+                     description="soil composition needed as input in the NOAH-MP land surface model"/>
+
+                <var name="soilcl1" type="real" dimensions="nCells" units="unitless"
+                     description="soil texture class level 1 needed as input for the NOAH-MP land surface model"/>
+
+                <var name="soilcl2" type="real" dimensions="nCells" units="unitless"
+                     description="soil texture class level 2 needed as input for the NOAH-MP land surface model"/>
+
+                <var name="soilcl3" type="real" dimensions="nCells" units="unitless"
+                     description="soil texture class level 3 needed as input for the NOAH-MP land surface model"/>
+
+                <var name="soilcl4" type="real" dimensions="nCells" units="unitless"
+                     description="soil texture class level 4 needed as input for the NOAH-MP land surface model"/>
 
                 <!-- GWDO fields -->
                 <var name="var2d" type="real" dimensions="nCells" units="m^{2}"
