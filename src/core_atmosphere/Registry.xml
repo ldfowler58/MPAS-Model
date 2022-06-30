@@ -383,6 +383,7 @@
                 <package name="cu_tiedtke_in" description="parameterization of Tiedtke convection."/>
                 <package name="bl_ysu_in" description="parameterization of YSU Planetary Boundary Layer."/>
                 <package name="bl_mynn_in" description="parameterization of MYNN Planetary Boundary Layer."/>
+                <package name="sf_noahmp_in" description="parameterization of NOAH-MP land surface scheme."/>
 
                 <package name="iau" description="Incremental Analysis Update"/>
                 <package name="limited_area" description="Limited-area simulations, which have lateral boundaries"/>
@@ -2592,6 +2593,15 @@
                 <var name="acswuptc" type="real" dimensions="nCells Time" units="W m^{-2}"
                      description="accumulated clear-sky upward top-of-atmosphere shortwave radiation flux"/>
 
+                <var name="swddir" type="real" dimensions="nCells Time" units="W m^{-2}"
+                     description="shortwave surface downward direct irradiance"/>
+
+                <var name="swddni" type="real" dimensions="nCells Time" units="W m^{-2}"
+                     description="shortwave surface downward direct normal irradiance"/>
+
+                <var name="swddif" type="real" dimensions="nCells Time" units="W m^{-2}"
+                     description="shortwave surface downward diffuse irradiance"/>
+
                 <var name="gsw" type="real" dimensions="nCells Time" units="W m^{-2}"
                      description="net surface shortwave radiation flux"/>
 
@@ -3137,5 +3147,6 @@
 <!-- **************************************************************************************** -->
 
 #include "diagnostics/Registry_diagnostics.xml"
+#include "physics/physics_wrf_lsm/Registry_noahmp.xml"
 
 </registry>
