@@ -21,6 +21,14 @@
     real(kind=RKIND),dimension(:,:),pointer  :: qozd2     => null()
     real(kind=RKIND),dimension(:,:),pointer  :: qozd3     => null()
     real(kind=RKIND),dimension(:,:),pointer  :: qozd4     => null()
+    real(kind=RKIND),dimension(:,:),pointer  :: qozd5     => null()
+    real(kind=RKIND),dimension(:,:),pointer  :: qozd6     => null()
+    real(kind=RKIND),dimension(:,:),pointer  :: qozd7     => null()
+    real(kind=RKIND),dimension(:,:),pointer  :: qozd8     => null()
+    real(kind=RKIND),dimension(:,:),pointer  :: qozd9     => null()
+    real(kind=RKIND),dimension(:,:),pointer  :: qozd10    => null()
+    real(kind=RKIND),dimension(:,:),pointer  :: qozd11    => null()
+    real(kind=RKIND),dimension(:,:),pointer  :: qozd12    => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qozcoeffs => null()
 
     !--- local variables from the MPAS dynamical core:
@@ -111,6 +119,14 @@
  if(.not.associated(this%qozd2)    ) allocate(this%qozd2(its:ite,kts:kte)        )
  if(.not.associated(this%qozd3)    ) allocate(this%qozd3(its:ite,kts:kte)        )
  if(.not.associated(this%qozd4)    ) allocate(this%qozd4(its:ite,kts:kte)        )
+ if(.not.associated(this%qozd5)    ) allocate(this%qozd5(its:ite,kts:kte)        )
+ if(.not.associated(this%qozd6)    ) allocate(this%qozd6(its:ite,kts:kte)        )
+ if(.not.associated(this%qozd7)    ) allocate(this%qozd7(its:ite,kts:kte)        )
+ if(.not.associated(this%qozd8)    ) allocate(this%qozd8(its:ite,kts:kte)        )
+ if(.not.associated(this%qozd9)    ) allocate(this%qozd9(its:ite,kts:kte)        )
+ if(.not.associated(this%qozd10)   ) allocate(this%qozd10(its:ite,kts:kte)       )
+ if(.not.associated(this%qozd11)   ) allocate(this%qozd11(its:ite,kts:kte)       )
+ if(.not.associated(this%qozd12)   ) allocate(this%qozd12(its:ite,kts:kte)       )
  if(.not.associated(this%tend_qoz) ) allocate(this%tend_qoz(its:ite,kts:kte)     )
 
  if(.not.associated(this%qozp)     ) allocate(this%qozp(no3levs))
@@ -143,6 +159,14 @@
  if(associated(this%qozd2)    ) deallocate(this%qozd2    )
  if(associated(this%qozd3)    ) deallocate(this%qozd3    )
  if(associated(this%qozd4)    ) deallocate(this%qozd4    )
+ if(associated(this%qozd5)    ) deallocate(this%qozd5    )
+ if(associated(this%qozd6)    ) deallocate(this%qozd6    )
+ if(associated(this%qozd7)    ) deallocate(this%qozd7    )
+ if(associated(this%qozd8)    ) deallocate(this%qozd8    )
+ if(associated(this%qozd9)    ) deallocate(this%qozd9    )
+ if(associated(this%qozd10)   ) deallocate(this%qozd10   )
+ if(associated(this%qozd11)   ) deallocate(this%qozd11   )
+ if(associated(this%qozd12)   ) deallocate(this%qozd12   )
  if(associated(this%tend_qoz) ) deallocate(this%tend_qoz )
 
  if(associated(this%qozp)     ) deallocate(this%qozp     )
@@ -273,6 +297,14 @@
        this%qozd2(i,k)    = 0._RKIND
        this%qozd3(i,k)    = 0._RKIND
        this%qozd4(i,k)    = 0._RKIND
+       this%qozd5(i,k)    = 0._RKIND
+       this%qozd6(i,k)    = 0._RKIND
+       this%qozd7(i,k)    = 0._RKIND
+       this%qozd8(i,k)    = 0._RKIND
+       this%qozd9(i,k)    = 0._RKIND
+       this%qozd10(i,k)   = 0._RKIND
+       this%qozd11(i,k)   = 0._RKIND
+       this%qozd12(i,k)   = 0._RKIND
     enddo
  enddo
 
@@ -347,7 +379,10 @@
 
  real(kind=RKIND):: dt_c
  real(kind=RKIND),dimension(:,:),pointer:: qoz,tend_qoz,qozd1,qozd2,qozd3,qozd4
+ real(kind=RKIND),dimension(:,:),pointer:: qozd5,qozd6,qozd7,qozd8,qozd9,qozd10,qozd11,qozd12
  real(kind=RKIND),dimension(:,:),pointer:: oppdiag1,oppdiag2,oppdiag3,oppdiag4
+ real(kind=RKIND),dimension(:,:),pointer:: oppdiag5,oppdiag6,oppdiag7,oppdiag8,oppdiag9,oppdiag10, &
+                                           oppdiag11,oppdiag12
  real(kind=RKIND),dimension(:,:),pointer:: qo3oppten
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -358,6 +393,15 @@
  call mpas_pool_get_array(diag_chemistry,'oppdiag2',oppdiag2)
  call mpas_pool_get_array(diag_chemistry,'oppdiag3',oppdiag3)
  call mpas_pool_get_array(diag_chemistry,'oppdiag4',oppdiag4)
+
+ call mpas_pool_get_array(diag_chemistry,'oppdiag5' ,oppdiag5 )
+ call mpas_pool_get_array(diag_chemistry,'oppdiag6' ,oppdiag6 )
+ call mpas_pool_get_array(diag_chemistry,'oppdiag7' ,oppdiag7 )
+ call mpas_pool_get_array(diag_chemistry,'oppdiag8' ,oppdiag8 )
+ call mpas_pool_get_array(diag_chemistry,'oppdiag9' ,oppdiag9 )
+ call mpas_pool_get_array(diag_chemistry,'oppdiag10',oppdiag10)
+ call mpas_pool_get_array(diag_chemistry,'oppdiag11',oppdiag11)
+ call mpas_pool_get_array(diag_chemistry,'oppdiag12',oppdiag12)
 
  call mpas_pool_get_array(tend_chemistry,'qo3oppten',qo3oppten)
 
@@ -378,12 +422,20 @@
  qozd3    => this%qozd3
  qozd4    => this%qozd4
 
+ qozd5    => this%qozd5
+ qozd6    => this%qozd6
+ qozd7    => this%qozd7
+ qozd8    => this%qozd8
+ qozd9    => this%qozd9
+ qozd10   => this%qozd10
+ qozd11   => this%qozd11
+ qozd12   => this%qozd12
+
  do i = its,ite
     do k = kts,kte
        tend_qoz(i,k) = (qoz(i,k)-tend_qoz(i,k))/dt_c
     enddo
  enddo
-
 
 !---
  do i = its,ite
@@ -395,6 +447,20 @@
        qo3oppten(k,i) = tend_qoz(i,k)
     enddo
  enddo
+
+ do i = its,ite
+    do k = kts,kte
+       oppdiag5(k,i)  = qozd5(i,k)
+       oppdiag6(k,i)  = qozd6(i,k)
+       oppdiag7(k,i)  = qozd7(i,k)
+       oppdiag8(k,i)  = qozd8(i,k)
+       oppdiag9(k,i)  = qozd9(i,k)
+       oppdiag10(k,i) = qozd10(i,k)
+       oppdiag11(k,i) = qozd11(i,k)
+       oppdiag12(k,i) = qozd12(i,k)
+    enddo
+ enddo
+
 
  call mpas_log_write('--- end subroutine mpas_chemistry_to_MPAS:')
 
