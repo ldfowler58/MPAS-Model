@@ -138,6 +138,14 @@
                     mpas_chems%qozd2,     &
                     mpas_chems%qozd3,     &
                     mpas_chems%qozd4,     &
+                    mpas_chems%qozd5,     &
+                    mpas_chems%qozd6,     &
+                    mpas_chems%qozd7,     &
+                    mpas_chems%qozd8,     &
+                    mpas_chems%qozd9,     &
+                    mpas_chems%qozd10,    &
+                    mpas_chems%qozd11,    &
+                    mpas_chems%qozd12,    &
                     mpas_chems%grav_c,    &
                     errmsg,               &
                     errflg                &
