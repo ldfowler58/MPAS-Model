@@ -27,18 +27,18 @@
 <!-- tendencies associated with boundary layer and convective transport of pasive tracers: -->
  <var_struct name="tend_tracers" time_levs="1">
       <var_array name="bl_tracers" type="real" dimensions="nVertLevels nCells Time">
-           <var name="bl_tr17_7" array_group="bl_passive" units="dimensionless"
+           <var name="bl_tr17_7" array_group="passive" units="dimensionless"
                      description=" "/>
 
-           <var name="bl_tr17_8" array_group="bl_passive" units="dimensionless"
+           <var name="bl_tr17_8" array_group="passive" units="dimensionless"
                      description=" "/>
       </var_array>
 
       <var_array name="cu_tracers" type="real" dimensions="nVertLevels nCells Time">
-           <var name="cu_tr17_7" array_group="cu_passive" units="dimensionless"
+           <var name="cu_tr17_7" array_group="passive" units="dimensionless"
                      description=" "/>
 
-           <var name="cu_tr17_8" array_group="cu_passive" units="dimensionless"
+           <var name="cu_tr17_8" array_group="passive" units="dimensionless"
                      description=" "/>
       </var_array>
  </var_struct>
