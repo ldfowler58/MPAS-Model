@@ -805,7 +805,7 @@
 
  integer,pointer:: nCells,nCAMLevels,nVertLevels
  integer,pointer:: num_chems,num_chems_gocart,num_chems_fg
- integer,pointer:: passive_start,passive_end,gocart_start,gocart_end,gocart_fg_start,gocart_fg_end
+ integer,pointer:: gas_start,gas_end,gocart_start,gocart_end,gocart_fg_start,gocart_fg_end
  integer,pointer:: index_qco,index_qco_fg
 
  real(kind=RKIND),dimension(:,:),pointer:: pcam_fg,pressure
@@ -825,14 +825,14 @@
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
  call mpas_pool_get_dimension(mesh,'nCAMLevels' ,nCAMLevels )
 
- call mpas_pool_get_dimension(state,'num_chems',num_chems        )
- call mpas_pool_get_dimension(state,'passive_start',passive_start)
- call mpas_pool_get_dimension(state,'passive_end'  ,passive_end  )
- call mpas_pool_get_dimension(state,'index_qco'    ,index_qco    )
- call mpas_log_write('--- num_chems        = $i',intArgs=(/num_chems/)    )
- call mpas_log_write('--- passive_start    = $i',intArgs=(/passive_start/))
- call mpas_log_write('--- passive_end      = $i',intArgs=(/passive_end/)  )
- call mpas_log_write('--- index_qco        = $i',intArgs=(/index_qco/)    )
+ call mpas_pool_get_dimension(state,'num_chems',num_chems)
+ call mpas_pool_get_dimension(state,'gas_start',gas_start)
+ call mpas_pool_get_dimension(state,'gas_end'  ,gas_end  )
+ call mpas_pool_get_dimension(state,'index_qco',index_qco)
+ call mpas_log_write('--- num_chems        = $i',intArgs=(/num_chems/))
+ call mpas_log_write('--- gas_start        = $i',intArgs=(/gas_start/))
+ call mpas_log_write('--- gas_end          = $i',intArgs=(/gas_end/)  )
+ call mpas_log_write('--- index_qco        = $i',intArgs=(/index_qco/))
  call mpas_log_write(' ')
 
  call mpas_pool_get_dimension(chems_input,'num_chems_gocart',num_chems_gocart)

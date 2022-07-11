@@ -209,7 +209,7 @@
  <var_struct name="state" time_levs="1">
 
     <var_array name="chems" type="real" dimensions="nVertLevels nCells Time">
-           <var name="qco" array_group="passive" units="mole mole{-1}"
+           <var name="qco" array_group="gas" units="kg kg{-1}"
                 description="CO -  Carbon monoxide mixing ratio"/>
     </var_array>
 
