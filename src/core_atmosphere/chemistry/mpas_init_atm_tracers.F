@@ -92,7 +92,7 @@
  call mpas_pool_get_array(state,'tracers',tracers)
 
 !--- initialization:
- do n = passive_start, passive_end
+ do n = passive_start,passive_end
     do k = 1, nVertLevels
        do iCell = 1, nCells
           tracers(n,k,iCell) = 1._RKIND
