@@ -2,6 +2,16 @@
 <!-- passive tracers:                                                                                          -->
 <!-- ========================================================================================================= -->
 
+ <nml_record name="preproc_tracers" in_defaults="true">
+
+      <nml_option name="config_tracers_interp" type="logical" default_value="false"
+           units="-"
+           description="Whether to interpolate first-guess passive tracers and emissions from input data"
+           possible_values="true or false"/>
+
+ </nml_record>
+
+
  <var_struct name="state" time_levs="1">
 
       <var_array name="tracers" type="real" dimensions="nVertLevels nCells Time">

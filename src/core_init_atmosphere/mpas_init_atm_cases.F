@@ -275,9 +275,6 @@ module init_atm_cases
             if (config_met_interp) then
                call init_atm_gocart(block_ptr, mesh, block_ptr % configs, diag, state)
                call physics_initialize_real(mesh, fg, domain % dminfo, block_ptr % dimensions, block_ptr % configs)
-#ifdef ATM_CHEMISTRY
-               if(config_tracers_interp) call init_atm_tracers(block_ptr, mesh, block_ptr % configs, state)
-#endif
             end if
 
             block_ptr => block_ptr % next
@@ -286,6 +283,11 @@ module init_atm_cases
 #ifdef ATM_CHEMISTRY
          block_ptr => domain % blocklist
          do while (associated(block_ptr))
+            !interpolation of tracers:
+            call mpas_pool_get_config(block_ptr%configs,'config_tracers_interp',config_tracers_interp)
+            if(config_tracers_interp) call init_atm_tracers(block_ptr, mesh, block_ptr % configs, state)
+
+            !interpolation of chemistry species:
             call mpas_pool_get_config(block_ptr%configs,'config_chems_cams',config_chems_cams)
             call mpas_pool_get_config(block_ptr%configs,'config_chems_interp',config_chems_interp)
             call mpas_pool_get_config(block_ptr%configs,'config_chems_static',config_chems_static)
