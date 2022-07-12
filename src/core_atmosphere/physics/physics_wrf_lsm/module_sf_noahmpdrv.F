@@ -4,6 +4,7 @@ MODULE module_sf_noahmpdrv
 !reference: WRF-v4.4
 !laura D. Fowler (laura@ucar.edu) / 2022-02-11.
 #if defined(mpas)
+use mpas_log
 use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
 #define FATAL_ERROR(M) call physics_error_fatal(M)
 #define WRITE_MESSAGE(M) call physics_message(M)
@@ -23,42 +24,42 @@ use module_wrf_error
 CONTAINS
 !
   SUBROUTINE noahmplsm(ITIMESTEP,        YR,   JULIAN,   COSZIN,XLAT,XLONG, & ! IN : Time/Space-related
-                  DZ8W,       DT,       DZS,    NSOIL,       DX,            & ! IN : Model configuration 
-	        IVGTYP,   ISLTYP,    VEGFRA,   VEGMAX,      TMN,            & ! IN : Vegetation/Soil characteristics
-		 XLAND,     XICE,XICE_THRES,  CROPCAT,                      & ! IN : Vegetation/Soil characteristics
-	       PLANTING,  HARVEST,SEASON_GDD,                               &
+                  DZ8W,       DT,       DZS,    NSOIL,       DXIN,          & ! IN : Model configuration
+                IVGTYP,   ISLTYP,    VEGFRA,   VEGMAX,      TMN,            & ! IN : Vegetation/Soil characteristics
+                 XLAND,     XICE,XICE_THRES,  CROPCAT,                      & ! IN : Vegetation/Soil characteristics
+               PLANTING,  HARVEST,SEASON_GDD,                               &
                  IDVEG, IOPT_CRS,  IOPT_BTR, IOPT_RUN, IOPT_SFC, IOPT_FRZ,  & ! IN : User options
               IOPT_INF, IOPT_RAD,  IOPT_ALB, IOPT_SNF,IOPT_TBOT, IOPT_STC,  & ! IN : User options
               IOPT_GLA, IOPT_RSF, IOPT_SOIL,IOPT_PEDO,IOPT_CROP, IOPT_IRR,  & ! IN : User options
              IOPT_IRRM, IOPT_INFDV, IOPT_TDRN,soiltstep,                    & ! IN : User options                 
               IZ0TLND, SF_URBAN_PHYSICS,                                    & ! IN : User options
-	      SOILCOMP,  SOILCL1,  SOILCL2,   SOILCL3,  SOILCL4,            & ! IN : User options
+              SOILCOMP,  SOILCL1,  SOILCL2,   SOILCL3,  SOILCL4,            & ! IN : User options
                    T3D,     QV3D,     U_PHY,    V_PHY,   SWDOWN,     SWDDIR,&
                 SWDDIF,      GLW,                                           & ! IN : Forcing
-		 P8W3D,PRECIP_IN,        SR,                                & ! IN : Forcing
+                 P8W3D,PRECIP_IN,        SR,                                & ! IN : Forcing
                IRFRACT,  SIFRACT,   MIFRACT,  FIFRACT,                      & ! IN : Noah MP only
                    TSK,      HFX,      QFX,        LH,   GRDFLX,    SMSTAV, & ! IN/OUT LSM eqv
                 SMSTOT,SFCRUNOFF, UDRUNOFF,    ALBEDO,    SNOWC,     SMOIS, & ! IN/OUT LSM eqv
-		  SH2O,     TSLB,     SNOW,     SNOWH,   CANWAT,    ACSNOM, & ! IN/OUT LSM eqv
-		ACSNOW,    EMISS,     QSFC,                                 & ! IN/OUT LSM eqv
- 		    Z0,      ZNT,                                           & ! IN/OUT LSM eqv
+                  SH2O,     TSLB,     SNOW,     SNOWH,   CANWAT,    ACSNOM, & ! IN/OUT LSM eqv
+                ACSNOW,    EMISS,     QSFC,                                 & ! IN/OUT LSM eqv
+                    Z0,      ZNT,                                           & ! IN/OUT LSM eqv
                IRNUMSI,  IRNUMMI,  IRNUMFI,   IRWATSI,  IRWATMI,   IRWATFI, & ! IN/OUT Noah MP only
                IRELOSS,  IRSIVOL,  IRMIVOL,   IRFIVOL,  IRRSPLH,  LLANDUSE, & ! IN/OUT Noah MP only
                ISNOWXY,     TVXY,     TGXY,  CANICEXY, CANLIQXY,     EAHXY, & ! IN/OUT Noah MP only
-	         TAHXY,     CMXY,     CHXY,    FWETXY, SNEQVOXY,  ALBOLDXY, & ! IN/OUT Noah MP only
+                 TAHXY,     CMXY,     CHXY,    FWETXY, SNEQVOXY,  ALBOLDXY, & ! IN/OUT Noah MP only
                QSNOWXY, QRAINXY,  WSLAKEXY, ZWTXY,  WAXY,  WTXY,    TSNOXY, & ! IN/OUT Noah MP only
-	       ZSNSOXY,  SNICEXY,  SNLIQXY,  LFMASSXY, RTMASSXY,  STMASSXY, & ! IN/OUT Noah MP only
-	        WOODXY, STBLCPXY, FASTCPXY,    XLAIXY,   XSAIXY,   TAUSSXY, & ! IN/OUT Noah MP only
-	       SMOISEQ, SMCWTDXY,DEEPRECHXY,   RECHXY,  GRAINXY,    GDDXY,PGSXY,  & ! IN/OUT Noah MP only
+               ZSNSOXY,  SNICEXY,  SNLIQXY,  LFMASSXY, RTMASSXY,  STMASSXY, & ! IN/OUT Noah MP only
+                WOODXY, STBLCPXY, FASTCPXY,    XLAIXY,   XSAIXY,   TAUSSXY, & ! IN/OUT Noah MP only
+         SMOISEQ, SMCWTDXY,DEEPRECHXY,   RECHXY,  GRAINXY,    GDDXY,PGSXY,  & ! IN/OUT Noah MP only
                GECROS_STATE,                                                & ! IN/OUT gecros model
                QTDRAIN,   TD_FRACTION,                                      & ! IN/OUT tile drainage
-	        T2MVXY,   T2MBXY,    Q2MVXY,   Q2MBXY,                      & ! OUT Noah MP only
-	        TRADXY,    NEEXY,    GPPXY,     NPPXY,   FVEGXY,   RUNSFXY, & ! OUT Noah MP only
-	       RUNSBXY,   ECANXY,   EDIRXY,   ETRANXY,    FSAXY,    FIRAXY, & ! OUT Noah MP only
-	        APARXY,    PSNXY,    SAVXY,     SAGXY,  RSSUNXY,   RSSHAXY, & ! OUT Noah MP only
-		BGAPXY,   WGAPXY,    TGVXY,     TGBXY,    CHVXY,     CHBXY, & ! OUT Noah MP only
-		 SHGXY,    SHCXY,    SHBXY,     EVGXY,    EVBXY,     GHVXY, & ! OUT Noah MP only
-		 GHBXY,    IRGXY,    IRCXY,     IRBXY,     TRXY,     EVCXY, & ! OUT Noah MP only
+                T2MVXY,   T2MBXY,    Q2MVXY,   Q2MBXY,                      & ! OUT Noah MP only
+                TRADXY,    NEEXY,    GPPXY,     NPPXY,   FVEGXY,   RUNSFXY, & ! OUT Noah MP only
+               RUNSBXY,   ECANXY,   EDIRXY,   ETRANXY,    FSAXY,    FIRAXY, & ! OUT Noah MP only
+                APARXY,    PSNXY,    SAVXY,     SAGXY,  RSSUNXY,   RSSHAXY, & ! OUT Noah MP only
+                BGAPXY,   WGAPXY,    TGVXY,     TGBXY,    CHVXY,     CHBXY, & ! OUT Noah MP only
+                 SHGXY,    SHCXY,    SHBXY,     EVGXY,    EVBXY,     GHVXY, & ! OUT Noah MP only
+                 GHBXY,    IRGXY,    IRCXY,     IRBXY,     TRXY,     EVCXY, & ! OUT Noah MP only
               CHLEAFXY,   CHUCXY,   CHV2XY,    CHB2XY, RS,                  & ! OUT Noah MP only
                QINTSXY   ,QINTRXY   ,QDRIPSXY   ,&
                QDRIPRXY  ,QTHROSXY  ,QTHRORXY   ,&
@@ -113,7 +114,7 @@ CONTAINS
     REAL,                                            INTENT(IN   ) ::  DT        ! timestep [s]
     REAL,    DIMENSION(1:nsoil),                     INTENT(IN   ) ::  DZS       ! thickness of soil layers [m]
     INTEGER,                                         INTENT(IN   ) ::  NSOIL     ! number of soil layers
-    REAL,                                            INTENT(IN   ) ::  DX        ! horizontal grid spacing [m]
+    REAL,    DIMENSION( ims:ime,          jms:jme ), INTENT(IN   ) ::  DXIN      ! horizontal grid spacing [m]
     INTEGER, DIMENSION( ims:ime,          jms:jme ), INTENT(IN   ) ::  IVGTYP    ! vegetation type
     INTEGER, DIMENSION( ims:ime,          jms:jme ), INTENT(IN   ) ::  ISLTYP    ! soil type
     REAL,    DIMENSION( ims:ime,          jms:jme ), INTENT(IN   ) ::  VEGFRA    ! vegetation fraction []
@@ -426,6 +427,7 @@ CONTAINS
 
 ! IN only
 
+    REAL                                :: DX           ! horizontal resolution
     REAL                                :: COSZ         ! cosine zenith angle
     REAL                                :: LAT          ! latitude [rad]
     REAL                                :: Z_ML         ! model height [m]
@@ -651,10 +653,12 @@ CONTAINS
 
 
 ! ----------------------------------------------------------------------
+  call mpas_log_write(' ')
+  call mpas_log_write('--- enter subroutine noahmplsm:')
 
     CALL NOAHMP_OPTIONS(IDVEG  ,IOPT_CRS  ,IOPT_BTR  ,IOPT_RUN  ,IOPT_SFC  ,IOPT_FRZ , &
                 IOPT_INF  ,IOPT_RAD  ,IOPT_ALB  ,IOPT_SNF  ,IOPT_TBOT, IOPT_STC  ,     &
-		IOPT_RSF  ,IOPT_SOIL ,IOPT_PEDO ,IOPT_CROP ,IOPT_IRR , IOPT_IRRM ,     &
+                IOPT_RSF  ,IOPT_SOIL ,IOPT_PEDO ,IOPT_CROP ,IOPT_IRR , IOPT_IRRM ,     &
                 IOPT_INFDV,IOPT_TDRN )
 
     IPRINT    =  .false.                     ! debug printout
@@ -739,6 +743,7 @@ CONTAINS
 
 ! IN only
 
+       DX     = DXIN(I,J)                             ! grid horizontal resolution
        COSZ   = COSZIN  (I,J)                         ! cos zenith angle []
        LAT    = XLAT  (I,J)                           ! latitude [rad]
        Z_ML   = 0.5*DZ8W(I,1,J)                       ! DZ8W: thickness of full levels; ZLVL forcing height [m]
@@ -763,7 +768,7 @@ CONTAINS
        SWDN   = SWDOWN(I,J)                           ! shortwave down from SW scheme [W/m2]
        LWDN   = GLW(I,J)                              ! total longwave down from LW scheme [W/m2]
        P_ML   =(P8W3D(I,KTS+1,J)+P8W3D(I,KTS,J))*0.5  ! surface pressure defined at intermediate level [Pa]
-	                                              !    consistent with temperature, mixing ratio
+                                                      !    consistent with temperature, mixing ratio
        PSFC   = P8W3D(I,1,J)                          ! surface pressure defined a full levels [Pa]
        PRCP   = PRECIP_IN (I,J) / DT                  ! timestep total precip rate (glacier) [mm/s]! MB: v3.7
 
@@ -771,9 +776,9 @@ CONTAINS
        IF (IOPT_CROP > 0 .AND. VEGTYP == ISCROP_TABLE) CROPTYPE = DEFAULT_CROP_TABLE ! default croptype is generic dynamic vegetation crop
        IF (IOPT_CROP > 0 .AND. CROPCAT(I,J) > 0) THEN
          CROPTYPE = CROPCAT(I,J)                      ! crop type
-	 VEGTYP = ISCROP_TABLE
+         VEGTYP = ISCROP_TABLE
          FVGMAX = 0.95
-	 FVEG   = 0.95
+         FVEG   = 0.95
        END IF
 
        IF (PRESENT(MP_RAINC) .AND. PRESENT(MP_RAINNC) .AND. PRESENT(MP_SHCV) .AND. &
@@ -787,8 +792,8 @@ CONTAINS
          PRCPHAIL  = MP_HAIL(I,J)  /DT                ! timestep hail precip rate [mm/s]           ! MB: v3.7
 
          PRCPOTHR  = PRCP - PRCPCONV - PRCPNONC - PRCPSHCV ! take care of other (fog) contained in rainbl
-	 PRCPOTHR  = MAX(0.0,PRCPOTHR)
-	 PRCPNONC  = PRCPNONC + PRCPOTHR
+         PRCPOTHR  = MAX(0.0,PRCPOTHR)
+         PRCPNONC  = PRCPNONC + PRCPOTHR
          PRCPSNOW  = PRCPSNOW + SR(I,J)  * PRCPOTHR 
        ELSE
          PRCPCONV  = 0.
@@ -979,8 +984,8 @@ CONTAINS
        
        if(iopt_soil == 3 .and. .not. parameters%urban_flag) then
          
-	sand = 0.01 * soilcomp(i,1:4,j)
-	clay = 0.01 * soilcomp(i,5:8,j)
+        sand = 0.01 * soilcomp(i,1:4,j)
+        clay = 0.01 * soilcomp(i,5:8,j)
         orgm = 0.0
 
         if(opt_pedo == 1) call pedotransfer_sr2006(nsoil,sand,clay,orgm,parameters)
@@ -993,12 +998,12 @@ CONTAINS
 
        if(iopt_crop == 1 .and. croptype > 0) then
          parameters%PLTDAY = PLANTING(I,J)
-	 parameters%HSDAY  = HARVEST (I,J)
-	 parameters%GDDS1  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS1
-	 parameters%GDDS2  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS2
-	 parameters%GDDS3  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS3
-	 parameters%GDDS4  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS4
-	 parameters%GDDS5  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS5
+         parameters%HSDAY  = HARVEST (I,J)
+         parameters%GDDS1  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS1
+         parameters%GDDS2  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS2
+         parameters%GDDS3  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS3
+         parameters%GDDS4  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS4
+         parameters%GDDS5  = SEASON_GDD(I,J) / 1770.0 * parameters%GDDS5
        end if
 
        if(iopt_irr == 2) then
@@ -1015,8 +1020,8 @@ CONTAINS
                IVGTYP(I,J) == LCZ_9_TABLE      .or. IVGTYP(I,J) == LCZ_10_TABLE .or. IVGTYP(I,J) == LCZ_11_TABLE ) THEN
 
          IF(SF_URBAN_PHYSICS > 0 .AND. IRI_SCHEME == 1 ) THEN
-	     SOLAR_TIME = (JULIAN - INT(JULIAN))*24 + XLONG(I,J)/15.0
-	     IF(SOLAR_TIME < 0.) SOLAR_TIME = SOLAR_TIME + 24.
+             SOLAR_TIME = (JULIAN - INT(JULIAN))*24 + XLONG(I,J)/15.0
+             IF(SOLAR_TIME < 0.) SOLAR_TIME = SOLAR_TIME + 24.
              CALL CAL_MON_DAY(INT(JULIAN),YR,JMONTH,JDAY)
              IF (SOLAR_TIME >= 21. .AND. SOLAR_TIME <= 23. .AND. JMONTH >= 5 .AND. JMONTH <= 9) THEN
                 SMC(1) = max(SMC(1),parameters%SMCREF(1))
@@ -1050,6 +1055,7 @@ CONTAINS
          CALL NOAHMP_OPTIONS_GLACIER(IOPT_ALB  ,IOPT_SNF  ,IOPT_TBOT, IOPT_STC, IOPT_GLA )
       
          TBOT = MIN(TBOT,263.15)                      ! set deep temp to at most -10C
+         call mpas_log_write('--- noahmp_glacier:  $i',intArgs=(/i/))
          CALL NOAHMP_GLACIER(     I,       J,    COSZ,   NSNOW,   NSOIL,      DT, & ! IN : Time/Space/Model-related
                                T_ML,    P_ML,    U_ML,    V_ML,    Q_ML,    SWDN, & ! IN : Forcing
                                PRCP,    LWDN,    TBOT,    Z_ML, FICEOLD,   ZSOIL, & ! IN : Forcing
@@ -1059,7 +1065,7 @@ CONTAINS
                                 FSA,     FSR,    FIRA,     FSH,    FGEV,   SSOIL, & ! OUT : 
                                TRAD,   ESOIL,   RUNSF,   RUNSB,     SAG,    SALB, & ! OUT :
                               QSNBOT,PONDING,PONDING1,PONDING2,    T2MB,    Q2MB, & ! OUT :
-			      EMISSI,  FPICE,    CHB2 &                             ! OUT :
+                              EMISSI,  FPICE,    CHB2 &                             ! OUT :
 #ifdef WRF_HYDRO
                               , sfcheadrt(i,j)                                      &
 #endif
@@ -1156,8 +1162,12 @@ CONTAINS
          QTLDRN = 0.0
          RUNSF  = RUNSF * dt
          RUNSB  = RUNSB * dt
+
+         EFLXB  = 0.0
+
     ELSE
          ICE=0                              ! Neither sea ice or land ice.
+         call mpas_log_write('--- noahmp_sflx:  $i',intArgs=(/i/))
          CALL NOAHMP_SFLX (parameters, &
             I       , J       , LAT     , YEARLEN , JULIAN  , COSZ    , & ! IN : Time/Space-related
             DT      , DX      , DZ8W1D  , NSOIL   , ZSOIL   , NSNOW   , & ! IN : Model configuration 
@@ -1165,7 +1175,7 @@ CONTAINS
             SMCEQ   ,                                                   & ! IN : Vegetation/Soil characteristics
             T_ML    , P_ML    , PSFC    , U_ML    , V_ML    , Q_ML    , & ! IN : Forcing
             QC      , SWDN    , LWDN    ,                               & ! IN : Forcing
-	    PRCPCONV, PRCPNONC, PRCPSHCV, PRCPSNOW, PRCPGRPL, PRCPHAIL, & ! IN : Forcing
+            PRCPCONV, PRCPNONC, PRCPSHCV, PRCPSNOW, PRCPGRPL, PRCPHAIL, & ! IN : Forcing
             TBOT    , CO2PP   , O2PP    , FOLN    , FICEOLD , Z_ML    , & ! IN : Forcing
             IRRFRA  , SIFAC   , MIFAC   , FIFAC   , LLANDUSE,           & ! IN : Irrigation: fractions	
             ALBOLD  , SNEQVO  ,                                         & ! IN/OUT : 
@@ -1192,8 +1202,8 @@ CONTAINS
             ALBSND  , ALBSNI  ,                                         & ! OUT :
             BGAP    , WGAP    , CHV     , CHB     , EMISSI  ,           & ! OUT : 
             SHG     , SHC     , SHB     , EVG     , EVB     , GHV     , & ! OUT :
-	    GHB     , IRG     , IRC     , IRB     , TR      , EVC     , & ! OUT :
-	    CHLEAF  , CHUC    , CHV2    , CHB2    , FPICE   , PAHV    , & ! OUT :
+            GHB     , IRG     , IRC     , IRB     , TR      , EVC     , & ! OUT :
+            CHLEAF  , CHUC    , CHV2    , CHB2    , FPICE   , PAHV    , & ! OUT :
             PAHG    , PAHB    , PAH     , LAISUN  , LAISHA  , RB      , & ! OUT :
             QINTS   , QINTR   , QDRIPS  , QDRIPR  , QTHROS  , QTHROR  , & ! OUT :
             QSNSUB  , QSNFRO  , QSUBC   , QFROC   , QFRZC   , QMELTC  , & ! OUT :
@@ -1211,6 +1221,7 @@ CONTAINS
 
    ENDIF ! glacial split ends 
 
+
 #ifdef WRF_HYDRO
 !AD_CHANGE: Glacier cells can produce small negative subsurface runoff for mass balance.
 !           This will crash channel routing, so only pass along positive runoff.
@@ -1226,7 +1237,7 @@ CONTAINS
              TSK      (I,J)                = TRAD
              HFX      (I,J)                = FSH
              GRDFLX   (I,J)                = SSOIL
-	     SMSTAV   (I,J)                = 0.0  ! [maintained as Noah consistency]
+             SMSTAV   (I,J)                = 0.0  ! [maintained as Noah consistency]
              SMSTOT   (I,J)                = 0.0  ! [maintained as Noah consistency]
              SFCRUNOFF(I,J)                = SFCRUNOFF(I,J) + RUNSF  !* DT
              UDRUNOFF (I,J)                = UDRUNOFF(I,J)  + RUNSB  !* DT
@@ -1395,7 +1406,7 @@ CONTAINS
 
              GRAINXY  (I,J) = GRAIN !GRAIN XING
              GDDXY    (I,J) = GDD   !XING 
-	     PGSXY    (I,J) = PGS
+             PGSXY    (I,J) = PGS
 
              ! irrigation
              IRNUMSI(I,J)                  = IRCNTSI
@@ -1428,6 +1439,10 @@ CONTAINS
 
       ENDDO ILOOP                                                       ! of I loop
    ENDDO JLOOP                                                          ! of J loop
+
+   call mpas_log_write('--- end subroutine noahmplsm:')
+   call mpas_log_write( ' ')
+
 
 !------------------------------------------------------
   END SUBROUTINE noahmplsm
@@ -2067,23 +2082,23 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
 
        DO J = jts , jtf
           DO I = its , itf
-	    IF(IVGTYP(I,J)==ISICE_TABLE .AND. XICE(I,J) <= 0.0) THEN
+            IF(IVGTYP(I,J)==ISICE_TABLE .AND. XICE(I,J) <= 0.0) THEN
               DO NS=1, NSOIL
-	        SMOIS(I,NS,J) = 1.0                     ! glacier starts all frozen
-	        SH2O(I,NS,J) = 0.0
-	        TSLB(I,NS,J) = MIN(TSLB(I,NS,J),263.15) ! set glacier temp to at most -10C
+                SMOIS(I,NS,J) = 1.0                     ! glacier starts all frozen
+                SH2O(I,NS,J) = 0.0
+                TSLB(I,NS,J) = MIN(TSLB(I,NS,J),263.15) ! set glacier temp to at most -10C
               END DO
-	        !TMN(I,J) = MIN(TMN(I,J),263.15)         ! set deep temp to at most -10C
-		SNOW(I,J) = MAX(SNOW(I,J), 10.0)        ! set SWE to at least 10mm
+               !TMN(I,J) = MIN(TMN(I,J),263.15)         ! set deep temp to at most -10C
+                SNOW(I,J) = MAX(SNOW(I,J), 10.0)        ! set SWE to at least 10mm
                 SNOWH(I,J)=SNOW(I,J)*0.01               ! SNOW in mm and SNOWH in m
-	    ELSE
-	      
+            ELSE
+
               BEXP   =   BEXP_TABLE(ISLTYP(I,J))
               SMCMAX = SMCMAX_TABLE(ISLTYP(I,J))
               PSISAT = PSISAT_TABLE(ISLTYP(I,J))
 
               DO NS=1, NSOIL
-	        IF ( SMOIS(I,NS,J) > SMCMAX )  SMOIS(I,NS,J) = SMCMAX
+                IF ( SMOIS(I,NS,J) > SMCMAX )  SMOIS(I,NS,J) = SMCMAX
               END DO
               IF ( ( BEXP > 0.0 ) .AND. ( SMCMAX > 0.0 ) .AND. ( PSISAT > 0.0 ) ) THEN
                 DO NS=1, NSOIL
@@ -2111,21 +2126,21 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
           DO I = its,itf
              qtdrain    (I,J) = 0.
              tvxy       (I,J) = TSK(I,J)
-	       if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) tvxy(I,J) = 273.15
+               if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) tvxy(I,J) = 273.15
              tgxy       (I,J) = TSK(I,J)
-	       if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) tgxy(I,J) = 273.15
+               if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) tgxy(I,J) = 273.15
              CANWAT     (I,J) = 0.0
              canliqxy   (I,J) = CANWAT(I,J)
              canicexy   (I,J) = 0.
              eahxy      (I,J) = 2000. 
              tahxy      (I,J) = TSK(I,J)
-	       if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) tahxy(I,J) = 273.15
+               if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) tahxy(I,J) = 273.15
 !             tahxy      (I,J) = 287.
 !jref:start
              t2mvxy     (I,J) = TSK(I,J)
-	       if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) t2mvxy(I,J) = 273.15
+               if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) t2mvxy(I,J) = 273.15
              t2mbxy     (I,J) = TSK(I,J)
-	       if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) t2mbxy(I,J) = 273.15
+               if(snow(i,j) > 0.0 .and. tsk(i,j) > 273.15) t2mbxy(I,J) = 273.15
              chstarxy     (I,J) = 0.1
 !jref:end
 
@@ -2149,10 +2164,10 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
              endif
 
            IF(IVGTYP(I,J) == ISBARREN_TABLE .OR. IVGTYP(I,J) == ISICE_TABLE .OR. &
-	      ( SF_URBAN_PHYSICS == 0 .AND. IVGTYP(I,J) == ISURBAN_TABLE )  .OR. &
-	      IVGTYP(I,J) == ISWATER_TABLE ) THEN
-	     
-	     lai        (I,J) = 0.0
+              ( SF_URBAN_PHYSICS == 0 .AND. IVGTYP(I,J) == ISURBAN_TABLE )  .OR. &
+              IVGTYP(I,J) == ISWATER_TABLE ) THEN
+
+             lai        (I,J) = 0.0
              xsaixy     (I,J) = 0.0
              lfmassxy   (I,J) = 0.0
              stmassxy   (I,J) = 0.0
@@ -2162,11 +2177,11 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
              fastcpxy   (I,J) = 0.0
              grainxy    (I,J) = 1E-10
              gddxy      (I,J) = 0
-	     cropcat    (I,J) = 0
+             cropcat    (I,J) = 0
 
-	   ELSE
-	     
-	     lai        (I,J) = max(lai(i,j),0.05)             ! at least start with 0.05 for arbitrary initialization (v3.7)
+           ELSE
+
+             lai        (I,J) = max(lai(i,j),0.05)             ! at least start with 0.05 for arbitrary initialization (v3.7)
              xsaixy     (I,J) = max(0.1*lai(I,J),0.05)         ! MB: arbitrarily initialize SAI using input LAI (v3.7)
              masslai = 1000. / max(SLA_TABLE(IVGTYP(I,J)),1.0) ! conversion from lai to mass  (v3.7)
              lfmassxy   (I,J) = lai(i,j)*masslai               ! use LAI to initialize (v3.7)
@@ -2181,47 +2196,47 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
 
 ! Initialize crop for Liu crop model
 
-	     if(iopt_crop == 1 ) then
-	       cropcat    (i,j) = default_crop_table
+             if(iopt_crop == 1 ) then
+               cropcat    (i,j) = default_crop_table
                if(croptype(i,5,j) >= 0.5) then
                  rtmassxy(i,j) = 0.0
                  woodxy  (i,j) = 0.0                    
 
-	         if(    croptype(i,1,j) > croptype(i,2,j) .and. &
-		        croptype(i,1,j) > croptype(i,3,j) .and. &
-		        croptype(i,1,j) > croptype(i,4,j) ) then   ! choose corn
+                 if(    croptype(i,1,j) > croptype(i,2,j) .and. &
+                        croptype(i,1,j) > croptype(i,3,j) .and. &
+                        croptype(i,1,j) > croptype(i,4,j) ) then   ! choose corn
 
-		   cropcat (i,j) = 1
+                   cropcat (i,j) = 1
                    lfmassxy(i,j) =    lai(i,j)/0.015               ! Initialize lfmass Zhe Zhang 2020-07-13
                    stmassxy(i,j) = xsaixy(i,j)/0.003
 
-	         elseif(croptype(i,2,j) > croptype(i,1,j) .and. &
-		        croptype(i,2,j) > croptype(i,3,j) .and. &
-		        croptype(i,2,j) > croptype(i,4,j) ) then   ! choose soybean
+                 elseif(croptype(i,2,j) > croptype(i,1,j) .and. &
+                        croptype(i,2,j) > croptype(i,3,j) .and. &
+                        croptype(i,2,j) > croptype(i,4,j) ) then   ! choose soybean
 
-		   cropcat (i,j) = 2
+                   cropcat (i,j) = 2
                    lfmassxy(i,j) =    lai(i,j)/0.030               ! Initialize lfmass Zhe Zhang 2020-07-13
                    stmassxy(i,j) = xsaixy(i,j)/0.003
 
-	         else
+                 else
 
-		   cropcat (i,j) = default_crop_table
+                   cropcat (i,j) = default_crop_table
                    lfmassxy(i,j) =    lai(i,j)/0.035
                    stmassxy(i,j) = xsaixy(i,j)/0.003
 
-	         end if
+                 end if
 
-	       end if
-	     end if
+               end if
+             end if
 
 ! Initialize cropcat for gecros crop model
 
-	     if(iopt_crop == 2) then
-	       cropcat    (i,j) = 0
+             if(iopt_crop == 2) then
+               cropcat    (i,j) = 0
                if(croptype(i,5,j) >= 0.5) then
                   if(croptype(i,3,j) > 0.0)             cropcat(i,j) = 1 ! if any wheat, set to wheat
                   if(croptype(i,1,j) > croptype(i,3,j)) cropcat(i,j) = 2 ! change to maize
-	       end if
+               end if
 
                hti    = 0.01
                rdi    = 10.
@@ -2260,7 +2275,7 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
                 end if
              end if
 
-	   END IF
+           END IF
 
           enddo
        enddo
@@ -2969,16 +2984,16 @@ end function checkIfHarvest
                                  DT,     COSZ_URB2D,     XLAT_URB2D,                        & ! IN : Time/Space-related
                                 T3D,           QV3D,          U_PHY,      V_PHY,   SWDOWN,  & ! IN : Forcing
                              SWDDIR,         SWDDIF,                                        &
-		                GLW,          P8W3D,         RAINBL,       DZ8W,      ZNT,  & ! IN : Forcing
+                                GLW,          P8W3D,         RAINBL,       DZ8W,      ZNT,  & ! IN : Forcing
                                 TSK,            HFX,            QFX,         LH,   GRDFLX,  & ! IN/OUT : LSM 
-		             ALBEDO,          EMISS,           QSFC,                        & ! IN/OUT : LSM 
+                             ALBEDO,          EMISS,           QSFC,                        & ! IN/OUT : LSM
                             ids,ide,        jds,jde,        kds,kde,                        &
                             ims,ime,        jms,jme,        kms,kme,                        &
                             its,ite,        jts,jte,        kts,kte,                        &
                          cmr_sfcdif,     chr_sfcdif,     cmc_sfcdif,                        &
-	                 chc_sfcdif,    cmgr_sfcdif,    chgr_sfcdif,                        &
+                         chc_sfcdif,    cmgr_sfcdif,    chgr_sfcdif,                        &
                            tr_urb2d,       tb_urb2d,       tg_urb2d,                        & !H urban
-	                   tc_urb2d,       qc_urb2d,       uc_urb2d,                        & !H urban
+                           tc_urb2d,       qc_urb2d,       uc_urb2d,                        & !H urban
                          xxxr_urb2d,     xxxb_urb2d,     xxxg_urb2d, xxxc_urb2d,            & !H urban
                           trl_urb3d,      tbl_urb3d,      tgl_urb3d,                        & !H urban
                            sh_urb2d,       lh_urb2d,        g_urb2d,   rn_urb2d,  ts_urb2d, & !H urban
