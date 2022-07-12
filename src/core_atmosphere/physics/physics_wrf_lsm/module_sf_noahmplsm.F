@@ -113,7 +113,7 @@ use module_wrf_error
 
   INTEGER :: OPT_CRS  ! options for canopy stomatal resistance
                       ! **1 -> Ball-Berry
-		      !   2 -> Jarvis
+                      !   2 -> Jarvis
 
   INTEGER :: OPT_BTR  ! options for soil moisture factor for stomatal resistance
                       ! **1 -> Noah (soil moisture) 
@@ -126,19 +126,19 @@ use module_wrf_error
                       !   3 -> original surface and subsurface runoff (free drainage)
                       !   4 -> BATS surface and subsurface runoff (free drainage)
                       !   5 -> Miguez-Macho&Fan groundwater scheme (Miguez-Macho et al. 2007 JGR; Fan et al. 2007 JGR)
-		      !          (needs further testing for public use)
+                      !          (needs further testing for public use)
                       !   6 -> Variable Infiltration Capacity Model surface runoff scheme (Wood et al., 1992, JGR) 
                       !   7 -> Xiananjiang Infiltration and surface runoff scheme ((Jayawardena and Zhou, 2000)
                       !   8 -> Dynamic VIC surface runoff scheme (Liang and Xie, 2001)
 
   INTEGER :: OPT_SFC  ! options for surface layer drag coeff (CH & CM)
                       ! **1 -> M-O
-		      ! **2 -> original Noah (Chen97)
-		      ! **3 -> MYJ consistent; 4->YSU consistent. MB: removed in v3.7 for further testing
+                      ! **2 -> original Noah (Chen97)
+                      ! **3 -> MYJ consistent; 4->YSU consistent. MB: removed in v3.7 for further testing
 
   INTEGER :: OPT_FRZ  ! options for supercooled liquid water (or ice fraction)
                       ! **1 -> no iteration (Niu and Yang, 2006 JHM)
-		      !   2 -> Koren's iteration 
+                      !   2 -> Koren's iteration
 
   INTEGER :: OPT_INF  ! options for frozen soil permeability
                       ! **1 -> linear effects, more permeable (Niu and Yang, 2006, JHM)
@@ -151,14 +151,14 @@ use module_wrf_error
 
   INTEGER :: OPT_ALB  ! options for ground snow surface albedo
                       !   1 -> BATS
-		      ! **2 -> CLASS
+                      ! **2 -> CLASS
 
   INTEGER :: OPT_SNF  ! options for partitioning  precipitation into rainfall & snowfall
                       ! **1 -> Jordan (1991)
-		      !   2 -> BATS: when SFCTMP<TFRZ+2.2 
-		      !   3 -> SFCTMP < TFRZ
-		      !   4 -> Use WRF microphysics output
-		      !   5 -> Use wetbulb temperature (Wang et al., 2019 GRL) C.He, 12/18/2020
+                      !   2 -> BATS: when SFCTMP<TFRZ+2.2
+                      !   3 -> SFCTMP < TFRZ
+                      !   4 -> Use WRF microphysics output
+                      !   5 -> Use wetbulb temperature (Wang et al., 2019 GRL) C.He, 12/18/2020
  
   INTEGER :: OPT_TBOT ! options for lower boundary condition of soil temperature
                       !   1 -> zero heat flux from bottom (ZBOT and TBOT not used)
@@ -166,20 +166,20 @@ use module_wrf_error
 
   INTEGER :: OPT_STC  ! options for snow/soil temperature time scheme (only layer 1)
                       ! **1 -> semi-implicit; flux top boundary condition
-		      !   2 -> full implicit (original Noah); temperature top boundary condition
+                      !   2 -> full implicit (original Noah); temperature top boundary condition
                       !   3 -> same as 1, but FSNO for TS calculation (generally improves snow; v3.7)
 
   INTEGER :: OPT_RSF  ! options for surface resistent to evaporation/sublimation
                       ! **1 -> Sakaguchi and Zeng, 2009
-		      !   2 -> Sellers (1992)
+                      !   2 -> Sellers (1992)
                       !   3 -> adjusted Sellers to decrease RSURF for wet soil
-		      !   4 -> option 1 for non-snow; rsurf = rsurf_snow for snow (set in MPTABLE); AD v3.8
+                      !   4 -> option 1 for non-snow; rsurf = rsurf_snow for snow (set in MPTABLE); AD v3.8
 
   INTEGER :: OPT_SOIL ! options for defining soil properties
                       ! **1 -> use input dominant soil texture
-		      !   2 -> use input soil texture that varies with depth
+                      !   2 -> use input soil texture that varies with depth
                       !   3 -> use soil composition (sand, clay, orgm) and pedotransfer functions (OPT_PEDO)
-		      !   4 -> use input soil properties (BEXP_3D, SMCMAX_3D, etc.)
+                      !   4 -> use input soil properties (BEXP_3D, SMCMAX_3D, etc.)
 
   INTEGER :: OPT_PEDO ! options for pedotransfer functions (used when OPT_SOIL = 3)
                       ! **1 -> Saxton and Rawls (2006)
@@ -187,7 +187,7 @@ use module_wrf_error
   INTEGER :: OPT_CROP ! options for crop model
                       ! **0 -> No crop model, will run default dynamic vegetation
                       !   1 -> Liu, et al. 2016
-		      !   2 -> Gecros (Genotype-by-Environment interaction on CROp growth Simulator) Yin and van Laar, 2005
+                      !   2 -> Gecros (Genotype-by-Environment interaction on CROp growth Simulator) Yin and van Laar, 2005
 
   INTEGER :: OPT_IRR  ! options for irrigation
                       ! **0 -> No irrigation
@@ -467,7 +467,7 @@ contains
                    SMCEQ   ,                                                   & ! IN : Vegetation/Soil characteristics
                    SFCTMP  , SFCPRS  , PSFC    , UU      , VV      , Q2      , & ! IN : Forcing
                    QC      , SOLDN   , LWDN    ,                               & ! IN : Forcing
-	           PRCPCONV, PRCPNONC, PRCPSHCV, PRCPSNOW, PRCPGRPL, PRCPHAIL, & ! IN : Forcing
+                   PRCPCONV, PRCPNONC, PRCPSHCV, PRCPSNOW, PRCPGRPL, PRCPHAIL, & ! IN : Forcing
                    TBOT    , CO2AIR  , O2AIR   , FOLN    , FICEOLD , ZLVL    , & ! IN : Forcing
                    IRRFRA  , SIFRA   , MIFRA   , FIFRA   , LLANDUSE,           & ! IN : Irrigation: fractions
                    ALBOLD  , SNEQVO  ,                                         & ! IN/OUT : 
@@ -482,7 +482,7 @@ contains
                    SMCWTD  ,DEEPRECH , RECH    ,                               & ! IN/OUT :
                    GECROS1D,                                                   & ! IN/OUT :
                    QTLDRN  , TDFRACMP,                                         & ! IN/OUT :
-		   Z0WRF   ,                                                   & ! OUT :
+                   Z0WRF   ,                                                   & ! OUT :
                    IRCNTSI , IRCNTMI , IRCNTFI , IRAMTSI , IRAMTMI , IRAMTFI , & ! IN/OUT : Irrigation: vars
                    IRSIRATE, IRMIRATE, IRFIRATE, FIRR    , EIRR    ,           & ! IN/OUT : Irrigation: vars
                    FSA     , FSR     , FIRA    , FSH     , SSOIL   , FCEV    , & ! OUT : 
@@ -491,11 +491,11 @@ contains
                    RUNSRF  , RUNSUB  , APAR    , PSN     , SAV     , SAG     , & ! OUT :
                    FSNO    , NEE     , GPP     , NPP     , FVEG    , ALBEDO  , & ! OUT :
                    QSNBOT  , PONDING , PONDING1, PONDING2, RSSUN   , RSSHA   , & ! OUT :
-		   ALBSND  , ALBSNI  ,                                         & ! OUT :
+                   ALBSND  , ALBSNI  ,                                         & ! OUT :
                    BGAP    , WGAP    , CHV     , CHB     , EMISSI  ,           & ! OUT :
-		   SHG     , SHC     , SHB     , EVG     , EVB     , GHV     , & ! OUT :
-		   GHB     , IRG     , IRC     , IRB     , TR      , EVC     , & ! OUT :
-		   CHLEAF  , CHUC    , CHV2    , CHB2    , FPICE   , PAHV    , & ! OUT :
+                   SHG     , SHC     , SHB     , EVG     , EVB     , GHV     , & ! OUT :
+                   GHB     , IRG     , IRC     , IRB     , TR      , EVC     , & ! OUT :
+                   CHLEAF  , CHUC    , CHV2    , CHB2    , FPICE   , PAHV    , & ! OUT :
                    PAHG    , PAHB    , PAH     , LAISUN  , LAISHA  , RB      , & ! OUT
                    QINTS   , QINTR   , QDRIPS  , QDRIPR  , QTHROS  , QTHROR  , & ! OUT :
                    QSNSUB  , QSNFRO  , QSUBC   , QFROC   , QFRZC   , QMELTC  , & ! OUT :
@@ -956,7 +956,7 @@ contains
                      CANLIQ ,CANICE ,TV     ,SFCTMP ,TG     ,         & !in
                      QINTR  ,QDRIPR ,QTHROR ,QINTS  ,QDRIPS ,QTHROS , & !out
                      PAHV   ,PAHG   ,PAHB   ,QRAIN  ,QSNOW  ,SNOWHIN, & !out
-	             FWET   ,CMC                                    )   !out
+                     FWET   ,CMC                                    )   !out
 
 ! compute energy budget (momentum & energy fluxes and phase changes) 
 
@@ -968,7 +968,7 @@ contains
                  ELAI   ,ESAI   ,FWET   ,FOLN   ,                    & !in
                  FVEG   ,PAHV   ,PAHG   ,PAHB   ,                    & !in
                  QSNOW  ,DZSNSO ,LAT    ,CANLIQ ,CANICE ,iloc, jloc ,& !in
-		 Z0WRF  ,                                            & !out
+                 Z0WRF  ,                                            & !out
                  IMELT  ,SNICEV ,SNLIQV ,EPORE  ,T2M    ,FSNO   ,    & !out
                  SAV    ,SAG    ,QMELT  ,FSA    ,FSR    ,TAUX   ,    & !out
                  TAUY   ,FIRA   ,FSH    ,FCEV   ,FGEV   ,FCTR   ,    & !out
@@ -984,7 +984,7 @@ contains
                  FSRG   ,RSSUN   ,RSSHA ,ALBSND  ,ALBSNI, BGAP   ,WGAP,TGV,TGB,& !out
                  Q1     ,Q2V    ,Q2B    ,Q2E    ,CHV   ,CHB     , & !out
                  EMISSI ,PAH    ,CANHS  ,                         & !out
-		 SHG,SHC,SHB,EVG,EVB,GHV,GHB,IRG,IRC,IRB,TR,EVC,CHLEAF,CHUC,CHV2,CHB2,&
+                 SHG,SHC,SHB,EVG,EVB,GHV,GHB,IRG,IRC,IRB,TR,EVC,CHLEAF,CHUC,CHV2,CHB2,&
                  EFLXB, HCPCT, ACC_SSOIL, &
                  JULIAN, SWDOWN, PRCP, FB, GECROS1D )        
 !jref:end
@@ -1004,7 +1004,7 @@ contains
                  IRRFRA ,MIFAC  ,FIFAC  ,CROPLU ,                 & !in
                  FICEOLD,PONDING,TG     ,IST    ,FVEG   ,iloc,jloc , SMCEQ , & !in
                  BDFALL ,FP     ,RAIN   ,SNOW   ,                 & !in  MB/AN: v3.7
-		 QSNOW  ,QRAIN  ,SNOWHIN,LATHEAV,LATHEAG,frozen_canopy,frozen_ground,  & !in  MB
+                 QSNOW  ,QRAIN  ,SNOWHIN,LATHEAV,LATHEAG,frozen_canopy,frozen_ground,  & !in  MB
                  DX     ,TDFRACMP,                                & !in PVK tile drainage
                  ISNOW  ,CANLIQ ,CANICE ,TV     ,SNOWH  ,SNEQV  , & !inout
                  SNICE  ,SNLIQ  ,STC    ,ZSNSO  ,SH2O   ,SMC    , & !inout
@@ -1045,9 +1045,9 @@ contains
    IF (OPT_CROP == 1 .and. crop_active) THEN
     CALL CARBON_CROP (parameters,NSNOW  ,NSOIL  ,VEGTYP ,DT     ,ZSOIL  ,JULIAN , & !in 
                          DZSNSO ,STC    ,SMC    ,TV     ,PSN    ,FOLN   ,BTRAN  , & !in
-			 SOLDN  ,T2M    ,                                         & !in
+                         SOLDN  ,T2M    ,                                         & !in
                          LFMASS ,RTMASS ,STMASS ,WOOD   ,STBLCP ,FASTCP ,GRAIN  , & !inout
-			 LAI    ,SAI    ,GDD    ,                                 & !inout
+                         LAI    ,SAI    ,GDD    ,                                 & !inout
                          GPP    ,NPP    ,NEE    ,AUTORS ,HETERS ,TOTSC  ,TOTLB, PGS    ) !out
    END IF
    
@@ -1097,7 +1097,7 @@ contains
                   PRCPCONV,PRCPNONC ,PRCPSHCV,PRCPSNOW,PRCPGRPL,PRCPHAIL , &
                   SOLDN   ,COSZ     ,THAIR   ,QAIR    ,                    & 
                   EAIR    ,RHOAIR   ,QPRECC  ,QPRECL  ,SOLAD   , SOLAI   , &
-		  SWDOWN  ,BDFALL   ,RAIN    ,SNOW    ,FP      , FPICE   ,PRCP )     
+                  SWDOWN  ,BDFALL   ,RAIN    ,SNOW    ,FP      , FPICE   ,PRCP )
 ! --------------------------------------------------------------------------------------------------
 ! re-process atmospheric forcing
 ! ----------------------------------------------------------------------
@@ -1177,7 +1177,7 @@ contains
 
        IF(OPT_SNF == 4) THEN
          QPRECC = PRCPCONV + PRCPSHCV
-	 QPRECL = PRCPNONC
+         QPRECL = PRCPNONC
        ELSE
          QPRECC = 0.10 * PRCP          ! should be from the atmospheric model
          QPRECL = 0.90 * PRCP          ! should be from the atmospheric model
@@ -1230,14 +1230,14 @@ contains
      IF(OPT_SNF == 4) THEN
         PRCP_FROZEN = PRCPSNOW + PRCPGRPL + PRCPHAIL
         IF(PRCPNONC > 0.0 .and. PRCP_FROZEN > 0.0) THEN
-	  FPICE = MIN(1.0,PRCP_FROZEN/PRCPNONC)
-	  FPICE = MAX(0.0,FPICE)
-	  BDFALL = BDFALL*(PRCPSNOW/PRCP_FROZEN) + RHO_GRPL*(PRCPGRPL/PRCP_FROZEN) + &
-	             RHO_HAIL*(PRCPHAIL/PRCP_FROZEN)
-	ELSE
-	  FPICE = 0.0
+          FPICE = MIN(1.0,PRCP_FROZEN/PRCPNONC)
+          FPICE = MAX(0.0,FPICE)
+          BDFALL = BDFALL*(PRCPSNOW/PRCP_FROZEN) + RHO_GRPL*(PRCPGRPL/PRCP_FROZEN) + &
+                   RHO_HAIL*(PRCPHAIL/PRCP_FROZEN)
+        ELSE
+          FPICE = 0.0
         ENDIF
-	
+
      ENDIF
 
 ! wet-bulb scheme (Wang et al., 2019 GRL), C.He, 12/18/2020
@@ -1378,8 +1378,8 @@ ENDIF   ! CROPTYPE == 0
                           BDFALL ,RAIN   ,SNOW   ,FP     ,                 & !in
                           CANLIQ ,CANICE ,TV     ,SFCTMP ,TG     ,         & !in
                           QINTR  ,QDRIPR ,QTHROR ,QINTS  ,QDRIPS ,QTHROS , & !out
-			  PAHV   ,PAHG   ,PAHB   ,QRAIN  ,QSNOW  ,SNOWHIN, & !out
-			  FWET   ,CMC                                    )   !out
+                          PAHV   ,PAHG   ,PAHB   ,QRAIN  ,QSNOW  ,SNOWHIN, & !out
+                          FWET   ,CMC                                    )   !out
 
 ! ------------------------ code history ------------------------------
 ! Michael Barlage: Oct 2013 - split CANWATER to calculate precip movement for 
@@ -1476,10 +1476,10 @@ ENDIF   ! CROPTYPE == 0
          QINTR  = 0.0
          QDRIPR = 0.0
          QTHROR = RAIN
-	 IF(CANLIQ > 0.0) THEN             ! FOR CASE OF CANOPY GETTING BURIED
-	   QDRIPR = QDRIPR + CANLIQ/DT
-	   CANLIQ = 0.0
-	 END IF
+         IF(CANLIQ > 0.0) THEN             ! FOR CASE OF CANOPY GETTING BURIED
+           QDRIPR = QDRIPR + CANLIQ/DT
+           CANLIQ = 0.0
+         END IF
       END IF
       
 ! heat transported by liquid water
@@ -1499,8 +1499,8 @@ ENDIF   ! CROPTYPE == 0
          QINTS = MAX(QINTS, 0.0)
          FT = MAX(0.0,(TV - 270.15) / 1.87E5)
          FV = SQRT(UU*UU + VV*VV) / 1.56E5
-	 ! MB: changed below to reflect the rain assumption that all precip gets intercepted 
-	 ICEDRIP = MAX(0.0,CANICE) * (FV+FT)    !MB: removed /DT
+         ! MB: changed below to reflect the rain assumption that all precip gets intercepted
+         ICEDRIP = MAX(0.0,CANICE) * (FV+FT)    !MB: removed /DT
          ICEDRIP = MIN(CANICE/DT + QINTS, ICEDRIP)      !C.He: add constraint to keep water balance
          QDRIPS = (FVEG * SNOW - QINTS) + ICEDRIP
          QTHROS = (1.0-FVEG) * SNOW
@@ -1509,10 +1509,10 @@ ENDIF   ! CROPTYPE == 0
          QINTS  = 0.0
          QDRIPS = 0.0
          QTHROS = SNOW
-	 IF(CANICE > 0.0) THEN             ! FOR CASE OF CANOPY GETTING BURIED
-	   QDRIPS = QDRIPS + CANICE/DT
-	   CANICE = 0.0
-	 END IF
+         IF(CANICE > 0.0) THEN             ! FOR CASE OF CANOPY GETTING BURIED
+           QDRIPS = QDRIPS + CANICE/DT
+           CANICE = 0.0
+         END IF
       ENDIF
 
 ! wetted fraction of canopy
@@ -1540,13 +1540,13 @@ ENDIF   ! CROPTYPE == 0
       
       IF (FVEG > 0.0 .AND. FVEG < 1.0) THEN
         PAHG = PAHG / FVEG         ! these will be multiplied by fraction later
-	PAHB = PAHB / (1.0-FVEG)
+        PAHB = PAHB / (1.0-FVEG)
       ELSEIF (FVEG <= 0.0) THEN
         PAHB = PAHG + PAHB         ! for case of canopy getting buried
         PAHG = 0.0
-	PAHV = 0.0
+        PAHV = 0.0
       ELSEIF (FVEG >= 1.0) THEN
-	PAHB = 0.0
+        PAHB = 0.0
       END IF
       
       PAHV = MAX(PAHV,-20.0)       ! Put some artificial limits here for stability
@@ -1741,7 +1741,7 @@ ENDIF   ! CROPTYPE == 0
                      ELAI   ,ESAI   ,FWET   ,FOLN   ,         & !in
                      FVEG   ,PAHV   ,PAHG   ,PAHB   ,                 & !in
                      QSNOW  ,DZSNSO ,LAT    ,CANLIQ ,CANICE ,ILOC   , JLOC, & !in
-		     Z0WRF  ,                                         &
+                     Z0WRF  ,                                         &
                      IMELT  ,SNICEV ,SNLIQV ,EPORE  ,T2M    ,FSNO   , & !out
                      SAV    ,SAG    ,QMELT  ,FSA    ,FSR    ,TAUX   , & !out
                      TAUY   ,FIRA   ,FSH    ,FCEV   ,FGEV   ,FCTR   , & !out
@@ -1756,7 +1756,7 @@ ENDIF   ! CROPTYPE == 0
                      T2MV   ,T2MB   ,FSRV   , &
                      FSRG   ,RSSUN  ,RSSHA  ,ALBSND  ,ALBSNI,BGAP   ,WGAP,TGV,TGB,&
                      Q1     ,Q2V    ,Q2B    ,Q2E    ,CHV  ,CHB, EMISSI, PAH, CANHS, &
-		     SHG,SHC,SHB,EVG,EVB,GHV,GHB,IRG,IRC,IRB,TR,EVC,CHLEAF,CHUC,CHV2,CHB2, &
+                     SHG,SHC,SHB,EVG,EVB,GHV,GHB,IRG,IRC,IRB,TR,EVC,CHLEAF,CHUC,CHV2,CHB2, &
                      EFLXB  ,HCPCT  ,ACC_SSOIL, &
                      JULIAN, SWDOWN, PRCP, FB, GECROS1D )        
 !jref:end                            
@@ -2204,19 +2204,19 @@ ENDIF   ! CROPTYPE == 0
 
      IF (TV .GT. TFRZ) THEN           ! Barlage: add distinction between ground and 
         LATHEAV = HVAP                ! vegetation in v3.6
-	frozen_canopy = .false.
+        frozen_canopy = .false.
      ELSE
         LATHEAV = HSUB
-	frozen_canopy = .true.
+        frozen_canopy = .true.
      END IF
      GAMMAV = CPAIR*SFCPRS/(0.622*LATHEAV)
 
      IF (TG .GT. TFRZ) THEN
         LATHEAG = HVAP
-	frozen_ground = .false.
+        frozen_ground = .false.
      ELSE
         LATHEAG = HSUB
-	frozen_ground = .true.
+        frozen_ground = .true.
      END IF
      GAMMAG = CPAIR*SFCPRS/(0.622*LATHEAG)
 
@@ -2286,7 +2286,7 @@ ENDIF   ! CROPTYPE == 0
         SSOIL = FVEG * GHV       + (1.0 - FVEG) * GHB
         FCEV  = EVC
         FCTR  = TR
-	PAH   = FVEG * PAHG      + (1.0 - FVEG) * PAHB   + PAHV
+        PAH   = FVEG * PAHG      + (1.0 - FVEG) * PAHB   + PAHV
         TG    = FVEG * TGV       + (1.0 - FVEG) * TGB
         T2M   = FVEG * T2MV      + (1.0 - FVEG) * T2MB
         TS    = FVEG * TV        + (1.0 - FVEG) * TGB
@@ -2294,7 +2294,7 @@ ENDIF   ! CROPTYPE == 0
         CH    = FVEG * CHV       + (1.0 - FVEG) * CHB
         Q1    = FVEG * (EAH*0.622/(SFCPRS - 0.378*EAH)) + (1.0 - FVEG)*QSFC
         Q2E   = FVEG * Q2V       + (1.0 - FVEG) * Q2B
-	Z0WRF = Z0M
+        Z0WRF = Z0M
     ELSE
         TAUX  = TAUXB
         TAUY  = TAUYB
@@ -2306,7 +2306,7 @@ ENDIF   ! CROPTYPE == 0
         T2M   = T2MB
         FCEV  = 0.
         FCTR  = 0.
-	PAH   = PAHB
+        PAH   = PAHB
         TS    = TG
         CM    = CMB
         CH    = CHB
@@ -2316,7 +2316,7 @@ ENDIF   ! CROPTYPE == 0
         RSSHA = 0.0
         TGV   = TGB
         CHV   = CHB
-	Z0WRF = Z0MG
+        Z0WRF = Z0MG
     END IF
 
     FIRE = LWDN + FIRA
@@ -3424,7 +3424,7 @@ ENDIF   ! CROPTYPE == 0
          KOPEN   = 1.0
      ELSE
          IF(OPT_RAD == 1) THEN
-	   DENFVEG = -LOG(MAX(1.0-FVEG,0.01))/(PAI*parameters%RC**2)
+           DENFVEG = -LOG(MAX(1.0-FVEG,0.01))/(PAI*parameters%RC**2)
            HD      = parameters%HVT - parameters%HVB
            BB      = 0.5 * HD           
            THETAP  = ATAN(BB/parameters%RC * TAN(ACOS(MAX(0.01,COSZ))) )
@@ -4036,11 +4036,11 @@ ENDIF   ! CROPTYPE == 0
         SHC = FVEG*RHOAIR*CPAIR*CVH * (  TV-TAH)
         EVC = FVEG*RHOAIR*CPAIR*CEW * (ESTV-EAH) / GAMMAV ! Barlage: change to v in v3.6
         TR  = FVEG*RHOAIR*CPAIR*CTW * (ESTV-EAH) / GAMMAV
-	IF (TV > TFRZ) THEN
+        IF (TV > TFRZ) THEN
           EVC = MIN(CANLIQ*LATHEAV/DT,EVC)    ! Barlage: add if block for canice in v3.6
-	ELSE
+        ELSE
           EVC = MIN(CANICE*LATHEAV/DT,EVC)
-	END IF
+        END IF
         ! canopy heat capacity
         HCV = 0.02*VAIE*CWAT + CANLIQ*CWAT/DENH2O + CANICE*CICE/DENICE    !j/m2/k
 
@@ -5943,7 +5943,7 @@ ENDIF   ! CROPTYPE == 0
                     IRRFRA ,MIFAC  ,FIFAC  ,CROPLU ,                 & !in
                     FICEOLD,PONDING,TG     ,IST    ,FVEG   ,ILOC   ,JLOC ,SMCEQ , & !in
                     BDFALL ,FP     ,RAIN   ,SNOW,                    & !in  MB/AN: v3.7
-		    QSNOW  ,QRAIN  ,SNOWHIN,LATHEAV,LATHEAG,frozen_canopy,frozen_ground,    & !in  MB
+                    QSNOW  ,QRAIN  ,SNOWHIN,LATHEAV,LATHEAG,frozen_canopy,frozen_ground,    & !in  MB
                     DX     ,TDFRACMP,                                &
                     ISNOW  ,CANLIQ ,CANICE ,TV     ,SNOWH  ,SNEQV  , & !inout
                     SNICE  ,SNLIQ  ,STC    ,ZSNSO  ,SH2O   ,SMC    , & !inout
@@ -6650,19 +6650,19 @@ ENDIF   ! CROPTYPE == 0
                 SNICE(J-1) = SNICE(J-1) + SNICE(J)
                 DZSNSO(J-1) = DZSNSO(J-1) + DZSNSO(J)
                ELSE
-	         IF(SNICE(J) >= 0.0) THEN
+                 IF(SNICE(J) >= 0.0) THEN
                   PONDING1 = SNLIQ(J)    ! ISNOW WILL GET SET TO ZERO BELOW; PONDING1 WILL GET 
                   SNEQV = SNICE(J)       ! ADDED TO PONDING FROM PHASECHANGE PONDING SHOULD BE
                   SNOWH = DZSNSO(J)      ! ZERO HERE BECAUSE IT WAS CALCULATED FOR THIN SNOW
-		 ELSE   ! SNICE OVER-SUBLIMATED EARLIER
-		  PONDING1 = SNLIQ(J) + SNICE(J)
-		  IF(PONDING1 < 0.0) THEN  ! IF SNICE AND SNLIQ SUBLIMATES REMOVE FROM SOIL
-		   SICE(1) = MAX(0.0,SICE(1)+PONDING1/(DZSNSO(1)*1000.0))
+                 ELSE   ! SNICE OVER-SUBLIMATED EARLIER
+                  PONDING1 = SNLIQ(J) + SNICE(J)
+                  IF(PONDING1 < 0.0) THEN  ! IF SNICE AND SNLIQ SUBLIMATES REMOVE FROM SOIL
+                   SICE(1) = MAX(0.0,SICE(1)+PONDING1/(DZSNSO(1)*1000.0))
                    PONDING1 = 0.0
-		  END IF
+                 END IF
                   SNEQV = 0.0
                   SNOWH = 0.0
-		 END IF
+                 END IF
                  SNLIQ(J) = 0.0
                  SNICE(J) = 0.0
                  DZSNSO(J) = 0.0
@@ -10285,7 +10285,7 @@ END  SUBROUTINE SHALLOWWATERTABLE
                             DZSNSO ,STC    ,SMC    ,TV     ,PSN    ,FOLN   ,BTRAN  , & !in
                             SOLDN  ,T2M    ,                                         & !in
                             LFMASS ,RTMASS ,STMASS ,WOOD   ,STBLCP ,FASTCP ,GRAIN  , & !inout
-			    XLAI   ,XSAI   ,GDD    ,                                 & !inout
+                            XLAI   ,XSAI   ,GDD    ,                                 & !inout
                             GPP    ,NPP    ,NEE    ,AUTORS ,HETERS ,TOTSC  ,TOTLB, PGS    ) !out
 ! ------------------------------------------------------------------------------------------
 ! Initial crop version created by Xing Liu
@@ -11014,7 +11014,7 @@ END SUBROUTINE EMERG
 
   subroutine noahmp_options( idveg    ,iopt_crs  ,iopt_btr  ,iopt_run  ,iopt_sfc  ,iopt_frz , & 
                              iopt_inf ,iopt_rad  ,iopt_alb  ,iopt_snf  ,iopt_tbot ,iopt_stc , &
-			     iopt_rsf ,iopt_soil ,iopt_pedo ,iopt_crop ,iopt_irr  ,iopt_irrm, &
+                             iopt_rsf ,iopt_soil ,iopt_pedo ,iopt_crop ,iopt_irr  ,iopt_irrm, &
                              iopt_infdv, iopt_tdrn)
 
   implicit none
@@ -11418,8 +11418,8 @@ CONTAINS
     REAL, DIMENSION(MVT) :: CH2OP, DLEAF, Z0MVT, HVT, HVB, DEN, RC, MFSNO, SCFFAC, XL, CWPVT, C3PSN, KC25, AKC, KO25, AKO, &
                      AVCMX, AQE, LTOVRC,  DILEFC,  DILEFW,  RMF25 ,  SLA   ,  FRAGR ,  TMIN  ,  VCMX25,  TDLEF ,  &
                      BP, MP, QE25, RMS25, RMR25, ARM, FOLNMX, WDPOOL, WRRAT, MRP, NROOT, RGL, RS, HS, TOPT, RSMAX, &
-		     SLAREA, EPS1, EPS2, EPS3, EPS4, EPS5
-			     
+                     SLAREA, EPS1, EPS2, EPS3, EPS4, EPS5
+
     NAMELIST / noahmp_usgs_veg_categories / VEG_DATASET_DESCRIPTION, NVEG
     NAMELIST / noahmp_usgs_parameters / ISURBAN, ISWATER, ISBARREN, ISICE, ISCROP, EBLFOREST, NATURAL, &
          LCZ_1,LCZ_2,LCZ_3,LCZ_4,LCZ_5,LCZ_6,LCZ_7,LCZ_8,LCZ_9,LCZ_10,LCZ_11,&
@@ -11429,7 +11429,7 @@ CONTAINS
          SAI_JAN, SAI_FEB, SAI_MAR, SAI_APR, SAI_MAY, SAI_JUN,SAI_JUL,SAI_AUG,SAI_SEP,SAI_OCT,SAI_NOV,SAI_DEC, &
          LAI_JAN, LAI_FEB, LAI_MAR, LAI_APR, LAI_MAY, LAI_JUN,LAI_JUL,LAI_AUG,LAI_SEP,LAI_OCT,LAI_NOV,LAI_DEC, &
          RHOL_VIS, RHOL_NIR, RHOS_VIS, RHOS_NIR, TAUL_VIS, TAUL_NIR, TAUS_VIS, TAUS_NIR, SLAREA, EPS1, EPS2, EPS3, EPS4, EPS5
-	 
+
     NAMELIST / noahmp_modis_veg_categories / VEG_DATASET_DESCRIPTION, NVEG
     NAMELIST / noahmp_modis_parameters / ISURBAN, ISWATER, ISBARREN, ISICE, ISCROP, EBLFOREST, NATURAL, &
          LCZ_1,LCZ_2,LCZ_3,LCZ_4,LCZ_5,LCZ_6,LCZ_7,LCZ_8,LCZ_9,LCZ_10,LCZ_11, &
@@ -11694,7 +11694,7 @@ CONTAINS
     READ (21,*) SLCATS
     WRITE( message , * ) 'SOIL TEXTURE CLASSIFICATION = ', TRIM ( SLTYPE ) , ' FOUND', &
                SLCATS,' CATEGORIES'
-    CALL wrf_message ( message )
+!   CALL wrf_message ( message )
 
     DO LC=1,SLCATS
       READ (21,*) ITMP,BEXP_TABLE(LC),SMCDRY_TABLE(LC),F1_TABLE(LC),SMCMAX_TABLE(LC),   &
@@ -11816,13 +11816,13 @@ CONTAINS
 
     REAL :: CO2,O2,TIMEAN,FSATMX,Z0SNO,SSI,SNOW_RET_FAC,SNOW_EMIS,&
             SWEMX,TAU0,GRAIN_GROWTH,EXTRA_GROWTH,DIRT_SOOT,&
-	    BATS_COSZ,BATS_VIS_NEW,BATS_NIR_NEW,BATS_VIS_AGE,BATS_NIR_AGE,BATS_VIS_DIR,BATS_NIR_DIR,&
-	    RSURF_SNOW,RSURF_EXP
+            BATS_COSZ,BATS_VIS_NEW,BATS_NIR_NEW,BATS_VIS_AGE,BATS_NIR_AGE,BATS_VIS_DIR,BATS_NIR_DIR,&
+            RSURF_SNOW,RSURF_EXP
 
     NAMELIST / noahmp_global_parameters / CO2,O2,TIMEAN,FSATMX,Z0SNO,SSI,SNOW_RET_FAC,SNOW_EMIS,&
             SWEMX,TAU0,GRAIN_GROWTH,EXTRA_GROWTH,DIRT_SOOT,&
-	    BATS_COSZ,BATS_VIS_NEW,BATS_NIR_NEW,BATS_VIS_AGE,BATS_NIR_AGE,BATS_VIS_DIR,BATS_NIR_DIR,&
-	    RSURF_SNOW,RSURF_EXP
+            BATS_COSZ,BATS_VIS_NEW,BATS_NIR_NEW,BATS_VIS_AGE,BATS_NIR_AGE,BATS_VIS_DIR,BATS_NIR_DIR,&
+            RSURF_SNOW,RSURF_EXP
 
 
     call mpas_log_write('    enter subroutine read_mp_global_parameters:')
