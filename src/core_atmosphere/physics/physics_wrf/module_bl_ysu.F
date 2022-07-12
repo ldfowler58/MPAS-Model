@@ -538,6 +538,9 @@ contains
    real,    dimension( ims:ime )             ::                       pblh_ysu,&
                                                                       vconvfx
 !
+   real,dimension(kts:kte)  :: input1,input2,input3
+   real,dimension(kts:kte+1):: input4
+
 !-------------------------------------------------------------------------------
 !
    klpbl = kte
@@ -1326,8 +1329,16 @@ contains
       enddo
  !Hybrid pblh of MYNN
  !tke is q2
-      CALL GET_PBLH(KTS,KTE,pblh_ysu(i),thvx(i,kts:kte),&
-      &    tke_ysu(i,kts:kte),zq(i,kts:kte+1),dzq(i,kts:kte),xland(i))
+      do k = kts,kte
+         input1(k) = thvx(i,k)
+         input2(k) = tke_ysu(i,k)
+         input3(k) = dzq(i,k)
+         input4(k) = zq(i,k)
+      enddo
+      input4(kte+1) = zq(i,kte+1)
+      call get_pblh(kts,kte,pblh_ysu(i),input1,input2,input4,input3,xland(i))
+!     CALL GET_PBLH(KTS,KTE,pblh_ysu(i),thvx(i,kts:kte),&
+!     &    tke_ysu(i,kts:kte),zq(i,kts:kte+1),dzq(i,kts:kte),xland(i))
 
 !--- end of paj tke
 ! compute vconv
