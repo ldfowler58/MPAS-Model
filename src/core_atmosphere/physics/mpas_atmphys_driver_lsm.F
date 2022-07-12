@@ -34,9 +34,6 @@
  logical,parameter:: frpcpn   = .false.
  logical,parameter:: rdlai2d  = .false.
 
-!urban physics: MPAS does not plan to run the urban physics option.
- integer,parameter:: sf_urban_physics = 0 !activate urban canopy model (=0: no urban canopy) 
-
 
 !MPAS driver for parameterization of land surface processes.
 !Laura D. Fowler (send comments to laura@ucar.edu).
@@ -138,6 +135,9 @@
  if(.not.allocated(glw_p)       ) allocate(glw_p(ims:ime,jms:jme)       )
  if(.not.allocated(grdflx_p)    ) allocate(grdflx_p(ims:ime,jms:jme)    )
  if(.not.allocated(gsw_p)       ) allocate(gsw_p(ims:ime,jms:jme)       )
+ if(.not.allocated(swddir_p)    ) allocate(swddir_p(ims:ime,jms:jme)    )
+ if(.not.allocated(swddni_p)    ) allocate(swddni_p(ims:ime,jms:jme)    )
+ if(.not.allocated(swddif_p)    ) allocate(swddif_p(ims:ime,jms:jme)    )
  if(.not.allocated(hfx_p)       ) allocate(hfx_p(ims:ime,jms:jme)       )
  if(.not.allocated(lai_p)       ) allocate(lai_p(ims:ime,jms:jme)       )
  if(.not.allocated(lh_p)        ) allocate(lh_p(ims:ime,jms:jme)        ) 
@@ -224,6 +224,9 @@
  if(allocated(glw_p)       ) deallocate(glw_p       )
  if(allocated(grdflx_p)    ) deallocate(grdflx_p    )
  if(allocated(gsw_p)       ) deallocate(gsw_p       )
+ if(allocated(swddir_p)    ) deallocate(swddir_p    )
+ if(allocated(swddni_p)    ) deallocate(swddni_p    )
+ if(allocated(swddif_p)    ) deallocate(swddif_p    )
  if(allocated(hfx_p)       ) deallocate(hfx_p       )
  if(allocated(isltyp_p)    ) deallocate(isltyp_p    )
  if(allocated(ivgtyp_p)    ) deallocate(ivgtyp_p    )
@@ -317,8 +320,8 @@
  real(kind=RKIND),dimension(:),pointer  :: acsnom,acsnow,canwat,chs,chs2,chklowq,cpm,cqs2,glw,   &
                                            grdflx,gsw,hfx,lai,lh,noahres,potevp,qfx,qgh,qsfc,    &
                                            br,sfc_albedo,sfc_albedo_seaice,sfc_emibck,sfc_emiss, &
-                                           sfcrunoff,smstav,smstot,snotime,snopcx,sr,udrunoff,   &
-                                           z0,znt
+                                           sfcrunoff,smstav,smstot,snotime,snopcx,sr,swddif,     &
+                                           swddir,swddni,udrunoff,z0,znt
  real(kind=RKIND),dimension(:),pointer  :: shdmin,shdmax,snoalb,sfc_albbck,snow,snowc,snowh,tmn, &
                                            skintemp,vegfra,xice,xland
  real(kind=RKIND),dimension(:),pointer  :: t2m,th2m,q2
@@ -347,6 +350,9 @@
  call mpas_pool_get_array(diag_physics,'glw'              ,glw              )
  call mpas_pool_get_array(diag_physics,'grdflx'           ,grdflx           )
  call mpas_pool_get_array(diag_physics,'gsw'              ,gsw              )
+ call mpas_pool_get_array(diag_physics,'swddif'           ,swddif           )
+ call mpas_pool_get_array(diag_physics,'swddni'           ,swddni           )
+ call mpas_pool_get_array(diag_physics,'swddir'           ,swddir           )
  call mpas_pool_get_array(diag_physics,'hfx'              ,hfx              )
  call mpas_pool_get_array(diag_physics,'lai'              ,lai              )
  call mpas_pool_get_array(diag_physics,'lh'               ,lh               )
@@ -422,6 +428,9 @@
     glw_p(i,j)        = glw(i)
     grdflx_p(i,j)     = grdflx(i)
     gsw_p(i,j)        = gsw(i)
+    swddir_p(i,j)     = swddir(i)
+    swddif_p(i,j)     = swddif(i)
+    swddni_p(i,j)     = swddni(i)
     hfx_p(i,j)        = hfx(i)
     lai_p(i,j)        = lai(i)
     lh_p(i,j)         = lh(i)
@@ -469,16 +478,16 @@
     fbursnow_p(i,j)   = 0._RKIND
     fgsnsnow_p(i,j)   = 0._RKIND
 
-    !initialization of arrays to run the Noah LSM urban parameterization (not currently
-    frc_urb_p(i,j)    = 0._RKIND
-    ust_urb_p(i,j)    = 0._RKIND
-    utype_urb_p(i,j)  = low_density_residential
+!   !initialization of arrays to run the Noah LSM urban parameterization (not currently
+!   frc_urb_p(i,j)    = 0._RKIND
+!   ust_urb_p(i,j)    = 0._RKIND
+!   utype_urb_p(i,j)  = low_density_residential
 
-    !initialization of arrays to run the Noah LSM hydrological parameterization (not currently
-    !implemented in MPAS):
-    infxsrt_p(i,j)    = 0._RKIND
-    sfcheadrt_p(i,j)  = 0._RKIND
-    soldrain_p(i,j)   = 0._RKIND
+!   !initialization of arrays to run the Noah LSM hydrological parameterization (not currently
+!   !implemented in MPAS):
+!   infxsrt_p(i,j)    = 0._RKIND
+!   sfcheadrt_p(i,j)  = 0._RKIND
+!   soldrain_p(i,j)   = 0._RKIND
  enddo
  enddo
 
@@ -818,6 +827,7 @@
                 ivgtyp      = ivgtyp_p    , isltyp      = isltyp_p     , tmn       = tmn_p        , &
                 vegfra      = vegfra_p    , shdmin      = shdmin_p     , shdmax    = shdmax_p     , &
                 snoalb      = snoalb_p    , glw         = glw_p        , gsw       = gsw_p        , &
+                swddif      = swddif_p    , swddir      = swddir_p     ,                            &
                 swdown      = swdown_p    , rainbl      = rainbl_p     , embck     = sfc_emibck_p , &
                 sr          = sr_p        , qgh         = qgh_p        , cpm       = cpm_p        , &
                 qz0         = qz0_p       , tsk         = tsk_p        , hfx       = hfx_p        , &
@@ -843,13 +853,13 @@
                 xice_threshold   = xice_threshold    ,                                              &
                 usemonalb        = config_sfc_albedo ,                                              &
                 mminlu           = mminlu ,                                                         &
-                num_soil_layers  = num_soils ,                                                      &
-                num_roof_layers  = num_soils ,                                                      &
-                num_wall_layers  = num_soils ,                                                      &
-                num_road_layers  = num_soils ,                                                      &
-                num_urban_layers = num_soils ,                                                      &
-                num_urban_hi     = num_soils ,                                                      &
                 sf_urban_physics = sf_urban_physics ,                                               &
+                num_soil_layers  = nurb   , num_roof_layers = nurb     , num_wall_layers  = nurb  , &
+                num_road_layers  = nurb   , num_urban_hi    = nurb     , num_urban_ndm    = nurb  , &
+                urban_map_zrd    = nurb   , urban_map_zwd   = nurb     , urban_map_gd     = nurb  , &
+                urban_map_zd     = nurb   , urban_map_zdf   = nurb     , urban_map_bd     = nurb  , &
+                urban_map_wd     = nurb   , urban_map_gbd   = nurb     , urban_map_fbd    = nurb  , &
+                urban_map_zgrd   = nurb   ,                                                         &
                 ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde ,             &
                 ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,             &
                 its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte               &

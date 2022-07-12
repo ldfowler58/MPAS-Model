@@ -14,6 +14,7 @@
  use mpas_atmphys_driver_convection
  use mpas_atmphys_driver_gwdo
  use mpas_atmphys_driver_lsm
+ use mpas_atmphys_driver_lsm_noahmp
  use mpas_atmphys_driver_pbl
  use mpas_atmphys_driver_radiation_lw
  use mpas_atmphys_driver_radiation_sw 
@@ -114,13 +115,14 @@
  type(domain_type),intent(inout):: domain
 
 !local pointers:
- type(mpas_pool_type),pointer::  configs,      &
-                                 mesh,         &
-                                 state,        &
-                                 diag,         &
-                                 diag_physics, &
-                                 tend_physics, &
-                                 atm_input,    &
+ type(mpas_pool_type),pointer::  configs,             &
+                                 mesh,                &
+                                 state,               &
+                                 diag,                &
+                                 diag_physics,        &
+                                 diag_physics_noahmp, &
+                                 tend_physics,        &
+                                 atm_input,           &
                                  sfc_input
 
  logical,pointer:: config_frac_seaice
@@ -174,13 +176,14 @@
  block => domain % blocklist
  do while(associated(block))
 
-    call mpas_pool_get_subpool(block%structs,'mesh'        ,mesh        )
-    call mpas_pool_get_subpool(block%structs,'state'       ,state       )
-    call mpas_pool_get_subpool(block%structs,'diag'        ,diag        )
-    call mpas_pool_get_subpool(block%structs,'diag_physics',diag_physics)
-    call mpas_pool_get_subpool(block%structs,'atm_input'   ,atm_input   )
-    call mpas_pool_get_subpool(block%structs,'sfc_input'   ,sfc_input   )
-    call mpas_pool_get_subpool(block%structs,'tend_physics',tend_physics)
+    call mpas_pool_get_subpool(block%structs,'mesh'               ,mesh               )
+    call mpas_pool_get_subpool(block%structs,'state'              ,state              )
+    call mpas_pool_get_subpool(block%structs,'diag'               ,diag               )
+    call mpas_pool_get_subpool(block%structs,'diag_physics'       ,diag_physics       )
+    call mpas_pool_get_subpool(block%structs,'diag_physics_noahmp',diag_physics_noahmp)
+    call mpas_pool_get_subpool(block%structs,'atm_input'          ,atm_input          )
+    call mpas_pool_get_subpool(block%structs,'sfc_input'          ,sfc_input          )
+    call mpas_pool_get_subpool(block%structs,'tend_physics'       ,tend_physics       )
 
     call mpas_pool_get_dimension(block % dimensions, 'nThreads', nThreads)
 
@@ -270,14 +273,28 @@
 
     !call to land-surface scheme:
     if(config_lsm_scheme .ne. 'off') then
-       call allocate_lsm(config_frac_seaice)
+
+       if(config_lsm_scheme .eq. 'sf_noah') then
+          call allocate_lsm(config_frac_seaice)
 !$OMP PARALLEL DO
-       do thread=1,nThreads
-          call driver_lsm(itimestep,block%configs,mesh,diag_physics,sfc_input, &
-                          cellSolveThreadStart(thread), cellSolveThreadEnd(thread))
-       end do
+          do thread=1,nThreads
+             call driver_lsm(itimestep,block%configs,mesh,diag_physics,sfc_input, &
+                           cellSolveThreadStart(thread),cellSolveThreadEnd(thread))
+          end do
 !$OMP END PARALLEL DO
-       call deallocate_lsm(config_frac_seaice)
+          call deallocate_lsm(config_frac_seaice)
+
+       elseif(config_lsm_scheme .eq. 'sf_noahmp') then
+          call allocate_lsm_noahmp()
+!$OMP PARALLEL DO
+          do thread=1,nThreads
+             call driver_lsm_noahmp(itimestep,block%configs,mesh,diag_physics,diag_physics_noahmp, &
+                                  sfc_input,cellSolveThreadStart(thread),cellSolveThreadEnd(thread))
+          end do
+!$OMP END PARALLEL DO
+          call deallocate_lsm(config_frac_seaice)
+        endif
+
     endif
 
     !call to pbl schemes:
