@@ -13,6 +13,7 @@
 
  use mpas_atmphys_driver_convection, only: init_convection
  use mpas_atmphys_driver_lsm,only: init_lsm
+ use mpas_atmphys_driver_lsm_noahmp,only: init_lsm_noahmp
  use mpas_atmphys_driver_microphysics
  use mpas_atmphys_driver_radiation_lw, only: init_radiation_lw
  use mpas_atmphys_driver_radiation_sw, only: init_radiation_sw
@@ -70,7 +71,7 @@
 
 
 !=================================================================================================================
- subroutine physics_init(dminfo,clock,configs,mesh,diag,tend,state,time_lev,diag_physics, &
+ subroutine physics_init(dminfo,clock,configs,mesh,diag,tend,state,time_lev,diag_physics,diag_physics_noahmp, &
                          atm_input,sfc_input)
 !=================================================================================================================
 
@@ -87,6 +88,7 @@
  type(mpas_pool_type),intent(inout):: diag
  type(mpas_pool_type),intent(inout):: tend
  type(mpas_pool_type),intent(inout):: diag_physics
+ type(mpas_pool_type),intent(inout):: diag_physics_noahmp
  type(mpas_pool_type),intent(inout):: atm_input
  type(mpas_pool_type),intent(inout):: sfc_input
 
@@ -363,7 +365,13 @@
 !if(.not. config_do_restart) then
 !   if(config_lsm_scheme .ne. 'off') call init_lsm(dminfo,mesh,configs,diag_physics,sfc_input)
 !endif
- if(config_lsm_scheme .ne. 'off') call init_lsm(dminfo,mesh,configs,diag_physics,sfc_input)
+ if(config_lsm_scheme .ne. 'off') then
+    if(trim(config_lsm_scheme) .eq. 'sf_noah') then
+       call init_lsm(dminfo,mesh,configs,diag_physics,sfc_input)
+    elseif(trim(config_lsm_scheme) .eq. 'sf_noahmp') then
+       call init_lsm_noahmp(dminfo,mesh,configs,diag_physics,diag_physics_noahmp,sfc_input)
+    endif
+ endif
 
 !initialization of shortwave radiation processes:
  init_done = .false.
