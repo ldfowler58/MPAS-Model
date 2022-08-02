@@ -64,7 +64,7 @@
 
  chem2dopp_in   = .false.
 
- if(o3prognostic == .true.) then
+ if(o3prognostic) then
     chem2dopp_in = .true.
  endif
 
