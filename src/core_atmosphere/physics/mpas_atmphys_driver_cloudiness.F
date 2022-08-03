@@ -315,7 +315,7 @@
  enddo
  enddo
  enddo
-
+ 
  do j = jts,jte
  do k = kts,kte
  do i = its,ite
