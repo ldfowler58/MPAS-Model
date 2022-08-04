@@ -8,6 +8,7 @@
 !=================================================================================================================
  module mpas_atmphys_driver_lsm_noahmp
  use mpas_kind_types
+ use mpas_log
  use mpas_pool_routines
  use mpas_timer,only: mpas_timer_start, mpas_timer_stop
 
@@ -54,56 +55,54 @@
  subroutine allocate_lsm_noahmp()
 !=================================================================================================================
 
-!-----------------------------------------------------------------------------------------------------------------
-
 !input arrays for soil layers properties:
- if(.not.allocated(dzs_p)         ) allocate(dzs_p(1:num_soils)                      ) 
- if(.not.allocated(smcrel_p)      ) allocate(smcrel_p(ims:ime,1:num_soils,jms:jme)   )
- if(.not.allocated(sh2o_p)        ) allocate(sh2o_p(ims:ime,1:num_soils,jms:jme)     )
- if(.not.allocated(smois_p)       ) allocate(smois_p(ims:ime,1:num_soils,jms:jme)    )
- if(.not.allocated(tslb_p)        ) allocate(tslb_p(ims:ime,1:num_soils,jms:jme)     )
+ if(.not.allocated(dzs_p)         ) allocate(dzs_p(1:num_soils)                         )
+ if(.not.allocated(smcrel_p)      ) allocate(smcrel_p(ims:ime,1:num_soils,jms:jme)      )
+ if(.not.allocated(sh2o_p)        ) allocate(sh2o_p(ims:ime,1:num_soils,jms:jme)        )
+ if(.not.allocated(smois_p)       ) allocate(smois_p(ims:ime,1:num_soils,jms:jme)       )
+ if(.not.allocated(tslb_p)        ) allocate(tslb_p(ims:ime,1:num_soils,jms:jme)        )
 
 
 !input arrays:
- if(.not.allocated(dx_p)          ) allocate(dx_p(ims:ime,jms:jme)                   )
- if(.not.allocated(area_p)        ) allocate(area_p(ims:ime,jms:jme)                 )
- if(.not.allocated(coszr_p)       ) allocate(coszr_p(ims:ime,jms:jme)                )
- if(.not.allocated(xlat_p)        ) allocate(xlat_p(ims:ime,jms:jme)                 )
- if(.not.allocated(xlon_p)        ) allocate(xlon_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(dx_p)          ) allocate(dx_p(ims:ime,jms:jme)                      )
+ if(.not.allocated(area_p)        ) allocate(area_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(coszr_p)       ) allocate(coszr_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(xlat_p)        ) allocate(xlat_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(xlon_p)        ) allocate(xlon_p(ims:ime,jms:jme)                    )
 
- if(.not.allocated(isltyp_p)      ) allocate(isltyp_p(ims:ime,jms:jme)               )
- if(.not.allocated(ivgtyp_p)      ) allocate(ivgtyp_p(ims:ime,jms:jme)               )
- if(.not.allocated(shdmax_p)      ) allocate(shdmax_p(ims:ime,jms:jme)               )
- if(.not.allocated(tmn_p)         ) allocate(tmn_p(ims:ime,jms:jme)                  )
- if(.not.allocated(vegfra_p)      ) allocate(vegfra_p(ims:ime,jms:jme)               )
- if(.not.allocated(xice_p)        ) allocate(xice_p(ims:ime,jms:jme)                 )
- if(.not.allocated(xland_p)       ) allocate(xland_p(ims:ime,jms:jme)                )
+ if(.not.allocated(isltyp_p)      ) allocate(isltyp_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(ivgtyp_p)      ) allocate(ivgtyp_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(shdmax_p)      ) allocate(shdmax_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(tmn_p)         ) allocate(tmn_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(vegfra_p)      ) allocate(vegfra_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(xice_p)        ) allocate(xice_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(xland_p)       ) allocate(xland_p(ims:ime,jms:jme)                   )
 
- if(.not.allocated(glw_p)         ) allocate(glw_p(ims:ime,jms:jme)                  )
- if(.not.allocated(swddir_p)      ) allocate(swddir_p(ims:ime,jms:jme)               )
- if(.not.allocated(swddif_p)      ) allocate(swddif_p(ims:ime,jms:jme)               )
- if(.not.allocated(swdown_p)      ) allocate(swdown_p(ims:ime,jms:jme)               )
- if(.not.allocated(rainbl_p)      ) allocate(rainbl_p(ims:ime,jms:jme)               )
- if(.not.allocated(sr_p)          ) allocate(sr_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(glw_p)         ) allocate(glw_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(swddir_p)      ) allocate(swddir_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(swddif_p)      ) allocate(swddif_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(swdown_p)      ) allocate(swdown_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(rainbl_p)      ) allocate(rainbl_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(sr_p)          ) allocate(sr_p(ims:ime,jms:jme)                      )
 
 
 !input arrays for NOAHMP only:
- if(.not.allocated(soilcl1_p)     ) allocate(soilcl1_p(ims:ime,jms:jme)              )
- if(.not.allocated(soilcl2_p)     ) allocate(soilcl2_p(ims:ime,jms:jme)              )
- if(.not.allocated(soilcl3_p)     ) allocate(soilcl3_p(ims:ime,jms:jme)              )
- if(.not.allocated(soilcl4_p)     ) allocate(soilcl4_p(ims:ime,jms:jme)              )
- if(.not.allocated(soilcomp_p)    ) allocate(soilcomp_p(ims:ime,1:num_soilcs,jms:jme))
+ if(.not.allocated(soilcl1_p)     ) allocate(soilcl1_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(soilcl2_p)     ) allocate(soilcl2_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(soilcl3_p)     ) allocate(soilcl3_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(soilcl4_p)     ) allocate(soilcl4_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(soilcomp_p)    ) allocate(soilcomp_p(ims:ime,1:num_soilcs,jms:jme)   )
 
- if(.not.allocated(cropcat_p)     ) allocate(cropcat_p(ims:ime,jms:jme)              )
- if(.not.allocated(planting_p)    ) allocate(planting_p(ims:ime,jms:jme)             )
- if(.not.allocated(harvest_p)     ) allocate(harvest_p(ims:ime,jms:jme)              )
- if(.not.allocated(planting_p)    ) allocate(planting_p(ims:ime,jms:jme)             )
- if(.not.allocated(season_gdd_p)  ) allocate(season_gdd_p(ims:ime,jms:jme)           )
+ if(.not.allocated(cropcat_p)     ) allocate(cropcat_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(planting_p)    ) allocate(planting_p(ims:ime,jms:jme)                )
+ if(.not.allocated(harvest_p)     ) allocate(harvest_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(planting_p)    ) allocate(planting_p(ims:ime,jms:jme)                )
+ if(.not.allocated(season_gdd_p)  ) allocate(season_gdd_p(ims:ime,jms:jme)              )
 
- if(.not.allocated(irfract_p)     ) allocate(irfract_p(ims:ime,jms:jme)              )
- if(.not.allocated(sifract_p)     ) allocate(sifract_p(ims:ime,jms:jme)              )
- if(.not.allocated(mifract_p)     ) allocate(mifract_p(ims:ime,jms:jme)              )
- if(.not.allocated(fifract_p)     ) allocate(fifract_p(ims:ime,jms:jme)              )
+ if(.not.allocated(irfract_p)     ) allocate(irfract_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(sifract_p)     ) allocate(sifract_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(mifract_p)     ) allocate(mifract_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(fifract_p)     ) allocate(fifract_p(ims:ime,jms:jme)                 )
 
 
 !inout arrays for NOAHMP only:
@@ -173,115 +172,115 @@
 
 
 !inout arrays shared with the NOAH lsm:
- if(.not.allocated(acsnom_p)      ) allocate(acsnom_p(ims:ime,jms:jme)               )
- if(.not.allocated(acsnow_p)      ) allocate(acsnow_p(ims:ime,jms:jme)               )
- if(.not.allocated(canwat_p)      ) allocate(canwat_p(ims:ime,jms:jme)               )
- if(.not.allocated(grdflx_p)      ) allocate(grdflx_p(ims:ime,jms:jme)               )
- if(.not.allocated(hfx_p)         ) allocate(hfx_p(ims:ime,jms:jme)                  )
- if(.not.allocated(lh_p)          ) allocate(lh_p(ims:ime,jms:jme)                   ) 
- if(.not.allocated(qfx_p)         ) allocate(qfx_p(ims:ime,jms:jme)                  )
- if(.not.allocated(qsfc_p)        ) allocate(qsfc_p(ims:ime,jms:jme)                 )
- if(.not.allocated(sfc_albedo_p)  ) allocate(sfc_albedo_p(ims:ime,jms:jme)           )
- if(.not.allocated(sfc_emiss_p)   ) allocate(sfc_emiss_p(ims:ime,jms:jme)            )
- if(.not.allocated(sfcrunoff_p)   ) allocate(sfcrunoff_p(ims:ime,jms:jme)            )
- if(.not.allocated(smstav_p)      ) allocate(smstav_p(ims:ime,jms:jme)               )
- if(.not.allocated(smstot_p)      ) allocate(smstot_p(ims:ime,jms:jme)               )
- if(.not.allocated(snow_p)        ) allocate(snow_p(ims:ime,jms:jme)                 )
- if(.not.allocated(snowc_p)       ) allocate(snowc_p(ims:ime,jms:jme)                )
- if(.not.allocated(snowh_p)       ) allocate(snowh_p(ims:ime,jms:jme)                )
- if(.not.allocated(tsk_p)         ) allocate(tsk_p(ims:ime,jms:jme)                  )
- if(.not.allocated(udrunoff_p)    ) allocate(udrunoff_p(ims:ime,jms:jme)             )
- if(.not.allocated(z0_p)          ) allocate(z0_p(ims:ime,jms:jme)                   )
- if(.not.allocated(znt_p)         ) allocate(znt_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(acsnom_p)      ) allocate(acsnom_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(acsnow_p)      ) allocate(acsnow_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(canwat_p)      ) allocate(canwat_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(grdflx_p)      ) allocate(grdflx_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(hfx_p)         ) allocate(hfx_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(lh_p)          ) allocate(lh_p(ims:ime,jms:jme)                      )
+ if(.not.allocated(qfx_p)         ) allocate(qfx_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(qsfc_p)        ) allocate(qsfc_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(sfc_albedo_p)  ) allocate(sfc_albedo_p(ims:ime,jms:jme)              )
+ if(.not.allocated(sfc_emiss_p)   ) allocate(sfc_emiss_p(ims:ime,jms:jme)               )
+ if(.not.allocated(sfcrunoff_p)   ) allocate(sfcrunoff_p(ims:ime,jms:jme)               )
+ if(.not.allocated(smstav_p)      ) allocate(smstav_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(smstot_p)      ) allocate(smstot_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(snow_p)        ) allocate(snow_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(snowc_p)       ) allocate(snowc_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(snowh_p)       ) allocate(snowh_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(tsk_p)         ) allocate(tsk_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(udrunoff_p)    ) allocate(udrunoff_p(ims:ime,jms:jme)                )
+ if(.not.allocated(z0_p)          ) allocate(z0_p(ims:ime,jms:jme)                      )
+ if(.not.allocated(znt_p)         ) allocate(znt_p(ims:ime,jms:jme)                     )
 
- if(.not.allocated(sfcheadrt_p)   ) allocate(sfcheadrt_p(ims:ime,jms:jme)            )
- if(.not.allocated(infxsrt_p)     ) allocate(infxsrt_p(ims:ime,jms:jme)              )
- if(.not.allocated(soldrain_p)    ) allocate(soldrain_p(ims:ime,jms:jme)             )
- if(.not.allocated(qtiledrain_p)  ) allocate(qtiledrain_p(ims:ime,jms:jme)           )
- if(.not.allocated(zwatble2d_p)   ) allocate(zwatble2d_p(ims:ime,jms:jme)            )
-
-
-!output variables:
- if(.not.allocated(t2mvxy_p)      ) allocate(t2mvxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(t2mbxy_p)      ) allocate(t2mbxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(q2mvxy_p)      ) allocate(q2mvxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(q2mbxy_p)      ) allocate(q2mbxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(tradxy_p)      ) allocate(tradxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(neexy_p)       ) allocate(neexy_p(ims:ime,jms:jme)     )
- if(.not.allocated(gppxy_p)       ) allocate(gppxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(nppxy_p)       ) allocate(nppxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(fvegxy_p)      ) allocate(fvegxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(runsfxy_p)     ) allocate(runsfxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(runsbxy_p)     ) allocate(runsbxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(runsbxy_p)     ) allocate(runsbxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(ecanxy_p)      ) allocate(ecanxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(edirxy_p)      ) allocate(edirxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(etranxy_p)     ) allocate(etranxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(fsaxy_p)       ) allocate(fsaxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(firaxy_p)      ) allocate(firaxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(aparxy_p)      ) allocate(aparxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(psnxy_p)       ) allocate(psnxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(savxy_p)       ) allocate(savxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(sagxy_p)       ) allocate(sagxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(rssunxy_p)     ) allocate(rssunxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(rsshaxy_p)     ) allocate(rsshaxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(bgapxy_p)      ) allocate(bgapxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(wgapxy_p)      ) allocate(wgapxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(tgvxy_p)       ) allocate(tgvxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(tgbxy_p)       ) allocate(tgbxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(chvxy_p)       ) allocate(chvxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(chbxy_p)       ) allocate(chbxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(shgxy_p)       ) allocate(shgxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(shcxy_p)       ) allocate(shcxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(shbxy_p)       ) allocate(shbxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(evgxy_p)       ) allocate(evgxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(evbxy_p)       ) allocate(evbxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(ghvxy_p)       ) allocate(ghvxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(ghbxy_p)       ) allocate(ghbxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(irgxy_p)       ) allocate(irgxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(ircxy_p)       ) allocate(ircxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(irbxy_p)       ) allocate(irbxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(trxy_p)        ) allocate(trxy_p(ims:ime,jms:jme)      )
- if(.not.allocated(evcxy_p)       ) allocate(evcxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(chleafxy_p)    ) allocate(chleafxy_p(ims:ime,jms:jme)  )
- if(.not.allocated(chucxy_p)      ) allocate(chucxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(chv2xy_p)      ) allocate(chv2xy_p(ims:ime,jms:jme)    )
- if(.not.allocated(chb2xy_p)      ) allocate(chb2xy_p(ims:ime,jms:jme)    )
+ if(.not.allocated(sfcheadrt_p)   ) allocate(sfcheadrt_p(ims:ime,jms:jme)               )
+ if(.not.allocated(infxsrt_p)     ) allocate(infxsrt_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(soldrain_p)    ) allocate(soldrain_p(ims:ime,jms:jme)                )
+ if(.not.allocated(qtiledrain_p)  ) allocate(qtiledrain_p(ims:ime,jms:jme)              )
+ if(.not.allocated(zwatble2d_p)   ) allocate(zwatble2d_p(ims:ime,jms:jme)               )
 
 
-!additional output variables:
- if(.not.allocated(pahxy_p)     ) allocate(pahxy_p(ims:ime,jms:jme)     )
- if(.not.allocated(pahgxy_p)    ) allocate(pahgxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(pahbxy_p)    ) allocate(pahbxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(pahvxy_p)    ) allocate(pahvxy_p(ims:ime,jms:jme)    )
- if(.not.allocated(qintsxy_p)   ) allocate(qintsxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(qintrxy_p)   ) allocate(qintrxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(qdripsxy_p)  ) allocate(qdripsxy_p(ims:ime,jms:jme)  )
- if(.not.allocated(qdriprxy_p)  ) allocate(qdriprxy_p(ims:ime,jms:jme)  )
- if(.not.allocated(qthrosxy_p)  ) allocate(qthrosxy_p(ims:ime,jms:jme)  )
- if(.not.allocated(qthrorxy_p)  ) allocate(qthrorxy_p(ims:ime,jms:jme)  )
- if(.not.allocated(qsnsubxy_p)  ) allocate(qsnsubxy_p(ims:ime,jms:jme)  )
- if(.not.allocated(qsnfroxy_p)  ) allocate(qsnfroxy_p(ims:ime,jms:jme)  )
- if(.not.allocated(qsubcxy_p)   ) allocate(qsubcxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(qfrocxy_p)   ) allocate(qfrocxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(qevacxy_p)   ) allocate(qevacxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(qdewcxy_p)   ) allocate(qdewcxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(qfrzcxy_p)   ) allocate(qfrzcxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(qmeltcxy_p)  ) allocate(qmeltcxy_p(ims:ime,jms:jme)  )
- if(.not.allocated(qsnbotxy_p)  ) allocate(qsnbotxy_p(ims:ime,jms:jme)  )
- if(.not.allocated(pondingxy_p) ) allocate(pondingxy_p(ims:ime,jms:jme) )
- if(.not.allocated(fpicexy_p)   ) allocate(fpicexy_p(ims:ime,jms:jme)   )
- if(.not.allocated(rainlsm_p)   ) allocate(rainlsm_p(ims:ime,jms:jme)   )
- if(.not.allocated(snowlsm_p)   ) allocate(snowlsm_p(ims:ime,jms:jme)   )
- if(.not.allocated(forctlsm_p)  ) allocate(forctlsm_p(ims:ime,jms:jme)  )
- if(.not.allocated(forcqlsm_p)  ) allocate(forcqlsm_p(ims:ime,jms:jme)  )
- if(.not.allocated(forcplsm_p)  ) allocate(forcplsm_p(ims:ime,jms:jme)  )
- if(.not.allocated(forczlsm_p)  ) allocate(forczlsm_p(ims:ime,jms:jme)  )
- if(.not.allocated(forcwlsm_p)  ) allocate(forcwlsm_p(ims:ime,jms:jme)  )
- if(.not.allocated(eflxbxy_p)   ) allocate(eflxbxy_p(ims:ime,jms:jme)   )
- if(.not.allocated(soilenergy_p)) allocate(soilenergy_p(ims:ime,jms:jme))
- if(.not.allocated(snowenergy_p)) allocate(snowenergy_p(ims:ime,jms:jme))
- if(.not.allocated(canhsxy_p)   ) allocate(canhsxy_p(ims:ime,jms:jme)   )
+!output variables for NOAHMP only:
+ if(.not.allocated(t2mvxy_p)      ) allocate(t2mvxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(t2mbxy_p)      ) allocate(t2mbxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(q2mvxy_p)      ) allocate(q2mvxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(q2mbxy_p)      ) allocate(q2mbxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(tradxy_p)      ) allocate(tradxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(neexy_p)       ) allocate(neexy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(gppxy_p)       ) allocate(gppxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(nppxy_p)       ) allocate(nppxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(fvegxy_p)      ) allocate(fvegxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(runsfxy_p)     ) allocate(runsfxy_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(runsbxy_p)     ) allocate(runsbxy_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(runsbxy_p)     ) allocate(runsbxy_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(ecanxy_p)      ) allocate(ecanxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(edirxy_p)      ) allocate(edirxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(etranxy_p)     ) allocate(etranxy_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(fsaxy_p)       ) allocate(fsaxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(firaxy_p)      ) allocate(firaxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(aparxy_p)      ) allocate(aparxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(psnxy_p)       ) allocate(psnxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(savxy_p)       ) allocate(savxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(sagxy_p)       ) allocate(sagxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(rssunxy_p)     ) allocate(rssunxy_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(rsshaxy_p)     ) allocate(rsshaxy_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(bgapxy_p)      ) allocate(bgapxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(wgapxy_p)      ) allocate(wgapxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(tgvxy_p)       ) allocate(tgvxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(tgbxy_p)       ) allocate(tgbxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(chvxy_p)       ) allocate(chvxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(chbxy_p)       ) allocate(chbxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(shgxy_p)       ) allocate(shgxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(shcxy_p)       ) allocate(shcxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(shbxy_p)       ) allocate(shbxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(evgxy_p)       ) allocate(evgxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(evbxy_p)       ) allocate(evbxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(ghvxy_p)       ) allocate(ghvxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(ghbxy_p)       ) allocate(ghbxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(irgxy_p)       ) allocate(irgxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(ircxy_p)       ) allocate(ircxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(irbxy_p)       ) allocate(irbxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(trxy_p)        ) allocate(trxy_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(evcxy_p)       ) allocate(evcxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(chleafxy_p)    ) allocate(chleafxy_p(ims:ime,jms:jme)                )
+ if(.not.allocated(chucxy_p)      ) allocate(chucxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(chv2xy_p)      ) allocate(chv2xy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(chb2xy_p)      ) allocate(chb2xy_p(ims:ime,jms:jme)                  )
+
+
+!additional output variables for NOAHP only:
+ if(.not.allocated(pahxy_p)     ) allocate(pahxy_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(pahgxy_p)    ) allocate(pahgxy_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(pahbxy_p)    ) allocate(pahbxy_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(pahvxy_p)    ) allocate(pahvxy_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(qintsxy_p)   ) allocate(qintsxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(qintrxy_p)   ) allocate(qintrxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(qdripsxy_p)  ) allocate(qdripsxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(qdriprxy_p)  ) allocate(qdriprxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(qthrosxy_p)  ) allocate(qthrosxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(qthrorxy_p)  ) allocate(qthrorxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(qsnsubxy_p)  ) allocate(qsnsubxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(qsnfroxy_p)  ) allocate(qsnfroxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(qsubcxy_p)   ) allocate(qsubcxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(qfrocxy_p)   ) allocate(qfrocxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(qevacxy_p)   ) allocate(qevacxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(qdewcxy_p)   ) allocate(qdewcxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(qfrzcxy_p)   ) allocate(qfrzcxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(qmeltcxy_p)  ) allocate(qmeltcxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(qsnbotxy_p)  ) allocate(qsnbotxy_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(pondingxy_p) ) allocate(pondingxy_p(ims:ime,jms:jme)                 )
+ if(.not.allocated(fpicexy_p)   ) allocate(fpicexy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(rainlsm_p)   ) allocate(rainlsm_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(snowlsm_p)   ) allocate(snowlsm_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(forctlsm_p)  ) allocate(forctlsm_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(forcqlsm_p)  ) allocate(forcqlsm_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(forcplsm_p)  ) allocate(forcplsm_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(forczlsm_p)  ) allocate(forczlsm_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(forcwlsm_p)  ) allocate(forcwlsm_p(ims:ime,jms:jme)                  )
+ if(.not.allocated(eflxbxy_p)   ) allocate(eflxbxy_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(soilenergy_p)) allocate(soilenergy_p(ims:ime,jms:jme)                )
+ if(.not.allocated(snowenergy_p)) allocate(snowenergy_p(ims:ime,jms:jme)                )
+ if(.not.allocated(canhsxy_p)   ) allocate(canhsxy_p(ims:ime,jms:jme)                   )
 
 
  end subroutine allocate_lsm_noahmp
@@ -289,8 +288,6 @@
 !=================================================================================================================
  subroutine deallocate_lsm_noahmp()
 !=================================================================================================================
-
-!-----------------------------------------------------------------------------------------------------------------
 
 !input arrays for soil layer properties:
  if(allocated(dzs_p)         ) deallocate(dzs_p         )
@@ -438,7 +435,7 @@
  if(allocated(zwatble2d_p)   ) deallocate(zwatble2d_p   )
 
 
-!output variables:
+!output variables for NOAHMP only:
  if(allocated(t2mvxy_p)      ) deallocate(t2mvxy_p      )
  if(allocated(t2mbxy_p)      ) deallocate(t2mbxy_p      )
  if(allocated(q2mvxy_p)      ) deallocate(q2mvxy_p      )
@@ -486,7 +483,7 @@
  if(allocated(chb2xy_p)      ) deallocate(chb2xy_p      )
 
 
-!additional output variables:
+!additional output variables for NOAHMP only:
  if(allocated(pahxy_p)       ) deallocate(pahxy_p       )
  if(allocated(pahgxy_p)      ) deallocate(pahgxy_p      )
  if(allocated(pahbxy_p)      ) deallocate(pahbxy_p      )
@@ -563,7 +560,7 @@
  real(kind=RKIND),dimension(:,:),pointer:: soilcomp
 
 
-!local inout pointers shared with NOAH:
+!local inout pointers shared with the NOAH lsm:
  real(kind=RKIND),dimension(:),pointer:: &
     skintemp,hfx,qfx,lai,lh,grdflx,smstav,smstot,sfcrunoff,udrunoff,sfc_albedo,snow,snowc,snowh, &
     canwat,acsnom,acsnow,sfc_emiss,qsfc,z0,znt
@@ -574,7 +571,7 @@
 
 !local inout NOAH-MP only pointers:
  integer,dimension(:),pointer:: &
-    isnowxy
+    irnumsi,irnummi,irnumfi,isnowxy
 
  real(kind=RKIND),dimension(:),pointer:: &
     grainxy,gddxy,pgsxy
@@ -584,6 +581,9 @@
 
  real(kind=RKIND),dimension(:),pointer:: &
     sfcheadrt,infxsrt,soldrain,qtiledrain,zwatble2d
+
+ real(kind=RKIND),dimension(:),pointer:: &
+    irwatsi,irwatmi,irwatfi,ireloss,irsivol,irmivol,irfivol,irrsplh
 
  real(kind=RKIND),dimension(:),pointer:: &
     tvxy,tgxy,canicexy,canliqxy,eahxy,tahxy,cmxy,chxy,fwetxy,sneqvoxy,alboldxy,qsnowxy,qrainxy,  &
@@ -647,7 +647,7 @@
  call mpas_pool_get_array(diag_physics_noahmp,'cropcat',cropcat)
 
 
-!local inout NOAH and NOAH-MP pointers:
+!inout pointers shared with the NOAH lsm:
  call mpas_pool_get_array(diag_physics,'hfx'       ,hfx       )
  call mpas_pool_get_array(diag_physics,'qfx'       ,qfx       )
  call mpas_pool_get_array(diag_physics,'lh'        ,lh        )
@@ -688,7 +688,19 @@
  call mpas_pool_get_array(diag_physics_noahmp,'qtiledrain'  ,qtiledrain  )
  call mpas_pool_get_array(diag_physics_noahmp,'zwatble2d'   ,zwatble2d   )
 
+ call mpas_pool_get_array(diag_physics_noahmp,'irnumsi'     ,irnumsi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irnummi'     ,irnummi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irnumfi'     ,irnumfi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irwatsi'     ,irwatsi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irwatmi'     ,irwatmi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irwatfi'     ,irwatfi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'ireloss'     ,ireloss     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irsivol'     ,irsivol     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irmivol'     ,irmivol     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irfivol'     ,irfivol     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irrsplh'     ,irrsplh     )
  call mpas_pool_get_array(diag_physics_noahmp,'isnowxy'     ,isnowxy     )
+
  call mpas_pool_get_array(diag_physics_noahmp,'rs'          ,rs          )
  call mpas_pool_get_array(diag_physics_noahmp,'tvxy'        ,tvxy        )
  call mpas_pool_get_array(diag_physics_noahmp,'tgxy'        ,tgxy        )
@@ -817,49 +829,7 @@
  enddo
 
 
-!--- local inout arrays for NOAHMP only:
- do j = jts,jte
-    do n = -2,0
-       do i = its,ite
-          tsnoxy_p(i,n,j)  = tsnoxy(n+3,i)
-          snliqxy_p(i,n,j) = snliqxy(n+3,i)
-          snicexy_p(i,n,j) = snicexy(n+3,i)
-          zsnsoxy_p(i,n,j) = zsnsoxy(n+3,i)
-       enddo
-    enddo
-    do n = 1,num_soils
-       do i = its,ite
-          smoiseq_p(i,n,j) = smoiseq(n,i)
-          !finish the initialization of zsnsoxy_p:
-          zsnsoxy_p(i,n,j) = zsnsoxy(n+num_soils-1,i)
-       enddo
-    enddo
-
-    do n = 1,60
-       do i = its,ite
-          gecros_state_p(i,n,j) = gecros_state(n,i)
-       enddo
-    enddo
-
-    do i = its,ite
-       acc_ssoilxy_p(i,j)  = acc_ssoil(i)
-       acc_qinsurxy_p(i,j) = acc_qinsur(i)
-       acc_qsevaxy_p(i,j)  = acc_qseva(i)
-       acc_dwaterxy_p(i,j) = acc_dwater(i)
-       acc_prcpxy_p(i,j)   = acc_prcp(i)
-       acc_ecanxy_p(i,j)   = acc_ecan(i)
-       acc_etranxy_p(i,j)  = acc_etran(i)
-       acc_edirxy_p(i,j)   = acc_edir(i)
-    enddo
-    do n = 1,num_soils
-       do i = its,ite
-          acc_etranixy_p(i,n,j) = acc_etrani(n,i)
-       enddo
-    enddo
- enddo
-
-
-!--- local inout pointers shared with NOAH lsm:
+!--- inout arrays shared with NOAH lsm:
  do j = jts,jte
     do i = its,ite
        acsnom_p(i,j)     = acsnom(i)
@@ -900,7 +870,63 @@
  enddo
 
 
-!--- inout variables (NOAH-MP ONLY):
+!--- inout arrays for NOAHMP only:
+ do j = jts,jte
+    do i = its,ite
+       irnumsi_p(i,j) = irnumsi(i)
+       irnummi_p(i,j) = irnummi(i)
+       irnumfi_p(i,j) = irnumfi(i)
+       irwatsi_p(i,j) = irwatsi(i)
+       irwatmi_p(i,j) = irwatmi(i)
+       irwatfi_p(i,j) = irwatfi(i)
+       ireloss_p(i,j) = ireloss(i)
+       irsivol_p(i,j) = irsivol(i)
+       irmivol_p(i,j) = irmivol(i)
+       irfivol_p(i,j) = irfivol(i)
+       irrsplh_p(i,j) = irrsplh(i)
+    enddo
+
+    do n = -2,0
+       do i = its,ite
+          tsnoxy_p(i,n,j)  = tsnoxy(n+3,i)
+          snliqxy_p(i,n,j) = snliqxy(n+3,i)
+          snicexy_p(i,n,j) = snicexy(n+3,i)
+          zsnsoxy_p(i,n,j) = zsnsoxy(n+3,i)
+       enddo
+    enddo
+    do n = 1,num_soils
+       do i = its,ite
+          smoiseq_p(i,n,j) = smoiseq(n,i)
+          !finish the initialization of zsnsoxy_p:
+          zsnsoxy_p(i,n,j) = zsnsoxy(n+num_soils-1,i)
+       enddo
+    enddo
+
+    do n = 1,60
+       do i = its,ite
+          gecros_state_p(i,n,j) = gecros_state(n,i)
+       enddo
+    enddo
+
+    do i = its,ite
+       acc_ssoilxy_p(i,j)  = acc_ssoil(i)
+       acc_qinsurxy_p(i,j) = acc_qinsur(i)
+       acc_qsevaxy_p(i,j)  = acc_qseva(i)
+       acc_dwaterxy_p(i,j) = acc_dwater(i)
+       acc_prcpxy_p(i,j)   = acc_prcp(i)
+       acc_ecanxy_p(i,j)   = acc_ecan(i)
+       acc_etranxy_p(i,j)  = acc_etran(i)
+       acc_edirxy_p(i,j)   = acc_edir(i)
+    enddo
+    do n = 1,num_soils
+       do i = its,ite
+          acc_etranixy_p(i,n,j) = acc_etrani(n,i)
+       enddo
+    enddo
+ enddo
+
+
+!--- inout arrays for NOAHMP ONLY:
  do j = jts,jte
     do i = its,ite
        grainxy_p(i,j)      = grainxy(i)
@@ -909,9 +935,7 @@
        qtdrain_p(i,j)      = qtdrain(i)
        tdfraction_p(i,j)   = td_fraction(i)
     enddo
- enddo
 
- do j = jts,jte
     do i = its,ite
        xlaixy_p(i,j)       = lai(i)
        isnowxy_p(i,j)      = isnowxy(i)
@@ -948,7 +972,7 @@
  enddo
 
 
-!--- output variables:
+!--- output arrays for NOAHMP only:
  do j = jts,jte
     do i = its,ite
        t2mvxy_p(i,j)     = 0._RKIND
@@ -999,7 +1023,7 @@
  enddo
 
 
-!--- additional output variables:
+!--- additional output arrays for NOAHMP only:
  do j = jts,jte
     do i = its,ite
     pahxy_p(i,j)         = 0._RKIND
@@ -1059,7 +1083,7 @@
  type(mpas_pool_type),intent(inout):: sfc_input
 
 
-!local inout pointers shared with NOAH:
+!local inout pointers shared with the NOAH lsm:
  real(kind=RKIND),dimension(:),pointer:: &
     skintemp,hfx,qfx,lai,lh,grdflx,smstav,smstot,sfcrunoff,udrunoff,sfc_albedo,snow,snowc,snowh, &
     canwat,acsnom,acsnow,sfc_emiss,qsfc,z0,znt
@@ -1070,7 +1094,7 @@
 
 !local inout NOAH-MP only pointers:
  integer,dimension(:),pointer:: &
-    isnowxy
+    irnumsi,irnummi,irnumfi,isnowxy
 
  real(kind=RKIND),dimension(:),pointer:: &
     grainxy,gddxy,pgsxy
@@ -1080,6 +1104,9 @@
 
  real(kind=RKIND),dimension(:),pointer:: &
     sfcheadrt,infxsrt,soldrain,qtiledrain,zwatble2d
+
+ real(kind=RKIND),dimension(:),pointer:: &
+    irwatsi,irwatmi,irwatfi,ireloss,irsivol,irmivol,irfivol,irrsplh
 
  real(kind=RKIND),dimension(:),pointer:: &
     tvxy,tgxy,canicexy,canliqxy,eahxy,tahxy,cmxy,chxy,fwetxy,sneqvoxy,alboldxy,qsnowxy,qrainxy,  &
@@ -1102,7 +1129,7 @@
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine lsm_noahmp_to_MPAS:')
 
-!local inout NOAH and NOAH-MP pointers:
+!inout pointers shared with the NOAH lsm:
  call mpas_pool_get_array(diag_physics,'hfx'       ,hfx       )
  call mpas_pool_get_array(diag_physics,'qfx'       ,qfx       )
  call mpas_pool_get_array(diag_physics,'lh'        ,lh        )
@@ -1143,7 +1170,19 @@
  call mpas_pool_get_array(diag_physics_noahmp,'qtiledrain'  ,qtiledrain  )
  call mpas_pool_get_array(diag_physics_noahmp,'zwatble2d'   ,zwatble2d   )
 
+ call mpas_pool_get_array(diag_physics_noahmp,'irnumsi'     ,irnumsi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irnummi'     ,irnummi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irnumfi'     ,irnumfi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irwatsi'     ,irwatsi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irwatmi'     ,irwatmi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irwatfi'     ,irwatfi     )
+ call mpas_pool_get_array(diag_physics_noahmp,'ireloss'     ,ireloss     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irsivol'     ,irsivol     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irmivol'     ,irmivol     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irfivol'     ,irfivol     )
+ call mpas_pool_get_array(diag_physics_noahmp,'irrsplh'     ,irrsplh     )
  call mpas_pool_get_array(diag_physics_noahmp,'isnowxy'     ,isnowxy     )
+
  call mpas_pool_get_array(diag_physics_noahmp,'rs'          ,rs          )
  call mpas_pool_get_array(diag_physics_noahmp,'tvxy'        ,tvxy        )
  call mpas_pool_get_array(diag_physics_noahmp,'tgxy'        ,tgxy        )
@@ -1190,30 +1229,30 @@
  call mpas_pool_get_array(diag_physics_noahmp,'acc_etrani'  ,acc_etrani  )
 
 
-!local inout NOAH-MP only pointers:
+!inout arrays shared with the NOAH lsm:
  do j = jts,jte
     do i = its,ite
-       acsnom(i)     = acsnom_p(i,j)
-       acsnow(i)     = acsnow_p(i,j)
-       canwat(i)     = canwat_p(i,j)
-       grdflx(i)     = grdflx_p(i,j)
-       hfx(i)        = hfx_p(i,j)
-       lh(i)         = lh_p(i,j)
-       qfx(i)        = qfx_p(i,j)
-       qsfc(i)       = qsfc_p(i,j)
+       acsnom(i)     = acsnom_p(i,j)     !
+       acsnow(i)     = acsnow_p(i,j)     !
+       canwat(i)     = canwat_p(i,j)     !
+       grdflx(i)     = grdflx_p(i,j)     !
+       hfx(i)        = hfx_p(i,j)        !
+       lh(i)         = lh_p(i,j)         !
+       qfx(i)        = qfx_p(i,j)        !
+       qsfc(i)       = qsfc_p(i,j)       !
        rs(i)         = rs_p(i,j)
-       sfc_albedo(i) = sfc_albedo_p(i,j)
-       sfc_emiss(i)  = sfc_emiss_p(i,j)
-       sfcrunoff(i)  = sfcrunoff_p(i,j)
-       smstav(i)     = smstav_p(i,j)
-       smstot(i)     = smstot_p(i,j)
-       snow(i)       = snow_p(i,j)
-       snowc(i)      = snowc_p(i,j)
-       snowh(i)      = snowh_p(i,j)
-       skintemp(i)   = tsk_p(i,j)
-       udrunoff(i)   = udrunoff_p(i,j)
-       z0(i)         = z0_p(i,j)
-       znt(i)        = znt_p(i,j)
+       sfc_albedo(i) = sfc_albedo_p(i,j) !
+       sfc_emiss(i)  = sfc_emiss_p(i,j)  !
+       sfcrunoff(i)  = sfcrunoff_p(i,j)  !
+       smstav(i)     = smstav_p(i,j)     !
+       smstot(i)     = smstot_p(i,j)     !
+       snow(i)       = snow_p(i,j)       !
+       snowc(i)      = snowc_p(i,j)      !
+       snowh(i)      = snowh_p(i,j)      !
+       skintemp(i)   = tsk_p(i,j)        !
+       udrunoff(i)   = udrunoff_p(i,j)   !
+       z0(i)         = z0_p(i,j)         !
+       znt(i)        = znt_p(i,j)        !
 !for WRF_HYDRO only:
        sfcheadrt(i)    = sfcheadrt_p(i,j)
        infxsrt(i)      = infxsrt_p(i,j)
@@ -1224,62 +1263,30 @@
 
     do n = 1,num_soils
        do i = its,ite
-          sh2o(n,i)  = sh2o_p(i,n,j)
-          smois(n,i) = smois_p(i,n,j)
-          tslb(n,i)  = tslb_p(i,n,j)
+          sh2o(n,i)  = sh2o_p(i,n,j)     !
+          smois(n,i) = smois_p(i,n,j)    !
+          tslb(n,i)  = tslb_p(i,n,j)     !
        enddo
     enddo
  enddo
 
 
-!--- local inout arrays for NOAHMP only:
+!--- inout arrays for NOAHMP only:
  do j = jts,jte
     do i = its,ite
-       grainxy(i)      = grainxy_p(i,j)
-       gddxy(i)        = gddxy_p(i,j)
-       pgsxy(i)        = pgsxy_p(i,j)
-       qtdrain(i)      = qtdrain_p(i,j)
-       td_fraction(i)  = tdfraction_p(i,j)
+       irnumsi(i) = irnumsi_p(i,j)
+       irnummi(i) = irnummi_p(i,j)
+       irnumfi(i) = irnumfi_p(i,j)
+       irwatsi(i) = irwatsi_p(i,j)
+       irwatmi(i) = irwatmi_p(i,j)
+       irwatfi(i) = irwatfi_p(i,j)
+       ireloss(i) = ireloss_p(i,j)
+       irsivol(i) = irsivol_p(i,j)
+       irmivol(i) = irmivol_p(i,j)
+       irfivol(i) = irfivol_p(i,j)
+       irrsplh(i) = irrsplh_p(i,j)
     enddo
- enddo
 
- do j = jts,jte
-    do i = its,ite
-       lai(i)          = xlaixy_p(i,j)
-       isnowxy(i)      = isnowxy_p(i,j)
-       rs(i)           = rs_p(i,j)
-       tvxy(i)         = tvxy_p(i,j)
-       tgxy(i)         = tgxy_p(i,j)
-       canicexy(i)     = canicexy_p(i,j)
-       canliqxy(i)     = canliqxy_p(i,j)
-       eahxy(i)        = eahxy_p(i,j)
-       tahxy(i)        = tahxy_p(i,j)
-       cmxy(i)         = cmxy_p(i,j)
-       chxy(i)         = chxy_p(i,j)
-       fwetxy(i)       = fwetxy_p(i,j)
-       sneqvoxy(i)     = sneqvoxy_p(i,j)
-       alboldxy(i)     = alboldxy_p(i,j)
-       qsnowxy(i)      = qsnowxy_p(i,j)
-       qrainxy(i)      = qrainxy_p(i,j)
-       wslakexy(i)     = wslakexy_p(i,j)
-       zwtxy(i)        = zwtxy_p(i,j)
-       waxy(i)         = waxy_p(i,j)
-       wtxy(i)         = wtxy_p(i,j)
-       lfmassxy(i)     = lfmassxy_p(i,j)
-       rtmassxy(i)     = rtmassxy_p(i,j)
-       stmassxy(i)     = stmassxy_p(i,j)
-       woodxy(i)       = woodxy_p(i,j)
-       stblcpxy(i)     = stblcpxy_p(i,j)
-       fastcpxy(i)     = fastcpxy_p(i,j)
-       xsaixy(i)       = xsaixy_p(i,j)
-       taussxy(i)      = taussxy_p(i,j)
-       smcwtdxy(i)     = smcwtdxy_p(i,j)
-       deeprechxy(i)   = deeprechxy_p(i,j)
-       rechxy(i)       = rechxy_p(i,j)
-    enddo
- enddo
-
- do j = jts,jte
     do n = -2,0
        do i = its,ite
           tsnoxy(n+3,i)  = tsnoxy_p(i,n,j)
@@ -1316,6 +1323,52 @@
        do i = its,ite
           acc_etrani(n,i) = acc_etranixy_p(i,n,j)
        enddo
+    enddo
+ enddo
+
+
+!--- inout arrays for NOAHMP only:
+ do j = jts,jte
+    do i = its,ite
+       grainxy(i)      = grainxy_p(i,j)
+       gddxy(i)        = gddxy_p(i,j)
+       pgsxy(i)        = pgsxy_p(i,j)
+       qtdrain(i)      = qtdrain_p(i,j)
+       td_fraction(i)  = tdfraction_p(i,j)
+    enddo
+
+    do i = its,ite
+       lai(i)          = xlaixy_p(i,j)
+       isnowxy(i)      = isnowxy_p(i,j)
+       rs(i)           = rs_p(i,j)
+       tvxy(i)         = tvxy_p(i,j)
+       tgxy(i)         = tgxy_p(i,j)
+       canicexy(i)     = canicexy_p(i,j)
+       canliqxy(i)     = canliqxy_p(i,j)
+       eahxy(i)        = eahxy_p(i,j)
+       tahxy(i)        = tahxy_p(i,j)
+       cmxy(i)         = cmxy_p(i,j)
+       chxy(i)         = chxy_p(i,j)
+       fwetxy(i)       = fwetxy_p(i,j)
+       sneqvoxy(i)     = sneqvoxy_p(i,j)
+       alboldxy(i)     = alboldxy_p(i,j)
+       qsnowxy(i)      = qsnowxy_p(i,j)
+       qrainxy(i)      = qrainxy_p(i,j)
+       wslakexy(i)     = wslakexy_p(i,j)
+       zwtxy(i)        = zwtxy_p(i,j)
+       waxy(i)         = waxy_p(i,j)
+       wtxy(i)         = wtxy_p(i,j)
+       lfmassxy(i)     = lfmassxy_p(i,j)
+       rtmassxy(i)     = rtmassxy_p(i,j)
+       stmassxy(i)     = stmassxy_p(i,j)
+       woodxy(i)       = woodxy_p(i,j)
+       stblcpxy(i)     = stblcpxy_p(i,j)
+       fastcpxy(i)     = fastcpxy_p(i,j)
+       xsaixy(i)       = xsaixy_p(i,j)
+       taussxy(i)      = taussxy_p(i,j)
+       smcwtdxy(i)     = smcwtdxy_p(i,j)
+       deeprechxy(i)   = deeprechxy_p(i,j)
+       rechxy(i)       = rechxy_p(i,j)
     enddo
  enddo
 
@@ -1379,17 +1432,6 @@
 
 !copy MPAS arrays to local arrays:
  call lsm_noahmp_from_MPAS(configs,mesh,diag_physics,diag_physics_noahmp,sfc_input,its,ite)
-
-!call mpas_log_write('--- itimestep   = $i',intArgs=(/itimestep/))
-!call mpas_log_write('--- year        = $i',realArgs=(/year/))
-!call mpas_log_write('--- curr_julday = $r',realArgs=(/curr_julday/))
-!call mpas_log_write('--- dt          = $r',realArgs=(/dt_pbl/))
-!call mpas_log_write(' ')
-!do i = its,ite
-!   if(coszr_p(i,j) .gt. 0.) then
-!      call mpas_log_write('$i $r $r $',intArgs=(/i/),realArgs=(/coszr_p(i,j),xlat_p(i,j),xlon_p(i,j)/))
-!   endif
-!enddo
 
 
  call noahmplsm( &
