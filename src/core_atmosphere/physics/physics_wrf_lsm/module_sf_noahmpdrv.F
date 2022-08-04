@@ -1167,7 +1167,6 @@ CONTAINS
 
     ELSE
          ICE=0                              ! Neither sea ice or land ice.
-         call mpas_log_write('--- noahmp_sflx:  $i',intArgs=(/i/))
          CALL NOAHMP_SFLX (parameters, &
             I       , J       , LAT     , YEARLEN , JULIAN  , COSZ    , & ! IN : Time/Space-related
             DT      , DX      , DZ8W1D  , NSOIL   , ZSOIL   , NSNOW   , & ! IN : Model configuration 
