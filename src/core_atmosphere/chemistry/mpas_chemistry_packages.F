@@ -24,13 +24,15 @@
 
 
 !=================================================================================================================
- function chemistry_setup_packages(configs,packages,iocontext) result(ierr)
+ function chemistry_setup_packages(configs,packages,iocontext,init) result(ierr)
 !=================================================================================================================
 
 !inout arguments:
  type (mpas_pool_type), intent(inout) :: configs
  type (mpas_pool_type), intent(inout) :: packages
  type (mpas_io_context_type), intent(inout) :: iocontext
+
+ integer, intent(in), optional :: init
 
 !local variables:
  logical,pointer:: o3prognostic
@@ -44,12 +46,15 @@
 
  ierr = 0
 
+ call mpas_log_write(' ')
  call mpas_log_write('----- Setting up package variables -----')
- call mpas_log_write('')
 
 !--- initialization of all packages for parameterizations of cloud microphysics:
-
- call mpas_pool_get_config(configs,'config_o3prognostic',o3prognostic)
+ if(present(init) .and. init == 1) then
+    call mpas_pool_get_config(configs,'config_use_chemopp',o3prognostic)
+ else
+    call mpas_pool_get_config(configs,'config_o3prognostic',o3prognostic)
+ endif
 
  nullify(chem2dopp_in)
  call mpas_pool_get_package(packages,'chem2dopp_inActive',chem2dopp_in)

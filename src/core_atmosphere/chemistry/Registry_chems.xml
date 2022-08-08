@@ -38,7 +38,7 @@
  </var_struct>
 
 
- <var_struct name="chem_input" time_levs="1">
+ <var_struct name="chemopp_input" time_levs="1">
 
       <!-- Monthly mean pressure and coefficients needed in the linearized CHEM2D-OPP: -->
       <var name="OPPpres" type="real" dimensions="nOPPLevels" units="Pa"
@@ -48,6 +48,11 @@
       <var name="OPPdata" type="real" dimensions="nMonths nOPPCoeffs nOPPLevels nCells" units="various"
            description="monthly-mean coefficients used in the linearized CHEM2D-OPP (McCormack et al.,2006)"
            packages="chem2dopp_in"/>
+
+ </var_struct>
+
+
+ <var_struct name="chem_input" time_levs="1">
 
       <!-- Coefficients needed in the linearized CHEM2D-OPP interpolated to the actual timestamp: -->
       <var name="OPPcoeffs" type="real" dimensions="nOPPCoeffs nOPPLevels nCells Time" units="various"
