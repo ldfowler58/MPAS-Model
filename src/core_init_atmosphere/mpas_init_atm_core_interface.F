@@ -104,6 +104,7 @@ module init_atm_core_interface
 
       use mpas_derived_types, only : mpas_pool_type, mpas_io_context_type
       use mpas_pool_routines, only : mpas_pool_get_config, mpas_pool_get_package
+      use mpas_chemistry_packages, only : chemistry_setup_packages
 
       implicit none
 
@@ -115,6 +116,7 @@ module init_atm_core_interface
       logical, pointer :: initial_conds, sfc_update, lbcs
       logical, pointer :: gwd_stage_in, gwd_stage_out, vertical_stage_in, vertical_stage_out, met_stage_in, met_stage_out
       logical, pointer :: config_native_gwd_static, config_static_interp, config_vertical_grid, config_met_interp
+      logical, pointer :: config_use_chemopp
       integer, pointer :: config_init_case
 
 
@@ -201,6 +203,14 @@ module init_atm_core_interface
                         (.not. config_static_interp) .and. &
                         (.not. config_vertical_grid)
          met_stage_out = config_met_interp
+
+         !
+         ! initialize package chem2dopp_in to initialize the CHEM2DOPP data:
+         call mpas_pool_get_config(configs, 'config_use_chemopp', config_use_chemopp)
+         if(config_use_chemopp) then
+            ierr = 0
+            ierr = chemistry_setup_packages(configs,packages,iocontext,1)
+         endif
 
       else if (config_init_case == 8) then
          gwd_stage_in = .false.
