@@ -108,6 +108,8 @@
  real(kind=RKIND),dimension(:),pointer:: xland
 
 !-----------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine cloudiness_from_MPAS:')
 
  call mpas_pool_get_config(configs,'config_len_disp',len_disp)
 
@@ -135,6 +137,8 @@
     enddo
  enddo
 
+!call mpas_log_write('--- end subroutine cloudiness_from_MPAS:')
+
  end subroutine cloudiness_from_MPAS
 
 !=================================================================================================================
@@ -153,6 +157,8 @@
  real(kind=RKIND),dimension(:,:),pointer:: cldfrac
 
 !-----------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine cloudiness_to_MPAS:')
 
  call mpas_pool_get_array(diag_physics,'cldfrac',cldfrac)
 
@@ -163,7 +169,9 @@
  enddo
  enddo
  enddo
- 
+
+!call mpas_log_write('--- end subroutine cloudiness_to_MPAS:')
+
  end subroutine cloudiness_to_MPAS
 
 !=================================================================================================================

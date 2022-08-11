@@ -146,7 +146,8 @@
 
 !=================================================================================================================
  subroutine o3_gfs_run(im,levs,ko3,dt,oz,tin,po3,prsl,prdout,pl_coeff,delp,ldiag3d,qdiag3d, &
-                       ozp1,ozp2,ozp3,ozp4,grav,errmsg,errflg)
+                       ozp1,ozp2,ozp3,ozp4,ozp5,ozp6,ozp7,ozp8,ozp9,ozp10,ozp11,ozp12,grav, &
+                       errmsg,errflg)
 !=================================================================================================================
 
 !input arguments:
@@ -182,6 +183,16 @@
     ozp2,    &! cumulative change in ozone concentration due to ozone mixing ratio (kg kg-1).
     ozp3,    &! cumulative_change_in_ozone_concentration_due_to_temperature (kg kg-1).
     ozp4      ! cumulative change in ozone concentration due to overhead ozone column (kg kg-1).
+
+ real(kind=kind_phys),intent(inout),dimension(im,levs):: &
+    ozp5,   &!
+    ozp6,   &!
+    ozp7,   &!
+    ozp8,   &!
+    ozp9,   &!
+    ozp10,  &!
+    ozp11,  &!
+    ozp12    !
 
  real(kind=kind_phys),intent(inout),dimension(im,levs):: &
     oz        ! ozone mixing ratio (kg/kg).
@@ -301,6 +312,18 @@
           ozp2(i,l) = ozp2(i,l) + (oz(i,l) - ozib(i))
           ozp3(i,l) = ozp3(i,l) + prod(i,3)*(tin(i,l)-prod(i,5))*dt
           ozp4(i,l) = ozp4(i,l) + prod(i,4)*(colo3(i,l)-coloz(i,l))*dt
+
+          ozp5(i,l)  = prod(i,1)
+          ozp6(i,l)  = prod(i,2)
+          ozp7(i,l)  = prod(i,3)
+          ozp8(i,l)  = prod(i,4)
+          ozp9(i,l)  = prod(i,5)
+          ozp10(i,l) = prod(i,6)
+
+          ozp11(i,l) = prod(i,1)                         &
+                     + prod(i,3)*(tin(i,l)-prod(i,5))    &
+                     + prod(i,4)*(colo3(i,l)-coloz(i,l))
+          ozp12(i,l) = prod(i,6) - ozp5(i,l)/prod(i,2)
        enddo
     endif
 

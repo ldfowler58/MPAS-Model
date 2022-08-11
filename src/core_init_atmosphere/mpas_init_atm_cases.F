@@ -19,10 +19,10 @@ module init_atm_cases
    use mpas_timer
    use mpas_init_atm_static
    use mpas_init_atm_surface
-   use mpas_init_atm_o3mr
    use mpas_atmphys_constants, only: svpt0,svp1,svp2,svp3
    use mpas_atmphys_functions
    use mpas_atmphys_initialize_real
+   use mpas_chemistry_init
    use mpas_log, only : mpas_log_write
 
    ! Added only clause to keep xlf90 from getting confused from the overloaded abs intrinsic in mpas_timekeeping
@@ -89,6 +89,12 @@ module init_atm_cases
       real (kind=RKIND), dimension(:), pointer :: lonCell
       real (kind=RKIND), dimension(:), pointer :: ter
       integer, dimension(:), pointer :: bdyMaskCell
+
+      !
+      ! Initialization of the CHEM2D-OPP data:
+      !
+      logical, pointer :: config_use_chemopp
+      type (mpas_pool_type), pointer :: chemopp_input
 
 
       call mpas_pool_get_config(domain % blocklist % configs, 'config_init_case', config_init_case)
@@ -256,8 +262,13 @@ module init_atm_cases
                                    diag, diag_physics, config_init_case, block_ptr % dimensions, block_ptr % configs)
             
             if (config_met_interp) then
-               call init_atm_o3mr(mesh, block_ptr % configs, fg, diag ,state)
                call physics_initialize_real(mesh, fg, domain % dminfo, block_ptr % dimensions, block_ptr % configs)
+
+               call mpas_pool_get_config(block_ptr % configs, 'config_use_chemopp', config_use_chemopp)
+               if(config_use_chemopp) then
+                  call mpas_pool_get_subpool(block_ptr % structs, 'chemopp_input', chemopp_input)
+                  call chemistry_init2DOPP(mesh,chemopp_input)
+               end if
             end if
 
             block_ptr => block_ptr % next
@@ -2589,6 +2600,7 @@ module init_atm_cases
 
       integer :: nfglevels_actual
       integer, pointer :: index_qv
+      integer, pointer :: index_qo3
 
       integer, dimension(5) :: interp_list
       real (kind=RKIND) :: maskval
@@ -2676,6 +2688,7 @@ module init_atm_cases
       logical, pointer :: config_tc_vertical_grid
       character (len=StrKIND), pointer :: config_specified_zeta_levels
       logical, pointer :: config_use_spechumd
+      logical, pointer :: config_use_chemopp
       integer, pointer :: config_nfglevels
       integer, pointer :: config_nfgsoillevels
       logical, pointer :: config_smooth_surfaces
@@ -2723,6 +2736,7 @@ module init_atm_cases
       real (kind=RKIND), dimension(:,:), pointer :: t_fg
       real (kind=RKIND), dimension(:,:), pointer :: rh_fg
       real (kind=RKIND), dimension(:,:), pointer :: sh_fg
+      real (kind=RKIND), dimension(:,:), pointer :: o3mr_fg
       real (kind=RKIND), dimension(:,:), pointer :: gfs_z
       real (kind=RKIND), dimension(:,:), pointer :: p_fg
       real (kind=RKIND), dimension(:,:), pointer :: st_fg
@@ -2753,6 +2767,7 @@ module init_atm_cases
       call mpas_pool_get_config(configs, 'config_tc_vertical_grid', config_tc_vertical_grid)
       call mpas_pool_get_config(configs, 'config_specified_zeta_levels', config_specified_zeta_levels)
       call mpas_pool_get_config(configs, 'config_use_spechumd', config_use_spechumd)
+      call mpas_pool_get_config(configs, 'config_use_chemopp', config_use_chemopp)
       call mpas_pool_get_config(configs, 'config_nfglevels', config_nfglevels)
       call mpas_pool_get_config(configs, 'config_nfgsoillevels', config_nfgsoillevels)
       call mpas_pool_get_config(configs, 'config_smooth_surfaces', config_smooth_surfaces)
@@ -2861,6 +2876,7 @@ module init_atm_cases
       call mpas_pool_get_array(fg, 't', t_fg)
       call mpas_pool_get_array(fg, 'rh', rh_fg)
       call mpas_pool_get_array(fg, 'sh', sh_fg)
+      call mpas_pool_get_array(fg, 'o3', o3mr_fg)
       call mpas_pool_get_array(fg, 'gfs_z', gfs_z)
       call mpas_pool_get_array(fg, 'p', p_fg)
 
@@ -2869,6 +2885,7 @@ module init_atm_cases
       nz = nz1 + 1
 
       call mpas_pool_get_dimension(state, 'index_qv', index_qv)
+      call mpas_pool_get_dimension(state, 'index_qo3', index_qo3)
 
       xnutr = 0.
       zd = 12000.
@@ -3404,6 +3421,7 @@ module init_atm_cases
              trim(field % field) == 'TT' .or. &
              trim(field % field) == 'RH' .or. &
              trim(field % field) == 'SPECHUMD' .or. &
+             trim(field % field) == 'O3MR' .or. &
              trim(field % field) == 'GHT' .or. &
              trim(field % field) == 'PMSL' .or. &
              trim(field % field) == 'PSFC' .or. &
@@ -3581,6 +3599,13 @@ module init_atm_cases
                latPoints => latCell
                lonPoints => lonCell
                call mpas_pool_get_array(fg, 'sh', destField2d)
+               ndims = 2
+            else if (trim(field % field) == 'O3MR') then
+               call mpas_log_write('Interpolating O3MR at $i $r', intArgs=(/k/), realArgs=(/vert_level(k)/))
+               nInterpPoints = nCells
+               latPoints => latCell
+               lonPoints => lonCell
+               call mpas_pool_get_array(fg, 'o3', destField2d)
                ndims = 2
             else if (trim(field % field) == 'GHT') then
                call mpas_log_write('Interpolating GHT at $i $r', intArgs=(/k/), realArgs=(/vert_level(k)/))
@@ -4528,6 +4553,7 @@ call mpas_log_write('Done with soil consistency check')
       !  
       allocate(sorted_arr(2,nfglevels_actual))
 
+
       do iCell=1,nCells
 
          ! T
@@ -4585,6 +4611,27 @@ call mpas_log_write('Done with soil consistency check')
                                         sorted_arr(:,1:nfglevels_actual-1), order=1, extrap=0)
             if (target_z < z_fg(1,iCell) .and. k < nVertLevels) spechum(k,iCell) = spechum(k+1,iCell)
          end do
+
+
+         ! QO3: if first-guess values are negative, set those values to zero before
+         ! vertical interpolation.
+         if(config_use_chemopp) then
+            sorted_arr(:,:) = -999.0
+            scalars(index_qo3,:,iCell) = 0._RKIND
+            do k = 1, nfglevels_actual
+               sorted_arr(1,k) = z_fg(k,iCell)
+               if (vert_level(k) == 200100.0) sorted_arr(1,k) = 99999.0
+               sorted_arr(2,k) = max(0._RKIND,o3mr_fg(k,iCell))
+            end do
+            call mpas_quicksort(nfglevels_actual, sorted_arr)
+            do k = nVertLevels, 1, -1
+               target_z = 0.5 * (zgrid(k,iCell) + zgrid(k+1,iCell))
+               scalars(index_qo3,k,iCell) = vertical_interp(target_z, nfglevels_actual-1, &
+                                   sorted_arr(:,1:nfglevels_actual-1), order=1, extrap=0)
+               if (target_z < z_fg(1,iCell) .and. k < nVertLevels) &
+                   scalars(index_qo3,k,iCell) = scalars(index_qo3,k+1,iCell)
+            end do
+         end if
 
 
          ! GHT
