@@ -532,6 +532,7 @@
 			<var name="oc1_em_anthro"/>
 			<var name="nh3_em_anthro"/>
 			<var name="so2_em_anthro"/>
+			<var_array name="chems"/>
 			<var_array name="chems_gocart"/>
 			<var_array name="tracers"/>
 #endif
@@ -1002,6 +1003,9 @@
 			<var name="nwfa2d_seas"/>
 			<var name="nifa2d_dust"/>
 			<var_array name="chems_gocart"/>
+			<var_array name="chems"/>
+			<var_array name="bl_chems"/>
+			<var_array name="cu_chems"/>
 			<var_array name="tracers"/>
 			<var_array name="bl_tracers"/>
 			<var_array name="cu_tracers"/>

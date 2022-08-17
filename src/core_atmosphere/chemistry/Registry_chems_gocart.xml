@@ -110,9 +110,6 @@
            <var name="qdust5" array_group="gocart" units="kg kg^{-1}"
                 description="DUST5 - Dust size bin 5 mixing ratio (8.0um eff. radius)"/>
 
-           <var name="qco" array_group="gocart" units="mole mole{-1}"
-                description="CO -  Carbon monoxide mixing ratio - sector All"/>
-
            <var name="qnh3" array_group="gocart" units="mole mole{-1}"
                 description="NH3 - Ammonia mixig ratio - sector All"/>
 
