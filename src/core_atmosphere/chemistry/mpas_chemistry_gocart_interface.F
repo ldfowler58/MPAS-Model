@@ -402,14 +402,14 @@
 
 !local variables and arrays:
  integer:: i,its,ite,k,kts,kte,n,nerod
- integer,pointer:: index_qbc1,index_qbc2,index_qoc1,index_qoc2,index_qseas1,index_qseas2,index_qseas3, &
-              index_qseas4,index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5,index_qco, &
-              index_qnh3,index_qso2,index_qso4a1,index_qso4a2,index_qso4a3
+ integer,pointer:: index_qbc1,index_qbc2,index_qoc1,index_qoc2,index_qseas1,index_qseas2,index_qseas3,  &
+              index_qseas4,index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5,index_qnh3, &
+              index_qso2,index_qso4a1,index_qso4a2,index_qso4a3
 
  real(kind=RKIND),dimension(:),pointer:: bc1_em_anthro,oc1_em_anthro,co_em_anthro, &
                                          nh3_em_anthro,so2_em_anthro
  real(kind=RKIND),dimension(:,:),pointer:: qbc1,qbc2,qoc1,qoc2,qseas1,qseas2,qseas3,qseas4,  &
-                                           qdust1,qdust2,qdust3,qdust4,qdust5,qco,qnh3,qso2, &
+                                           qdust1,qdust2,qdust3,qdust4,qdust5,qnh3,qso2,     &
                                            qso4a1,qso4a2,qso4a3
  real(kind=RKIND),dimension(:,:,:),pointer:: chems
 
@@ -454,7 +454,6 @@
  call mpas_pool_get_dimension(chems_input,'index_qdust3',index_qdust3)
  call mpas_pool_get_dimension(chems_input,'index_qdust4',index_qdust4)
  call mpas_pool_get_dimension(chems_input,'index_qdust5',index_qdust5)
- call mpas_pool_get_dimension(chems_input,'index_qco'   ,index_qco   )
  call mpas_pool_get_dimension(chems_input,'index_qnh3'  ,index_qnh3  )
  call mpas_pool_get_dimension(chems_input,'index_qso2'  ,index_qso2  )
  call mpas_pool_get_dimension(chems_input,'index_qso4a1',index_qso4a1)
@@ -474,7 +473,6 @@
  call mpas_log_write('--- index_qdust3 = $i',intArgs=(/index_qdust3/))
  call mpas_log_write('--- index_qdust4 = $i',intArgs=(/index_qdust4/))
  call mpas_log_write('--- index_qdust5 = $i',intArgs=(/index_qdust5/))
- call mpas_log_write('--- index_qco    = $i',intArgs=(/index_qco/)   )
  call mpas_log_write('--- index_qnh3   = $i',intArgs=(/index_qnh3/)  )
  call mpas_log_write('--- index_qso2   = $i',intArgs=(/index_qso2/)  )
  call mpas_log_write('--- index_qso4a1 = $i',intArgs=(/index_qso4a1/))
@@ -495,7 +493,6 @@
  qdust3 => chems(index_qdust3,:,:)
  qdust4 => chems(index_qdust4,:,:)
  qdust5 => chems(index_qdust5,:,:)
- qco    => chems(index_qco,:,:)
  qnh3   => chems(index_qnh3,:,:)
  qso2   => chems(index_qso2,:,:)
  qso4a1 => chems(index_qso4a1,:,:)
@@ -529,7 +526,6 @@
        this%qdust3(i,k) = qdust3(k,i)
        this%qdust4(i,k) = qdust4(k,i)
        this%qdust5(i,k) = qdust5(k,i)
-       this%qco(i,k)    = qco(k,i)
        this%qnh3(i,k)   = qnh3(k,i)
        this%qso2(i,k)   = qso2(k,i)
        this%qso4a1(i,k) = qso4a1(k,i)
@@ -567,7 +563,6 @@
     this%tend_qdust3(i,k) = this%qdust3(i,k)
     this%tend_qdust4(i,k) = this%qdust4(i,k)
     this%tend_qdust5(i,k) = this%qdust5(i,k)
-    this%tend_qco(i,k)    = this%qco(i,k)
     this%tend_qnh3(i,k)   = this%qnh3(i,k)
     this%tend_qso2(i,k)   = this%qso2(i,k)
     this%tend_qso4a1(i,k) = this%qso4a1(i,k)
@@ -588,7 +583,6 @@
        this%tend_qdust3(i,k) = 0._RKIND
        this%tend_qdust4(i,k) = 0._RKIND
        this%tend_qdust5(i,k) = 0._RKIND
-       this%tend_qco(i,k)    = 0._RKIND
        this%tend_qnh3(i,k)   = 0._RKIND
        this%tend_qso2(i,k)   = 0._RKIND
        this%tend_qso4a1(i,k) = 0._RKIND
@@ -791,7 +785,6 @@
     this%tend_qdust3(i,k) = (this%qdust3(i,k) - this%tend_qdust3(i,k)) / dt
     this%tend_qdust4(i,k) = (this%qdust4(i,k) - this%tend_qdust4(i,k)) / dt
     this%tend_qdust5(i,k) = (this%qdust5(i,k) - this%tend_qdust5(i,k)) / dt
-    this%tend_qco(i,k)    = (this%qco(i,k)    - this%tend_qco(i,k)   ) / dt
     this%tend_qnh3(i,k)   = (this%qnh3(i,k)   - this%tend_qnh3(i,k)  ) / dt
     this%tend_qso2(i,k)   = (this%qso2(i,k)   - this%tend_qso2(i,k)  ) / dt
     this%tend_qso4a1(i,k) = (this%qso4a1(i,k) - this%tend_qso4a1(i,k)) / dt
