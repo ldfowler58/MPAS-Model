@@ -304,14 +304,14 @@
 
 #ifdef ATM_CHEMISTRY
           call mpas_timer_start('atm_chem: physics - GF')
-!         !--- chemical species:
-!         if(nchem > 0) then
-!            do ic = 1,nchem
-!               chem_up(i,k,ic) = (chem_up(i,k-1,ic)*zu(i,k-1) - .5*up_massdetr(i,k-1)*chem_up(i,k-1,ic) &
-!                               + up_massentr(i,k-1)*chem(i,k-1,ic))                                     &
-!                               / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
-!            enddo
-!         endif
+          !--- chemical species:
+          if(nchem > 0) then
+             do ic = 1,nchem
+                chem_up(i,k,ic) = (chem_up(i,k-1,ic)*zu(i,k-1) - .5*up_massdetr(i,k-1)*chem_up(i,k-1,ic) &
+                                + up_massentr(i,k-1)*chem(i,k-1,ic))                                     &
+                                / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
+             enddo
+          endif
           !--- passive tracers:
           if(ntracer > 0) then
              do it = 1,ntracer
@@ -382,14 +382,14 @@
           psum(i) = psum(i) + clw_all(i,k)*zu(i,k) *dz
 
 #ifdef ATM_CHEMISTRY
-!         !--- chemical species:
-!         if(nchem > 0) then
-!            do ic = 1, nchem
-!               chem_up(i,k,ic) = (chem_up(i,k-1,ic)*zu(i,k-1) - .5*up_massdetr(i,k-1)*chem_up(i,k-1,ic) &
-!                               + up_massentr(i,k-1)*chem(i,k-1,ic))                                     &
-!                               / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
-!            enddo
-!         endif
+          !--- chemical species:
+          if(nchem > 0) then
+             do ic = 1, nchem
+                chem_up(i,k,ic) = (chem_up(i,k-1,ic)*zu(i,k-1) - .5*up_massdetr(i,k-1)*chem_up(i,k-1,ic) &
+                                + up_massentr(i,k-1)*chem(i,k-1,ic))                                     &
+                                / (zu(i,k-1)-.5*up_massdetr(i,k-1)+up_massentr(i,k-1))
+             enddo
+          endif
 
           !--- passive tracers:
           if(ntracer > 0) then
@@ -489,16 +489,16 @@
     endif
 
     if(ierr(i) .eq. 0) then
-!      if(nchem > 0) then
-!         do ic = 1,nchem
-!            chem_dn(i,kd,ic) = cheml2(i,kd,ic)
-!            do k = kd-1,kts,-1
-!               chem_dn(i,k,ic) = (chem_dn(i,k+1,ic)*zd(i,k+1) -.5*dn_massdetr(i,k)*chem_dn(i,k+1,ic) &
-!                                +  dn_massentr(i,k)*chem(i,k,ic))                                    &
-!                                / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
-!            enddo
-!         enddo
-!      endif
+       if(nchem > 0) then
+          do ic = 1,nchem
+             chem_dn(i,kd,ic) = cheml2(i,kd,ic)
+             do k = kd-1,kts,-1
+                chem_dn(i,k,ic) = (chem_dn(i,k+1,ic)*zd(i,k+1) -.5*dn_massdetr(i,k)*chem_dn(i,k+1,ic) &
+                                 +  dn_massentr(i,k)*chem(i,k,ic))                                    &
+                                 / (zd(i,k+1)-.5*dn_massdetr(i,k)+dn_massentr(i,k))
+             enddo
+          enddo
+       endif
        if(ntracer > 0) then
           do it = 1,ntracer
              do k = kd-1,kts,-1
@@ -516,8 +516,8 @@
  end subroutine cup_transport_dn
 
 !=================================================================================================================
- subroutine cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,kdn,kpbl,dtime,xmb,edt,zu,zd,pres, &
-                               nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,tracer_up,    &
+ subroutine cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,kdn,kpbl,dtime,xmb,edt,zu,zd,p_cup, &
+                               nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,tracer_up,     &
                                tracer_dn,outtracer)
 !=================================================================================================================
 
@@ -546,7 +546,7 @@
     xmb             !
 
  real(kind=kind_phys),intent(in),dimension(its:ite,kts:kte):: &
-    pres,          &!
+    p_cup,         &!
     zd,            &!
     zu
 
@@ -574,35 +574,15 @@
     outtracer       !
 
 !local variables and arrays:
- integer:: i,ic,it,k,k2,kb,kd,kt
+ integer:: i,ic,it,k,k2,kb,kc,kd,kt
 
- real(kind=kind_phys):: sumi,sumf
+ real(kind=kind_phys),dimension(kts:kte):: fm,fp,znet
 
- real(kind=kind_phys),parameter:: epsilon = 1.e-10
- real(kind=kind_phys),dimension(its:ite,kts:kte):: ratio
-
- real(kind=kind_phys),dimension(its:ite):: cflmax,xmbl
- real(kind=kind_phys),dimension(kts:kte):: cfl
- real(kind=kind_phys),dimension(its:ite,kts:kte):: aterm,bterm,esubs
- real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: tracerp,tracerpu_expl,tracerpd_expl
-
- real(kind=kind_phys):: numerator,denominator
- real(kind=kind_phys),dimension(kts:kte):: aterm2,bterm2,cterm2,dterm2,esubs2,x2
- real(kind=kind_phys),dimension(kts:kte):: aterm3,bterm3,cterm3,dterm3,esubs3,x3
- real(kind=kind_phys),dimension(kts:kte):: num,den,fm,fp,znet
- real(kind=kind_phys),dimension(its:ite,kts:kte,ntracer):: outt
+ real(kind=kind_phys),dimension(:),allocatable:: mult,aterm,bterm,cterm,dterm
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
- call mpas_log_write('--- subroutine cup_transport_tends: itf = $i  ktf = $i',intArgs=(/itf,ktf/))
-
-!--- CFL (maybe I only need to limit the CFL conditions between the cloud-base and cloud-top levels):
- do i = its, ite
-    xmbl(i) = xmb(i)
-    do k = kts, kte
-       ratio(i,k) = 0._kind_phys
-    enddo
- enddo
+ call mpas_log_write('--- subroutine cup_transport_tends: nchem = $i  ntracer = $i',intArgs=(/nchem,ntracer/))
 
  do i = its, itf
     if(ierr(i) .eq. 0) then
@@ -610,124 +590,73 @@
        kb = kbcon(i)
        kt = ktop(i)
        kd = kdn(i)
-       cflmax(i) = 0._kind_phys
-
-!      do k = kts, ktf-1
-!         ratio(i,k) = 0.01_kind_phys*grav/(pres(i,k) - pres(i,k+1))
-!         cfl(k) = zu(i,k)/(ratio(i,k)*dtime)
-!         cfl(k) = xmbl(i)*cfl(k)
-!         cflmax(i) = max(cflmax(i),cfl(k))
-!      enddo
-!      if(xmbl(i).gt.cflmax(i)) xmbl(i) = cflmax(i)
-       do k = kts,kt
-          ratio(i,k) = 0.01_kind_phys*grav/(pres(i,k) - pres(i,k+1))
-          cflmax(k)  = 1._kind_phys/(ratio(i,k)*dtime)
-          znet(k)    = zu(i,k)-edt(i)*zd(i,k)
-          cfl(k)     = xmb(i)*znet(k)
-          if(cfl(k).gt.cflmax(k)) xmbl(i) = min(xmbl(i),cflmax(k)/znet(k))
-       enddo
-       do k = kts, ktf
-!         ratio(i,k) = ratio(i,k)*xmbl(i)
-          ratio(i,k) = ratio(i,k)*xmb(i)
-       enddo
-    endif
- enddo
-
- do i = its, itf
-    if(ierr(i) .eq. 0) then
-       k2 = k22(i)
-       kb = kbcon(i)
-       kt = ktop(i)
-       kd = kdn(i)
-
+       kc = kt-kts+1
        do k = kts, ktf
           znet(k) = zu(i,k)-edt(i)*zd(i,k)
-!         znet(k) = zu(i,k)
           fp(k) = 0.5*(znet(k)+abs(znet(k)))
           fm(k) = 0.5*(znet(k)-abs(znet(k)))
-
-          den(k)    = 0._kind_phys
-          num(k)    = 0._kind_phys
-
-          aterm2(k) = 0._kind_phys
-          bterm2(k) = 0._kind_phys
-          cterm2(k) = 0._kind_phys
-          dterm2(k) = 0._kind_phys
-
-          x3(k) = 0._kind_phys
-          aterm3(k) = 0._kind_phys
-          bterm3(k) = 0._kind_phys
-          cterm3(k) = 0._kind_phys
-          dterm3(k) = 0._kind_phys
        enddo
 
-       do it = 1, ntracer
-          do k = kts, ktf
-             x2(k) = tracer(i,k,it)
-          enddo
+!      do k = kts,kte
+!         call mpas_log_write('$i $i $i $i $i $r $r $r',intArgs=(/i,k2,kb,kt,k/),realArgs= &
+!                       (/(chem_up(i,k,ic),ic=1,nchem),(tracer_up(i,k,it),it=1,ntracer)/))
+!      enddo
+!      call mpas_log_write(' ')
+!      do k = kts,kte
+!         call mpas_log_write('$i $i $i $r $r $r',intArgs=(/i,kd,k/),realArgs=(/(chem_dn(i,k,ic),ic=1,nchem), &
+!                              (tracer_dn(i,k,it),it=1,ntracer)/))
+!      enddo
+!      call mpas_log_write(' ')
 
-!--- implicit formulation for updrafts only (downward sweep):
-          do k = kts, ktf-1
-             aterm(i,k) = ratio(i,k)*dtime*zu(i,k)
-             esubs(i,k) = zu(i,k)*tracer_up(i,k,it)-zu(i,k+1)*tracer_up(i,k+1,it)
-             esubs(i,k) = ratio(i,k)*dtime*esubs(i,k)
-          enddo
+       if(.not.allocated(mult) ) allocate(mult(kts:kt) )
+       if(.not.allocated(aterm)) allocate(aterm(kts:kt))
+       if(.not.allocated(bterm)) allocate(bterm(kts:kt))
+       if(.not.allocated(cterm)) allocate(cterm(kts:kt))
+       if(.not.allocated(dterm)) allocate(dterm(kts:kt))
+       do k = kts,kt
+          mult(k)  = 0.01_kind_phys*grav/(p_cup(i,k)-p_cup(i,k+1))
+          aterm(k) = mult(k)*dtime*fm(k)
+          bterm(k) = 1.+mult(k)*dtime*(fp(k)-fm(k+1))
+          cterm(k) = -mult(k)*dtime*fp(k+1)
+       enddo
 
-          !updated tracers in layers above layer index k = kt:
-          do k = ktf, kt+1, -1
-             tracerp(i,k,it) = tracer(i,k,it)
+       !--- chemical species:
+       do ic = 1,nchem
+          do k = kts,kt
+             dterm(k) = (zu(i,k)*chem_up(i,k,ic)-zu(i,k+1)*chem_up(i,k+1,ic)) &
+                      - edt(i)*(zd(i,k)*chem_dn(i,k,ic)-zd(i,k+1)*chem_dn(i,k+1,ic))
+             dterm(k) = chem(i,k,ic) + mult(k)*dtime*dterm(k)
           enddo
-          !updated tracer in layer above the cloud-top:
-          k = kt
-          numerator   = zu(i,k)*tracer_up(i,k,it) - zu(i,k+1)*tracer_up(i,k+1,it)
-          numerator   = ratio(i,k)*dtime*numerator + tracer(i,k,it)
-          denominator = 1. + ratio(i,k)*dtime*zu(i,k)
-          tracerp(i,k,it) = numerator/denominator
-          num(k) = numerator
-          den(k) = denominator
-          !updated tracers in layers below the cloud-top:
-          do k = kt-1, kb-1, -1
-             numerator   = zu(i,k)*tracer_up(i,k,it) - zu(i,k+1)*tracer_up(i,k+1,it)
-             numerator   = numerator + zu(i,k+1)*tracerp(i,k+1,it)
-             numerator   = ratio(i,k)*dtime*numerator + tracer(i,k,it)
-             denominator = 1. + ratio(i,k)*dtime*zu(i,k)
-             tracerp(i,k,it) = numerator/denominator
-             num(k) = numerator
-             den(k) = denominator
-          enddo
-          do k = kb-2, kts, -1
-             tracerp(i,k,it) = tracer(i,k,it)
-          enddo
-          !tendencies:
-          do k = kts, ktf
-             outt(i,k,it) = (tracerp(i,k,it)-tracer(i,k,it))/dtime
-          enddo
-
-!         do k = kts, ktf-1
-!            aterm2(k) = 0.
-!            bterm2(k) = 1.+ratio(i,k)*dtime*zu(i,k)
-!            cterm2(k) = -ratio(i,k)*dtime*zu(i,k+1)
-!            dterm2(k) = tracer(i,k,it) + esubs(i,k)
-!         enddo
-!         call tridiag2(ktf-1,aterm2,bterm2,cterm2,dterm2,x2)
-
-!--- implicit formulation of updrafts plus downdrafts:
-          do k = kts, ktf-1
-             aterm3(k) = ratio(i,k)*dtime*fm(k)
-             bterm3(k) = 1.+ratio(i,k)*dtime*(fp(k)-fm(k+1))
-             cterm3(k) = -ratio(i,k)*dtime*fp(k+1)
-             dterm3(k) = (zu(i,k)*tracer_up(i,k,it)-zu(i,k+1)*tracer_up(i,k+1,it)) &
-                       - edt(i)*(zd(i,k)*tracer_dn(i,k,it)-zd(i,k+1)*tracer_dn(i,k+1,it))
-             dterm3(k) = tracer(i,k,it) + ratio(i,k)*dtime*dterm3(k)
-          enddo
-          k = ktf
-          dterm3(k) = tracer(i,k,it)
-          call tridiag(ktf-1,aterm3(kts:ktf-1),bterm3(kts:ktf-1),cterm3(kts:ktf-1),dterm3(kts:ktf-1))
-          do k = kts, ktf
-             outtracer(i,k,it) = (dterm3(k)-tracer(i,k,it))/dtime
+          call tridiag(kc,aterm,bterm,cterm,dterm)
+          do k = kts,kt
+             outchem(i,k,ic) = (dterm(k)-chem(i,k,ic))/dtime
           enddo
        enddo
 
+       !--- tracers:
+       do it = 1,ntracer
+          do k = kts,kt
+             dterm(k) = (zu(i,k)*tracer_up(i,k,it)-zu(i,k+1)*tracer_up(i,k+1,it)) &
+                      - edt(i)*(zd(i,k)*tracer_dn(i,k,it)-zd(i,k+1)*tracer_dn(i,k+1,it))
+             dterm(k) = tracer(i,k,it) + mult(k)*dtime*dterm(k)
+          enddo
+          call tridiag(kc,aterm,bterm,cterm,dterm)
+          do k = kts,kt
+             outtracer(i,k,it) = (dterm(k)-tracer(i,k,it))/dtime
+          enddo
+       enddo
+
+       if(allocated(mult) ) deallocate(mult )
+       if(allocated(aterm)) deallocate(aterm)
+       if(allocated(bterm)) deallocate(bterm)
+       if(allocated(cterm)) deallocate(cterm)
+       if(allocated(dterm)) deallocate(dterm)
+
+!      do k = kts,kte
+!         call mpas_log_write('$i $i $i $r $r $r',intArgs=(/i,kt,k/),realArgs= &
+!                   (/(outchem(i,k,ic),ic=1,nchem),(outtracer(i,k,it),it=1,ntracer)/))
+!      enddo
+!      call mpas_log_write(' ')
     endif
  enddo
 

@@ -358,13 +358,10 @@
                 dterm(k) = dterm(k) + dtime*nifa_out_evap(i,k)
              enddo
           endif
-!         call tridiag(kc,aterm,bterm,cterm,dterm)
-!         do k = kts,kt
-!            outnifa(i,k) = (dterm(k)-nifa(i,k))/dtime
-!            call mpas_log_write('$i $i $r $r $r',intArgs=(/i,k/), &
-!                    realArgs=(/nifa(i,k),dterm(k),outnifa(i,k)/))
-!         enddo
-!         call mpas_log_write(' ')
+          call tridiag(kc,aterm,bterm,cterm,dterm)
+          do k = kts,kt
+             outnifa(i,k) = (dterm(k)-nifa(i,k))/dtime
+          enddo
 
           !--- "water-friendly" aerosols:
           do k = kts,kt

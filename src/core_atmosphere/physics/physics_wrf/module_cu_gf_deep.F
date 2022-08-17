@@ -2229,9 +2229,9 @@ contains
                        pwo,pwdo,zuo,up_massentr,up_massdetr,zdo,dd_massentro,dd_massdetro,nifa_evap,nifa_scav, &
                        nwfa_evap,nwfa_scav,nifa_evapt,nifa_scavt,nwfa_evapt,nwfa_scavt,outnifa,outnwfa)
       endif
-!     call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo, &
-!                              p_cup,nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,      &
-!                              tracer_up,tracer_dn,outtracer)
+      call cup_transport_tends(its,ite,itf,kts,kte,ktf,ierr,k22,kbcon,ktop,jmin,kpbl,dtime,xmb,edto,zuo,zdo, &
+                               po_cup,nchem,chem,cheml2,chem_up,chem_dn,outchem,ntracer,tracer,tracerl2,     &
+                               tracer_up,tracer_dn,outtracer)
       call mpas_timer_stop('atm_chem: physics - GF')
 #endif
 

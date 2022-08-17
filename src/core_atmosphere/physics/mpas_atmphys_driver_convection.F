@@ -620,7 +620,7 @@
 !local variables and arrays:
  logical:: log_convection
 
- integer:: i,j,k,n
+ integer:: i,ic,it,j,k,n
  integer:: icount,initflag
 
  real(kind=RKIND):: dx
@@ -800,6 +800,7 @@
                nwfa3d_evap       = mpas_chems%nwfa_evap_p  , nwfa3d_scav   = mpas_chems%nwfa_scav_p       , &
                nchem             = mpas_chems%nchems       , ntracer       = mpas_tracers%ntracers        , &
                tracer3d          = mpas_tracers%tracers_p  , rtracercuten  = mpas_tracers%rtracerscuten_p , &
+               chem3d            = mpas_chems%chems_p      , rchemcuten    = mpas_chems%rchemscuten_p     , &
 #endif
                ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde     , &
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme     , &
