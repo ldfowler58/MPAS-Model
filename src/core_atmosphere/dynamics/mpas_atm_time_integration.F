@@ -234,6 +234,8 @@ module atm_time_integration
       type(field3DReal),pointer:: chems_field2
       type(field3DReal),pointer:: tracers_field
       type(field3DReal),pointer:: tracers_field2
+      real(kind=RKIND),dimension(:,:,:),pointer:: chems_array1
+      real(kind=RKIND),dimension(:,:,:),pointer:: chems_array2
       real(kind=RKIND),dimension(:,:,:),pointer:: tracers_array1
       real(kind=RKIND),dimension(:,:,:),pointer:: tracers_array2
 #endif
@@ -362,6 +364,8 @@ module atm_time_integration
 #ifdef ATM_CHEMISTRY
       call mpas_timer_start('atm_chem: dynamics')
       call mpas_timer_start('atm_chem: dynamics - rk_integration_setup')
+      call mpas_pool_get_field(state,'chems',chems_field,1)
+      call mpas_dmpar_exch_halo_field(chems_field)
       call mpas_pool_get_field(state,'tracers',tracers_field,1)
       call mpas_dmpar_exch_halo_field(tracers_field)
       call atmphys_rk_integration_setup(domain)
@@ -481,17 +485,17 @@ module atm_time_integration
       call mpas_timer_stop('physics_get_tend')
 #ifdef ATM_CHEMISTRY
       call mpas_timer_start('atm_chem: dynamics')
-!     call mpas_timer_start('atm_chem: dynamics - chems_get_tend')
-!     block => domain % blocklist
-!     do while (associated(block))
-!        call mpas_pool_get_subpool(block%structs,'mesh',mesh)
-!        call mpas_pool_get_subpool(block%structs,'state',state)
-!        call mpas_pool_get_subpool(block%structs,'tend',tend)
-!        call mpas_pool_get_subpool(block%structs,'tend_chems',tend_chems)
-!        call chems_get_tend(block,block%configs,mesh,state,tend,tend_chems)
-!        block => block % next
-!     end do
-!     call mpas_timer_stop('atm_chem: dynamics - chems_get_tend')
+      call mpas_timer_start('atm_chem: dynamics - chems_get_tend')
+      block => domain % blocklist
+      do while (associated(block))
+         call mpas_pool_get_subpool(block%structs,'mesh',mesh)
+         call mpas_pool_get_subpool(block%structs,'state',state)
+         call mpas_pool_get_subpool(block%structs,'tend',tend)
+         call mpas_pool_get_subpool(block%structs,'tend_chems',tend_chems)
+         call chems_get_tend(block,block%configs,mesh,state,tend,tend_chems)
+         block => block % next
+      end do
+      call mpas_timer_stop('atm_chem: dynamics - chems_get_tend')
 
       call mpas_timer_start('atm_chem: dynamics - tracers_get_tend')
       block => domain % blocklist
@@ -1649,6 +1653,13 @@ module atm_time_integration
          if(config_time_integration_order == 2) rk_timestep(1) = dt/2.
 
          call mpas_log_write(' ')
+         call mpas_timer_start('atm_chem: dynamics - advection chems:')
+         call mpas_log_write('--- start advection chems:')
+         call atmphys_advection(domain,rk_timestep,'chems')
+         call mpas_log_write('--- end advection chems:')
+         call mpas_timer_stop('atm_chem: dynamics - advection chems:')
+         call mpas_log_write(' ')
+
          call mpas_timer_start('atm_chem: dynamics - advection tracers:')
          call mpas_log_write('--- start advection tracers:')
          call atmphys_advection(domain,rk_timestep,'tracers')
