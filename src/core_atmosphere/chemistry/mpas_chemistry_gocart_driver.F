@@ -7,6 +7,7 @@
 
  use mpas_chemistry_gocart_interface
  use mpas_chemistry_gocart_driver_aerosols
+ use mpas_chemistry_gocart_driver_co
  use mpas_chemistry_gocart_driver_dusts
  use mpas_chemistry_gocart_driver_seasalts
  use mpas_chemistry_gocart_driver_sulfates
@@ -97,6 +98,10 @@
 
     !--- gocart_chemistry for sulfates:
     call driver_gocart_sulfates(mpas_chems)
+
+
+    !--- gocart chemistry for carbon monoxide:
+    call driver_gocart_co(mpas_chems)
 
 
     !--- fills global chemistry arrays with local chemistry arrays:

@@ -411,10 +411,11 @@
  real(kind=RKIND),dimension(:,:),pointer:: qbc1,qbc2,qoc1,qoc2,qseas1,qseas2,qseas3,qseas4,  &
                                            qdust1,qdust2,qdust3,qdust4,qdust5,qnh3,qso2,     &
                                            qso4a1,qso4a2,qso4a3
- real(kind=RKIND),dimension(:,:,:),pointer:: chems
+ real(kind=RKIND),dimension(:,:,:),pointer:: chems_gocart
 
 !local variables and arrays for meteorological fields:
  integer,pointer:: index_qv
+ integer,pointer:: index_qco
  integer,dimension(:),pointer:: isltyp
 
  real(kind=RKIND),pointer:: dt
@@ -423,8 +424,9 @@
  real(kind=RKIND),dimension(:),pointer:: porosity,snowh,ust,znt
  real(kind=RKIND),dimension(:,:),pointer:: erod
  real(kind=RKIND),dimension(:,:),pointer:: zgrid,zz
- real(kind=RKIND),dimension(:,:),pointer:: pres_p,pres_b,qv,rho_zz,uzonal,umerid
+ real(kind=RKIND),dimension(:,:),pointer:: pres_p,pres_b,qv,qco,rho_zz,uzonal,umerid
  real(kind=RKIND),dimension(:,:),pointer:: smois
+ real(kind=RKIND),dimension(:,:,:),pointer:: chems
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars
 
  real(kind=RKIND):: fzm,fzp,tem,z0,z1,z2
@@ -479,25 +481,25 @@
  call mpas_log_write('--- index_qso4a2 = $i',intArgs=(/index_qso4a2/))
  call mpas_log_write('--- index_qso4a3 = $i',intArgs=(/index_qso4a3/))
 
- call mpas_pool_get_array(chems_input,'chems_gocart',chems)
- qbc1   => chems(index_qbc1,:,:)
- qbc2   => chems(index_qbc2,:,:)
- qoc1   => chems(index_qoc1,:,:)
- qoc2   => chems(index_qoc2,:,:)
- qseas1 => chems(index_qseas1,:,:)
- qseas2 => chems(index_qseas2,:,:)
- qseas3 => chems(index_qseas3,:,:)
- qseas4 => chems(index_qseas4,:,:)
- qdust1 => chems(index_qdust1,:,:)
- qdust2 => chems(index_qdust2,:,:)
- qdust3 => chems(index_qdust3,:,:)
- qdust4 => chems(index_qdust4,:,:)
- qdust5 => chems(index_qdust5,:,:)
- qnh3   => chems(index_qnh3,:,:)
- qso2   => chems(index_qso2,:,:)
- qso4a1 => chems(index_qso4a1,:,:)
- qso4a2 => chems(index_qso4a2,:,:)
- qso4a3 => chems(index_qso4a3,:,:)
+ call mpas_pool_get_array(chems_input,'chems_gocart',chems_gocart)
+ qbc1   => chems_gocart(index_qbc1,:,:)
+ qbc2   => chems_gocart(index_qbc2,:,:)
+ qoc1   => chems_gocart(index_qoc1,:,:)
+ qoc2   => chems_gocart(index_qoc2,:,:)
+ qseas1 => chems_gocart(index_qseas1,:,:)
+ qseas2 => chems_gocart(index_qseas2,:,:)
+ qseas3 => chems_gocart(index_qseas3,:,:)
+ qseas4 => chems_gocart(index_qseas4,:,:)
+ qdust1 => chems_gocart(index_qdust1,:,:)
+ qdust2 => chems_gocart(index_qdust2,:,:)
+ qdust3 => chems_gocart(index_qdust3,:,:)
+ qdust4 => chems_gocart(index_qdust4,:,:)
+ qdust5 => chems_gocart(index_qdust5,:,:)
+ qnh3   => chems_gocart(index_qnh3,:,:)
+ qso2   => chems_gocart(index_qso2,:,:)
+ qso4a1 => chems_gocart(index_qso4a1,:,:)
+ qso4a2 => chems_gocart(index_qso4a2,:,:)
+ qso4a3 => chems_gocart(index_qso4a3,:,:)
 
  its   = this%its
  ite   = this%ite
@@ -613,11 +615,18 @@
  call mpas_pool_get_array(mesh,'sandfrac_gocart',sand)
  call mpas_pool_get_array(mesh,'erod_gocart'    ,erod)
 
- call mpas_pool_get_dimension(state,'index_qv',index_qv)
+ call mpas_pool_get_dimension(state,'index_qv' ,index_qv )
+ call mpas_pool_get_dimension(state,'index_qco',index_qco)
  call mpas_pool_get_array(state,'rho_zz' ,rho_zz ,time_lev)
  call mpas_pool_get_array(state,'scalars',scalars,time_lev)
- call mpas_pool_get_array(state,'scalars',scalars,time_lev)
- qv => scalars(index_qv,:,:)
+ call mpas_pool_get_array(state,'chems'  ,chems  ,time_lev)
+ qv  => scalars(index_qv,:,:)
+ qco => chems(index_qco,:,:)
+
+ call mpas_log_write(' ')
+ call mpas_log_write('--- index_qv     = $i',intArgs=(/index_qv/))
+ call mpas_log_write('--- index_qco    = $i',intArgs=(/index_qco/))
+ call mpas_log_write(' ')
 
  call mpas_pool_get_array(sfc_input,'isltyp'  ,isltyp  )
  call mpas_pool_get_array(sfc_input,'porosity',porosity)
@@ -657,6 +666,7 @@
     enddo
 
     do k = kts,kte
+       this%qco(i,k)     = qco(k,i)
        this%zgrid_c(i,k) = zgrid(k,i)
        this%zgrid_c(i,k) = max(0._RKIND,this%zgrid_c(i,k))
        this%rho_c(i,k)   = zz(k,i)*rho_zz(k,i)*(1.+qv(k,i))
