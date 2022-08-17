@@ -3974,14 +3974,16 @@ ENDIF
 
 ! WA 7/29/15 Mix chemical arrays
 #ifdef ATM_CHEMISTRY
-    !--- input arguments:
+    !--- input arguments: for simplicity, we assume that every chemical species and every passive
+    !tracer is assigned a fall velocity so that ndvel is always equal to nchem or ntracer. ndvel
+    !is therefore not used, except in the argument list, and fall velocities are set to zero.
     integer,intent(in):: bl_mynn_mixchem
     integer,intent(in):: nchem,kdvel,ndvel,num_vert_mix
-    real,intent(in),dimension(ims:ime,kdvel,jms:jme,ndvel),optional  :: vdchem3d
+    real,intent(in),dimension(ims:ime,kdvel,jms:jme,nchem),optional  :: vdchem3d
     real,intent(in),dimension(ims:ime,kms:kme,jms:jme,nchem),optional:: chem3d
 
     integer,intent(in):: ntracer
-    real,intent(in),dimension(ims:ime,kdvel,jms:jme,ndvel),optional    :: vdtracer3d
+    real,intent(in),dimension(ims:ime,kdvel,jms:jme,ntracer),optional  :: vdtracer3d
     real,intent(in),dimension(ims:ime,kms:kme,jms:jme,ntracer),optional:: tracer3d
 
     !--- output arguments:
@@ -3990,13 +3992,13 @@ ENDIF
 
     !--- local variables and arrays:
     integer:: ic
-    real,dimension(ndvel):: vdchem1d
+    real,dimension(nchem):: vdchem1d
     real,dimension(kts:kte,nchem)  :: chem1d,dchem1d
     real,dimension(kts:kte,nchem)  :: edmf_chem1d
     real,dimension(kts:kte+1,nchem):: s_awchem1d
 
     integer:: it
-    real,dimension(ndvel):: vdtracer1d
+    real,dimension(ntracer):: vdtracer1d
     real,dimension(kts:kte,ntracer):: tracer1d,dtracer1d
     real,dimension(kts:kte,ntracer):: edmf_tracer1d
     real,dimension(kts:kte+1,ntracer):: s_awtracer1d

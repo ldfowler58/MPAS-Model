@@ -717,7 +717,7 @@
 
 !local variables:
  integer:: initflag
- integer:: i,k,j,it
+ integer:: i,k,j,ic,it
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write('')
@@ -825,16 +825,26 @@
                  bl_mynn_edmf_mom   = bl_mynn_edmf_mom    ,                                                   &
                  bl_mynn_edmf_tke   = bl_mynn_edmf_tke    ,                                                   &
 #ifdef ATM_CHEMISTRY
-                 bl_mynn_mixchem    = bl_mynn_mixchem          ,                                               &
-                 kdvel              = mpas_chems%kdepvel       , ndvel        = mpas_chems%ndepvel           , &
-                 num_vert_mix       = mpas_chems%nchems_mix    , nchem        = mpas_chems%nchems            , &
-                 ntracer            = mpas_tracers%ntracers    ,                                               &
-                 tracer3d           = mpas_tracers%tracers_p   , rtracerblten = mpas_tracers%rtracersblten_p , &
+                 bl_mynn_mixchem    = bl_mynn_mixchem        , kdvel        = mpas_chems%kdepvel            , &
+                 ndvel              = mpas_chems%ndepvel     , num_vert_mix = mpas_chems%nchems_mix         , &
+                 nchem              = mpas_chems%nchems      , ntracer      = mpas_tracers%ntracers         , &
+                 chem3d             = mpas_chems%chems_p     , rchemblten   = mpas_chems%rchemsblten_p      , &
+                 tracer3d           = mpas_tracers%tracers_p , rtracerblten = mpas_tracers%rtracersblten_p  , &
 #endif
                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde      , &
                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme      , &
                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte        &
                             )
+!      do j = jts,jte
+!         do i = its,10
+!            do k = kts,kte
+!            call mpas_log_write('$i $i $r $r $r $r $r $r',intArgs=(/i,k/),realArgs=&
+!                 (/(mpas_chems%chems_p(i,k,j,ic),mpas_chems%rchemsblten_p(i,k,j,ic),ic=1,mpas_chems%nchems), &
+!                   (mpas_tracers%tracers_p(i,k,j,it),mpas_tracers%rtracersblten_p(i,k,j,it),it=1,mpas_tracers%ntracers)/))
+!            enddo
+!            call mpas_log_write(' ')
+!         enddo
+!      enddo
        call mpas_timer_stop('bl_mynn')
        call mpas_log_write('--- exit subroutine mynn_bl_driver:')
 
