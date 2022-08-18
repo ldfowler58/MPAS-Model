@@ -450,7 +450,7 @@
  real (kind=RKIND), dimension(:), pointer :: var2d
  real (kind=RKIND), dimension(:), pointer :: qo3
  real (kind=RKIND), dimension(:,:,:), pointer :: scalars
- integer, pointer :: nCellsSolve
+ integer, pointer :: nCellsSolve, nVertLevels
  integer, pointer :: index_qo3
  character (len=StrKIND), pointer :: gwdo_scheme
  logical, pointer :: o3prognostic, o3climatology
@@ -522,9 +522,11 @@
      do while (associated(block))
          call mpas_pool_get_subpool(block % structs, 'state', statePool)
 
+         call mpas_pool_get_dimension(meshPool, 'nCellsSolve', nCellsSolve)
+         call mpas_pool_get_dimension(meshPool, 'nVertLevels', nVertLevels)
          call mpas_pool_get_dimension(statePool, 'index_qo3', index_qo3)
          call mpas_pool_get_array(statePool, 'scalars', scalars, 1)
-         qo3 => scalars(index_qo3,1,:)
+         qo3 => scalars(index_qo3,nVertLevels,:)
 
          maxqo3_local = max(maxqo3_local, maxval(qo3(1:nCellsSolve)))
 
