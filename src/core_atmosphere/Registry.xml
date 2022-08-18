@@ -487,6 +487,8 @@
 			<var name="snoalb"/>
 			<var name="albedo12m"/>
 			<var name="greenfrac"/>
+			<var_struct name="chemopp_input"/>
+			<var_struct name="chem_input"/>
                 </stream>
 
 		<stream name="input" 
@@ -880,9 +882,6 @@
 			<var name="h_oml_initial"/>
 			<var name="hu_oml"/>
 			<var name="hv_oml"/>
-			<var name="OPPpres"/>
-			<var name="OPPdata"/>
-			<var name="OPPcoeffs"/>
 		</stream>
 
 		<stream name="output" 

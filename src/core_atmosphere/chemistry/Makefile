@@ -11,7 +11,6 @@ dummy:
 
 OBJS = \
 	mpas_chemistry_driver.o \
-	mpas_chemistry_init.o \
 	mpas_chemistry_interface.o \
 	mpas_chemistry_manager.o \
 	mpas_chemistry_opp.o \
@@ -31,9 +30,8 @@ chem_interface: $(OBJS)
 mpas_chemistry_driver.o: \
 	mpas_chemistry_interface.o
 
-mpas_chemistry_init.o: \
+mpas_chemistry_manager.o: \
 	mpas_chemistry_opp.o
-
 
 clean:
 	$(RM) *.o *.mod *.f90 libchem.a
