@@ -143,11 +143,12 @@
  end subroutine init_opp
 
 !=================================================================================================================
- subroutine opp_from_MPAS(julian,curr_julday,mesh,chem_input)
+ subroutine opp_from_MPAS(julian,curr_julday,mesh,chemopp_input,chem_input)
 !=================================================================================================================
 
 !input arguments:
  type(mpas_pool_type),intent(in):: mesh
+ type(mpas_pool_type),intent(in):: chemopp_input
  integer,intent(in):: julian
  real(kind=RKIND):: curr_julday
 
@@ -183,8 +184,8 @@
  call mpas_pool_get_dimension(mesh,'nOPPLevels' ,nO3Levels  )
  call mpas_pool_get_dimension(mesh,'nOPPCoeffs' ,nO3Coeffs  )
 
- call mpas_pool_get_array(chem_input,'OPPdata'  ,O3data  )
- call mpas_pool_get_array(chem_input,'OPPcoeffs',O3coeffs)
+ call mpas_pool_get_array(chemopp_input,'OPPdata'  ,O3data  )
+ call mpas_pool_get_array(chem_input   ,'OPPcoeffs',O3coeffs)
 
 !--- for now, fix the array GFSO3coeffs to GFSO3data for July:
 !imonth = 7
@@ -231,6 +232,7 @@
  call mpas_log_write('np    = $i',intArgs =(/np/))
  call mpas_log_write('fact1 = $r',realArgs=(/fact1/))
  call mpas_log_write('fact2 = $r',realArgs=(/fact2/))
+
 
 !time interpolation:
  do iCell = 1,nCellsSolve

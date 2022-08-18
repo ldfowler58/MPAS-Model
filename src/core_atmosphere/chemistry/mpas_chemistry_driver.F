@@ -40,6 +40,7 @@
 !local variables and pointers:
  type(mpas_pool_type),pointer:: configs
  type(mpas_pool_type),pointer:: mesh
+ type(mpas_pool_type),pointer:: chemopp_input
  type(mpas_pool_type),pointer:: chem_input
  type(mpas_pool_type),pointer:: state
  type(mpas_pool_type),pointer:: diag
@@ -81,6 +82,7 @@
  do while(associated(block))
 
     call mpas_pool_get_subpool(block%structs,'mesh'          ,mesh          )
+    call mpas_pool_get_subpool(block%structs,'chemopp_input' ,chemopp_input )
     call mpas_pool_get_subpool(block%structs,'chem_input'    ,chem_input    )
     call mpas_pool_get_subpool(block%structs,'state'         ,state         )
     call mpas_pool_get_subpool(block%structs,'diag'          ,diag          )
@@ -97,7 +99,7 @@
 
 
     !--- initializes local arrays needed to run CHEM2D-OPP:
-    call mpas_chems%from_MPAS(block%configs,mesh,chem_input,diag,state,time_lev)
+    call mpas_chems%from_MPAS(block%configs,mesh,chemopp_input,chem_input,diag,state,time_lev)
 
 
     !--- call to OPP:

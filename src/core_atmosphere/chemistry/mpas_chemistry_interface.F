@@ -183,12 +183,13 @@
  end subroutine mpas_chemistry_deallocate
 
 !=================================================================================================================
- subroutine mpas_chemistry_from_MPAS(this,configs,mesh,chem_input,diag,state,time_lev)
+ subroutine mpas_chemistry_from_MPAS(this,configs,mesh,chemopp_input,chem_input,diag,state,time_lev)
 !=================================================================================================================
 
 !input arguments:
  type(mpas_pool_type),intent(in):: configs
  type(mpas_pool_type),intent(in):: mesh
+ type(mpas_pool_type),intent(in):: chemopp_input
  type(mpas_pool_type),intent(in):: chem_input
  type(mpas_pool_type),intent(in):: diag
  type(mpas_pool_type),intent(in):: state
@@ -232,8 +233,8 @@
  call mpas_pool_get_dimension(mesh,'nOPPLevels',nOPPLevels)
  call mpas_pool_get_dimension(mesh,'nOPPCoeffs',nOPPCoeffs)
 
- call mpas_pool_get_array(chem_input,'OPPpres'  ,OPPpres  )
- call mpas_pool_get_array(chem_input,'OPPcoeffs',OPPcoeffs)
+ call mpas_pool_get_array(chemopp_input,'OPPpres'  ,OPPpres  )
+ call mpas_pool_get_array(chem_input   ,'OPPcoeffs',OPPcoeffs)
 
 
 !--- dimensions and arrays for mesh and meteorological fields:

@@ -45,6 +45,7 @@
  type(block_type),pointer    :: block
  type(mpas_pool_type),pointer:: mesh
  type(mpas_pool_type),pointer:: chem_input
+ type(mpas_pool_type),pointer:: chemopp_input
 
  logical,pointer:: o3prognostic
 
@@ -93,14 +94,15 @@
 
  block => domain%blocklist
  do while(associated(block))
-    call mpas_pool_get_subpool(block%structs,'mesh'      ,mesh      )
-    call mpas_pool_get_subpool(block%structs,'chem_input',chem_input)
+    call mpas_pool_get_subpool(block%structs,'mesh'         ,mesh         )
+    call mpas_pool_get_subpool(block%structs,'chem_input'   ,chem_input   )
+    call mpas_pool_get_subpool(block%structs,'chemopp_input',chemopp_input)
 
     !update the coefficients for the GFS linearized CHEM2D-OPP (Mc Cormack et al. 2006):
     if(mpas_is_alarm_ringing(clock,oppAlarmID,ierr=ierr)) then
        call mpas_reset_clock_alarm(clock,oppAlarmID,ierr=ierr)
        call mpas_log_write('--- time to update CHEM2D-OPP coefficients.')
-       call opp_from_MPAS(julday,curr_julday,mesh,chem_input)
+       call opp_from_MPAS(julday,curr_julday,mesh,chemopp_input,chem_input)
     endif
 
     block => block%next
