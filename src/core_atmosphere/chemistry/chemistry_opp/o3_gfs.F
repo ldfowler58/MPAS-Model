@@ -185,14 +185,14 @@
     ozp4      ! cumulative change in ozone concentration due to overhead ozone column (kg kg-1).
 
  real(kind=kind_phys),intent(inout),dimension(im,levs):: &
-    ozp5,   &!
-    ozp6,   &!
-    ozp7,   &!
-    ozp8,   &!
-    ozp9,   &!
-    ozp10,  &!
-    ozp11,  &!
-    ozp12    !
+    ozp5,    &!
+    ozp6,    &!
+    ozp7,    &!
+    ozp8,    &!
+    ozp9,    &!
+    ozp10,   &!
+    ozp11,   &!
+    ozp12     !
 
  real(kind=kind_phys),intent(inout),dimension(im,levs):: &
     oz        ! ozone mixing ratio (kg/kg).
@@ -229,11 +229,19 @@
 !--- save input ozone profiles:
  do k = 1,levs
     do i = 1,im
-       ozi(i,k)  = oz(i,k)
-       ozp1(i,k) = 0.
-       ozp2(i,k) = 0.
-       ozp3(i,k) = 0.
-       ozp4(i,k) = 0.
+       ozi(i,k)   = oz(i,k)
+       ozp1(i,k)  = 0.
+       ozp2(i,k)  = 0.
+       ozp3(i,k)  = 0.
+       ozp4(i,k)  = 0.
+       ozp5(i,k)  = 0.
+       ozp6(i,k)  = 0.
+       ozp7(i,k)  = 0.
+       ozp8(i,k)  = 0.
+       ozp9(i,k)  = 0.
+       ozp10(i,k) = 0.
+       ozp11(i,k) = 0.
+       ozp12(i,k) = 0.
     enddo
  enddo
 
@@ -323,7 +331,7 @@
           ozp11(i,l) = prod(i,1)                         &
                      + prod(i,3)*(tin(i,l)-prod(i,5))    &
                      + prod(i,4)*(colo3(i,l)-coloz(i,l))
-          ozp12(i,l) = prod(i,6) - ozp5(i,l)/prod(i,2)
+!         ozp12(i,l) = prod(i,6) - ozp5(i,l)/prod(i,2)
        enddo
     endif
 
