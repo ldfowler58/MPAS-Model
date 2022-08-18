@@ -115,17 +115,17 @@
     enddo
  enddo
 
- do m = 1,nMonths
-    do iCell = 1,nCells
-       do k = 1,nO3Levels
-          if(m.eq.1 .or. m.eq.nMonths) &
-             call mpas_log_write('$i $i $i $r $r $r $r $r $r $r',intArgs=(/m,iCell,k/),realArgs=(/O3pres(k), &
-                                (O3data(m,n,k,iCell),n=1,nO3Coeffs)/))
-       enddo
-       call mpas_log_write(' ')
-    enddo
-    call mpas_log_write(' ')
- enddo
+!do m = 1,nMonths
+!   do iCell = 1,nCells
+!      do k = 1,nO3Levels
+!         if(m.eq.1 .or. m.eq.nMonths) &
+!            call mpas_log_write('$i $i $i $r $r $r $r $r $r $r',intArgs=(/m,iCell,k/),realArgs=(/O3pres(k), &
+!                               (O3data(m,n,k,iCell),n=1,nO3Coeffs)/))
+!      enddo
+!      call mpas_log_write(' ')
+!   enddo
+!   call mpas_log_write(' ')
+!enddo
 
  call mpas_log_write('--- end subroutine init_chem2DOPP:')
 
