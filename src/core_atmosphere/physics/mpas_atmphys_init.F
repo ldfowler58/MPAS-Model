@@ -72,7 +72,7 @@
 
 !=================================================================================================================
  subroutine physics_init(dminfo,clock,configs,mesh,diag,tend,state,time_lev,diag_physics,diag_physics_noahmp, &
-                         atm_input,sfc_input)
+                         output_noahmp,atm_input,sfc_input)
 !=================================================================================================================
 
 !input arguments:
@@ -89,6 +89,7 @@
  type(mpas_pool_type),intent(inout):: tend
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: diag_physics_noahmp
+ type(mpas_pool_type),intent(inout):: output_noahmp
  type(mpas_pool_type),intent(inout):: atm_input
  type(mpas_pool_type),intent(inout):: sfc_input
 
@@ -369,7 +370,8 @@
     if(trim(config_lsm_scheme) .eq. 'sf_noah') then
        call init_lsm(dminfo,mesh,configs,diag_physics,sfc_input)
     elseif(trim(config_lsm_scheme) .eq. 'sf_noahmp') then
-       call init_lsm_noahmp(dminfo,mesh,configs,diag_physics,diag_physics_noahmp,sfc_input)
+       call init_lsm_noahmp(dminfo,mesh,configs,diag_physics,diag_physics_noahmp, &
+                            output_noahmp,sfc_input)
     endif
  endif
 

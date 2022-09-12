@@ -174,7 +174,7 @@
  end subroutine deallocate_noahmp_init
 
 !=================================================================================================================
- subroutine noahmp_init_forMPAS(mesh,configs,diag_physics,diag_physics_noahmp,sfc_input)
+ subroutine noahmp_init_forMPAS(mesh,configs,diag_physics,diag_physics_noahmp,output_noahmp,sfc_input)
 !=================================================================================================================
 
 !input arguments:
@@ -185,6 +185,7 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: diag_physics_noahmp
+ type(mpas_pool_type),intent(inout):: output_noahmp
 
 !local pointers:
  logical,pointer:: config_do_restart 
@@ -195,10 +196,10 @@
 
  real(kind=RKIND),dimension(:),pointer:: latCell
  real(kind=RKIND),dimension(:),pointer:: canwat,lai,skintemp,snow,snowh,tmn,xice
- real(kind=RKIND),dimension(:),pointer:: alboldxy,canicexy,canliqxy,chstarxy,chxy,cmxy,eahxy,fastcpxy,fwetxy, &
-                                         gddxy,grainxy,lfmassxy,qrainxy,qsnowxy,qtdrain,rtmassxy,sneqvoxy,    &
-                                         stblcpxy,stmassxy,t2mbxy,t2mvxy,tahxy,tgxy,tvxy,xsaixy,waxy,woodxy,  &
-                                         wslakexy,wtxy,zwtxy
+ real(kind=RKIND),dimension(:),pointer:: alboldxy,canicexy,canliqxy,chxy,cmxy,eahxy,fastcpxy,fwetxy,gddxy,    &
+                                         grainxy,lfmassxy,qrainxy,qsnowxy,qtdrain,rtmassxy,sneqvoxy,stblcpxy, &
+                                         stmassxy,tahxy,tgxy,tvxy,xsaixy,waxy,woodxy,wslakexy,wtxy,zwtxy
+ real(kind=RKIND),dimension(:),pointer::chstarxy,t2mbxy,t2mvxy
 
  real(kind=RKIND),dimension(:,:),pointer:: dzs,sh2o,smois,tslb
  real(kind=RKIND),dimension(:,:),pointer:: snicexy,snliqxy,tsnoxy,zsnsoxy
@@ -234,7 +235,6 @@
  call mpas_pool_get_array(diag_physics_noahmp,'alboldxy',alboldxy)
  call mpas_pool_get_array(diag_physics_noahmp,'canicexy',canicexy)
  call mpas_pool_get_array(diag_physics_noahmp,'canliqxy',canliqxy)
- call mpas_pool_get_array(diag_physics_noahmp,'chstarxy',chstarxy)
  call mpas_pool_get_array(diag_physics_noahmp,'chxy'    ,chxy    )
  call mpas_pool_get_array(diag_physics_noahmp,'cmxy'    ,cmxy    )
  call mpas_pool_get_array(diag_physics_noahmp,'eahxy'   ,eahxy   )
@@ -253,8 +253,6 @@
  call mpas_pool_get_array(diag_physics_noahmp,'snliqxy' ,snliqxy )
  call mpas_pool_get_array(diag_physics_noahmp,'stblcpxy',stblcpxy)
  call mpas_pool_get_array(diag_physics_noahmp,'stmassxy',stmassxy)
- call mpas_pool_get_array(diag_physics_noahmp,'t2mbxy'  ,t2mbxy  )
- call mpas_pool_get_array(diag_physics_noahmp,'t2mvxy'  ,t2mvxy  )
  call mpas_pool_get_array(diag_physics_noahmp,'tahxy'   ,tahxy   )
  call mpas_pool_get_array(diag_physics_noahmp,'tgxy'    ,tgxy    )
  call mpas_pool_get_array(diag_physics_noahmp,'tsnoxy'  ,tsnoxy  )
@@ -268,6 +266,10 @@
  call mpas_pool_get_array(diag_physics_noahmp,'zwtxy'   ,zwtxy   )
  call mpas_pool_get_array(diag_physics_noahmp,'cropcat' ,cropcat )
  call mpas_pool_get_array(diag_physics_noahmp,'croptype',croptype)
+
+ call mpas_pool_get_array(output_noahmp,'chstarxy',chstarxy)
+ call mpas_pool_get_array(output_noahmp,'t2mbxy'  ,t2mbxy  )
+ call mpas_pool_get_array(output_noahmp,'t2mvxy'  ,t2mvxy  )
 
  call mpas_pool_get_array(sfc_input,'mminlu'  ,mminlu  )
  call mpas_pool_get_array(sfc_input,'isltyp'  ,isltyp  )

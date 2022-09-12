@@ -1067,7 +1067,7 @@
  end subroutine lsm_noahmp_from_MPAS
  
 !=================================================================================================================
- subroutine lsm_noahmp_to_MPAS(configs,mesh,diag_physics,diag_physics_noahmp,sfc_input,its,ite)
+ subroutine lsm_noahmp_to_MPAS(configs,mesh,diag_physics,diag_physics_noahmp,output_noahmp,sfc_input,its,ite)
 !=================================================================================================================
 
 !input arguments:
@@ -1080,6 +1080,7 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: diag_physics_noahmp
+ type(mpas_pool_type),intent(out):: output_noahmp
  type(mpas_pool_type),intent(inout):: sfc_input
 
 
@@ -1125,6 +1126,26 @@
  real(kind=RKIND),dimension(:,:),pointer:: &
     acc_etrani
 
+
+!local out NOAHMP only pointers:
+ real(kind=RKIND),dimension(:),pointer:: &
+    q2mvxy,q2mbxy,tradxy,neexy,gppxy,nppxy,fvegxy,runsfxy,runsbxy,ecanxy,edirxy,etranxy,fsaxy, &
+    firaxy,aparxy,psnxy,savxy,sagxy,rssunxy,rsshaxy,bgapxy,wgapxy,tgvxy,tgbxy,chvxy,chbxy,     &
+    shgxy,shcxy,shbxy,evgxy,evbxy,ghvxy,ghbxy,irgxy,ircxy,irbxy,trxy,evcxy,chleafxy,chucxy,    &
+    chv2xy,chb2xy
+
+ real(kind=RKIND),dimension(:),pointer:: &
+    t2mvxy,t2mbxy
+
+
+!additional local out NOAHMP only pointers:
+ real(kind=RKIND),dimension(:),pointer:: &
+    pahxy,pahgxy,pahbxy,pahvxy,qintsxy,qintrxy,qdripsxy,qdriprxy,qthrosxy,qthrorxy,qsnsubxy,     &
+    qsnfroxy,qsubcxy,qfrocxy,qevacxy,qdewcxy,qfrzcxy,qmeltcxy,qsnbotxy,pondingxy,fpicexy,        &
+    rainlsm,snowlsm,forctlsm,forcqlsm,forcplsm,forczlsm,forcwlsm,eflxbxy,soilenergy,snowenergy,  &
+    canhsxy
+
+
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine lsm_noahmp_to_MPAS:')
@@ -1157,7 +1178,7 @@
  call mpas_pool_get_array(sfc_input,'tslb'    ,tslb    )
 
 
-!local inout NOAH-MP only pointers:
+!local inout NOAHMP only pointers:
  call mpas_pool_get_array(diag_physics_noahmp,'grainxy'     , grainxy    )
  call mpas_pool_get_array(diag_physics_noahmp,'gddxy'       , gddxy      )
  call mpas_pool_get_array(diag_physics_noahmp,'pgsxy'       , pgsxy      )
@@ -1227,6 +1248,88 @@
  call mpas_pool_get_array(diag_physics_noahmp,'acc_etran'   ,acc_etran   )
  call mpas_pool_get_array(diag_physics_noahmp,'acc_edir'    ,acc_edir    )
  call mpas_pool_get_array(diag_physics_noahmp,'acc_etrani'  ,acc_etrani  )
+
+
+!local out NOAHMP only pointers:
+ call mpas_pool_get_array(output_noahmp,'t2mvxy'    ,t2mvxy    )
+!call mpas_pool_get_array(output_noahmp,'t2mbxy'    ,t2mbxy    )
+!call mpas_pool_get_array(output_noahmp,'q2mvxy'    ,q2mvxy    )
+!call mpas_pool_get_array(output_noahmp,'q2mbxy'    ,q2mbxy    )
+!call mpas_pool_get_array(output_noahmp,'tradxy'    ,tradxy    )
+!call mpas_pool_get_array(output_noahmp,'neexy'     ,neexy     )
+!call mpas_pool_get_array(output_noahmp,'gppxy'     ,gppxy     )
+!call mpas_pool_get_array(output_noahmp,'nppxy'     ,nppxy     )
+!call mpas_pool_get_array(output_noahmp,'fvegxy'    ,fvegxy    )
+!call mpas_pool_get_array(output_noahmp,'runsfxy'   ,runsfxy   )
+!call mpas_pool_get_array(output_noahmp,'runsbxy'   ,runsbxy   )
+!call mpas_pool_get_array(output_noahmp,'ecanxy'    ,ecanxy    )
+!call mpas_pool_get_array(output_noahmp,'edirxy'    ,edirxy    )
+!call mpas_pool_get_array(output_noahmp,'etranxy'   ,etranxy   )
+!call mpas_pool_get_array(output_noahmp,'fsaxy'     ,fsaxy     )
+!call mpas_pool_get_array(output_noahmp,'firaxy'    ,firaxy    )
+!call mpas_pool_get_array(output_noahmp,'aparxy'    ,aparxy    )
+!call mpas_pool_get_array(output_noahmp,'psnxy'     ,psnxy     )
+!call mpas_pool_get_array(output_noahmp,'savxy'     ,savxy     )
+!call mpas_pool_get_array(output_noahmp,'sagxy'     ,sagxy     )
+!call mpas_pool_get_array(output_noahmp,'rssunxy'   ,rssunxy   )
+!call mpas_pool_get_array(output_noahmp,'rsshaxy'   ,rsshaxy   )
+!call mpas_pool_get_array(output_noahmp,'bgapxy'    ,bgapxy    )
+!call mpas_pool_get_array(output_noahmp,'wgapxy'    ,wgapxy    )
+!call mpas_pool_get_array(output_noahmp,'tgvxy'     ,tgvxy     )
+!call mpas_pool_get_array(output_noahmp,'tgbxy'     ,tgbxy     )
+!call mpas_pool_get_array(output_noahmp,'chvxy'     ,chvxy     )
+!call mpas_pool_get_array(output_noahmp,'chbxy'     ,chbxy     )
+!call mpas_pool_get_array(output_noahmp,'shgxy'     ,shgxy     )
+!call mpas_pool_get_array(output_noahmp,'shcxy'     ,shcxy     )
+!call mpas_pool_get_array(output_noahmp,'shbxy'     ,shbxy     )
+!call mpas_pool_get_array(output_noahmp,'evgxy'     ,evgxy     )
+!call mpas_pool_get_array(output_noahmp,'evbxy'     ,evbxy     )
+!call mpas_pool_get_array(output_noahmp,'ghvxy'     ,ghvxy     )
+!call mpas_pool_get_array(output_noahmp,'ghbxy'     ,ghbxy     )
+!call mpas_pool_get_array(output_noahmp,'irgxy'     ,irgxy     )
+!call mpas_pool_get_array(output_noahmp,'ircxy'     ,ircxy     )
+!call mpas_pool_get_array(output_noahmp,'irbxy'     ,irbxy     )
+!call mpas_pool_get_array(output_noahmp,'trxy'      ,trxy      )
+!call mpas_pool_get_array(output_noahmp,'evcxy'     ,evcxy     )
+!call mpas_pool_get_array(output_noahmp,'chleafxy'  ,chleafxy  )
+!call mpas_pool_get_array(output_noahmp,'chucxy'    ,chucxy    )
+!call mpas_pool_get_array(output_noahmp,'chv2xy'    ,chv2xy    )
+!call mpas_pool_get_array(output_noahmp,'chb2xy'    ,chb2xy    )
+
+
+!additional local out NOAHMP only pointers:
+ !call mpas_pool_get_array(output_noahmp,'pahxy'     ,pahxy     )
+ !call mpas_pool_get_array(output_noahmp,'pahgxy'    ,pahgxy    )
+ !call mpas_pool_get_array(output_noahmp,'pahbxy'    ,pahbxy    )
+ !call mpas_pool_get_array(output_noahmp,'pahvxy'    ,pahvxy    )
+ !call mpas_pool_get_array(output_noahmp,'qintsxy'   ,qintsxy   )
+ !call mpas_pool_get_array(output_noahmp,'qintrxy'   ,qintrxy   )
+ !call mpas_pool_get_array(output_noahmp,'qdripsxy'  ,qdripsxy  )
+ !call mpas_pool_get_array(output_noahmp,'qdriprxy'  ,qdriprxy  )
+ !call mpas_pool_get_array(output_noahmp,'qthrosxy'  ,qthrosxy  )
+ !call mpas_pool_get_array(output_noahmp,'qthrorxy'  ,qthrorxy  )
+ !call mpas_pool_get_array(output_noahmp,'qsnsubxy'  ,qsnsubxy  )
+ !call mpas_pool_get_array(output_noahmp,'qsnfroxy'  ,qsnfroxy  )
+ !call mpas_pool_get_array(output_noahmp,'qsubcxy'   ,qsubcxy   )
+ !call mpas_pool_get_array(output_noahmp,'qfrocxy'   ,qfrocxy   )
+ !call mpas_pool_get_array(output_noahmp,'qevacxy'   ,qevacxy   )
+ !call mpas_pool_get_array(output_noahmp,'qdewcxy'   ,qdewcxy   )
+ !call mpas_pool_get_array(output_noahmp,'qfrzcxy'   ,qfrzcxy   )
+ !call mpas_pool_get_array(output_noahmp,'qmeltcxy'  ,qmeltcxy  )
+ !call mpas_pool_get_array(output_noahmp,'qsnbotxy'  ,qsnbotxy  )
+ !call mpas_pool_get_array(output_noahmp,'pondingxy' ,pondingxy )
+ !call mpas_pool_get_array(output_noahmp,'fpicexy'   ,fpicexy   )
+ !call mpas_pool_get_array(output_noahmp,'rainlsm'   ,rainlsm   )
+ !call mpas_pool_get_array(output_noahmp,'snowlsm'   ,snowlsm   )
+ !call mpas_pool_get_array(output_noahmp,'forctlsm'  ,forctlsm  )
+ !call mpas_pool_get_array(output_noahmp,'forcqlsm'  ,forcqlsm  )
+ !call mpas_pool_get_array(output_noahmp,'forcplsm'  ,forcplsm  )
+ !call mpas_pool_get_array(output_noahmp,'forczlsm'  ,forczlsm  )
+ !call mpas_pool_get_array(output_noahmp,'forcwlsm'  ,forcwlsm  )
+ !call mpas_pool_get_array(output_noahmp,'eflxbxy'   ,eflxbxy   )
+ !call mpas_pool_get_array(output_noahmp,'soilenergy',soilenergy)
+ !call mpas_pool_get_array(output_noahmp,'snowenergy',snowenergy)
+ !call mpas_pool_get_array(output_noahmp,'canhsxy'   ,canhsxy   )
 
 
 !inout arrays shared with the NOAH lsm:
@@ -1373,12 +1476,102 @@
  enddo
 
 
+!--- output arrays for NOAHMP only:
+!do j = jts,jte
+!   do i = its,ite
+!      t2mvxy(i)   = t2mvxy_p(i,j)
+!      t2mbxy(i)   = t2mbxy_p(i,j)
+!      q2mvxy(i)   = q2mvxy_p(i,j)
+!      q2mbxy(i)   = q2mbxy_p(i,j)
+!      tradxy(i)   = tradxy_p(i,j)
+!      neexy(i)    = neexy_p(i,j)
+!      gppxy(i)    = gppxy_p(i,j)
+!      nppxy(i)    = nppxy_p(i,j)
+!      fvegxy(i)   = fvegxy_p(i,j)
+!      runsfxy(i)  = runsfxy_p(i,j)
+!      runsbxy(i)  = runsbxy_p(i,j)
+!      ecanxy(i)   = ecanxy_p(i,j)
+!      edirxy(i)   = edirxy_p(i,j)
+!      etranxy(i)   = etranxy_p(i,j)
+!      fsaxy(i)    = fsaxy_p(i,j)
+!      firaxy(i)   = firaxy_p(i,j)
+!      aparxy(i)   = aparxy_p(i,j)
+!      psnxy(i)    = psnxy_p(i,j)
+!      savxy(i)    = savxy_p(i,j)
+!      sagxy(i)    = sagxy_p(i,j)
+!      rssunxy(i)  = rssunxy_p(i,j)
+!      rsshaxy(i)  = rsshaxy_p(i,j)
+!      bgapxy(i)   = bgapxy_p(i,j)
+!      wgapxy(i)   = wgapxy_p(i,j)
+!      tgvxy(i)    = tgvxy_p(i,j)
+!      tgbxy(i)    = tgbxy_p(i,j)
+!      chvxy(i)    = chvxy_p(i,j)
+!      chbxy(i)    = chbxy_p(i,j)
+!      shgxy(i)    = shgxy_p(i,j)
+!      shcxy(i)    = shcxy_p(i,j)
+!      shbxy(i)    = shbxy_p(i,j)
+!      evgxy(i)    = evgxy_p(i,j)
+!      evbxy(i)    = evbxy_p(i,j)
+!      ghvxy(i)    = ghvxy_p(i,j)
+!      ghbxy(i)    = ghbxy_p(i,j)
+!      irgxy(i)    = irgxy_p(i,j)
+!      ircxy(i)    = ircxy_p(i,j)
+!      irbxy(i)    = irbxy_p(i,j)
+!      trxy(i)     = trxy_p(i,j)
+!      evcxy(i)    = evcxy_p(i,j)
+!      chleafxy(i) = chleafxy_p(i,j)
+!      chucxy(i)   = chucxy_p(i,j)
+!      chv2xy(i)   = chv2xy_p(i,j)
+!      chb2xy(i)   = chb2xy_p(i,j)
+!   enddo
+!enddo
+
+
+!--- additional output arrays for NOAHMP only:
+!do j = jts,jte
+!   do i = its,ite
+!      pahxy(i)      = pahxy_p(i,j)
+!      pahgxy(i)     = pahgxy_p(i,j)
+!      pahbxy(i)     = pahbxy_p(i,j)
+!      pahvxy(i)     = pahvxy_p(i,j)
+!      qintsxy(i)    = qintsxy_p(i,j)
+!      qintrxy(i)    = qintrxy_p(i,j)
+!      qdripsxy(i)   = qdripsxy_p(i,j)
+!      qdriprxy(i)   = qdriprxy_p(i,j)
+!      qthrosxy(i)   = qthrosxy_p(i,j)
+!      qthrorxy(i)   = qthrorxy_p(i,j)
+!      qsnsubxy(i)   = qsnsubxy_p(i,j)
+!      qsnfroxy(i)   = qsnfroxy_p(i,j)
+!      qsubcxy(i)    = qsubcxy_p(i,j)
+!      qfrocxy(i)    = qfrocxy_p(i,j)
+!      qevacxy(i)    = qevacxy_p(i,j)
+!      qdewcxy(i)    = qdewcxy_p(i,j)
+!      qfrzcxy(i)    = qfrzcxy_p(i,j)
+!      qmeltcxy(i)   = qmeltcxy_p(i,j)
+!      qsnbotxy(i)   = qsnbotxy_p(i,j)
+!      pondingxy(i)  = pondingxy_p(i,j)
+!      fpicexy(i)    = fpicexy_p(i,j)
+!      rainlsm(i)    = rainlsm_p(i,j)
+!      snowlsm(i)    = snowlsm_p(i,j)
+!      forctlsm(i)   = forctlsm_p(i,j)
+!      forcqlsm(i)   = forcqlsm_p(i,j)
+!      forcplsm(i)   = forcplsm_p(i,j)
+!      forczlsm(i)   = forczlsm_p(i,j)
+!      forcwlsm(i)   = forcwlsm_p(i,j)
+!      eflxbxy(i)    = eflxbxy_p(i,j)
+!      soilenergy(i) = soilenergy_p(i,j)
+!      snowenergy(i) = snowenergy_p(i,j)
+!      canhsxy(i)    = canhsxy_p(i,j)
+!   enddo
+!enddo
+
+
  call mpas_log_write('--- end subroutine lsm_noahmp_to_MPAS:')
 
  end subroutine lsm_noahmp_to_MPAS
  
 !=================================================================================================================
- subroutine init_lsm_noahmp(dminfo,mesh,configs,diag_physics,diag_physics_noahmp,sfc_input)
+ subroutine init_lsm_noahmp(dminfo,mesh,configs,diag_physics,diag_physics_noahmp,output_noahmp,sfc_input)
 !=================================================================================================================
 
 !input arguments:
@@ -1389,6 +1582,7 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: diag_physics_noahmp
+ type(mpas_pool_type),intent(inout):: output_noahmp
  type(mpas_pool_type),intent(inout):: sfc_input
 
 !local pointers:
@@ -1401,7 +1595,7 @@
  lsm_select: select case (trim(lsm_scheme))
 
     case ("sf_noahmp")
-       call noahmp_init_forMPAS(mesh,configs,diag_physics,diag_physics_noahmp,sfc_input)
+       call noahmp_init_forMPAS(mesh,configs,diag_physics,diag_physics_noahmp,output_noahmp,sfc_input)
 
     case default
  
@@ -1410,7 +1604,8 @@
  end subroutine init_lsm_noahmp
 
 !=================================================================================================================
- subroutine driver_lsm_noahmp(itimestep,configs,mesh,diag_physics,diag_physics_noahmp,sfc_input,its,ite)
+ subroutine driver_lsm_noahmp(itimestep,configs,mesh,diag_physics,diag_physics_noahmp,output_noahmp, &
+                              sfc_input,its,ite)
 !=================================================================================================================
 
 !input arguments:
@@ -1423,6 +1618,7 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: diag_physics_noahmp
+ type(mpas_pool_type),intent(inout):: output_noahmp
  type(mpas_pool_type),intent(inout):: sfc_input
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -1528,7 +1724,7 @@
 
 
 !copy local arrays to MPAS grid:
- call lsm_noahmp_to_MPAS(configs,mesh,diag_physics,diag_physics_noahmp,sfc_input,its,ite)
+ call lsm_noahmp_to_MPAS(configs,mesh,diag_physics,diag_physics_noahmp,output_noahmp,sfc_input,its,ite)
 
  call mpas_log_write('--- end subroutine driver_lsm_noahmp:')
  call mpas_log_write(' ')
