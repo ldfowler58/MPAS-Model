@@ -158,17 +158,20 @@
 !calculates the maximum and minimum green-ness (vegetation) fraction:
  call monthly_min_max(nCellsSolve,greenfrac,shdmin,shdmax)
 
+!BEGIN LIS: LIS INPUTS INCLUDES SNOWH (SNOW HEIGHT) AND SNOW INCIDENCE (SNOWC), BUT DOES NOT INCLUDE
+!SNOW (SNOW WATER EQUIVALENT). SNOWH AND SNOW DO NOT NEED TO BE RECALCULATED HERE:
 !initialization of the flag indicating the presence of snow (0 or 1) and of the snow depth
 !(m) as functions of the input snow water content (kg/m2). we use a 5:1 ratio from liquid
 !water equivalent to snow depth:
- do iCell = 1, nCellsSolve
-    if(snow(iCell) .ge. 10._RKIND) then
-       snowc(iCell) = 1._RKIND
-    else
-       snowc(iCell) = 0._RKIND
-    endif
-    snowh(iCell) = snow(iCell) * 5.0_RKIND / 1000._RKIND
- enddo
+!do iCell = 1, nCellsSolve
+!   if(snow(iCell) .ge. 10._RKIND) then
+!      snowc(iCell) = 1._RKIND
+!   else
+!      snowc(iCell) = 0._RKIND
+!   endif
+!   snowh(iCell) = snow(iCell) * 5.0_RKIND / 1000._RKIND
+!enddo
+!END LIS:
 
 !initialization of soil layers properties:
  call init_soil_layers(mesh,fg,dminfo,dims,configs)

@@ -1667,6 +1667,8 @@ module init_atm_cases
 !
 !    for reference sounding 
 !
+     qvb(:) = 0.0_RKIND
+
      do itr=1,30
 
       pitop = 1.-.5*dzw(1)*gravity*(1.+scalars(index_qv,1,1))/(cp*t(1,1)*zz(1,1))
@@ -2730,6 +2732,7 @@ module init_atm_cases
       real (kind=RKIND), dimension(:), pointer :: skintemp
       real (kind=RKIND), dimension(:), pointer :: snow
       real (kind=RKIND), dimension(:), pointer :: snowc
+      real (kind=RKIND), dimension(:), pointer :: snowh
       real (kind=RKIND), dimension(:,:), pointer :: u_fg
       real (kind=RKIND), dimension(:,:), pointer :: v_fg
       real (kind=RKIND), dimension(:,:), pointer :: z_fg
@@ -2868,6 +2871,7 @@ module init_atm_cases
       call mpas_pool_get_array(fg, 'skintemp', skintemp)
       call mpas_pool_get_array(fg, 'snow', snow)
       call mpas_pool_get_array(fg, 'snowc', snowc)
+      call mpas_pool_get_array(fg, 'snowh', snowh)
       call mpas_pool_get_array(fg, 'u', u_fg)
       call mpas_pool_get_array(fg, 'v', v_fg)
       call mpas_pool_get_array(fg, 'z', z_fg)
@@ -3444,6 +3448,8 @@ module init_atm_cases
              trim(field % field) == 'PRES' .or. &
              trim(field % field) == 'PRESSURE' .or. &
              trim(field % field) == 'SNOW' .or. &
+             trim(field % field) == 'SNOWC' .or. &
+             trim(field % field) == 'SNOWH' .or. &
              trim(field % field) == 'SEAICE' .or. &
              trim(field % field) == 'SKINTEMP') then
 
@@ -3468,6 +3474,8 @@ module init_atm_cases
                 trim(field % field) == 'ST100255' .or. &
                 trim(field % field) == 'ST100289' .or. &
                 trim(field % field) == 'SNOW' .or. &
+                trim(field % field) == 'SNOWC' .or. &
+                trim(field % field) == 'SNOWH' .or. &
                 trim(field % field) == 'SEAICE' .or. &
                 trim(field % field) == 'SKINTEMP') then
                k = 1
@@ -3632,6 +3640,12 @@ module init_atm_cases
                ndims = 1
             else if (trim(field % field) == 'SOILHGT') then
                call mpas_log_write('Interpolating SOILHGT')
+
+!--- BEGIN LIS:
+               maskval = 0.0
+               masked = 0
+!--- END LIS.
+
                nInterpPoints = nCells
                latPoints => latCell
                lonPoints => lonCell
@@ -3640,10 +3654,15 @@ module init_atm_cases
             else if (trim(field % field) == 'SM000010') then
                call mpas_log_write('Interpolating SM000010')
 
+!--- BEGIN LIS: removed the option W_AVERAGE4.
+!              interp_list(1) = FOUR_POINT
+!              interp_list(2) = W_AVERAGE4
+!              interp_list(3) = SEARCH
+!              interp_list(4) = 0
                interp_list(1) = FOUR_POINT
-               interp_list(2) = W_AVERAGE4
-               interp_list(3) = SEARCH
-               interp_list(4) = 0
+               interp_list(2) = SEARCH
+               interp_list(3) = 0
+!--- END LIS.
 
                maskval = 0.0
                masked = 0
@@ -3680,10 +3699,15 @@ module init_atm_cases
             else if (trim(field % field) == 'SM010040') then
                call mpas_log_write('Interpolating SM010040')
 
+!--- BEGIN LIS: removed the option W_AVERAGE4.
+!              interp_list(1) = FOUR_POINT
+!              interp_list(2) = W_AVERAGE4
+!              interp_list(3) = SEARCH
+!              interp_list(4) = 0
                interp_list(1) = FOUR_POINT
-               interp_list(2) = W_AVERAGE4
-               interp_list(3) = SEARCH
-               interp_list(4) = 0
+               interp_list(2) = SEARCH
+               interp_list(3) = 0
+!--- END LIS.
 
                maskval = 0.0
                masked = 0
@@ -3700,10 +3724,15 @@ module init_atm_cases
             else if (trim(field % field) == 'SM040100') then
                call mpas_log_write('Interpolating SM040100')
 
+!--- BEGIN LIS: removed the option W_AVERAGE4.
+!              interp_list(1) = FOUR_POINT
+!              interp_list(2) = W_AVERAGE4
+!              interp_list(3) = SEARCH
+!              interp_list(4) = 0
                interp_list(1) = FOUR_POINT
-               interp_list(2) = W_AVERAGE4
-               interp_list(3) = SEARCH
-               interp_list(4) = 0
+               interp_list(2) = SEARCH
+               interp_list(3) = 0
+!--- END LIS.
 
                maskval = 0.0
                masked = 0
@@ -3720,10 +3749,15 @@ module init_atm_cases
             else if (trim(field % field) == 'SM100200') then
                call mpas_log_write('Interpolating SM100200')
 
+!--- BEGIN LIS: removed the option W_AVERAGE4.
+!              interp_list(1) = FOUR_POINT
+!              interp_list(2) = W_AVERAGE4
+!              interp_list(3) = SEARCH
+!              interp_list(4) = 0
                interp_list(1) = FOUR_POINT
-               interp_list(2) = W_AVERAGE4
-               interp_list(3) = SEARCH
-               interp_list(4) = 0
+               interp_list(2) = SEARCH
+               interp_list(3) = 0
+!--- END LIS.
 
                maskval = 0.0
                masked = 0
@@ -3840,15 +3874,21 @@ module init_atm_cases
             else if (trim(field % field) == 'ST000010') then
                call mpas_log_write('Interpolating ST000010')
 
+!--- BEGIN LIS: removed the option W_AVERAGE4.
+!              interp_list(1) = SIXTEEN_POINT
+!              interp_list(2) = FOUR_POINT
+!              interp_list(3) = W_AVERAGE4
+!              interp_list(4) = SEARCH
+!              interp_list(5) = 0
                interp_list(1) = SIXTEEN_POINT
                interp_list(2) = FOUR_POINT
-               interp_list(3) = W_AVERAGE4
-               interp_list(4) = SEARCH
-               interp_list(5) = 0
+               interp_list(3) = SEARCH
+               interp_list(4) = 0
 
                maskval = 0.0
                masked = 0
                fillval = 285.0
+!--- END LIS.
 
                nInterpPoints = nCells
                latPoints => latCell
@@ -3882,15 +3922,21 @@ module init_atm_cases
             else if (trim(field % field) == 'ST010040') then
                call mpas_log_write('Interpolating ST010040')
 
+!--- BEGIN LIS: removed the option W_AVERAGE4.
+!              interp_list(1) = SIXTEEN_POINT
+!              interp_list(2) = FOUR_POINT
+!              interp_list(3) = W_AVERAGE4
+!              interp_list(4) = SEARCH
+!              interp_list(5) = 0
                interp_list(1) = SIXTEEN_POINT
                interp_list(2) = FOUR_POINT
-               interp_list(3) = W_AVERAGE4
-               interp_list(4) = SEARCH
-               interp_list(5) = 0
+               interp_list(3) = SEARCH
+               interp_list(4) = 0
 
                maskval = 0.0
                masked = 0
                fillval = 285.0
+!--- END LIS.
 
                nInterpPoints = nCells
                latPoints => latCell
@@ -3903,15 +3949,21 @@ module init_atm_cases
             else if (trim(field % field) == 'ST040100') then
                call mpas_log_write('Interpolating ST040100')
 
+!--- BEGIN LIS: removed the option W_AVERAGE4.
+!              interp_list(1) = SIXTEEN_POINT
+!              interp_list(2) = FOUR_POINT
+!              interp_list(3) = W_AVERAGE4
+!              interp_list(4) = SEARCH
+!              interp_list(5) = 0
                interp_list(1) = SIXTEEN_POINT
                interp_list(2) = FOUR_POINT
-               interp_list(3) = W_AVERAGE4
-               interp_list(4) = SEARCH
-               interp_list(5) = 0
+               interp_list(3) = SEARCH
+               interp_list(4) = 0
 
                maskval = 0.0
                masked = 0
                fillval = 285.0
+!--- END LIS.
 
                nInterpPoints = nCells
                latPoints => latCell
@@ -3924,15 +3976,21 @@ module init_atm_cases
             else if (trim(field % field) == 'ST100200') then
                call mpas_log_write('Interpolating ST100200')
 
+!--- BEGIN LIS: removed the option W_AVERAGE4.
+!              interp_list(1) = SIXTEEN_POINT
+!              interp_list(2) = FOUR_POINT
+!              interp_list(3) = W_AVERAGE4
+!              interp_list(4) = SEARCH
+!              interp_list(5) = 0
                interp_list(1) = SIXTEEN_POINT
                interp_list(2) = FOUR_POINT
-               interp_list(3) = W_AVERAGE4
-               interp_list(4) = SEARCH
-               interp_list(5) = 0
+               interp_list(3) = SEARCH
+               interp_list(4) = 0
 
                maskval = 0.0
                masked = 0
                fillval = 285.0
+!--- END LIS.
 
                nInterpPoints = nCells
                latPoints => latCell
@@ -4062,6 +4120,48 @@ module init_atm_cases
                lonPoints => lonCell
                call mpas_pool_get_array(fg, 'snow', destField1d)
                ndims = 1
+            else if (trim(field % field) == 'SNOWC') then
+               call mpas_log_write('Interpolating SNOWC')
+
+!--- BEGIN LIS: replaced the option W_AVERAGE4 with the option SEARCH.
+!              interp_list(1) = FOUR_POINT
+!              interp_list(2) = W_AVERAGE4
+!              interp_list(3) = 0
+               interp_list(1) = FOUR_POINT
+               interp_list(2) = SEARCH
+               interp_list(3) = 0
+!--- END LIS.
+
+               maskval = 0.0
+               masked = 0
+               fillval = 0.0
+
+               nInterpPoints = nCells
+               latPoints => latCell
+               lonPoints => lonCell
+               call mpas_pool_get_array(fg, 'snowc', destField1d)
+               ndims = 1
+            else if (trim(field % field) == 'SNOWH') then
+               call mpas_log_write('Interpolating SNOWH')
+
+!--- BEGIN LIS: removed the option W_AVERAGE4 with the option SEARCH.
+!              interp_list(1) = FOUR_POINT
+!              interp_list(2) = W_AVERAGE4
+!              interp_list(3) = 0
+               interp_list(1) = FOUR_POINT
+               interp_list(2) = SEARCH
+               interp_list(3) = 0
+!--- END LIS.
+
+               maskval = 0.0
+               masked = 0
+               fillval = 0.0
+
+               nInterpPoints = nCells
+               latPoints => latCell
+               lonPoints => lonCell
+               call mpas_pool_get_array(fg, 'snowh', destField1d)
+               ndims = 1
             else if (trim(field % field) == 'SEAICE') then
                call mpas_log_write('Interpolating SEAICE')
 
@@ -4081,6 +4181,13 @@ module init_atm_cases
                ndims = 1
             else if (trim(field % field) == 'SKINTEMP') then
                call mpas_log_write('Interpolating SKINTEMP')
+
+!--- BEGIN LIS:
+               maskval = 0.0
+               masked = 0
+               fillval = 285.0
+!--- END LIS.
+
                nInterpPoints = nCells
                latPoints => latCell
                lonPoints => lonCell
@@ -4290,8 +4397,8 @@ module init_atm_cases
       end if
 
       ! Set SNOWC (snow-cover flag) based on SNOW
-      snowc(:) = 0.0
-      where (snow > 0.0) snowc = 1.0
+      !snowc(:) = 0.0
+      !where (snow > 0.0) snowc = 1.0
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !MGD CHECK
@@ -4578,7 +4685,6 @@ call mpas_log_write('Done with soil consistency check')
             target_z = 0.5 * (zgrid(k,iCell) + zgrid(k+1,iCell))
             relhum(k,iCell) = vertical_interp(target_z, nfglevels_actual-1, &
                                        sorted_arr(:,1:nfglevels_actual-1), order=1, extrap=0)
-            if (target_z < z_fg(1,iCell) .and. k < nVertLevels) relhum(k,iCell) = relhum(k+1,iCell)
          end do
 
 
@@ -4596,7 +4702,6 @@ call mpas_log_write('Done with soil consistency check')
             target_z = 0.5 * (zgrid(k,iCell) + zgrid(k+1,iCell))
             spechum(k,iCell) = vertical_interp(target_z, nfglevels_actual-1, &
                                         sorted_arr(:,1:nfglevels_actual-1), order=1, extrap=0)
-            if (target_z < z_fg(1,iCell) .and. k < nVertLevels) spechum(k,iCell) = spechum(k+1,iCell)
          end do
 
 
