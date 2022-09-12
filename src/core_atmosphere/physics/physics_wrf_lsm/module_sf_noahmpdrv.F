@@ -653,8 +653,6 @@ CONTAINS
 
 
 ! ----------------------------------------------------------------------
-  call mpas_log_write(' ')
-  call mpas_log_write('--- enter subroutine noahmplsm:')
 
     CALL NOAHMP_OPTIONS(IDVEG  ,IOPT_CRS  ,IOPT_BTR  ,IOPT_RUN  ,IOPT_SFC  ,IOPT_FRZ , &
                 IOPT_INF  ,IOPT_RAD  ,IOPT_ALB  ,IOPT_SNF  ,IOPT_TBOT, IOPT_STC  ,     &
@@ -1055,7 +1053,6 @@ CONTAINS
          CALL NOAHMP_OPTIONS_GLACIER(IOPT_ALB  ,IOPT_SNF  ,IOPT_TBOT, IOPT_STC, IOPT_GLA )
       
          TBOT = MIN(TBOT,263.15)                      ! set deep temp to at most -10C
-         call mpas_log_write('--- noahmp_glacier:  $i',intArgs=(/i/))
          CALL NOAHMP_GLACIER(     I,       J,    COSZ,   NSNOW,   NSOIL,      DT, & ! IN : Time/Space/Model-related
                                T_ML,    P_ML,    U_ML,    V_ML,    Q_ML,    SWDN, & ! IN : Forcing
                                PRCP,    LWDN,    TBOT,    Z_ML, FICEOLD,   ZSOIL, & ! IN : Forcing
@@ -1438,9 +1435,6 @@ CONTAINS
 
       ENDDO ILOOP                                                       ! of I loop
    ENDDO JLOOP                                                          ! of J loop
-
-   call mpas_log_write('--- end subroutine noahmplsm:')
-   call mpas_log_write( ' ')
 
 
 !------------------------------------------------------
