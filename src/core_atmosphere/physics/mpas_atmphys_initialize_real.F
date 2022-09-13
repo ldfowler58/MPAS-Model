@@ -171,6 +171,9 @@
 !   endif
 !   snowh(iCell) = snow(iCell) * 5.0_RKIND / 1000._RKIND
 !enddo
+ do iCell = 1, nCellsSolve
+    snow(iCell) = 1000./5.*snowh(iCell)
+ enddo
 !END LIS:
 
 !initialization of soil layers properties:
