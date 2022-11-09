@@ -306,13 +306,14 @@ module init_atm_cases
             endif
 
             if(config_chems_interp) then
-               call mpas_pool_get_subpool(block_ptr%structs,'mesh'       ,mesh       )
-               call mpas_pool_get_subpool(block_ptr%structs,'fg'         ,fg         )
-               call mpas_pool_get_subpool(block_ptr%structs,'diag'       ,diag       )
-               call mpas_pool_get_subpool(block_ptr%structs,'chems_input',chems_input)
-               call mpas_pool_get_subpool(block_ptr%structs,'state'      ,state      )
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh'        ,mesh        )
+               call mpas_pool_get_subpool(block_ptr%structs,'fg'          ,fg          )
+               call mpas_pool_get_subpool(block_ptr%structs,'diag'        ,diag        )
+               call mpas_pool_get_subpool(block_ptr%structs,'diag_physics',diag_physics)
+               call mpas_pool_get_subpool(block_ptr%structs,'chems_input' ,chems_input )
+               call mpas_pool_get_subpool(block_ptr%structs,'state'       ,state       )
 
-               call init_atm_camchem(block_ptr%configs,mesh,fg,diag,chems_input,state)
+               call init_atm_camchem(block_ptr%configs,mesh,fg,diag,diag_physics,chems_input,state)
             endif
 
             block_ptr => block_ptr % next

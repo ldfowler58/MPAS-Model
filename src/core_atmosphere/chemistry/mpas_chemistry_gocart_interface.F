@@ -67,6 +67,9 @@
 
 
     !--- local "water-friendly" and "ice-friendly" Thompson aerosols:
+    real(kind=RKIND),dimension(:),pointer:: nwfa2d_c      => null()
+    real(kind=RKIND),dimension(:),pointer:: nifa2d_c      => null()
+
     real(kind=RKIND),dimension(:,:),pointer:: nwfa_c      => null()
     real(kind=RKIND),dimension(:,:),pointer:: nifa_c      => null()
     real(kind=RKIND),dimension(:,:),pointer:: qwfa_c      => null()
@@ -232,6 +235,9 @@
 
 
 !--- allocate local "water-friendly" and "ice-friendly" Thompson aerosols:
+ if(.not.associated(this%nifa2d_c)   ) allocate(this%nifa2d_c(its:ite)           )
+ if(.not.associated(this%nwfa2d_c)   ) allocate(this%nwfa2d_c(its:ite)           )
+
  if(.not.associated(this%nifa_c)     ) allocate(this%nifa_c(its:ite,kts:kte)     )
  if(.not.associated(this%nwfa_c)     ) allocate(this%nwfa_c(its:ite,kts:kte)     )
  if(.not.associated(this%qifa_c)     ) allocate(this%qifa_c(its:ite,kts:kte)     )
@@ -343,6 +349,9 @@
 
 
 !--- deallocate local "water-friendly" and "ice-friendly" Thompson aerosols:
+ if(associated(this%nifa2d_c)   ) deallocate(this%nifa2d_c   )
+ if(associated(this%nwfa2d_c)   ) deallocate(this%nwfa2d_c   )
+
  if(associated(this%nifa_c)     ) deallocate(this%nifa_c     )
  if(associated(this%nwfa_c)     ) deallocate(this%nwfa_c     )
  if(associated(this%qifa_c)     ) deallocate(this%qifa_c     )
@@ -744,24 +753,6 @@
 !local variables and arrays:
  integer:: i,its,ite,k,kts,kte
 
- real(kind=RKIND),parameter:: &
-    conv_dust1 = 1.58e-15, & ! conversion factor from mixing ratio to number concentration for dust1.
-    conv_dust2 = 1.68e-14, & ! conversion factor from mixing ratio to number concentration for dust2.
-    conv_dust3 = 8.46e-14, & ! conversion factor from mixing ratio to number concentration for dust3.
-    conv_dust4 = 5.58e-13, & ! conversion factor from mixing ratio to number concentration for dust4.
-    conv_dust5 = 3.13e-13    ! conversion factor from mixing ratio to number concentration for dust5.
- real(kind=RKIND),parameter:: &
-    conv_oc2   = 6.61e-18    ! conversion factor from mixing ratio to number concentration for oc2.
- real(kind=RKIND),parameter:: &
-    conv_seas1 = 1.04e-15, & ! conversion factor from mixing ratio to number concentration for seas1.
-    conv_seas2 = 3.88e-13    ! conversion factor from mixing ratio to number concentration for sea2.
- real(kind=RKIND),parameter:: &
-    conv_so4   = 1.07e-17    ! conversion factor from mixing ratio to number concentration for so4.
- real(kind=RKIND):: iconv_dust1,iconv_dust2,iconv_dust3,iconv_dust4,iconv_dust5
- real(kind=RKIND):: iconv_oc2
- real(kind=RKIND):: iconv_seas1,iconv_seas2
- real(kind=RKIND):: iconv_so4
-
  real(kind=RKIND):: dt
  real(kind=RKIND),dimension(:),pointer:: nwfa2d_so4,nwfa2d_oc,nwfa2d_seas,nwfa2d
  real(kind=RKIND),dimension(:),pointer:: nifa2d_dust,nifa2d
@@ -800,90 +791,167 @@
     this%tend_qso4a1(i,k) = (this%qso4a1(i,k) - this%tend_qso4a1(i,k)) / dt
     this%tend_qso4a2(i,k) = (this%qso4a2(i,k) - this%tend_qso4a2(i,k)) / dt
     this%tend_qso4a3(i,k) = (this%qso4a3(i,k) - this%tend_qso4a3(i,k)) / dt
-!   if(i .le. 20) then
-!      call mpas_log_write('$i $i $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/this%tend_qbc2(i,k), &
-!           this%tend_qoc2(i,k),this%tend_qso4a1(i,k),this%tend_qso4a2(i,k),this%tend_qso4a3(i,k)/))
-!   endif
-!   call mpas_log_write('$i $i $r $r $r $r $r $r $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/      &
-!        this%tend_qbc2(i,k),this%tend_qoc2(i,k),this%tend_qseas1(i,k),this%tend_qseas2(i,k),     &
-!        this%tend_qseas3(i,k),this%tend_qseas4(i,k),this%tend_qdust1(i,k),this%tend_qdust2(i,k), &
-!        this%tend_qdust3(i,k),this%tend_qdust4(i,k),this%tend_qdust5(i,k)/))
  enddo
-
-
-!--- update the mixing ratios and number concentrations of the "water-friendly" and "ice-friendly"
-!    Thompson aerosols:
- iconv_dust1 = 1._RKIND/conv_dust1
- iconv_dust2 = 1._RKIND/conv_dust2
- iconv_dust3 = 1._RKIND/conv_dust3
- iconv_dust4 = 1._RKIND/conv_dust4
- iconv_dust5 = 1._RKIND/conv_dust5
-
- iconv_oc2   = 1._RKIND/conv_oc2
- iconv_seas1 = 1._RKIND/conv_seas1
- iconv_seas2 = 1._RKIND/conv_seas2
-
- iconv_so4   = 1._RKIND/conv_so4
-
- k = kts
- do i = its,ite
-    !"ice-friendly" aerosols:
-    this%qifa_c(i,k) = this%qdust1(i,k) + this%qdust2(i,k) + this%qdust3(i,k) &
-                     + this%qdust4(i,k) + this%qdust5(i,k)
-
-    this%nifa_c(i,k) = iconv_dust1*this%qdust1(i,k) + iconv_dust2*this%qdust2(i,k) &
-                     + iconv_dust3*this%qdust3(i,k) + iconv_dust4*this%qdust4(i,k) &
-                     + iconv_dust5*this%qdust5(i,k)
-
-!   !"water-friendly" aerosols using Greg Thompson scaling of nwfa:
-!   this%qwfa_c(i,k) = 8*this%qoc2(i,k) + 5*this%qso4a1(i,k) + 5*this%qso4a2(i,k) &
-!                    + 9*this%qseas1(i,k) + 9*this%qseas2(i,k)
-
-!   this%nwfa_c(i,k) = 8*iconv_oc2*this%qoc2(i,k) + 5*iconv_so4*this%qso4a1(i,k) + 5*iconv_so4*this%qso4a2(i,k) &
-!                    + 9*iconv_seas1*this%qseas1(i,k) + 9*iconv_seas2*this%qseas2(i,k)
-
-    !"water-friendly" aerosols so that nwfa resembles the global distribution of the number
-    !concentration of CAM-Chem aerosols in the accumulation mode:
-    this%qwfa_c(i,k) = 3*this%qoc2(i,k) + 0.4*this%qso4a1(i,k)   &
-                     + 50*this%qseas1(i,k) + 50*this%qseas2(i,k)
-
-    this%nwfa_c(i,k) = 3*iconv_oc2*this%qoc2(i,k) + 0.5*iconv_so4*this%qso4a1(i,k) &
-                     + 50*iconv_seas1*this%qseas1(i,k) + 50*iconv_seas2*this%qseas2(i,k)
- enddo
+ call mpas_log_write(' ')
 
 
 !--- update diagnostics of the surface emissions of nwfa and nifa:
+!call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
+!call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
+!call mpas_pool_get_array(diag_chems,'nwfa2d_oc'  ,nwfa2d_oc)
+!call mpas_pool_get_array(diag_chems,'nwfa2d_so4' ,nwfa2d_so4)
+!call mpas_pool_get_array(diag_chems,'nwfa2d_seas',nwfa2d_seas)
+!call mpas_pool_get_array(diag_chems,'nifa2d_dust',nifa2d_dust)
+
+!k = kts
+!do i = its,ite
+!   nwfa2d(i) = 3*iconv_oc2*this%tend_qoc2(i,k)      &
+!             + 0.4*iconv_so4*this%tend_qso4a1(i,k)  &
+!             + 50*iconv_seas1*this%tend_qseas1(i,k) &
+!             + 50*iconv_seas2*this%tend_qseas2(i,k)
+
+!   nwfa2d_oc(i)   = 3*iconv_oc2*this%tend_qoc2(i,k)
+!   nwfa2d_so4(i)  = 0.4*iconv_so4*this%tend_qso4a1(i,k)
+!   nwfa2d_seas(i) = 50*iconv_seas1*this%tend_qseas1(i,k) &
+!                  + 50*iconv_seas2*this%tend_qseas2(i,k)
+
+!   nifa2d(i) = iconv_dust1*this%tend_qdust1(i,k) &
+!             + iconv_dust2*this%tend_qdust2(i,k) &
+!             + iconv_dust3*this%tend_qdust3(i,k) &
+!             + iconv_dust4*this%tend_qdust4(i,k) &
+!             + iconv_dust5*this%tend_qdust5(i,k)
+
+!   nifa2d_dust(i) = nifa2d(i)
+!enddo
+
+
+ call compute_sfc_nbThompson(its,ite,kts,kte,this%tend_qbc2,this%tend_qoc2,this%tend_qso4a1, &
+                        this%tend_qseas1,this%tend_qdust1,this%tend_qdust2,this%tend_qdust3, &
+                        this%tend_qdust4,this%tend_qdust5,this%nwfa2d_c,this%nifa2d_c)
+
+!---
  call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
  call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
- call mpas_pool_get_array(diag_chems,'nwfa2d_oc'  ,nwfa2d_oc)
- call mpas_pool_get_array(diag_chems,'nwfa2d_so4' ,nwfa2d_so4)
- call mpas_pool_get_array(diag_chems,'nwfa2d_seas',nwfa2d_seas)
- call mpas_pool_get_array(diag_chems,'nifa2d_dust',nifa2d_dust)
 
- k = kts
  do i = its,ite
-    nwfa2d(i) = 3*iconv_oc2*this%tend_qoc2(i,k)      &
-              + 0.4*iconv_so4*this%tend_qso4a1(i,k)  &
-              + 50*iconv_seas1*this%tend_qseas1(i,k) &
-              + 50*iconv_seas2*this%tend_qseas2(i,k)
-
-    nwfa2d_oc(i)   = 3*iconv_oc2*this%tend_qoc2(i,k)
-    nwfa2d_so4(i)  = 0.4*iconv_so4*this%tend_qso4a1(i,k)
-    nwfa2d_seas(i) = 50*iconv_seas1*this%tend_qseas1(i,k) &
-                   + 50*iconv_seas2*this%tend_qseas2(i,k)
-
-    nifa2d(i) = iconv_dust1*this%tend_qdust1(i,k) &
-              + iconv_dust2*this%tend_qdust2(i,k) &
-              + iconv_dust3*this%tend_qdust3(i,k) &
-              + iconv_dust4*this%tend_qdust4(i,k) &
-              + iconv_dust5*this%tend_qdust5(i,k)
-
-    nifa2d_dust(i) = nifa2d(i)
+    nifa2d(i) = this%nifa2d_c(i)
+    nwfa2d(i) = this%nwfa2d_c(i)
  enddo
 
  call mpas_log_write('--- end subroutine mpas_chemistry_to_gocart:')
 
  end subroutine mpas_chemistry_to_gocart
+
+!=================================================================================================================
+ subroutine compute_sfc_nbThompson(its,ite,kts,kte,tend_qbc2,tend_qoc2,tend_qso4a1,tend_qseas1,tend_qdust1, &
+                                   tend_qdust2,tend_qdust3,tend_qdust4,tend_qdust5,tend_nwfa,tend_nifa)
+!=================================================================================================================
+
+!input arguments:
+ integer,intent(in):: its,ite,kts,kte
+ real(kind=RKIND),dimension(its:ite,kts:kte),intent(in):: tend_qbc2,tend_qoc2,tend_qso4a1,tend_qseas1
+ real(kind=RKIND),dimension(its:ite,kts:kte),intent(in):: tend_qdust1,tend_qdust2,tend_qdust3,tend_qdust4, &
+                                                          tend_qdust5
+
+!inout arguments:
+ real(kind=RKIND),dimension(its:ite),intent(inout):: tend_nwfa,tend_nifa
+
+!local variables and arrays:
+ integer:: i,k
+
+!these parameters should be moved somewhere else:
+ real(kind=RKIND),parameter:: pii = 3.141592653589793
+
+ real(kind=RKIND),parameter:: dens_bc       = 1.7e03  ! density of black carbon (kg/m3).
+ real(kind=RKIND),parameter:: dens_oc       = 1.0e03  ! density of organic carbon (kg/m3).
+ real(kind=RKIND),parameter:: dens_so4      = 1.77e03 ! density of sulfates (kg/m3).
+ real(kind=RKIND),parameter:: dens_ncl      = 1.9e03  ! density of seasalts (kg/m3).
+ real(kind=RKIND),parameter:: dens_dst      = 2.6e03  ! density of dust (kg/m3).
+
+ real(kind=RKIND),parameter:: dgnum_accum   = 1.1e-07 ! (m).
+ real(kind=RKIND),parameter:: sigmag_accum  = 1.6     ! (-).
+ real(kind=RKIND):: alnsg_accum,voltonumb_accum
+ real(kind=RKIND):: sum_a1,ratio_a1
+
+ real(kind=RKIND),parameter:: dgnum_aitken  = 2.6e-08 ! (m).
+ real(kind=RKIND),parameter:: sigmag_aitken = 1.6     ! (-).
+ real(kind=RKIND):: alnsg_aitken,voltonumb_aitken
+ real(kind=RKIND):: sum_a2,ratio_a2
+
+ real(kind=RKIND),parameter:: dgnum_coarse  = 9.0e-07 ! (m).
+ real(kind=RKIND),parameter:: sigmag_coarse = 1.2     ! (-).
+ real(kind=RKIND):: alnsg_coarse,voltonumb_coarse
+ real(kind=RKIND):: sum_a3,ratio_a3
+ real(kind=RKIND):: mr_to_nb_bc,mr_to_nb_oc,mr_to_nb_so4,mr_to_nb_ncl,mr_to_nb_dst
+
+ real(kind=RKIND),dimension(its:ite):: tend_nbca1,tend_npoma1,tend_nso4a1,tend_nseasa1
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine compute_sfc_nbThompson:')
+
+!--- accumulation mode for nwfa:
+ alnsg_accum = log(sigmag_accum)
+ voltonumb_accum = 1./((pii/6.)*(dgnum_accum**3.)*exp(4.5*alnsg_accum**2.))
+
+ mr_to_nb_bc  = voltonumb_accum/dens_bc
+ mr_to_nb_oc  = voltonumb_accum/dens_oc
+ mr_to_nb_so4 = voltonumb_accum/dens_so4
+ mr_to_nb_ncl = voltonumb_accum/dens_ncl
+ mr_to_nb_dst = voltonumb_accum/dens_dst
+
+ call mpas_log_write('--- alnsg_accum      = $r',realArgs=(/alnsg_accum/))
+ call mpas_log_write('--- voltonumb_accum  = $r',realArgs=(/voltonumb_accum/))
+ call mpas_log_write('--- mr_to_nb_bc      = $r',realArgs=(/mr_to_nb_bc/))
+ call mpas_log_write('--- mr_to_nb_dst     = $r',realArgs=(/mr_to_nb_dst/))
+ call mpas_log_write('--- mr_to_nb_ncl     = $r',realArgs=(/mr_to_nb_ncl/))
+ call mpas_log_write('--- mr_to_nb_oc      = $r',realArgs=(/mr_to_nb_oc/))
+ call mpas_log_write('--- mr_to_nb_so4     = $r',realArgs=(/mr_to_nb_so4/))
+ call mpas_log_write(' ')
+
+ k = kts
+ do i = its,ite
+    tend_nbca1(i)   = mr_to_nb_bc*tend_qbc2(i,k)
+    tend_npoma1(i)  = mr_to_nb_oc*tend_qoc2(i,k)
+    tend_nso4a1(i)  = mr_to_nb_so4*tend_qso4a1(i,k)
+    tend_nseasa1(i) = mr_to_nb_so4*tend_qseas1(i,k)
+
+    tend_nwfa(i)   = tend_nbca1(i) + tend_npoma1(i) + tend_nso4a1(i) + tend_nseasa1(i)
+!   call mpas_log_write('$i $r $r $r $r $r $r $r $r $r',intArgs=(/i/),realArgs=(/tend_qbc2(i,k),tend_nbca1(i), &
+!              tend_qoc2(i,k),tend_npoma1(i),tend_qso4a1(i,k),tend_nso4a1(i),tend_qseas1(i,k),tend_nseasa1(i), &
+!              tend_nwfa(i)/))
+ enddo
+
+
+!--- coarse mode for nifa:
+ alnsg_coarse = log(sigmag_coarse)
+ voltonumb_coarse = 1./((pii/6.)*(dgnum_coarse**3.)*exp(4.5*alnsg_coarse**2.))
+
+ mr_to_nb_ncl = voltonumb_coarse/dens_ncl
+ mr_to_nb_dst = voltonumb_coarse/dens_dst
+ mr_to_nb_so4 = voltonumb_coarse/dens_so4
+
+ call mpas_log_write(' ')
+ call mpas_log_write('--- alnsg_coarse     = $r',realArgs=(/alnsg_coarse/))
+ call mpas_log_write('--- voltonumb_coarse = $r',realArgs=(/voltonumb_coarse/))
+ call mpas_log_write('--- mr_to_nb_so4     = $r',realArgs=(/mr_to_nb_so4/))
+ call mpas_log_write('--- mr_to_nb_ncl     = $r',realArgs=(/mr_to_nb_ncl/))
+ call mpas_log_write('--- mr_to_nb_dst     = $r',realArgs=(/mr_to_nb_dst/))
+ call mpas_log_write(' ')
+
+ k = kts
+ do i = its,ite
+    tend_nifa(i) = tend_qdust1(i,k) + tend_qdust2(i,k) + tend_qdust3(i,k) &
+                 + tend_qdust4(i,k) + tend_qdust5(i,k)
+    tend_nifa(i) = mr_to_nb_dst*tend_nifa(i)
+!   call mpas_log_write('$i $r $r $r $r $r $r',intArgs=(/i/),realArgs=(/tend_qdust1(i,k),tend_qdust2(i,k), &
+!             tend_qdust3(i,k),tend_qdust4(i,k),tend_qdust5(i,k),tend_nifa(i)/))
+ enddo
+
+
+ call mpas_log_write('--- end subroutine compute_sfc_nbThompson:')
+
+ end subroutine compute_sfc_nbThompson
 
 !=================================================================================================================
  end module mpas_chemistry_gocart_interface

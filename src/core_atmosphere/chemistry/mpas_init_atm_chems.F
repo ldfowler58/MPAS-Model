@@ -142,7 +142,7 @@
  end subroutine init_atm_CAMS_emissions
 
 !=================================================================================================================
- subroutine init_atm_camchem(configs,mesh,fg,diag,chems_input,state)
+ subroutine init_atm_camchem(configs,mesh,fg,diag,diag_physics,chems_input,state)
 !=================================================================================================================
 
 !input arguments:
@@ -154,14 +154,15 @@
  type(mpas_pool_type),intent(inout):: fg
  type(mpas_pool_type),intent(inout):: chems_input
  type(mpas_pool_type),intent(inout):: state
+ type(mpas_pool_type),intent(inout):: diag_physics
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine init_atm_camchem:')
 
  call init_hinterp_camchem(configs,mesh,fg)
- call init_vinterp_camchem(configs,mesh,fg,diag,chems_input,state)
- call init_camchem_tothompson(mesh,chems_input,state)
+ call init_vinterp_camchem(configs,mesh,fg,diag,diag_physics,chems_input,state)
+!call init_camchem_tothompson(mesh,chems_input,state)
 
  call mpas_log_write('--- end subroutine init_atm_camchem.')
  call mpas_log_write(' ')
@@ -193,23 +194,42 @@
 
  integer,pointer:: num_chems_fg
  integer,pointer:: gocart_fg_start,gocart_fg_end
- integer,pointer:: index_qco,index_qnh3,index_qso2,index_qso4a1,index_qso4a2,index_qso4a3,index_qbc1,    &
-                   index_qbc2,index_qoc1,index_qoc2,index_qseas1,index_qseas2,index_qseas3,index_qseas4, &
-                   index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
  integer,dimension(:),pointer:: landmask,mask_array
 
  real(kind=RKIND):: fillval,maskval,msgval
  real(kind=RKIND):: lat,lon,x,y
  real(kind=RKIND),dimension(:),pointer:: latCell,lonCell
  real(kind=RKIND),dimension(:),pointer:: latPoints,lonPoints
- real(kind=RKIND),dimension(:,:),pointer:: qco_fg,qnh3_fg,qso2_fg,qso4a1_fg,qso4a2_fg,qso4a3_fg,qbc1_fg,    &
-                                           qbc2_fg,qoc1_fg,qoc2_fg,qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg, &
-                                           qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg,pcam_fg
+
+!CAM-Chem aerosol mixing ratios and number concentrations:
+ integer,pointer:: index_qco
+ integer,pointer:: index_numa1,index_qbca1,index_qdsta1,index_qncla1,index_qpoma1,index_qso4a1
+ integer,pointer:: index_numa2,index_qncla2,index_qso4a2
+ integer,pointer:: index_numa3,index_qdsta3,index_qncla3,index_qso4a3
+ integer,pointer:: index_qbca4,index_qpoma4
+
+ real(kind=RKIND),dimension(:,:),pointer:: qco_fg
+ real(kind=RKIND),dimension(:,:),pointer:: qbca1_fg,qdsta1_fg,qncla1_fg,qpoma1_fg,qso4a1_fg
+ real(kind=RKIND),dimension(:,:),pointer:: qncla2_fg,qso4a2_fg
+ real(kind=RKIND),dimension(:,:),pointer:: qdsta3_fg,qncla3_fg,qso4a3_fg
+ real(kind=RKIND),dimension(:,:),pointer:: qbca4_fg,qpoma4_fg
+ real(kind=RKIND),dimension(:,:),pointer:: numa1_fg,numa2_fg,numa3_fg
+
+!GOCART aerosol mixing ratios:
+ integer,pointer:: index_qbc1,index_qbc2,index_qoc1,index_qoc2
+ integer,pointer:: index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
+ integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4
+ real(kind=RKIND),dimension(:,:),pointer:: qbc1_fg,qbc2_fg,qoc1_fg,qoc2_fg
+ real(kind=RKIND),dimension(:,:),pointer:: qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg
+ real(kind=RKIND),dimension(:,:),pointer:: qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg
+
+!Ice-friendly and water-friendly Thompson aerosols:
+ integer,pointer:: index_nifa,index_nwfa
+ real(kind=RKIND),dimension(:,:),pointer:: nifa_fg,nwfa_fg
+
+ real(kind=RKIND),dimension(:,:),pointer:: pcam_fg,dpcam_fg
  real(kind=RKIND),dimension(:,:),pointer:: destField2d
  real(kind=RKIND),dimension(:,:,:),pointer:: chems_fg
-
- real(kind=RKIND),dimension(:,:),pointer:: pcam_r
- real(kind=RKIND),dimension(:,:,:),pointer:: chems_r
 
  real(kind=RKIND),dimension(:,:),allocatable:: maskslab,rslab
 
@@ -236,68 +256,133 @@
  call mpas_log_write(' ')
 
  call mpas_pool_get_dimension(fg,'index_qco_fg'   ,index_qco   )
- call mpas_pool_get_dimension(fg,'index_qnh3_fg'  ,index_qnh3  )
- call mpas_pool_get_dimension(fg,'index_qso2_fg'  ,index_qso2  )
+
+ call mpas_pool_get_dimension(fg,'index_qbca1_fg' ,index_qbca1 )
+ call mpas_pool_get_dimension(fg,'index_qdsta1_fg',index_qdsta1)
+ call mpas_pool_get_dimension(fg,'index_qncla1_fg',index_qncla1)
+ call mpas_pool_get_dimension(fg,'index_qpoma1_fg',index_qpoma1)
  call mpas_pool_get_dimension(fg,'index_qso4a1_fg',index_qso4a1)
+ call mpas_pool_get_dimension(fg,'index_numa1_fg' ,index_numa1 )
+
+ call mpas_pool_get_dimension(fg,'index_qncla2_fg',index_qncla2)
  call mpas_pool_get_dimension(fg,'index_qso4a2_fg',index_qso4a2)
+ call mpas_pool_get_dimension(fg,'index_numa2_fg' ,index_numa2 )
+
+ call mpas_pool_get_dimension(fg,'index_qdsta3_fg',index_qdsta3)
+ call mpas_pool_get_dimension(fg,'index_qncla3_fg',index_qncla3)
  call mpas_pool_get_dimension(fg,'index_qso4a3_fg',index_qso4a3)
+ call mpas_pool_get_dimension(fg,'index_numa3_fg' ,index_numa3 )
+
+ call mpas_pool_get_dimension(fg,'index_qbca4_fg' ,index_qbca4 )
+ call mpas_pool_get_dimension(fg,'index_qpoma4_fg',index_qpoma4)
+
  call mpas_pool_get_dimension(fg,'index_qbc1_fg'  ,index_qbc1  )
  call mpas_pool_get_dimension(fg,'index_qbc2_fg'  ,index_qbc2  )
  call mpas_pool_get_dimension(fg,'index_qoc1_fg'  ,index_qoc1  )
  call mpas_pool_get_dimension(fg,'index_qoc2_fg'  ,index_qoc2  )
- call mpas_pool_get_dimension(fg,'index_qseas1_fg',index_qseas1)
- call mpas_pool_get_dimension(fg,'index_qseas2_fg',index_qseas2)
- call mpas_pool_get_dimension(fg,'index_qseas3_fg',index_qseas3)
- call mpas_pool_get_dimension(fg,'index_qseas4_fg',index_qseas4)
  call mpas_pool_get_dimension(fg,'index_qdust1_fg',index_qdust1)
  call mpas_pool_get_dimension(fg,'index_qdust2_fg',index_qdust2)
  call mpas_pool_get_dimension(fg,'index_qdust3_fg',index_qdust3)
  call mpas_pool_get_dimension(fg,'index_qdust4_fg',index_qdust4)
  call mpas_pool_get_dimension(fg,'index_qdust5_fg',index_qdust5)
+ call mpas_pool_get_dimension(fg,'index_qseas1_fg',index_qseas1)
+ call mpas_pool_get_dimension(fg,'index_qseas2_fg',index_qseas2)
+ call mpas_pool_get_dimension(fg,'index_qseas3_fg',index_qseas3)
+ call mpas_pool_get_dimension(fg,'index_qseas4_fg',index_qseas4)
+
+ call mpas_pool_get_dimension(fg,'index_nifa_fg',index_nifa)
+ call mpas_pool_get_dimension(fg,'index_nwfa_fg',index_nwfa)
+
+ call mpas_log_write('--- index_qco_fg    = $i',intArgs=(/index_qco/)   )
+
+ call mpas_log_write('--- accumulation mode:')
+ call mpas_log_write('--- index_qbca1_fg  = $i',intArgs=(/index_qbca1/) )
+ call mpas_log_write('--- index_qdsta1_fg = $i',intArgs=(/index_qdsta1/))
+ call mpas_log_write('--- index_qncla1_fg = $i',intArgs=(/index_qncla1/))
+ call mpas_log_write('--- index_qpoma1_fg = $i',intArgs=(/index_qpoma1/))
+ call mpas_log_write('--- index_qso4a1_fg = $i',intArgs=(/index_qso4a1/))
+ call mpas_log_write('--- index_numa1_fg  = $i',intArgs=(/index_numa1/) )
+ call mpas_log_write(' ')
+ call mpas_log_write('--- aitken mode:')
+ call mpas_log_write('--- index_qncla2_fg = $i',intArgs=(/index_qncla2/))
+ call mpas_log_write('--- index_qso4a2_fg = $i',intArgs=(/index_qso4a2/))
+ call mpas_log_write('--- index_numa2_fg  = $i',intArgs=(/index_numa2/) )
+ call mpas_log_write(' ')
+ call mpas_log_write('--- coarse mode:')
+ call mpas_log_write('--- index_qdsta3_fg = $i',intArgs=(/index_qdsta3/))
+ call mpas_log_write('--- index_qncla3_fg = $i',intArgs=(/index_qncla3/))
+ call mpas_log_write('--- index_qso4a3_fg = $i',intArgs=(/index_qso4a3/))
+ call mpas_log_write('--- index_numa3_fg  = $i',intArgs=(/index_numa3/) )
+ call mpas_log_write(' ')
+ call mpas_log_write('--- primary carbon mode:')
+ call mpas_log_write('--- index_qbca4_fg  = $i',intArgs=(/index_qbca4/) )
+ call mpas_log_write('--- index_qpoma4_fg = $i',intArgs=(/index_qpoma4/))
+ call mpas_log_write(' ')
+
+ call mpas_log_write('--- gocart aerosols:')
  call mpas_log_write('--- index_qbc1_fg   = $i',intArgs=(/index_qbc1/)  )
  call mpas_log_write('--- index_qbc2_fg   = $i',intArgs=(/index_qbc2/)  )
  call mpas_log_write('--- index_qoc1_fg   = $i',intArgs=(/index_qoc1/)  )
  call mpas_log_write('--- index_qoc2_fg   = $i',intArgs=(/index_qoc2/)  )
- call mpas_log_write('--- index_qseas1_fg = $i',intArgs=(/index_qseas1/))
- call mpas_log_write('--- index_qseas2_fg = $i',intArgs=(/index_qseas2/))
- call mpas_log_write('--- index_qseas3_fg = $i',intArgs=(/index_qseas3/))
- call mpas_log_write('--- index_qseas4_fg = $i',intArgs=(/index_qseas4/))
  call mpas_log_write('--- index_qdust1_fg = $i',intArgs=(/index_qdust1/))
  call mpas_log_write('--- index_qdust2_fg = $i',intArgs=(/index_qdust2/))
  call mpas_log_write('--- index_qdust3_fg = $i',intArgs=(/index_qdust3/))
  call mpas_log_write('--- index_qdust4_fg = $i',intArgs=(/index_qdust4/))
  call mpas_log_write('--- index_qdust5_fg = $i',intArgs=(/index_qdust5/))
- call mpas_log_write('--- index_qco_fg    = $i',intArgs=(/index_qco/)   )
- call mpas_log_write('--- index_qnh3_fg   = $i',intArgs=(/index_qnh3/)  )
- call mpas_log_write('--- index_qso2_fg   = $i',intArgs=(/index_qso2/)  )
- call mpas_log_write('--- index_qso4a1_fg = $i',intArgs=(/index_qso4a1/))
- call mpas_log_write('--- index_qso4a2_fg = $i',intArgs=(/index_qso4a2/))
- call mpas_log_write('--- index_qso4a3_fg = $i',intArgs=(/index_qso4a3/))
+ call mpas_log_write('--- index_qseas1_fg = $i',intArgs=(/index_qseas1/))
+ call mpas_log_write('--- index_qseas2_fg = $i',intArgs=(/index_qseas2/))
+ call mpas_log_write('--- index_qseas3_fg = $i',intArgs=(/index_qseas3/))
+ call mpas_log_write('--- index_qseas4_fg = $i',intArgs=(/index_qseas4/))
  call mpas_log_write(' ')
+ call mpas_log_write('--- Thompson ice-friendly and water-friendly aerosols:')
+ call mpas_log_write('--- index_nifa_fg   = $i',intArgs=(/index_nifa/)  )
+ call mpas_log_write('--- index_nwfa_fg   = $i',intArgs=(/index_nwfa/)  )
+
 
  call mpas_pool_get_array(fg,'chems_fg',chems_fg)
+ chems_fg(:,:,:) = 0._RKIND
+
  qco_fg    => chems_fg(index_qco,:,: )
- qnh3_fg   => chems_fg(index_qnh3,:,:)
- qso2_fg   => chems_fg(index_qso2,:,:)
+
+ qbca1_fg  => chems_fg(index_qbca1,:,:)
+ qdsta1_fg => chems_fg(index_qdsta1,:,:)
+ qncla1_fg => chems_fg(index_qncla1,:,:)
+ qpoma1_fg => chems_fg(index_qpoma1,:,:)
  qso4a1_fg => chems_fg(index_qso4a1,:,:)
- qso4a2_fg => chems_fg(index_qso4a2,:,:)
+ numa1_fg  => chems_fg(index_numa1,:,:)
+
+ qdsta3_fg => chems_fg(index_qdsta3,:,:)
+ qncla3_fg => chems_fg(index_qncla3,:,:)
  qso4a3_fg => chems_fg(index_qso4a3,:,:)
+ numa3_fg  => chems_fg(index_numa3,:,:)
+
+ qncla2_fg => chems_fg(index_qncla2,:,:)
+ qso4a2_fg => chems_fg(index_qso4a2,:,:)
+ numa2_fg  => chems_fg(index_numa2,:,:)
+
+ qbca4_fg  => chems_fg(index_qbca4,:,:)
+ qpoma4_fg => chems_fg(index_qpoma4,:,:)
+
  qbc1_fg   => chems_fg(index_qbc1,:,:)
  qbc2_fg   => chems_fg(index_qbc2,:,:)
  qoc1_fg   => chems_fg(index_qoc1,:,:)
  qoc2_fg   => chems_fg(index_qoc2,:,:)
- qseas1_fg => chems_fg(index_qseas1,:,:)
- qseas2_fg => chems_fg(index_qseas2,:,:)
- qseas3_fg => chems_fg(index_qseas3,:,:)
- qseas4_fg => chems_fg(index_qseas4,:,:)
  qdust1_fg => chems_fg(index_qdust1,:,:)
  qdust2_fg => chems_fg(index_qdust2,:,:)
  qdust3_fg => chems_fg(index_qdust3,:,:)
  qdust4_fg => chems_fg(index_qdust4,:,:)
  qdust5_fg => chems_fg(index_qdust5,:,:)
- chems_fg(:,:,:) = 0._RKIND
+ qseas1_fg => chems_fg(index_qseas1,:,:)
+ qseas2_fg => chems_fg(index_qseas2,:,:)
+ qseas3_fg => chems_fg(index_qseas3,:,:)
+ qseas4_fg => chems_fg(index_qseas4,:,:)
 
- call mpas_pool_get_array(fg,'pcam_fg',pcam_fg)
+ nifa_fg   => chems_fg(index_nifa,:,:)
+ nwfa_fg   => chems_fg(index_nwfa,:,:)
+
+
+ call mpas_pool_get_array(fg,'pcam_fg' ,pcam_fg )
+ call mpas_pool_get_array(fg,'dpcam_fg',dpcam_fg)
 
 
 !open intermediate file:
@@ -370,26 +455,28 @@
 
     mask_array => landmask
 
+!   if(index(field % field, 'CO'    ) /= 0 .or. &
+!      index(field % field, 'DSTA3' ) /= 0 .or. &
+!      index(field % field, 'PCAM'  ) /= 0 .or. &
+!      index(field % field, 'DPCAM' ) /= 0) then
     if(index(field % field, 'CO'    ) /= 0 .or. &
-       index(field % field, 'NH3'   ) /= 0 .or. &
-       index(field % field, 'SO2'   ) /= 0 .or. &
+       index(field % field, 'BCA1'  ) /= 0 .or. &
+       index(field % field, 'DSTA1' ) /= 0 .or. &
+       index(field % field, 'NCLA1' ) /= 0 .or. &
+       index(field % field, 'POMA1' ) /= 0 .or. &
        index(field % field, 'SO4A1' ) /= 0 .or. &
+       index(field % field, 'NCLA2' ) /= 0 .or. &
        index(field % field, 'SO4A2' ) /= 0 .or. &
+       index(field % field, 'DSTA3' ) /= 0 .or. &
+       index(field % field, 'NCLA3' ) /= 0 .or. &
        index(field % field, 'SO4A3' ) /= 0 .or. &
-       index(field % field, 'BC1'   ) /= 0 .or. &
-       index(field % field, 'BC2'   ) /= 0 .or. &
-       index(field % field, 'OC1'   ) /= 0 .or. &
-       index(field % field, 'OC2'   ) /= 0 .or. &
-       index(field % field, 'SEAS_1') /= 0 .or. &
-       index(field % field, 'SEAS_2') /= 0 .or. &
-       index(field % field, 'SEAS_3') /= 0 .or. &
-       index(field % field, 'SEAS_4') /= 0 .or. &
-       index(field % field, 'DUST_1') /= 0 .or. &
-       index(field % field, 'DUST_2') /= 0 .or. &
-       index(field % field, 'DUST_3') /= 0 .or. &
-       index(field % field, 'DUST_4') /= 0 .or. &
-       index(field % field, 'DUST_5') /= 0 .or. &
-       index(field % field, 'PCAM'  ) /= 0 ) then
+       index(field % field, 'BCA4'  ) /= 0 .or. &
+       index(field % field, 'POMA4' ) /= 0 .or. &
+       index(field % field, 'NUM_A1') /= 0 .or. &
+       index(field % field, 'NUM_A2') /= 0 .or. &
+       index(field % field, 'NUM_A3') /= 0 .or. &
+       index(field % field, 'PCAM'  ) /= 0 .or. &
+       index(field % field, 'DPRES' ) /= 0) then
 
        !
        !set up projection:
@@ -422,20 +509,35 @@
           latPoints => latCell
           lonPoints => lonCell
           destField2d => qco_fg
-       elseif(index(field%field,'NH3') /= 0) then
+       elseif(index(field%field,'BCA1') /= 0) then
           k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating NH3 at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating BCA1 at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
-          destField2d => qnh3_fg
-       elseif(index(field%field,'SO2') /= 0) then
+          destField2d => qbca1_fg
+
+       elseif(index(field%field,'DSTA1') /= 0) then
           k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating SO2 at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating DSTA1 at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
-          destField2d => qso2_fg
+          destField2d => qdsta1_fg
+       elseif(index(field%field,'NCLA1') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating NCLA1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qncla1_fg
+       elseif(index(field%field,'POMA1') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating POMA1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qpoma1_fg
        elseif(index(field%field,'SO4A1') /= 0) then
           k = nCAMLevels+1-field%xlvl
           call mpas_log_write('Interpolating SO4A1 at $i',intArgs=(/k/))
@@ -443,111 +545,76 @@
           latPoints => latCell
           lonPoints => lonCell
           destField2d => qso4a1_fg
+       elseif(index(field%field,'NCLA2') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating NCLA2 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qncla2_fg
        elseif(index(field%field,'SO4A2') /= 0) then
           k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating SO4A1 at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating SO4A2 at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
           destField2d => qso4a2_fg
+       elseif(index(field%field,'DSTA3') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating DSTA3 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qdsta3_fg
+       elseif(index(field%field,'NCLA3') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating NCLA3 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qncla3_fg
        elseif(index(field%field,'SO4A3') /= 0) then
           k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating SO4A1 at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating SO4A3 at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
           destField2d => qso4a3_fg
-       elseif(index(field%field,'BC1') /= 0) then
+       elseif(index(field%field,'BCA4') /= 0) then
           k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating BC1 at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating BCA4 at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
-          destField2d => qbc1_fg
-       elseif(index(field%field,'BC2') /= 0) then
+          destField2d => qbca4_fg
+       elseif(index(field%field,'POMA4') /= 0) then
           k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating BC2 at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating POMA4 at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
-          destField2d => qbc2_fg
-       elseif(index(field%field,'OC1') /= 0) then
+          destField2d => qpoma4_fg
+       elseif(index(field%field,'NUM_A1') /= 0) then
           k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating OC1 at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating NUM_A1 at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
-          destField2d => qoc1_fg
-       elseif(index(field%field,'OC2') /= 0) then
+          destField2d => numa1_fg
+       elseif(index(field%field,'NUM_A2') /= 0) then
           k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating OC2 at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating NUM_A2 at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
-          destField2d => qoc2_fg
-       elseif(index(field%field,'SEAS_1') /= 0) then
+          destField2d => numa2_fg
+       elseif(index(field%field,'NUM_A3') /= 0) then
           k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating SEAS_1 at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating NUM_A3 at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
-          destField2d => qseas1_fg
-       elseif(index(field%field,'SEAS_2') /= 0) then
-          k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating SEAS_2 at $i',intArgs=(/k/))
-          nInterpPoints = nCells
-          latPoints => latCell
-          lonPoints => lonCell
-          destField2d => qseas2_fg
-       elseif(index(field%field,'SEAS_3') /= 0) then
-          k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating SEAS_3 at $i',intArgs=(/k/))
-          nInterpPoints = nCells
-          latPoints => latCell
-          lonPoints => lonCell
-          destField2d => qseas3_fg
-       elseif(index(field%field,'SEAS_4') /= 0) then
-          k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating SEAS_4 at $i',intArgs=(/k/))
-          nInterpPoints = nCells
-          latPoints => latCell
-          lonPoints => lonCell
-          destField2d => qseas4_fg
-       elseif(index(field%field,'DUST_1') /= 0) then
-          k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating DUST_1 at $i',intArgs=(/k/))
-          nInterpPoints = nCells
-          latPoints => latCell
-          lonPoints => lonCell
-          destField2d => qdust1_fg
-       elseif(index(field%field,'DUST_2') /= 0) then
-          k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating DUST_2 at $i',intArgs=(/k/))
-          nInterpPoints = nCells
-          latPoints => latCell
-          lonPoints => lonCell
-          destField2d => qdust2_fg
-       elseif(index(field%field,'DUST_3') /= 0) then
-          k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating DUST_3 at $i',intArgs=(/k/))
-          nInterpPoints = nCells
-          latPoints => latCell
-          lonPoints => lonCell
-          destField2d => qdust3_fg
-       elseif(index(field%field,'DUST_4') /= 0) then
-          k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating DUST_4 at $i',intArgs=(/k/))
-          nInterpPoints = nCells
-          latPoints => latCell
-          lonPoints => lonCell
-          destField2d => qdust4_fg
-       elseif(index(field%field,'DUST_5') /= 0) then
-          k = nCAMLevels+1-field%xlvl
-          call mpas_log_write('Interpolating DUST_5 at $i',intArgs=(/k/))
-          nInterpPoints = nCells
-          latPoints => latCell
-          lonPoints => lonCell
-          destField2d => qdust5_fg
+          destField2d => numa3_fg
        elseif(index(field%field,'PCAM') /= 0) then
           k = nCAMLevels+1-field%xlvl
           call mpas_log_write('Interpolating PCAM at $i',intArgs=(/k/))
@@ -555,6 +622,20 @@
           latPoints => latCell
           lonPoints => lonCell
           destField2d => pcam_fg
+!      elseif(index(field%field,'DPCAM') /= 0) then
+!         k = nCAMLevels+1-field%xlvl
+!         call mpas_log_write('Interpolating DPCAM at $i',intArgs=(/k/))
+!         nInterpPoints = nCells
+!         latPoints => latCell
+!         lonPoints => lonCell
+!         destField2d => dpcam_fg
+       elseif(index(field%field,'DPRES') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating DPRES at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => dpcam_fg
        endif
 
        allocate(rslab(-2:field%nx+3,field%ny))
@@ -599,124 +680,9 @@
  enddo
  call read_met_close()
 
+
+!--- check that all mixing ratios and other variables are all positive:
  call mpas_log_write(' ')
- call mpas_log_write('--- check for negative qbc1_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qbc1_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qbc1_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qbc1_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qbc2_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qbc2_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qbc2_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qbc2_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qoc1_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qoc1_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qoc1_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qoc1_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qoc2_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qoc2_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qoc2_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qoc2_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qseas1_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qseas1_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qseas1_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qseas1_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qseas2_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qseas2_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qseas2_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qseas2_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qseas3_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qseas3_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qseas3_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qseas3_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qseas4_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qseas4_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qseas4_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qseas4_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qdust1_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qdust1_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qdust1_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qdust1_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qdust2_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qdust2_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qdust2_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qdust2_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qdust3_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qdust3_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qdust3_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qdust3_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qdust4_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qdust4_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qdust4_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qdust4_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qdust5_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qdust5_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qdust5_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qdust5_fg(k,iCell)/))
-       endif
-    enddo
- enddo
  call mpas_log_write('--- check for negative qco_fg:')
  do iCell = 1,nCells
     do k = 1,nCAMLevels
@@ -726,39 +692,23 @@
        endif
     enddo
  enddo
- call mpas_log_write('--- check for negative qnh3_fg:')
+
+!coarse mode:
+ call mpas_log_write('--- check for negative qdst3_fg:')
  do iCell = 1,nCells
     do k = 1,nCAMLevels
-       if(qnh3_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qnh3_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qnh3_fg(k,iCell)/))
+       if(qdsta3_fg(k,iCell) .lt. 0._RKIND) then
+          call mpas_log_write('--- negative qdst3_fg: $i $i $r',intArgs=(/iCell,k/), &
+                              realArgs=(/qdsta3_fg(k,iCell)/))
        endif
     enddo
  enddo
- call mpas_log_write('--- check for negative qso2_fg:')
+ call mpas_log_write('--- check for negative qncla3_fg:')
  do iCell = 1,nCells
     do k = 1,nCAMLevels
-       if(qso2_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qso2_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qso2_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qso4a1_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qso4a1_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qso4a1_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qso4a1_fg(k,iCell)/))
-       endif
-    enddo
- enddo
- call mpas_log_write('--- check for negative qso4a2_fg:')
- do iCell = 1,nCells
-    do k = 1,nCAMLevels
-       if(qso4a2_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qso4a2_fg: $i $i $r',intArgs=(/iCell,k/), &
-                              realArgs=(/qso4a2_fg(k,iCell)/))
+       if(qncla3_fg(k,iCell) .lt. 0._RKIND) then
+          call mpas_log_write('--- negative qncla3_fg: $i $i $r',intArgs=(/iCell,k/), &
+                              realArgs=(/qncla3_fg(k,iCell)/))
        endif
     enddo
  enddo
@@ -766,11 +716,21 @@
  do iCell = 1,nCells
     do k = 1,nCAMLevels
        if(qso4a3_fg(k,iCell) .lt. 0._RKIND) then
-          call mpas_log_write('--- negative qso4a3_fg: $i $i $r',intArgs=(/iCell,k/), &
+          call mpas_log_write('--- negative qdst3_fg: $i $i $r',intArgs=(/iCell,k/), &
                               realArgs=(/qso4a3_fg(k,iCell)/))
        endif
     enddo
  enddo
+ call mpas_log_write('--- check for negative numa3_fg:')
+ do iCell = 1,nCells
+    do k = 1,nCAMLevels
+       if(numa3_fg(k,iCell) .lt. 0._RKIND) then
+          call mpas_log_write('--- negative numa3_fg: $i $i $r',intArgs=(/iCell,k/), &
+                              realArgs=(/numa3_fg(k,iCell)/))
+       endif
+    enddo
+ enddo
+
  call mpas_log_write('--- check for negative pcam_fg:')
  do iCell = 1,nCells
     do k = 1,nCAMLevels
@@ -780,14 +740,233 @@
        endif
     enddo
  enddo
+ call mpas_log_write('--- check for negative dpcam_fg:')
+ do iCell = 1,nCells
+    do k = 1,nCAMLevels
+       if(dpcam_fg(k,iCell) .lt. 0._RKIND) then
+          call mpas_log_write('--- negative dpcam_fg: $i $i $r',intArgs=(/iCell,k/), &
+                              realArgs=(/dpcam_fg(k,iCell)/))
+       endif
+    enddo
+ enddo
+!call mpas_log_write(' ')
+!do iCell = 1, 5
+!   do k = 1,nCAMLevels
+!      call mpas_log_write('$i $r $r',intArgs=(/k/),realArgs=(/pcam_fg(k,iCell),dpcam_fg(k,iCell)/))
+!   enddo
+!   call mpas_log_write(' ')
+!enddo
+
+
+!--- convert mass mixing ratios in the accumulation, aitken, and coarse modes to number concentrations
+!    and rescale the number concentrations:
+ call init_scale_camchem(nCells,nCAMLevels,numa1_fg,numa2_fg,numa3_fg,qbca1_fg,qdsta1_fg,qncla1_fg, &
+                    qpoma1_fg,qso4a1_fg,qncla2_fg,qso4a2_fg,qdsta3_fg,qncla3_fg,qso4a3_fg,qbca4_fg, &
+                    qpoma4_fg,qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg,qbc1_fg,qbc2_fg,    &
+                    qoc1_fg,qoc2_fg,qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg,nifa_fg,nwfa_fg)
 
  call mpas_log_write('--- exit subroutine init_hinterp_camchem.')
  call mpas_log_write(' ')
 
  end subroutine init_hinterp_camchem
 
+
 !=================================================================================================================
- subroutine init_vinterp_camchem(configs,mesh,fg,diag,chems_input,state)
+ subroutine init_scale_camchem(nCells,nCAMLevels,numa1_fg,numa2_fg,numa3_fg,qbca1_fg,qdsta1_fg,qncla1_fg, &
+                          qpoma1_fg,qso4a1_fg,qncla2_fg,qso4a2_fg,qdsta3_fg,qncla3_fg,qso4a3_fg,qbca4_fg, &
+                          qpoma4_fg,qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg,qbc1_fg,qbc2_fg,    &
+                          qoc1_fg,qoc2_fg,qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg,nifa_fg,nwfa_fg)
+!=================================================================================================================
+
+!input arguments:
+ integer,intent(in):: nCells,nCAMLevels
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(in):: numa1_fg,numa2_fg,numa3_fg
+
+!inout arguments:
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qbca1_fg,qdsta1_fg,qncla1_fg,qpoma1_fg,qso4a1_fg
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qncla2_fg,qso4a2_fg
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qso4a3_fg,qncla3_fg,qdsta3_fg
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qbca4_fg,qpoma4_fg
+
+ real(kind=RKIND),dimension(NCAMLevels,nCells+1),intent(inout):: qbc1_fg,qbc2_fg,qoc1_fg,qoc2_fg
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg
+
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: nifa_fg,nwfa_fg
+
+
+!local variables and arrays:
+ integer:: iCell,k
+
+!these parameters should be moved somewhere else:
+ real(kind=RKIND),parameter:: pii = 3.141592653589793
+
+ real(kind=RKIND),parameter:: dens_bc       = 1.7e03  ! density of black carbon (kg/m3).
+ real(kind=RKIND),parameter:: dens_oc       = 1.0e03  ! density of organic carbon (kg/m3).
+ real(kind=RKIND),parameter:: dens_so4      = 1.77e03 ! density of sulfates (kg/m3).
+ real(kind=RKIND),parameter:: dens_ncl      = 1.9e03  ! density of seasalts (kg/m3).
+ real(kind=RKIND),parameter:: dens_dst      = 2.6e03  ! density of dust (kg/m3).
+
+ real(kind=RKIND),parameter:: dgnum_accum   = 1.1e-07 ! (m).
+ real(kind=RKIND),parameter:: sigmag_accum  = 1.6     ! (-).
+ real(kind=RKIND):: alnsg_accum,voltonumb_accum
+ real(kind=RKIND):: sum_a1,ratio_a1
+
+ real(kind=RKIND),parameter:: dgnum_aitken  = 2.6e-08 ! (m).
+ real(kind=RKIND),parameter:: sigmag_aitken = 1.6     ! (-).
+ real(kind=RKIND):: alnsg_aitken,voltonumb_aitken
+ real(kind=RKIND):: sum_a2,ratio_a2
+
+ real(kind=RKIND),parameter:: dgnum_coarse  = 9.0e-07 ! (m).
+ real(kind=RKIND),parameter:: sigmag_coarse = 1.2     ! (-).
+ real(kind=RKIND):: alnsg_coarse,voltonumb_coarse
+ real(kind=RKIND):: sum_a3,ratio_a3
+ real(kind=RKIND):: mr_to_nb_bc,mr_to_nb_oc,mr_to_nb_so4,mr_to_nb_ncl,mr_to_nb_dst
+
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1):: nbca1,ndsta1,nncla1,npoma1,nso4a1
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1):: nncla2,nso4a2
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1):: ndsta3,nncla3,nso4a3
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine init_scale_camchem:')
+
+!--- accumulation mode: conversion from mass mixing ratio to number concentrations and rescaling of numbers:
+ alnsg_accum = log(sigmag_accum)
+ voltonumb_accum = 1./((pii/6.)*(dgnum_accum**3.)*exp(4.5*alnsg_accum**2.))
+
+ mr_to_nb_bc  = voltonumb_accum/dens_bc
+ mr_to_nb_oc  = voltonumb_accum/dens_oc
+ mr_to_nb_so4 = voltonumb_accum/dens_so4
+ mr_to_nb_ncl = voltonumb_accum/dens_ncl
+ mr_to_nb_dst = voltonumb_accum/dens_dst
+
+ call mpas_log_write('--- alnsg_accum      = $r',realArgs=(/alnsg_accum/))
+ call mpas_log_write('--- voltonumb_accum  = $r',realArgs=(/voltonumb_accum/))
+ call mpas_log_write('--- mr_to_nb_bc      = $r',realArgs=(/mr_to_nb_bc/))
+ call mpas_log_write('--- mr_to_nb_dst     = $r',realArgs=(/mr_to_nb_dst/))
+ call mpas_log_write('--- mr_to_nb_ncl     = $r',realArgs=(/mr_to_nb_ncl/))
+ call mpas_log_write('--- mr_to_nb_oc      = $r',realArgs=(/mr_to_nb_oc/))
+ call mpas_log_write('--- mr_to_nb_so4     = $r',realArgs=(/mr_to_nb_so4/))
+ call mpas_log_write(' ')
+
+ do iCell = 1,nCells
+    do k = 1,nCAMLevels
+       nbca1(k,iCell)  = mr_to_nb_bc*qbca1_fg(k,iCell)
+       ndsta1(k,iCell) = mr_to_nb_dst*qdsta1_fg(k,iCell)
+       nncla1(k,iCell) = mr_to_nb_ncl*qncla1_fg(k,iCell)
+       npoma1(k,iCell) = mr_to_nb_oc*qpoma1_fg(k,iCell)
+       nso4a1(k,iCell) = mr_to_nb_so4*qso4a1_fg(k,iCell)
+    enddo
+
+    do k = 1,nCAMLevels
+       sum_a1 = nbca1(k,iCell) + ndsta1(k,iCell) + nncla1(k,iCell) + npoma1(k,iCell) + nso4a1(k,iCell)
+       ratio_a1 = numa1_fg(k,iCell)/sum_a1
+
+       nbca1(k,iCell)  = ratio_a1*nbca1(k,iCell)
+       ndsta1(k,iCell) = ratio_a1*ndsta1(k,iCell)
+       nncla1(k,iCell) = ratio_a1*nncla1(k,iCell)
+       npoma1(k,iCell) = ratio_a1*npoma1(k,iCell)
+       nso4a1(k,iCell) = ratio_a1*nso4a1(k,iCell)
+    enddo
+ enddo
+
+
+!--- aitken mode: conversion from mass mixing ratio to number concentrations and rescaling of numbers:
+ alnsg_aitken = log(sigmag_aitken)
+ voltonumb_aitken = 1./((pii/6.)*(dgnum_aitken**3.)*exp(4.5*alnsg_aitken**2.))
+
+ mr_to_nb_ncl = voltonumb_aitken/dens_ncl
+ mr_to_nb_so4 = voltonumb_aitken/dens_so4
+
+ call mpas_log_write('--- alnsg_aitken     = $r',realArgs=(/alnsg_aitken/))
+ call mpas_log_write('--- voltonumb_aitken = $r',realArgs=(/voltonumb_aitken/))
+ call mpas_log_write('--- mr_to_nb_ncl     = $r',realArgs=(/mr_to_nb_ncl/))
+ call mpas_log_write('--- mr_to_nb_so4     = $r',realArgs=(/mr_to_nb_so4/))
+ call mpas_log_write(' ')
+
+ do iCell = 1,nCells
+    do k = 1,nCAMLevels
+       nncla2(k,iCell) = mr_to_nb_ncl*qncla2_fg(k,iCell)
+       nso4a2(k,iCell) = mr_to_nb_so4*qso4a2_fg(k,iCell)
+    enddo
+
+    do k = 1,nCAMLevels
+       sum_a2 = nncla2(k,iCell) + nso4a2(k,iCell)
+       ratio_a2 = numa2_fg(k,iCell)/sum_a2
+
+       nncla2(k,iCell) = ratio_a2*nncla2(k,iCell)
+       nso4a2(k,iCell) = ratio_a2*nso4a2(k,iCell)
+     enddo
+ enddo
+
+
+!--- coarse mode: conversion from mass mixing ratio to number concentrations and rescaling of numbers
+!    in the layer adjacent to the surface:
+ alnsg_coarse = log(sigmag_coarse)
+ voltonumb_coarse = 1./((pii/6.)*(dgnum_coarse**3.)*exp(4.5*alnsg_coarse**2.))
+
+ mr_to_nb_ncl = voltonumb_coarse/dens_ncl
+ mr_to_nb_dst = voltonumb_coarse/dens_dst
+ mr_to_nb_so4 = voltonumb_coarse/dens_so4
+
+ call mpas_log_write('--- alnsg_coarse     = $r',realArgs=(/alnsg_coarse/))
+ call mpas_log_write('--- voltonumb_coarse = $r',realArgs=(/voltonumb_coarse/))
+ call mpas_log_write('--- mr_to_nb_so4     = $r',realArgs=(/mr_to_nb_so4/))
+ call mpas_log_write('--- mr_to_nb_ncl     = $r',realArgs=(/mr_to_nb_ncl/))
+ call mpas_log_write('--- mr_to_nb_dst     = $r',realArgs=(/mr_to_nb_dst/))
+ call mpas_log_write(' ')
+
+ do iCell = 1,nCells
+    do k = 1,nCAMLevels
+       ndsta3(k,iCell) = mr_to_nb_dst*qdsta3_fg(k,iCell)
+       nncla3(k,iCell) = mr_to_nb_ncl*qncla3_fg(k,iCell)
+       nso4a3(k,iCell) = mr_to_nb_so4*qso4a3_fg(k,iCell)
+    enddo
+
+    do k = 1,nCAMLevels
+       sum_a3 = ndsta3(k,iCell) + nncla3(k,iCell) + nso4a3(k,iCell)
+       ratio_a3 = numa3_fg(k,iCell)/sum_a3
+
+       ndsta3(k,iCell) = ratio_a3*ndsta3(k,iCell)
+       nncla3(k,iCell) = ratio_a3*nncla3(k,iCell)
+       nso4a3(k,iCell) = ratio_a3*nso4a3(k,iCell)
+     enddo
+ enddo
+
+
+!--- remapping of the CAM-Chem aerosols to the GOCART aerosols:
+ do iCell = 1,nCells
+    do k = 1,nCAMLevels
+       qbc1_fg(k,iCell)   = qbca4_fg(k,iCell)
+       qbc2_fg(k,iCell)   = qbca1_fg(k,iCell)
+
+       qoc1_fg(k,iCell)   = qpoma4_fg(k,iCell)
+       qoc2_fg(k,iCell)   = qpoma1_fg(k,iCell)
+
+       qdust1_fg(k,iCell) = 0.02*qdsta3_fg(k,iCell)
+       qdust2_fg(k,iCell) = 0.93*qdsta3_fg(k,iCell)
+       qdust3_fg(k,iCell) = 0.05*qdsta3_fg(k,iCell)
+       qdust4_fg(k,iCell) = 0.0_RKIND
+       qdust5_fg(k,iCell) = 0.0_RKIND
+
+       qseas1_fg(k,iCell) = 1.0*qncla1_fg(k,iCell) + 1.0*qncla2_fg(k,iCell)
+       qseas2_fg(k,iCell) = 0.5*qncla3_fg(k,iCell)
+       qseas3_fg(k,iCell) = 0.5*qncla3_fg(k,iCell)
+       qseas4_fg(k,iCell) = 0.0_RKIND
+
+       nifa_fg(k,iCell)   = ndsta3(k,iCell)
+       nwfa_fg(k,iCell)   = numa1_fg(k,iCell)
+    enddo
+ enddo
+
+
+ call mpas_log_write('--- end subroutine init_scale_camchem:')
+
+ end subroutine init_scale_camchem
+
+!=================================================================================================================
+ subroutine init_vinterp_camchem(configs,mesh,fg,diag,diag_physics,chems_input,state)
 !=================================================================================================================
 
 !input arguments:
@@ -799,6 +978,7 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: chems_input
  type(mpas_pool_type),intent(inout):: state
+ type(mpas_pool_type),intent(inout):: diag_physics
 
 !local variables and arrays:
  integer:: iCell,k,kk,n,nn
@@ -807,9 +987,13 @@
  integer,pointer:: num_chems,num_chems_gocart,num_chems_fg
  integer,pointer:: gas_start,gas_end,gocart_start,gocart_end,gocart_fg_start,gocart_fg_end
  integer,pointer:: index_qco,index_qco_fg
+ integer,pointer:: index_nwfa,index_nwfa_fg,index_nifa,index_nifa_fg
+ integer,pointer:: index_chems,index_chems_fg
 
+ real(kind=RKIND),dimension(:),pointer:: nifa2d,nwfa2d
  real(kind=RKIND),dimension(:,:),pointer:: pcam_fg,pressure
  real(kind=RKIND),dimension(:,:,:),pointer:: chems,chems_gocart,chems_fg
+ real(kind=RKIND),dimension(:,:,:),pointer:: scalars
 
  real(kind=RKIND),parameter:: m_CO  = 28.01 ! molecular weight of carbon monoxide
  real(kind=RKIND),parameter:: m_air = 28.97 ! molecular weight of dry air.
@@ -825,14 +1009,18 @@
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
  call mpas_pool_get_dimension(mesh,'nCAMLevels' ,nCAMLevels )
 
- call mpas_pool_get_dimension(state,'num_chems',num_chems)
- call mpas_pool_get_dimension(state,'gas_start',gas_start)
- call mpas_pool_get_dimension(state,'gas_end'  ,gas_end  )
- call mpas_pool_get_dimension(state,'index_qco',index_qco)
- call mpas_log_write('--- num_chems        = $i',intArgs=(/num_chems/))
- call mpas_log_write('--- gas_start        = $i',intArgs=(/gas_start/))
- call mpas_log_write('--- gas_end          = $i',intArgs=(/gas_end/)  )
- call mpas_log_write('--- index_qco        = $i',intArgs=(/index_qco/))
+ call mpas_pool_get_dimension(state,'num_chems' ,num_chems )
+ call mpas_pool_get_dimension(state,'gas_start' ,gas_start )
+ call mpas_pool_get_dimension(state,'gas_end'   ,gas_end   )
+ call mpas_pool_get_dimension(state,'index_qco' ,index_qco )
+ call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
+ call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
+ call mpas_log_write('--- num_chems        = $i',intArgs=(/num_chems/) )
+ call mpas_log_write('--- gas_start        = $i',intArgs=(/gas_start/) )
+ call mpas_log_write('--- gas_end          = $i',intArgs=(/gas_end/)   )
+ call mpas_log_write('--- index_qco        = $i',intArgs=(/index_qco/) )
+ call mpas_log_write('--- index_nifa       = $i',intArgs=(/index_nifa/))
+ call mpas_log_write('--- index_nwfa       = $i',intArgs=(/index_nwfa/))
  call mpas_log_write(' ')
 
  call mpas_pool_get_dimension(chems_input,'num_chems_gocart',num_chems_gocart)
@@ -847,6 +1035,8 @@
  call mpas_pool_get_dimension(fg,'gocart_fg_start',gocart_fg_start)
  call mpas_pool_get_dimension(fg,'gocart_fg_end'  ,gocart_fg_end  )
  call mpas_pool_get_dimension(fg,'index_qco_fg'   ,index_qco_fg   )
+ call mpas_pool_get_dimension(fg,'index_nifa_fg'  ,index_nifa_fg  )
+ call mpas_pool_get_dimension(fg,'index_nwfa_fg'  ,index_nwfa_fg  )
  call mpas_log_write('--- num_chems_fg    = $i',intArgs=(/num_chems_fg/)   )
  call mpas_log_write('--- gocart_fg_start = $i',intArgs=(/gocart_fg_start/))
  call mpas_log_write('--- gocart_fg_end   = $i',intArgs=(/gocart_fg_end/)  )
@@ -855,28 +1045,34 @@
 
  call mpas_pool_get_array(diag,'pressure_base',pressure)
 
+ call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
+ call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
+
  call mpas_pool_get_array(fg,'pcam_fg' ,pcam_fg )
  call mpas_pool_get_array(fg,'chems_fg',chems_fg) 
  call mpas_pool_get_array(chems_input,'chems_gocart',chems_gocart)
  call mpas_pool_get_array(state,'chems',chems)
+ call mpas_pool_get_array(state,'scalars',scalars)
  chems_gocart(:,:,:) = 0._RKIND
  chems(:,:,:)        = 0._RKIND
 
  if(.not.allocated(sorted_arr)) allocate(sorted_arr(2,nCAMLevels))
+!--- interpolation of the first-guess CAM-Chem aerosols for use in the initialization of GOCART aerosols.
  nn = 0
- do n = 1,num_chems_fg
+ do n = 1,num_chems_gocart
     if(n .ne. index_qco_fg) then
        nn = nn + 1
+!      call mpas_log_write('$i $i',intArgs=(/n,nn/))
        do iCell = 1,nCells
           sorted_arr(1,1:nCAMLevels) = 0._RKIND
-          sorted_arr(1,1:nCAMLevels) = 0._RKIND
+          sorted_arr(2,1:nCAMLevels) = 0._RKIND
           do k = 1,nCAMLevels
              sorted_arr(1,k) = pcam_fg(k,iCell)
-             sorted_arr(2,k) = chems_fg(n,k,iCell)
+             sorted_arr(2,k) = chems_fg(nn,k,iCell)
           enddo
           do k = 1,nVertLevels
              target_p = pressure(k,iCell)
-             chems_gocart(nn,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
+             chems_gocart(n,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
                                                 order=1,extrap=0)
           enddo
        enddo
@@ -884,10 +1080,11 @@
  enddo
  do n = 1,num_chems_fg
     if(n .eq. index_qco_fg) then
+!      call mpas_log_write('$i',intArgs=(/n/))
        conv = m_CO / m_air
        do iCell = 1,nCells
           sorted_arr(1,1:nCAMLevels) = 0._RKIND
-          sorted_arr(1,1:nCAMLevels) = 0._RKIND
+          sorted_arr(2,1:nCAMLevels) = 0._RKIND
           do k = 1,nCAMLevels
              sorted_arr(1,k) = pcam_fg(k,iCell)
              sorted_arr(2,k) = chems_fg(n,k,iCell)
@@ -895,13 +1092,52 @@
           do k = 1,nVertLevels
              target_p = pressure(k,iCell)
              chems(index_qco,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
-                                                order=1,extrap=0)
+                                                 order=1,extrap=0)
              chems(index_qco,k,iCell) = conv*chems(index_qco,k,iCell)
           enddo
        enddo
     endif
  enddo
+
+!--- interpolation of the first-guess Thompson ice-friendly and water-friendly aerosols:
+ nifa2d(:) = 0._RKIND
+ nwfa2d(:) = 0._RKIND
+ scalars(index_nifa,:,:) = 0._RKIND
+ scalars(index_nwfa,:,:) = 0._RKIND
+ do iCell = 1,nCells
+    !nifa:
+    sorted_arr(1,1:nCAMLevels) = 0._RKIND
+    sorted_arr(2,1:nCAMLevels) = 0._RKIND
+    do k = 1,nCAMLevels
+       sorted_arr(1,k) = pcam_fg(k,iCell)
+       sorted_arr(2,k) = chems_fg(index_nifa_fg,k,iCell)
+    enddo
+    do k = 1,nVertLevels
+       target_p = pressure(k,iCell)
+       scalars(index_nifa,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
+                                              order=1,extrap=0)
+    enddo
+    k = 1
+    nifa2d(iCell) = scalars(index_nifa,k,iCell)
+
+    !nwfa:
+    sorted_arr(1,1:nCAMLevels) = 0._RKIND
+    sorted_arr(2,1:nCAMLevels) = 0._RKIND
+    do k = 1,nCAMLevels
+       sorted_arr(1,k) = pcam_fg(k,iCell)
+       sorted_arr(2,k) = chems_fg(index_nwfa_fg,k,iCell)
+    enddo
+    do k = 1,nVertLevels
+       target_p = pressure(k,iCell)
+       scalars(index_nwfa,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
+                                              order=1,extrap=0)
+    enddo
+    k = 1
+    nwfa2d(iCell) = scalars(index_nwfa,k,iCell)
+ enddo
+
  if(allocated(sorted_arr)) deallocate(sorted_arr)
+
 
  call mpas_log_write('--- negative chem variables:')
  do n = 1,num_chems_gocart
@@ -1056,13 +1292,6 @@
        nifa(k,iCell) = iconv_dust1*qdust1(k,iCell) + iconv_dust2*qdust2(k,iCell) &
                      + iconv_dust3*qdust3(k,iCell) + iconv_dust4*qdust4(k,iCell) &
                      + iconv_dust5*qdust5(k,iCell)
-
-!      !"water-friendly" aerosols using Greg Thompson scaling of nwfa:
-!      qwfa(k,iCell) = 8*qoc2(k,iCell) + 5*qso4a1(k,iCell) + 5*qso4a2(k,iCell) &
-!                    + 9*qseas1(k,iCell) + 9*qseas2(k,iCell)
-
-!      nwfa(k,iCell) = 8*iconv_oc2*qoc2(k,iCell) + 5*iconv_so4*qso4a1(k,iCell) + 5*iconv_so4*qso4a2(k,iCell) &
-!                    + 9*iconv_seas1*qseas1(k,iCell) + 9*iconv_seas2*qseas2(k,iCell)
 
        !"water-friendly" aerosols so that nwfa resembles the global distribution of the number
        !concentration of aerosols in the accumulation mode:
