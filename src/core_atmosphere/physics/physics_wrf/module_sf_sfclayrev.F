@@ -251,8 +251,8 @@ CONTAINS
                 ids,ide, jds,jde, kds,kde,                         &
                 ims,ime, jms,jme, kms,kme,                         &
                 its,ite, jts,jte, kts,kte                          &
-#if ( EM_CORE == 1 )
-                ,isftcflx,iz0tlnd,scm_force_flux,                               &
+#if ( ( EM_CORE == 1 ) || ( defined(mpas) ) )
+                ,isftcflx,iz0tlnd,scm_force_flux,                  &
                 USTM(ims,j),CK(ims,j),CKA(ims,j),                  &
                 CD(ims,j),CDA(ims,j)                               &
 #endif
