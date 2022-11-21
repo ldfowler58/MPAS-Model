@@ -859,7 +859,7 @@
                    p3d      = pres_hyd_p , psfc     = psfc_p     , t3d      = t_p        , &
                    u3d      = u_p        , v3d      = v_p        , qv3d     = qv_p       , &
                    dz8w     = dz_p       , cp       = cp         , g        = gravity    , &
-                   rovcp    = rcp        , R        = R_d        , xlv      = xlv        , & 
+                   rovcp    = rcp        , R        = R_d        , xlv      = xlv        , &
                    chs      = chs_p      , chs2     = chs2_p     , cqs2     = cqs2_p     , &
                    cpm      = cpm_p      , znt      = znt_p      , ust      = ust_p      , &
                    pblh     = hpbl_p     , mavail   = mavail_p   , zol      = zol_p      , &
