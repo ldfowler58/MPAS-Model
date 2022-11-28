@@ -451,6 +451,8 @@ module atm_core
          call physics_run_init(block % configs, mesh, state, clock, stream_manager)
 
          !initialization of all physics:
+         errflg = 0
+         errmsg = ' '
          call physics_init(dminfo, clock, block % configs, mesh, diag, tend, state, 1, diag_physics, &
                            atm_input, sfc_input, errmsg, errflg)
          if ( errflg /= 0 ) then

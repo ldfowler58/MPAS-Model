@@ -156,6 +156,9 @@
 !call mpas_log_write('')
 !call mpas_log_write('--- enter subroutine mpas_atmphys_driver:')
 
+ errflg = 0
+ errmsg = ' '
+
  call mpas_timer_start('physics driver')
 
  call mpas_pool_get_config(domain%configs,'config_convection_scheme',config_convection_scheme)
