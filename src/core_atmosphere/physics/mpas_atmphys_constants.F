@@ -75,6 +75,10 @@
  real(kind=RKIND),parameter:: epsilon = 1.e-15
  real(kind=RKIND),parameter:: psat    = 610.78
 
+ real(kind=RKIND),parameter:: RE_QC_BG = 2.49E-6        ! effective radius of cloud for background (m)
+ real(kind=RKIND),parameter:: RE_QI_BG = 4.99E-6        ! effective radius of ice for background (m)
+ real(kind=RKIND),parameter:: RE_QS_BG = 9.99E-6        ! effective radius of snow for background (m)
+
 !constants specific to long- and short-wave radiation codes:
 !real(kind=RKIND),parameter:: solcon_0 = 1365.          !solar constant                                     [W/m2]
  real(kind=RKIND),parameter:: solcon_0 = 1370.          !solar constant                                     [W/m2]
