@@ -175,16 +175,27 @@ CONTAINS
   REAL, DIMENSION( kts:kte ) :: qi1d
   REAL, DIMENSION( kts:kte ) :: re_qc, re_qi, re_qs
 
+  REAL, DIMENSION(its:ite,kts:kte):: den_hv,p_hv,delz_hv
+  REAL, DIMENSION(its:ite,kts:kte):: qv_hv
   REAL, DIMENSION(its:ite,kts:kte):: qc_hv
   REAL, DIMENSION(its:ite,kts:kte):: qi_hv
   REAL, DIMENSION(its:ite,kts:kte):: qr_hv
   REAL, DIMENSION(its:ite,kts:kte):: qs_hv
   REAL, DIMENSION(its:ite,kts:kte):: qg_hv
 
+  REAL, DIMENSION(its:ite):: rainncv_hv,rain_hv,sr_hv
+  REAL, DIMENSION(its:ite):: snowncv_hv,snow_hv
+  REAL, DIMENSION(its:ite):: graupelncv_hv,graupel_hv
+
       DO j=jts,jte
          DO k=kts,kte
          DO i=its,ite
+            den_hv(i,k)  = den(i,k,j)
+            p_hv(i,k)    = p(i,k,j)
+            delz_hv(i,k) = delz(i,k,j)
+
             t(i,k)=th(i,k,j)*pii(i,k,j)
+            qv_hv(i,k) = q(i,k,j)
             qc_hv(i,k) = qc(i,k,j)
             qi_hv(i,k) = qi(i,k,j)
             qr_hv(i,k) = qr(i,k,j)
@@ -192,23 +203,38 @@ CONTAINS
             qg_hv(i,k) = qg(i,k,j)
          ENDDO
          ENDDO
+
+         do i = its,ite
+            rain_hv(i) = rain(i,j)
+         enddo
+         if(present(snow) .and. present(snowncv)) then
+            do i = its,ite
+               snow_hv(i) = snow(i,j)
+            enddo
+         endif
+         if(present(graupel) .and. present(graupelncv)) then
+            do i = its,ite
+               graupel_hv(i) = graupel(i,j)
+            enddo
+         endif
+
          !  Sending array starting locations of optional variables may cause
          !  troubles, so we explicitly change the call.
-         CALL wsm62D(t, q(ims,kms,j)                               &
-                    ,den(ims,kms,j)                                &
-                    ,p(ims,kms,j), delz(ims,kms,j)                 &
+         CALL wsm62D(t, qv_hv                                      &
+                    ,den_hv                                        &
+                    ,p_hv, delz_hv                                 &
                     ,delt,g, cpd, cpv, rd, rv, t0c                 &
                     ,ep1, ep2, qmin                                &
                     ,XLS, XLV0, XLF0, den0, denr                   &
                     ,cliq,cice,psat                                &
                     ,j                                             &
-                    ,rain(ims,j),rainncv(ims,j)                    &
-                    ,sr(ims,j)                                     &
+                    ,rain_hv,rainncv_hv                            &
+                    ,sr_hv                                         &
                     ,ids,ide, jds,jde, kds,kde                     &
                     ,ims,ime, jms,jme, kms,kme                     &
                     ,its,ite, jts,jte, kts,kte                     &
-                    ,snow,snowncv                                  &
-                    ,graupel,graupelncv                            &
+                    ,snow_hv,snowncv_hv                            &
+                    ,graupel_hv,graupelncv_hv                      &
                     ,qc_hv,qi_hv,qr_hv,qs_hv,qg_hv                 &
 #if ( WRF_CHEM == 1) 
                     ,wetscav_on, rainprod2d, evapprod2d            &
@@ -217,6 +243,7 @@ CONTAINS
          DO K=kts,kte
          DO I=its,ite
             th(i,k,j)=t(i,k)/pii(i,k,j)
+            q(i,k,j)  = qv_hv(i,k)
             qc(i,k,j) = qc_hv(i,k)
             qi(i,k,j) = qi_hv(i,k)
             qr(i,k,j) = qr_hv(i,k)
@@ -224,6 +251,24 @@ CONTAINS
             qg(i,k,j) = qg_hv(i,k)
          ENDDO
          ENDDO
+
+         do i = its,ite
+            rain(i,j)    = rain_hv(i)
+            rainncv(i,j) = rainncv_hv(i)
+            sr(i,j)      = sr_hv(i)
+         enddo
+         if(present(snow) .and. present(snowncv)) then
+            do i = its,ite
+               snow(i,j)    = snow_hv(i)
+               snowncv(i,j) = snowncv_hv(i)
+            enddo
+         endif
+         if(present(graupel) .and. present(graupelncv)) then
+            do i = its,ite
+               graupel(i,j)    = graupel_hv(i)
+               graupelncv(i,j) = graupelncv_hv(i)
+            enddo
+         endif
 
 !+---+-----------------------------------------------------------------+
          IF ( PRESENT (diagflag) ) THEN
@@ -351,17 +396,15 @@ CONTAINS
   REAL, DIMENSION( its:ite , kts:kte ),                           &
         INTENT(INOUT) ::                                          &
                                                                t
-  REAL, DIMENSION( ims:ime , kms:kme ),                           &
-        INTENT(INOUT) ::                                          &
-                                                               q
   REAL, DIMENSION( its:ite , kts:kte ),                           &
         INTENT(INOUT) ::                                          &
+                                                               q, &
                                                               qc, &
                                                               qi, &
                                                               qr, &
                                                               qs, &
                                                               qg
-  REAL, DIMENSION( ims:ime , kms:kme ),                           &
+  REAL, DIMENSION( its:ite , kts:kte ),                           &
         INTENT(IN   ) ::                                          &
                                                              den, &
                                                                p, &
@@ -384,14 +427,14 @@ CONTAINS
                                                             cice, &
                                                             psat, &
                                                             denr
-  REAL, DIMENSION( ims:ime ),                                     &
+  REAL, DIMENSION( its:ite ),                                     &
         INTENT(INOUT) ::                                    rain, &
                                                          rainncv, &
                                                               sr
-  REAL, DIMENSION( ims:ime, jms:jme ), OPTIONAL,                  &
+  REAL, DIMENSION( its:ite ), OPTIONAL,                           &
         INTENT(INOUT) ::                                    snow, &
                                                          snowncv
-  REAL, DIMENSION( ims:ime, jms:jme ), OPTIONAL,                  &
+  REAL, DIMENSION( its:ite ), OPTIONAL,                           &
         INTENT(INOUT) ::                                 graupel, &
                                                       graupelncv
 
@@ -552,8 +595,8 @@ CONTAINS
 !
       do i = its, ite
         rainncv(i) = 0.
-        if(PRESENT (snowncv) .AND. PRESENT (snow)) snowncv(i,lat) = 0.
-        if(PRESENT (graupelncv) .AND. PRESENT (graupel)) graupelncv(i,lat) = 0.
+        if(PRESENT (snowncv) .AND. PRESENT (snow)) snowncv(i) = 0.
+        if(PRESENT (graupelncv) .AND. PRESENT (graupel)) graupelncv(i) = 0.
         sr(i) = 0.
 ! new local array to catch step snow and graupel
         tstepsnow(i) = 0.
@@ -826,22 +869,22 @@ CONTAINS
           tstepsnow(i)   = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            &
                            +tstepsnow(i)
         IF ( PRESENT (snowncv) .AND. PRESENT (snow)) THEN
-          snowncv(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.            & 
-                           +snowncv(i,lat)
-          snow(i,lat) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000. + snow(i,lat)
+          snowncv(i) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000.                &
+                           +snowncv(i)
+          snow(i) = fallsum_qsi*delz(i,kts)/denr*dtcld*1000. + snow(i)
         ENDIF
         endif
         if(fallsum_qg.gt.0.) then
-          tstepgraup(i)  = fallsum_qg*delz(i,kts)/denr*dtcld*1000.            &
+          tstepgraup(i)  = fallsum_qg*delz(i,kts)/denr*dtcld*1000.             &
                            +tstepgraup(i)
         IF ( PRESENT (graupelncv) .AND. PRESENT (graupel)) THEN
-          graupelncv(i,lat) = fallsum_qg*delz(i,kts)/denr*dtcld*1000.          &   
-                              + graupelncv(i,lat)
-          graupel(i,lat) = fallsum_qg*delz(i,kts)/denr*dtcld*1000. + graupel(i,lat)
+          graupelncv(i) = fallsum_qg*delz(i,kts)/denr*dtcld*1000.              &
+                           + graupelncv(i)
+          graupel(i) = fallsum_qg*delz(i,kts)/denr*dtcld*1000. + graupel(i)
         ENDIF
         endif
         IF ( PRESENT (snowncv)) THEN
-          if(fallsum.gt.0.)sr(i)=(snowncv(i,lat) + graupelncv(i,lat))/(rainncv(i)+1.e-12)
+          if(fallsum.gt.0.)sr(i)=(snowncv(i) + graupelncv(i))/(rainncv(i)+1.e-12)
         ELSE
           if(fallsum.gt.0.)sr(i)=(tstepsnow(i) + tstepgraup(i))/(rainncv(i)+1.e-12)
         ENDIF
