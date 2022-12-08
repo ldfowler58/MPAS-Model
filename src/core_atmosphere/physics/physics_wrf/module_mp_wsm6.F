@@ -6,147 +6,137 @@
 #  define VSQRT vsqrt
 #endif
 
-MODULE module_mp_wsm6
-!
-   USE module_mp_radar
+!=================================================================================================================
+ module module_mp_wsm6
+ use mpas_log
+ use ccpp_kinds,only: kind_phys
+
+ use module_mp_radar
 #if defined(mpas)
    use mpas_atmphys_constants, only : RE_QC_BG, RE_QI_BG, RE_QS_BG
 #else
    USE module_model_constants, only : RE_QC_BG, RE_QI_BG, RE_QS_BG
 #endif
-!
-   REAL, PARAMETER, PRIVATE :: dtcldcr     = 120. ! maximum time step for minor loops
-   REAL, PARAMETER, PRIVATE :: n0r = 8.e6         ! intercept parameter rain
-!   REAL, PARAMETER, PRIVATE :: n0g = 4.e6         ! intercept parameter graupel ! set later with hail_opt
-   REAL, PARAMETER, PRIVATE :: avtr = 841.9       ! a constant for terminal velocity of rain
-   REAL, PARAMETER, PRIVATE :: bvtr = 0.8         ! a constant for terminal velocity of rain
-   REAL, PARAMETER, PRIVATE :: r0 = .8e-5         ! 8 microm  in contrast to 10 micro m
-   REAL, PARAMETER, PRIVATE :: peaut = .55        ! collection efficiency
-   REAL, PARAMETER, PRIVATE :: xncr = 3.e8        ! maritime cloud in contrast to 3.e8 in tc80
-   REAL, PARAMETER, PRIVATE :: xmyu = 1.718e-5    ! the dynamic viscosity kgm-1s-1
-   REAL, PARAMETER, PRIVATE :: avts = 11.72       ! a constant for terminal velocity of snow
-   REAL, PARAMETER, PRIVATE :: bvts = .41         ! a constant for terminal velocity of snow
-!   REAL, PARAMETER, PRIVATE :: avtg = 330.        ! a constant for terminal velocity of graupel ! set later with hail_opt
-!   REAL, PARAMETER, PRIVATE :: bvtg = 0.8         ! a constant for terminal velocity of graupel ! set later with hail_opt
-!   REAL, PARAMETER, PRIVATE :: deng = 500.        ! density of graupel ! set later with hail_opt
-   REAL, PARAMETER, PRIVATE :: n0smax =  1.e11    ! maximum n0s (t=-90C unlimited)
-   REAL, PARAMETER, PRIVATE :: lamdarmax = 8.e4   ! limited maximum value for slope parameter of rain
-   REAL, PARAMETER, PRIVATE :: lamdasmax = 1.e5   ! limited maximum value for slope parameter of snow
-!   REAL, PARAMETER, PRIVATE :: lamdagmax = 6.e4   ! limited maximum value for slope parameter of graupel
-   REAL, PARAMETER, PRIVATE :: dicon = 11.9       ! constant for the cloud-ice diamter
-   REAL, PARAMETER, PRIVATE :: dimax = 500.e-6    ! limited maximum value for the cloud-ice diamter
-   REAL, PARAMETER, PRIVATE :: n0s = 2.e6         ! temperature dependent intercept parameter snow
-   REAL, PARAMETER, PRIVATE :: alpha = .12        ! .122 exponen factor for n0s
-   REAL, PARAMETER, PRIVATE :: pfrz1 = 100.       ! constant in Biggs freezing
-   REAL, PARAMETER, PRIVATE :: pfrz2 = 0.66       ! constant in Biggs freezing
-   REAL, PARAMETER, PRIVATE :: qcrmin = 1.e-9     ! minimun values for qr, qs, and qg
-   REAL, PARAMETER, PRIVATE :: eacrc = 1.0        ! Snow/cloud-water collection efficiency
-   REAL, PARAMETER, PRIVATE :: dens  =  100.0     ! Density of snow
-   REAL, PARAMETER, PRIVATE :: qs0   =  6.e-4     ! threshold amount for aggretion to occur
-   REAL, SAVE ::                                      &
-             qc0, qck1, pidnc,                        & 
-             bvtr1,bvtr2,bvtr3,bvtr4,g1pbr,           &
-             g3pbr,g4pbr,g5pbro2,pvtr,eacrr,pacrr,    &
-             bvtr6,g6pbr,                             &
-             precr1,precr2,roqimax,bvts1,             &
-             bvts2,bvts3,bvts4,g1pbs,g3pbs,g4pbs,     &
-             n0g,avtg,bvtg,deng,lamdagmax,            & !RAS13.3 - set these in wsm6init
-             g5pbso2,pvts,pacrs,precs1,precs2,pidn0r, &
-             pidn0s,xlv1,pacrc,pi,                    &
-             bvtg1,bvtg2,bvtg3,bvtg4,g1pbg,           &
-             g3pbg,g4pbg,g5pbgo2,pvtg,pacrg,          &
-             precg1,precg2,pidn0g,                    &
-             rslopermax,rslopesmax,rslopegmax,        &
-             rsloperbmax,rslopesbmax,rslopegbmax,     &
-             rsloper2max,rslopes2max,rslopeg2max,     &
-             rsloper3max,rslopes3max,rslopeg3max
-CONTAINS
-!===================================================================
-!
-  SUBROUTINE wsm6(th, q, qc, qr, qi, qs, qg                        &
-                 ,den, pii, p, delz                                &
-                 ,delt,g, cpd, cpv, rd, rv, t0c                    &
-                 ,ep1, ep2, qmin                                   &
-                 ,XLS, XLV0, XLF0, den0, denr                      &
-                 ,cliq,cice,psat                                   &
-                 ,rain, rainncv                                    &
-                 ,snow, snowncv                                    &
-                 ,sr                                               &
-                 ,refl_10cm, diagflag, do_radar_ref                &
-                 ,graupel, graupelncv                              &
-                 ,has_reqc, has_reqi, has_reqs                     &  ! for radiation
-                 ,re_cloud, re_ice,   re_snow                      &  ! for radiation   
-                 ,ids,ide, jds,jde, kds,kde                        &
-                 ,ims,ime, jms,jme, kms,kme                        &
-                 ,its,ite, jts,jte, kts,kte                        &
-#if ( WRF_CHEM == 1)
-                 ,wetscav_on, evapprod, rainprod                               &
-#endif
-                                                                   )
-!-------------------------------------------------------------------
-  IMPLICIT NONE
-!-------------------------------------------------------------------
-  INTEGER,      INTENT(IN   )    ::   ids,ide, jds,jde, kds,kde , &
-                                      ims,ime, jms,jme, kms,kme , &
-                                      its,ite, jts,jte, kts,kte
-  REAL, DIMENSION( ims:ime , kms:kme , jms:jme ),                 &
-        INTENT(INOUT) ::                                          &
-                                                             th,  &
-                                                              q,  &
-                                                              qc, &
-                                                              qi, &
-                                                              qr, &
-                                                              qs, &
-                                                              qg
-  REAL, DIMENSION( ims:ime , kms:kme , jms:jme ),                 &
-        INTENT(IN   ) ::                                          &
-                                                             den, &
-                                                             pii, &
-                                                               p, &
-                                                            delz
-  REAL, INTENT(IN   ) ::                                    delt, &
-                                                               g, &
-                                                              rd, &
-                                                              rv, &
-                                                             t0c, &
-                                                            den0, &
-                                                             cpd, &
-                                                             cpv, &
-                                                             ep1, &
-                                                             ep2, &
-                                                            qmin, &
-                                                             XLS, &
-                                                            XLV0, &
-                                                            XLF0, &
-                                                            cliq, &
-                                                            cice, &
-                                                            psat, &
-                                                            denr
-  REAL, DIMENSION( ims:ime , jms:jme ),                           &
-        INTENT(INOUT) ::                                    rain, &
-                                                         rainncv, &
-                                                              sr
-! for radiation connecting
-  INTEGER, INTENT(IN)::                                           &
-                                                        has_reqc, &
-                                                        has_reqi, &
-                                                        has_reqs
-  REAL, DIMENSION(ims:ime, kms:kme, jms:jme),                     &
-        INTENT(INOUT)::                                           &
-                                                        re_cloud, &
-                                                          re_ice, &
-                                                         re_snow
-!+---+-----------------------------------------------------------------+
-  REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL,           &   ! GT
-        INTENT(INOUT) ::                               refl_10cm
-!+---+-----------------------------------------------------------------+
 
-  REAL, DIMENSION( ims:ime , jms:jme ), OPTIONAL,                 &
-        INTENT(INOUT) ::                                    snow, &
-                                                         snowncv
-  REAL, DIMENSION( ims:ime , jms:jme ), OPTIONAL,                 &
-        INTENT(INOUT) ::                                 graupel, &
-                                                      graupelncv
+ implicit none
+ private
+ public:: refl10cm_wsm6,wsm6,wsm6init
+
+
+ real(kind=kind_phys),parameter,private:: dtcldcr = 120.    ! maximum time step for minor loops
+ real(kind=kind_phys),parameter,private:: n0r = 8.e6        ! intercept parameter rain
+!real(kind=kind_phys),parameter,private:: n0g = 4.e6        ! intercept parameter graupel
+ real(kind=kind_phys),parameter,private:: avtr = 841.9      ! a constant for terminal velocity of rain
+ real(kind=kind_phys),parameter,private:: bvtr = 0.8        ! a constant for terminal velocity of rain
+ real(kind=kind_phys),parameter,private:: r0 = .8e-5        ! 8 microm  in contrast to 10 micro m
+ real(kind=kind_phys),parameter,private:: peaut = .55       ! collection efficiency
+ real(kind=kind_phys),parameter,private:: xncr = 3.e8       ! maritime cloud in contrast to 3.e8 in tc80
+ real(kind=kind_phys),parameter,private:: xmyu = 1.718e-5   ! the dynamic viscosity kgm-1s-1
+ real(kind=kind_phys),parameter,private:: avts = 11.72      ! a constant for terminal velocity of snow
+ real(kind=kind_phys),parameter,private:: bvts = .41        ! a constant for terminal velocity of snow
+!real(kind=kind_phys),parameter,private:: avtg = 330.       ! a constant for terminal velocity of graupel
+!real(kind=kind_phys),parameter,private:: bvtg = 0.8        ! a constant for terminal velocity of graupel
+!real(kind=kind_phys),parameter,private:: deng = 500.       ! density of graupel ! set later with hail_opt
+ real(kind=kind_phys),parameter,private:: n0smax =  1.e11   ! maximum n0s (t=-90C unlimited)
+ real(kind=kind_phys),parameter,private:: lamdarmax = 8.e4  ! limited maximum value for slope parameter of rain
+ real(kind=kind_phys),parameter,private:: lamdasmax = 1.e5  ! limited maximum value for slope parameter of snow
+!real(kind=kind_phys),parameter,private:: lamdagmax = 6.e4  ! limited maximum value for slope parameter of graupel
+ real(kind=kind_phys),parameter,private:: dicon = 11.9      ! constant for the cloud-ice diamter
+ real(kind=kind_phys),parameter,private:: dimax = 500.e-6   ! limited maximum value for the cloud-ice diamter
+ real(kind=kind_phys),parameter,private:: n0s = 2.e6        ! temperature dependent intercept parameter snow
+ real(kind=kind_phys),parameter,private:: alpha = .12       ! .122 exponen factor for n0s
+ real(kind=kind_phys),parameter,private:: pfrz1 = 100.      ! constant in Biggs freezing
+ real(kind=kind_phys),parameter,private:: pfrz2 = 0.66      ! constant in Biggs freezing
+ real(kind=kind_phys),parameter,private:: qcrmin = 1.e-9    ! minimun values for qr, qs, and qg
+ real(kind=kind_phys),parameter,private:: eacrc = 1.0       ! Snow/cloud-water collection efficiency
+ real(kind=kind_phys),parameter,private:: dens  =  100.0    ! Density of snow
+ real(kind=kind_phys),parameter,private:: qs0   =  6.e-4    ! threshold amount for aggretion to occur
+
+ real(kind=kind_phys),save::                          &
+    qc0, qck1, pidnc,                        & 
+    bvtr1,bvtr2,bvtr3,bvtr4,g1pbr,           &
+    g3pbr,g4pbr,g5pbro2,pvtr,eacrr,pacrr,    &
+    bvtr6,g6pbr,                             &
+    precr1,precr2,roqimax,bvts1,             &
+    bvts2,bvts3,bvts4,g1pbs,g3pbs,g4pbs,     &
+    n0g,avtg,bvtg,deng,lamdagmax,            & !RAS13.3 - set these in wsm6init
+    g5pbso2,pvts,pacrs,precs1,precs2,pidn0r, &
+    pidn0s,xlv1,pacrc,pi,                    &
+    bvtg1,bvtg2,bvtg3,bvtg4,g1pbg,           &
+    g3pbg,g4pbg,g5pbgo2,pvtg,pacrg,          &
+    precg1,precg2,pidn0g,                    &
+    rslopermax,rslopesmax,rslopegmax,        &
+    rsloperbmax,rslopesbmax,rslopegbmax,     &
+    rsloper2max,rslopes2max,rslopeg2max,     &
+    rsloper3max,rslopes3max,rslopeg3max
+
+
+ contains
+
+
+!=================================================================================================================
+ subroutine wsm6(th,q,qc,qr,qi,qs,qg,den,pii,p,delz,                 &
+                 delt,g,cpd,cpv,rd,rv,t0c,ep1,ep2,qmin,              &
+                 xls,xlv0,xlf0,den0,denr,cliq,cice,psat,             &
+                 rain,rainncv,snow,snowncv,graupel,graupelncv,sr,    &
+                 refl_10cm,diagflag,do_radar_ref,                    &
+                 has_reqc,has_reqi,has_reqs,re_cloud,re_ice,re_snow, &
+                 ids,ide,jds,jde,kds,kde,                            &
+                 ims,ime,jms,jme,kms,kme,                            &
+                 its,ite,jts,jte,kts,kte                             &
+#if ( WRF_CHEM == 1)
+                 ,wetscav_on,evapprod,rainprod                       &
+#endif
+                )
+!=================================================================================================================
+
+!--- input arguments:
+ logical,intent(in),optional:: diagflag
+
+ integer,intent(in):: ids,ide,jds,jde,kds,kde, &
+                      ims,ime,jms,jme,kms,kme, &
+                      its,ite,jts,jte,kts,kte
+
+ integer,intent(in):: has_reqc,has_reqi,has_reqs
+ integer,intent(in),optional:: do_radar_ref
+
+ real(kind=kind_phys),intent(in):: &
+    delt,g,rd,rv,t0c,den0,cpd,cpv,ep1,ep2,qmin,xls,xlv0,xlf0, &
+    cliq,cice,psat,denr
+
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme ):: &
+    den, &
+    pii, &
+    p,   &
+    delz
+
+!inout arguments:
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,jms:jme):: &
+    rain,rainncv,sr
+
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,jms:jme),optional:: &
+    snow,snowncv
+
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,jms:jme),optional:: &
+    graupel,graupelncv
+
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme):: &
+    th, &
+    q,  &
+    qc, &
+    qi, &
+    qr, &
+    qs, &
+    qg
+
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme):: &
+    re_cloud, &
+    re_ice,   &
+    re_snow
+
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+    refl_10cm
+
 
 #if ( WRF_CHEM == 1 ) 
   REAL, DIMENSION( ims:ime , kms:kme, jms:jme ), INTENT(INOUT) :: &
@@ -160,174 +150,108 @@ CONTAINS
                                                       evapprod2d
 #endif
 
-! LOCAL VAR
-  REAL, DIMENSION( its:ite , kts:kte ) ::   t
-  INTEGER ::               i,j,k
+!local variables and arrays:
+ integer:: i,j,k
 
-!+---+-----------------------------------------------------------------+
-      REAL, DIMENSION(kts:kte):: qv1d, t1d, p1d, qr1d, qs1d, qg1d, dBZ
-      LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
-      INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
-!+---+-----------------------------------------------------------------+
-! to calculate effective radius for radiation
-  REAL, DIMENSION( kts:kte ) :: den1d
-  REAL, DIMENSION( kts:kte ) :: qc1d
-  REAL, DIMENSION( kts:kte ) :: qi1d
-  REAL, DIMENSION( kts:kte ) :: re_qc, re_qi, re_qs
+ real(kind=kind_phys),dimension(its:ite,kts:kte)::   t
+ real(kind=kind_phys),dimension(kts:kte):: qv1d,t1d,p1d,qr1d,qs1d,qg1d,dBZ
+ real(kind=kind_phys),dimension(kts:kte):: den1d,qc1d,qi1d,re_qc,re_qi,re_qs
 
-  REAL, DIMENSION(its:ite,kts:kte):: den_hv,p_hv,delz_hv
-  REAL, DIMENSION(its:ite,kts:kte):: qv_hv
-  REAL, DIMENSION(its:ite,kts:kte):: qc_hv
-  REAL, DIMENSION(its:ite,kts:kte):: qi_hv
-  REAL, DIMENSION(its:ite,kts:kte):: qr_hv
-  REAL, DIMENSION(its:ite,kts:kte):: qs_hv
-  REAL, DIMENSION(its:ite,kts:kte):: qg_hv
+ real(kind=kind_phys),dimension(its:ite):: rainncv_hv,rain_hv,sr_hv
+ real(kind=kind_phys),dimension(its:ite):: snowncv_hv,snow_hv
+ real(kind=kind_phys),dimension(its:ite):: graupelncv_hv,graupel_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: den_hv,p_hv,delz_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qi_hv,qr_hv,qs_hv,qg_hv
 
-  REAL, DIMENSION(its:ite):: rainncv_hv,rain_hv,sr_hv
-  REAL, DIMENSION(its:ite):: snowncv_hv,snow_hv
-  REAL, DIMENSION(its:ite):: graupelncv_hv,graupel_hv
 
-      DO j=jts,jte
-         DO k=kts,kte
-         DO i=its,ite
-            den_hv(i,k)  = den(i,k,j)
-            p_hv(i,k)    = p(i,k,j)
-            delz_hv(i,k) = delz(i,k,j)
+!-----------------------------------------------------------------------------------------------------------------
 
-            t(i,k)=th(i,k,j)*pii(i,k,j)
-            qv_hv(i,k) = q(i,k,j)
-            qc_hv(i,k) = qc(i,k,j)
-            qi_hv(i,k) = qi(i,k,j)
-            qr_hv(i,k) = qr(i,k,j)
-            qs_hv(i,k) = qs(i,k,j)
-            qg_hv(i,k) = qg(i,k,j)
-         ENDDO
-         ENDDO
+ do j = jts,jte
 
-         do i = its,ite
-            rain_hv(i) = rain(i,j)
-         enddo
-         if(present(snow) .and. present(snowncv)) then
-            do i = its,ite
-               snow_hv(i) = snow(i,j)
-            enddo
-         endif
-         if(present(graupel) .and. present(graupelncv)) then
-            do i = its,ite
-               graupel_hv(i) = graupel(i,j)
-            enddo
-         endif
+    do i = its,ite
+       !input arguments:
+       do k = kts,kte
+          den_hv(i,k)  = den(i,k,j)
+          p_hv(i,k)    = p(i,k,j)
+          delz_hv(i,k) = delz(i,k,j)
+       enddo
 
-         !  Sending array starting locations of optional variables may cause
-         !  troubles, so we explicitly change the call.
-         CALL wsm62D(t, qv_hv                                      &
-                    ,den_hv                                        &
-                    ,p_hv, delz_hv                                 &
-                    ,delt,g, cpd, cpv, rd, rv, t0c                 &
-                    ,ep1, ep2, qmin                                &
-                    ,XLS, XLV0, XLF0, den0, denr                   &
-                    ,cliq,cice,psat                                &
-                    ,j                                             &
-                    ,rain_hv,rainncv_hv                            &
-                    ,sr_hv                                         &
-                    ,ids,ide, jds,jde, kds,kde                     &
-                    ,ims,ime, jms,jme, kms,kme                     &
-                    ,its,ite, jts,jte, kts,kte                     &
-                    ,snow_hv,snowncv_hv                            &
-                    ,graupel_hv,graupelncv_hv                      &
-                    ,qc_hv,qi_hv,qr_hv,qs_hv,qg_hv                 &
+       !inout arguments:
+       rain_hv(i) = rain(i,j)
+
+       do k = kts,kte
+          t(i,k) = th(i,k,j)*pii(i,k,j)
+          qv_hv(i,k) = q(i,k,j)
+          qc_hv(i,k) = qc(i,k,j)
+          qi_hv(i,k) = qi(i,k,j)
+          qr_hv(i,k) = qr(i,k,j)
+          qs_hv(i,k) = qs(i,k,j)
+          qg_hv(i,k) = qg(i,k,j)
+       enddo
+    enddo
+
+    if(present(snow) .and. present(snowncv)) then
+       do i = its,ite
+          snow_hv(i) = snow(i,j)
+       enddo
+    endif
+    if(present(graupel) .and. present(graupelncv)) then
+       do i = its,ite
+          graupel_hv(i) = graupel(i,j)
+       enddo
+    endif
+
+    call wsm62D(t,qv_hv,den_hv,p_hv, delz_hv,           &
+                delt,g,cpd,cpv,rd,rv,t0c,ep1,ep2,qmin,  &
+                xls,xlv0,xlf0,den0,denr,cliq,cice,psat, &
+                j,                                      &
+                rain_hv,rainncv_hv,sr_hv,               &
+                ids,ide,jds,jde,kds,kde,                &
+                ims,ime,jms,jme,kms,kme,                &
+                its,ite,jts,jte,kts,kte,                &
+                snow_hv,snowncv_hv,                     &
+                graupel_hv,graupelncv_hv,               &
+                qc_hv,qi_hv,qr_hv,qs_hv,qg_hv           &
 #if ( WRF_CHEM == 1) 
-                    ,wetscav_on, rainprod2d, evapprod2d            &
+                ,wetscav_on, rainprod2d, evapprod2d     &
 #endif
-                                                                   )
-         DO K=kts,kte
-         DO I=its,ite
-            th(i,k,j)=t(i,k)/pii(i,k,j)
-            q(i,k,j)  = qv_hv(i,k)
-            qc(i,k,j) = qc_hv(i,k)
-            qi(i,k,j) = qi_hv(i,k)
-            qr(i,k,j) = qr_hv(i,k)
-            qs(i,k,j) = qs_hv(i,k)
-            qg(i,k,j) = qg_hv(i,k)
-         ENDDO
-         ENDDO
+                )
 
-         do i = its,ite
-            rain(i,j)    = rain_hv(i)
-            rainncv(i,j) = rainncv_hv(i)
-            sr(i,j)      = sr_hv(i)
-         enddo
-         if(present(snow) .and. present(snowncv)) then
-            do i = its,ite
-               snow(i,j)    = snow_hv(i)
-               snowncv(i,j) = snowncv_hv(i)
-            enddo
-         endif
-         if(present(graupel) .and. present(graupelncv)) then
-            do i = its,ite
-               graupel(i,j)    = graupel_hv(i)
-               graupelncv(i,j) = graupelncv_hv(i)
-            enddo
-         endif
+    do i = its,ite
+       !inout arguments:
+       rain(i,j)    = rain_hv(i)
+       rainncv(i,j) = rainncv_hv(i)
+       sr(i,j)      = sr_hv(i)
 
-!+---+-----------------------------------------------------------------+
-         IF ( PRESENT (diagflag) ) THEN
-         if (diagflag .and. do_radar_ref == 1) then
-            DO I=its,ite
-               DO K=kts,kte
-                  t1d(k)=th(i,k,j)*pii(i,k,j)
-                  p1d(k)=p(i,k,j)
-                  qv1d(k)=q(i,k,j)
-                  qr1d(k)=qr(i,k,j)
-                  qs1d(k)=qs(i,k,j)
-                  qg1d(k)=qg(i,k,j)
-               ENDDO
-               call refl10cm_wsm6 (qv1d, qr1d, qs1d, qg1d,              &
-                       t1d, p1d, dBZ, kts, kte, i, j)
-               do k = kts, kte
-                  refl_10cm(i,k,j) = MAX(-35., dBZ(k))
-               enddo
-            ENDDO
-         endif
-         ENDIF
+       do k = kts,kte
+          th(i,k,j) = t(i,k)/pii(i,k,j)
+          q(i,k,j)  = qv_hv(i,k)
+          qc(i,k,j) = qc_hv(i,k)
+          qi(i,k,j) = qi_hv(i,k)
+          qr(i,k,j) = qr_hv(i,k)
+          qs(i,k,j) = qs_hv(i,k)
+          qg(i,k,j) = qg_hv(i,k)
+       enddo
+    enddo
 
-        if (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) then
-          do i=its,ite
-            do k=kts,kte
-              re_qc(k) = RE_QC_BG
-              re_qi(k) = RE_QI_BG
-              re_qs(k) = RE_QS_BG
+    if(present(snow) .and. present(snowncv)) then
+       do i = its,ite
+          snow(i,j)    = snow_hv(i)
+          snowncv(i,j) = snowncv_hv(i)
+       enddo
+    endif
+    if(present(graupel) .and. present(graupelncv)) then
+       do i = its,ite
+          graupel(i,j)    = graupel_hv(i)
+          graupelncv(i,j) = graupelncv_hv(i)
+       enddo
+    endif
 
-              t1d(k)  = th(i,k,j)*pii(i,k,j)
-              den1d(k)= den(i,k,j)
-              qc1d(k) = qc(i,k,j)
-              qi1d(k) = qi(i,k,j)
-              qs1d(k) = qs(i,k,j)
-            enddo
-            call effectRad_wsm6(t1d, qc1d, qi1d, qs1d, den1d,           &
-                                qmin, t0c, re_qc, re_qi, re_qs,         &
-                                kts, kte, i, j)
-            do k=kts,kte
-              re_cloud(i,k,j) = MAX(RE_QC_BG, MIN(re_qc(k),  50.E-6))
-              re_ice(i,k,j)   = MAX(RE_QI_BG, MIN(re_qi(k), 125.E-6))
-              re_snow(i,k,j)  = MAX(RE_QS_BG, MIN(re_qs(k), 999.E-6))
-            enddo 
-          enddo   
-        endif     ! has_reqc, etc...
-!+---+-----------------------------------------------------------------+
-#if( WRF_CHEM == 1 )
-        if( wetscav_on ) then
-          do i=its,ite
-            do k=kts,kte
-              rainprod(i,k,j) = rainprod2d(i,k)
-              evapprod(i,k,j) = evapprod2d(i,k)
-            enddo
-          enddo
-        endif
-#endif
-      ENDDO
-  END SUBROUTINE wsm6
-!===================================================================
+ enddo
+
+ end subroutine wsm6
+
+!=================================================================================================================
 !
   SUBROUTINE wsm62D(t, q                                          &   
                    ,den, p, delz                                  &
@@ -2731,6 +2655,7 @@ CONTAINS
       endif
 
       end subroutine effectRad_wsm6
-!-----------------------------------------------------------------------
 
-END MODULE module_mp_wsm6
+!=================================================================================================================
+ end module module_mp_wsm6
+!=================================================================================================================
