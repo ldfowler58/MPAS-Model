@@ -245,16 +245,16 @@
 !... where: Nwfa=50 per cc, emit 0.875E4 aerosols per second per grid box unit
 !... that was tested as ~(20kmx20kmx50m = 2.E10 m**-3).
 
- k = 1
- do iCell = 1, nCellsSolve
+!k = 1
+!do iCell = 1, nCellsSolve
 !   airmass = rho_zz(k,iCell)*zz(k,iCell)
 !   airmass = airmass*(zgrid(k+1,iCell)-zgrid(k,iCell))*areaCell(iCell) ! (in kg)
 !   nwfa2d(iCell) = nwfa(k,iCell)*0.000196*(airmass*2.E-10)
-    nwfa2d(iCell) = 0._RKIND
-    nifa2d(iCell) = 0._RKIND
+!   nwfa2d(iCell) = 0._RKIND
+!   nifa2d(iCell) = 0._RKIND
 !   call mpas_log_write('$i $r $r $r $r',intArgs=(/iCell/),realArgs=(/airmass,nwfa2d(iCell), &
 !                       nwfa2d(iCell)*450.,nifa2d(iCell)/))
- enddo
+!enddo
 
 !... deallocate local arrays:
  if(allocated(hgt)) deallocate(hgt)
