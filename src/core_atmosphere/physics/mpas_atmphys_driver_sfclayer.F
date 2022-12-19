@@ -79,6 +79,9 @@
 ! * since we removed the local variable sfclayer_scheme from mpas_atmphys_vars.F, now defines sfclayer_scheme
 !   as a pointer to config_sfclayer_scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2917-02-16.
+! * corrected deallocation of flhc_sea and flqc_sea. removed deallocation of znt_sea as it is now needed
+!   in mpas_atmphys_driver_lsm.F.
+!   Laura D. Fowler (laura@ucar.edu) / 2022-12-19.
 
 
  contains
@@ -271,8 +274,8 @@
     if(allocated(xice_p)     ) deallocate(xice_p     )
 
     if(allocated(br_sea)     ) deallocate(br_sea     )
-    if(allocated(flhc_p)     ) deallocate(flhc_sea   )
-    if(allocated(flqc_p)     ) deallocate(flqc_sea   )
+    if(allocated(flhc_sea)   ) deallocate(flhc_sea   )
+    if(allocated(flqc_sea)   ) deallocate(flqc_sea   )
     if(allocated(gz1oz0_sea) ) deallocate(gz1oz0_sea )
     if(allocated(mol_sea)    ) deallocate(mol_sea    )
     if(allocated(psih_sea)   ) deallocate(psih_sea   )
@@ -296,7 +299,6 @@
     if(allocated(mavail_sea) ) deallocate(mavail_sea )
     if(allocated(tsk_sea)    ) deallocate(tsk_sea    )
     if(allocated(xland_sea)  ) deallocate(xland_sea  )
-    if(allocated(znt_sea)    ) deallocate(znt_sea    )
  endif
 
  sfclayer_select: select case (trim(sfclayer_scheme))
@@ -830,11 +832,12 @@
  real(kind=RKIND),dimension(:),pointer:: areaCell
 
 !local variables:
+ integer:: i,j
  integer:: initflag
  real(kind=RKIND):: dx
 
 !-----------------------------------------------------------------------------------------------------------------
-!call mpas_log_write('')
+!call mpas_log_write(' ')
 !call mpas_log_write('--- enter subroutine driver_sfclayer:')
 
  call mpas_pool_get_config(configs,'config_do_restart'     ,config_do_restart )

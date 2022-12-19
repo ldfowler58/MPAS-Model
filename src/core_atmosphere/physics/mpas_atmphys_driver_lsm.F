@@ -95,6 +95,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2017-02-19.
 ! * replaced the option "noah" with "sf_noah" to run the NOAH land surface scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2022-02-18.
+! * added weighting znt over seaice points and added deallocation of znt_sea.
+!   Laura D. Fowler (laura@ucar.edu) / 2022-12-19.
 
 
 !
@@ -286,6 +288,7 @@
     if(allocated(qgh_sea)   ) deallocate(qgh_sea   )
     if(allocated(qsfc_sea)  ) deallocate(qsfc_sea  )
     if(allocated(lh_sea)    ) deallocate(lh_sea    )
+    if(allocated(znt_sea)   ) deallocate(znt_sea   )
     if(allocated(tsk_sea)   ) deallocate(tsk_sea   )
     if(allocated(tsk_ice)   ) deallocate(tsk_ice   )
     if(allocated(albsi_p)   ) deallocate(albsi_p   )
@@ -587,6 +590,8 @@
  integer:: i,j,n
 
 !-----------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine lsm_to_MPAS:')
 
  call mpas_pool_get_config(configs,'config_frac_seaice'  ,config_frac_seaice  )
  call mpas_pool_get_config(configs,'config_microp_scheme',config_microp_scheme)
@@ -721,6 +726,7 @@
           qfx(i)        = xice_p(i,j)*qfx_p(i,j)  + (1._RKIND-xice_p(i,j))*qfx_sea(i,j)
           qgh(i)        = xice_p(i,j)*qgh_p(i,j)  + (1._RKIND-xice_p(i,j))*qgh_sea(i,j)
           qsfc(i)       = xice_p(i,j)*qsfc_p(i,j) + (1._RKIND-xice_p(i,j))*qsfc_sea(i,j)
+          znt(i)        = xice_p(i,j)*znt_p(i,j)  + (1._RKIND-xice_p(i,j))*znt_sea(i,j)
           skintemp(i)   = xice_p(i,j)*tsk_p(i,j)  + (1._RKIND-xice_p(i,j))*tsk_sea(i,j)
           sfc_albedo(i) = xice_p(i,j)*sfc_albedo_p(i,j) + (1._RKIND-xice_p(i,j))*0.08_RKIND
           sfc_emiss(i)  = xice_p(i,j)*sfc_emiss_p(i,j)  + (1._RKIND-xice_p(i,j))*0.98_RKIND
@@ -738,6 +744,9 @@
     enddo
     enddo
  endif
+
+!call mpas_log_write('--- exit subroutine lsm_to_MPAS:')
+!call mpas_log_write(' ')
 
  end subroutine lsm_to_MPAS
  
