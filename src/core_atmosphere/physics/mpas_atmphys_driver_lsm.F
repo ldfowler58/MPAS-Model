@@ -97,6 +97,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2022-02-18.
 ! * added weighting znt over seaice points and added deallocation of znt_sea.
 !   Laura D. Fowler (laura@ucar.edu) / 2022-12-19.
+! * removed "if(config_frac_seaice)" statements when not needed in subroutines allocate_lsm,deallocate_lsm,
+!   and driver_lsm.
+!   Laura D. Fowler (laura@ucar.edu) / 2022-12-20.
 
 
 !
@@ -113,11 +116,8 @@
 
 
 !=================================================================================================================
- subroutine allocate_lsm(config_frac_seaice)
+ subroutine allocate_lsm
 !=================================================================================================================
-
- logical,intent(in):: config_frac_seaice
-!-----------------------------------------------------------------------------------------------------------------
 
 !arrays for soil layer properties:
  if(.not.allocated(dzs_p)   ) allocate(dzs_p(1:num_soils)                   )
@@ -190,22 +190,18 @@
  if(.not.allocated(sfcheadrt_p) ) allocate(sfcheadrt_p(ims:ime,jms:jme) )
  if(.not.allocated(soldrain_p)  ) allocate(soldrain_p(ims:ime,jms:jme)  )
 
- if(config_frac_seaice) then
-    if(.not.allocated(tsk_sea)   ) allocate(tsk_sea(ims:ime,jms:jme)   )
-    if(.not.allocated(tsk_ice)   ) allocate(tsk_ice(ims:ime,jms:jme)   )
-    if(.not.allocated(albsi_p)   ) allocate(albsi_p(ims:ime,jms:jme)   )
-    if(.not.allocated(icedepth_p)) allocate(icedepth_p(ims:ime,jms:jme))
-    if(.not.allocated(snowsi_p)  ) allocate(snowsi_p(ims:ime,jms:jme)  )
- endif
+!arrays for seaice grid-points:
+ if(.not.allocated(tsk_sea)     ) allocate(tsk_sea(ims:ime,jms:jme)     )
+ if(.not.allocated(tsk_ice)     ) allocate(tsk_ice(ims:ime,jms:jme)     )
+ if(.not.allocated(albsi_p)     ) allocate(albsi_p(ims:ime,jms:jme)     )
+ if(.not.allocated(icedepth_p)  ) allocate(icedepth_p(ims:ime,jms:jme)  )
+ if(.not.allocated(snowsi_p)    ) allocate(snowsi_p(ims:ime,jms:jme)    )
 
  end subroutine allocate_lsm
 
 !=================================================================================================================
- subroutine deallocate_lsm(config_frac_seaice)
+ subroutine deallocate_lsm
 !=================================================================================================================
-
- logical,intent(in):: config_frac_seaice
-!-----------------------------------------------------------------------------------------------------------------
 
 !arrays for soil layer properties:
  if(allocated(dzs_p)   ) deallocate(dzs_p   )
@@ -278,23 +274,22 @@
  if(allocated(sfcheadrt_p) ) deallocate(sfcheadrt_p )
  if(allocated(soldrain_p)  ) deallocate(soldrain_p  )
 
- if(config_frac_seaice) then
-    if(allocated(chs_sea)   ) deallocate(chs_sea   )
-    if(allocated(chs2_sea)  ) deallocate(chs2_sea  )
-    if(allocated(cqs2_sea)  ) deallocate(cqs2_sea  )
-    if(allocated(cpm_sea)   ) deallocate(cpm_sea   )
-    if(allocated(hfx_sea)   ) deallocate(hfx_sea   )
-    if(allocated(qfx_sea)   ) deallocate(qfx_sea   )
-    if(allocated(qgh_sea)   ) deallocate(qgh_sea   )
-    if(allocated(qsfc_sea)  ) deallocate(qsfc_sea  )
-    if(allocated(lh_sea)    ) deallocate(lh_sea    )
-    if(allocated(znt_sea)   ) deallocate(znt_sea   )
-    if(allocated(tsk_sea)   ) deallocate(tsk_sea   )
-    if(allocated(tsk_ice)   ) deallocate(tsk_ice   )
-    if(allocated(albsi_p)   ) deallocate(albsi_p   )
-    if(allocated(icedepth_p)) deallocate(icedepth_p)
-    if(allocated(snowsi_p)  ) deallocate(snowsi_p  )
- endif
+!arrays for seaice grid-points:
+ if(allocated(tsk_sea)     ) deallocate(tsk_sea     )
+ if(allocated(tsk_ice)     ) deallocate(tsk_ice     )
+ if(allocated(albsi_p)     ) deallocate(albsi_p     )
+ if(allocated(icedepth_p)  ) deallocate(icedepth_p  )
+ if(allocated(snowsi_p)    ) deallocate(snowsi_p    )
+ if(allocated(chs_sea)     ) deallocate(chs_sea     )
+ if(allocated(chs2_sea)    ) deallocate(chs2_sea    )
+ if(allocated(cqs2_sea)    ) deallocate(cqs2_sea    )
+ if(allocated(cpm_sea)     ) deallocate(cpm_sea     )
+ if(allocated(hfx_sea)     ) deallocate(hfx_sea     )
+ if(allocated(qfx_sea)     ) deallocate(qfx_sea     )
+ if(allocated(qgh_sea)     ) deallocate(qgh_sea     )
+ if(allocated(qsfc_sea)    ) deallocate(qsfc_sea    )
+ if(allocated(lh_sea)      ) deallocate(lh_sea      )
+ if(allocated(znt_sea)     ) deallocate(znt_sea     )
 
  end subroutine deallocate_lsm
 
@@ -864,8 +859,7 @@
                 its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte               &
                )
 
-       if(config_frac_seaice) then
-          call seaice_noah( &
+       call seaice_noah( &
                 dz8w      = dz_p        , p8w3d   = pres2_hyd_p  , t3d      = t_p      , &
                 qv3d      = qv_p        , xice    = xice_p       , snoalb2d = snoalb_p , &
                 glw       = glw_p       , swdown  = swdown_p     , rainbl   = rainbl_p , &
@@ -893,8 +887,7 @@
                 ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde ,  &
                 ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,  &
                 its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte    &
-                          )
-       endif
+                       )
 
        call sfcdiags( &
                 hfx   = hfx_p  , qfx     = qfx_p   , tsk  = tsk_p , qsfc = qsfc_p , chs = chs_p , &
