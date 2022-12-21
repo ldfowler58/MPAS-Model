@@ -100,6 +100,9 @@
 ! * removed "if(config_frac_seaice)" statements when not needed in subroutines allocate_lsm,deallocate_lsm,
 !   and driver_lsm.
 !   Laura D. Fowler (laura@ucar.edu) / 2022-12-20.
+! * added the initialization of tsk_sea and tsk_ice before the call to subroutine correct_tsk_over_seaice.
+!   changed the initialization of utype_urb_p from low_density_residential to simply 0.
+!   Laura D. Fowler (laura@ucar.edu) / 2022-12-21.
 
 
 !
@@ -470,7 +473,7 @@
     !initialization of arrays to run the Noah LSM urban parameterization (not currently
     frc_urb_p(i,j)    = 0._RKIND
     ust_urb_p(i,j)    = 0._RKIND
-    utype_urb_p(i,j)  = low_density_residential
+    utype_urb_p(i,j)  = 0
 
     !initialization of arrays to run the Noah LSM hydrological parameterization (not currently
     !implemented in MPAS):
@@ -491,6 +494,10 @@
           sfc_albedo_p(i,j) = sfc_albedo(i)
           sfc_emiss_p(i,j)  = sfc_emiss(i)
        endif
+
+       !initialize tsk_sea and tsk_ice:
+       tsk_sea(i,j) = tsk_p(i,j)
+       tsk_ice(i,j) = tsk_p(i,j)
     enddo
     enddo
 
