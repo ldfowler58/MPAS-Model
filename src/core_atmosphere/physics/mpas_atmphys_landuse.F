@@ -75,6 +75,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2017-01-13.
 ! * added the initialization of sfc_albedo_seaice which is the surface albedo over seaice points.
 !   Laura D. Fowler (laura@ucar.edu) / 2017-03-02.
+! * removed the initialization of sfc_albedo_seaice. The albedo over seaice points is now set with the
+!   seaice_albedo_opt option in the individual lsm drivers.
+!   Laura D. Fowler (laura@ucar.edu) / 2022-01-10.
 
 
  contains
@@ -108,7 +111,7 @@
  real(kind=RKIND),dimension(:),pointer:: latCell
  real(kind=RKIND),dimension(:),pointer:: snoalb,snowc,xice
  real(kind=RKIND),dimension(:),pointer:: albbck,embck,xicem,xland,z0
- real(kind=RKIND),dimension(:),pointer:: mavail,sfc_albedo,sfc_albedo_seaice,sfc_emiss,thc,ust,znt
+ real(kind=RKIND),dimension(:),pointer:: mavail,sfc_albedo,sfc_emiss,thc,ust,znt
 
 !local variables:
  character(len=StrKIND) :: lutype
@@ -155,7 +158,6 @@
  call mpas_pool_get_array(diag_physics,'sfc_emibck'       ,embck            )
  call mpas_pool_get_array(diag_physics,'mavail'           ,mavail           )
  call mpas_pool_get_array(diag_physics,'sfc_albedo'       ,sfc_albedo       )
- call mpas_pool_get_array(diag_physics,'sfc_albedo_seaice',sfc_albedo_seaice)
  call mpas_pool_get_array(diag_physics,'sfc_emiss'        ,sfc_emiss        )
  call mpas_pool_get_array(diag_physics,'thc'              ,thc              )
  call mpas_pool_get_array(diag_physics,'ust'              ,ust              )
@@ -286,7 +288,6 @@
     if(xice(iCell) .ge. xice_threshold) then
        albbck(iCell) = albd(isice,isn) / 100.
        embck(iCell)  = sfem(isice,isn)
-       sfc_albedo_seaice(iCell) = albbck(iCell)
        if(config_frac_seaice) then
           !0.08 is the albedo over open water.
           !0.98 is the emissivity over open water.
@@ -301,11 +302,7 @@
        znt(iCell) = z0(iCell)
 
        if(associated(mavail)) mavail(iCell) = slmo(isice,isn)
-    else
-       !over seaice-free cells, initialize sfc_albedo_seaice with the background surface albedo:
-       sfc_albedo_seaice(iCell) = albbck(iCell)
     endif
-
  enddo
 
 !call mpas_log_write('--- end subroutine landuse_init_forMPAS')
