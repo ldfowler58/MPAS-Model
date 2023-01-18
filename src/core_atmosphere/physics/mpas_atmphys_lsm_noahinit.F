@@ -46,6 +46,8 @@
 !   land surface scheme.added the categories low_density_residential,high_density_residential,and high_intensity_
 !   industrial.added the variables ztopvtbl and zbotvtbl.
 !   Laura D. Fowler (laura@ucar.edu) / 2017-01-25.
+! * in subroutine soil_veg_gen_parm, modified reading the updated file VEGPARM.TBL.
+!   Laura D. Fowler (laura@ucar.edu) / 2021-01-18.
 
 
  contains
@@ -215,10 +217,12 @@
 
 !local variables:
  character*128:: mess , message
+ character*128:: astring
 
- integer,parameter:: open_ok = 0
+ integer,parameter:: open_ok  = 0
+ integer,parameter:: loop_max = 10
  integer:: lumatch,iindex,lc,num_slope
- integer:: istat
+ integer:: istat,loop_count
 
 !-----SPECIFY VEGETATION RELATED CHARACTERISTICS :
 !ALBBCK: SFC albedo (in percentage)
@@ -254,9 +258,11 @@
        call physics_error_fatal('subroutine soil_veg_gen_arm: ' // &
                                 'failure opening VEGPARM.TBL')
 
-    lumatch=0
+    lumatch = 0
+
+    loop_count = 0
+    read(16,fmt='(A)',end=2002) astring
     find_lutype : do while (lumatch == 0)
-       read(16,*,end=2002)
        read(16,*,end=2002) lutype
        read(16,*) lucats,iindex
 
@@ -266,10 +272,17 @@
           call physics_message(mess)
           lumatch=1
        else
+          loop_count = loop_count + 1
           call physics_message('    skipping over lutype = ' // trim ( lutype ))
-          do lc = 1, lucats+20
-             read(16,*)
-          enddo
+
+          find_vegetation_parameter_flag: do
+             read(16,fmt='(A)',end=2002) astring
+             if(astring(1:21) .eq. 'Vegetation Parameters') then
+                exit find_vegetation_parameter_flag
+             elseif(loop_count .ge. loop_max) then
+                call physics_error_fatal('too many loops in VEGPARM.TBL')
+             endif
+          enddo find_vegetation_parameter_flag
        endif
     enddo find_lutype
 
@@ -387,36 +400,36 @@
  DM_BCAST_INTEGER(lcz_10)
  DM_BCAST_INTEGER(lcz_11)
 
- call mpas_log_write(' LUTYPE  = '//trim(lutype))
- call mpas_log_write(' LUCATS  = $i',intArgs=(/lucats/))
- call mpas_log_write(' IINDEX  = $i',intArgs=(/iindex/))
- call mpas_log_write(' LUMATCH = $i',intArgs=(/lumatch/))
+!call mpas_log_write(' LUTYPE  = '//trim(lutype))
+!call mpas_log_write(' LUCATS  = $i',intArgs=(/lucats/))
+!call mpas_log_write(' IINDEX  = $i',intArgs=(/iindex/))
+!call mpas_log_write(' LUMATCH = $i',intArgs=(/lumatch/))
 
- call mpas_log_write(' TOPT_DATA   = $r',realArgs=(/topt_data/))
- call mpas_log_write(' CMCMAX_DATA = $r',realArgs=(/cmcmax_data/))
- call mpas_log_write(' CFACTR_DATA = $r',realArgs=(/cfactr_data/))
- call mpas_log_write(' RSMAX_DATA  = $r',realArgs=(/rsmax_data/))
- call mpas_log_write(' BARE        = $i',intArgs=(/bare/))
- call mpas_log_write(' NATURAL     = $i',intArgs=(/natural/))
- call mpas_log_write(' LCZ_1       = $i',intArgs=(/lcz_1/))
- call mpas_log_write(' LCZ_2       = $i',intArgs=(/lcz_2/))
- call mpas_log_write(' LCZ_3       = $i',intArgs=(/lcz_3/))
- call mpas_log_write(' LCZ_4       = $i',intArgs=(/lcz_4/))
- call mpas_log_write(' LCZ_5       = $i',intArgs=(/lcz_5/))
- call mpas_log_write(' LCZ_6       = $i',intArgs=(/lcz_6/))
- call mpas_log_write(' LCZ_7       = $i',intArgs=(/lcz_7/))
- call mpas_log_write(' LCZ_8       = $i',intArgs=(/lcz_8/))
- call mpas_log_write(' LCZ_9       = $i',intArgs=(/lcz_9/))
- call mpas_log_write(' LCZ_10      = $i',intArgs=(/lcz_10/))
- call mpas_log_write(' LCZ_11      = $i',intArgs=(/lcz_11/))
- call mpas_log_write('')
- do lc = 1, lucats
-    call mpas_log_write('$i $r $r $r $r $r $r $r $r $r $r $r $r $r $r $r $r $r', intArgs=(/lc/),     &
-                 realArgs=(/shdtbl(lc),float(nrotbl(lc)),rstbl(lc),rgltbl(lc),hstbl(lc),snuptbl(lc), &
-                 maxalb(lc),laimintbl(lc),laimaxtbl(lc),emissmintbl(lc),emissmaxtbl(lc),             &
-                 albedomintbl(lc),albedomaxtbl(lc),z0mintbl(lc),z0maxtbl(lc),ztopvtbl(lc),           &
-                 zbotvtbl(lc)/))
- enddo
+!call mpas_log_write(' TOPT_DATA   = $r',realArgs=(/topt_data/))
+!call mpas_log_write(' CMCMAX_DATA = $r',realArgs=(/cmcmax_data/))
+!call mpas_log_write(' CFACTR_DATA = $r',realArgs=(/cfactr_data/))
+!call mpas_log_write(' RSMAX_DATA  = $r',realArgs=(/rsmax_data/))
+!call mpas_log_write(' BARE        = $i',intArgs=(/bare/))
+!call mpas_log_write(' NATURAL     = $i',intArgs=(/natural/))
+!call mpas_log_write(' LCZ_1       = $i',intArgs=(/lcz_1/))
+!call mpas_log_write(' LCZ_2       = $i',intArgs=(/lcz_2/))
+!call mpas_log_write(' LCZ_3       = $i',intArgs=(/lcz_3/))
+!call mpas_log_write(' LCZ_4       = $i',intArgs=(/lcz_4/))
+!call mpas_log_write(' LCZ_5       = $i',intArgs=(/lcz_5/))
+!call mpas_log_write(' LCZ_6       = $i',intArgs=(/lcz_6/))
+!call mpas_log_write(' LCZ_7       = $i',intArgs=(/lcz_7/))
+!call mpas_log_write(' LCZ_8       = $i',intArgs=(/lcz_8/))
+!call mpas_log_write(' LCZ_9       = $i',intArgs=(/lcz_9/))
+!call mpas_log_write(' LCZ_10      = $i',intArgs=(/lcz_10/))
+!call mpas_log_write(' LCZ_11      = $i',intArgs=(/lcz_11/))
+!call mpas_log_write('')
+!do lc = 1, lucats
+!   call mpas_log_write('$i $r $r $r $r $r $r $r $r $r $r $r $r $r $r $r $r $r', intArgs=(/lc/),     &
+!                realArgs=(/shdtbl(lc),float(nrotbl(lc)),rstbl(lc),rgltbl(lc),hstbl(lc),snuptbl(lc), &
+!                maxalb(lc),laimintbl(lc),laimaxtbl(lc),emissmintbl(lc),emissmaxtbl(lc),             &
+!                albedomintbl(lc),albedomaxtbl(lc),z0mintbl(lc),z0maxtbl(lc),ztopvtbl(lc),           &
+!                zbotvtbl(lc)/))
+!enddo
  call mpas_log_write('    end read VEGPARM.TBL')
 
 !read in soil properties from soilparm.tbl:
