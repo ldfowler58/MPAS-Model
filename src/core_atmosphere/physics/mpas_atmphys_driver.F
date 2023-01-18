@@ -287,14 +287,14 @@
           call deallocate_lsm
 
        elseif(config_lsm_scheme .eq. 'sf_noahmp') then
-          call allocate_lsm_noahmp()
+          call allocate_lsm_noahmp
 !$OMP PARALLEL DO
           do thread=1,nThreads
              call driver_lsm_noahmp(itimestep,block%configs,mesh,diag_physics,diag_physics_noahmp, &
                   output_noahmp,sfc_input,cellSolveThreadStart(thread),cellSolveThreadEnd(thread))
           end do
 !$OMP END PARALLEL DO
-          call deallocate_lsm(config_frac_seaice)
+          call deallocate_lsm_noahmp
         endif
 
     endif

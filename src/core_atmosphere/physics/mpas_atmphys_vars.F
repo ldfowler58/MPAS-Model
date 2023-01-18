@@ -655,8 +655,11 @@
 !=================================================================================================================
 
  logical,parameter:: &
-    ua_phys=.false.    !option to activate UA Noah changes: a different snow-cover physics in the land-surface
+    ua_phys = .false.  !option to activate UA Noah changes: a different snow-cover physics in the land-surface
                        !scheme. That option is not currently implemented in MPAS.
+
+ logical,parameter:: &
+    frpcpn = .false.   !option to define the fraction of frozen precipitation.
 
  integer,parameter:: &
     opt_thcnd = 1      !option to treat thermal conductivity in NoahLSM (new option implemented in WRF 3.8.0).

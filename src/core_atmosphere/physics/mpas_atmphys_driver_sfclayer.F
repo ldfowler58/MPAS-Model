@@ -726,7 +726,7 @@
           cda(i)    = cda_p(i,j)*xice(i)  + (1._RKIND-xice(i))*cda_sea(i,j)
           ck(i)     = ck_p(i,j)*xice(i)   + (1._RKIND-xice(i))*ck_sea(i,j)
           cka(i)    = cka_p(i,j)*xice(i)  + (1._RKIND-xice(i))*cka_sea(i,j)
-          ustm(i)   = ustm_p(i,j)*xice(i)   + (1._RKIND-xice(i))*ustm_sea(i,j)
+          ustm(i)   = ustm_p(i,j)*xice(i) + (1._RKIND-xice(i))*ustm_sea(i,j)
        endif
     enddo
     enddo
