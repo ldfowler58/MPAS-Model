@@ -12,8 +12,8 @@
  use mpas_pool_routines
  use mpas_timer,only: mpas_timer_start, mpas_timer_stop
 
-!use mpas_atmphys_constants
  use mpas_atmphys_constants,only: degrad
+ use mpas_atmphys_driver_lsm_shared,only: correct_tsk_over_seaice
  use mpas_atmphys_manager,only: curr_julday,year
  use mpas_atmphys_lsm_noahmpinit,only: noahmp_init_formpas
  use mpas_atmphys_vars
@@ -22,12 +22,13 @@
 
 !wrf physics:
  use module_sf_noahmpdrv
+ use module_sf_noah_seaice_drv
 
 
  private
- public:: init_lsm_noahmp,           &
-          allocate_lsm_noahmp,       &
-          deallocate_lsm_deallocate, &
+ public:: init_lsm_noahmp,       &
+          allocate_lsm_noahmp,   &
+          deallocate_lsm_noahmp, &
           driver_lsm_noahmp
 
 
@@ -52,7 +53,7 @@
 
 
 !=================================================================================================================
- subroutine allocate_lsm_noahmp()
+ subroutine allocate_lsm_noahmp
 !=================================================================================================================
 
 !input arrays for soil layers properties:
@@ -84,6 +85,22 @@
  if(.not.allocated(swdown_p)      ) allocate(swdown_p(ims:ime,jms:jme)                  )
  if(.not.allocated(rainbl_p)      ) allocate(rainbl_p(ims:ime,jms:jme)                  )
  if(.not.allocated(sr_p)          ) allocate(sr_p(ims:ime,jms:jme)                      )
+
+
+!arrays for seaice grid-points:
+ if(.not.allocated(tsk_sea)       ) allocate(tsk_sea(ims:ime,jms:jme)                   )
+ if(.not.allocated(tsk_ice)       ) allocate(tsk_ice(ims:ime,jms:jme)                   )
+ if(.not.allocated(albsi_p)       ) allocate(albsi_p(ims:ime,jms:jme)                   )
+ if(.not.allocated(icedepth_p)    ) allocate(icedepth_p(ims:ime,jms:jme)                )
+ if(.not.allocated(snowsi_p)      ) allocate(snowsi_p(ims:ime,jms:jme)                  )
+
+ if(.not.allocated(br_p)          ) allocate(br_p(ims:ime,jms:jme)                      )
+ if(.not.allocated(chs_p)         ) allocate(chs_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(chs2_p)        ) allocate(chs2_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(cqs2_p)        ) allocate(cqs2_p(ims:ime,jms:jme)                    )
+ if(.not.allocated(cpm_p)         ) allocate(cpm_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(qgh_p)         ) allocate(qgh_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(snoalb_p)      ) allocate(snoalb_p(ims:ime,jms:jme)                  )
 
 
 !input arrays for NOAHMP only:
@@ -286,7 +303,7 @@
  end subroutine allocate_lsm_noahmp
 
 !=================================================================================================================
- subroutine deallocate_lsm_noahmp()
+ subroutine deallocate_lsm_noahmp
 !=================================================================================================================
 
 !input arrays for soil layer properties:
@@ -318,6 +335,31 @@
  if(allocated(swdown_p)      ) deallocate(swdown_p      )
  if(allocated(rainbl_p)      ) deallocate(rainbl_p      )
  if(allocated(sr_p)          ) deallocate(sr_p          )
+
+
+!arrays for seaice grid-points:
+ if(allocated(tsk_sea)       ) deallocate(tsk_sea       )
+ if(allocated(tsk_ice)       ) deallocate(tsk_ice       )
+ if(allocated(albsi_p)       ) deallocate(albsi_p       )
+ if(allocated(icedepth_p)    ) deallocate(icedepth_p    )
+ if(allocated(snowsi_p)      ) deallocate(snowsi_p      )
+ if(allocated(chs_sea)       ) deallocate(chs_sea       )
+ if(allocated(chs2_sea)      ) deallocate(chs2_sea      )
+ if(allocated(cqs2_sea)      ) deallocate(cqs2_sea      )
+ if(allocated(cpm_sea)       ) deallocate(cpm_sea       )
+ if(allocated(hfx_sea)       ) deallocate(hfx_sea       )
+ if(allocated(qfx_sea)       ) deallocate(qfx_sea       )
+ if(allocated(qgh_sea)       ) deallocate(qgh_sea       )
+ if(allocated(qsfc_sea)      ) deallocate(qsfc_sea      )
+ if(allocated(lh_sea)        ) deallocate(lh_sea        )
+ if(allocated(znt_sea)       ) deallocate(znt_sea       )
+
+ if(allocated(br_p)          ) deallocate(br_p          )
+ if(allocated(chs_p)         ) deallocate(chs_p         )
+ if(allocated(chs2_p)        ) deallocate(chs2_p        )
+ if(allocated(cqs2_p)        ) deallocate(cqs2_p        )
+ if(allocated(cpm_p)         ) deallocate(cpm_p         )
+ if(allocated(snoalb_p)      ) deallocate(snoalb_p      )
 
 
 !input arrays for NOAHMP only:
@@ -538,18 +580,20 @@
 
 
 !local input pointers:
+ logical,pointer:: fractional_seaice
+
  character(len=StrKIND),pointer:: microp_scheme,    &
                                   convection_scheme
  character(len=StrKIND),pointer:: mminlu
 
  integer,dimension(:),pointer:: isltyp,ivgtyp
-
  real(kind=RKIND),pointer:: len_disp
  real(kind=RKIND),dimension(:),pointer:: coszr
  real(kind=RKIND),dimension(:),pointer:: areaCell,latCell,lonCell,meshDensity
  real(kind=RKIND),dimension(:),pointer:: shdmax,tmn,vegfra,vegmax,xice,xland
  real(kind=RKIND),dimension(:),pointer:: glw,gsw,swddif,swddir
  real(kind=RKIND),dimension(:),pointer:: raincv,rainncv,sr
+ real(kind=RKIND),dimension(:),pointer:: snoalb
  real(kind=RKIND),dimension(:,:),pointer:: dzs
 
 
@@ -562,8 +606,8 @@
 
 !local inout pointers shared with the NOAH lsm:
  real(kind=RKIND),dimension(:),pointer:: &
-    skintemp,hfx,qfx,lai,lh,grdflx,smstav,smstot,sfcrunoff,udrunoff,sfc_albedo,snow,snowc,snowh, &
-    canwat,acsnom,acsnow,sfc_emiss,qsfc,z0,znt
+    skintemp,chs,chs2,cqs2,cpm,hfx,qfx,qgh,lai,lh,grdflx,smstav,smstot,sfcrunoff,udrunoff, &
+    sfc_albedo,snow,snowc,snowh,canwat,acsnom,acsnow,sfc_emiss,qsfc,z0,znt
 
  real(kind=RKIND),dimension(:,:),pointer:: &
     smois,sh2o,tslb 
@@ -608,6 +652,7 @@
 
 
 !local input pointers:
+ call mpas_pool_get_config(configs,'config_frac_seaice'      ,fractional_seaice)
  call mpas_pool_get_config(configs,'config_convection_scheme',convection_scheme)
  call mpas_pool_get_config(configs,'config_microp_scheme'    ,microp_scheme    )
  call mpas_pool_get_config(configs,'config_len_disp'         ,len_disp         )
@@ -622,6 +667,7 @@
  call mpas_pool_get_array(sfc_input,'ivgtyp',ivgtyp)
  call mpas_pool_get_array(sfc_input,'dzs'   ,dzs   )
  call mpas_pool_get_array(sfc_input,'shdmax',shdmax)
+ call mpas_pool_get_array(sfc_input,'snoalb',snoalb)
  call mpas_pool_get_array(sfc_input,'tmn'   ,tmn   )
  call mpas_pool_get_array(sfc_input,'vegfra',vegfra)
  call mpas_pool_get_array(sfc_input,'xice'  ,xice  )
@@ -648,8 +694,13 @@
 
 
 !inout pointers shared with the NOAH lsm:
+ call mpas_pool_get_array(diag_physics,'chs'       ,chs       )
+ call mpas_pool_get_array(diag_physics,'chs2'      ,chs2      )
+ call mpas_pool_get_array(diag_physics,'cqs2'      ,cqs2      )
+ call mpas_pool_get_array(diag_physics,'cpm'       ,cpm       )
  call mpas_pool_get_array(diag_physics,'hfx'       ,hfx       )
  call mpas_pool_get_array(diag_physics,'qfx'       ,qfx       )
+ call mpas_pool_get_array(diag_physics,'qgh'       ,qgh       )
  call mpas_pool_get_array(diag_physics,'lh'        ,lh        )
  call mpas_pool_get_array(diag_physics,'grdflx'    ,grdflx    )
  call mpas_pool_get_array(diag_physics,'smstav'    ,smstav    )
@@ -869,6 +920,53 @@
     enddo
  enddo
 
+ if(fractional_seaice) then
+    do j = jts,jte
+       do i = its,ite
+          !modify the surface albedo and surface emissivity, and surface temperatures over sea-ice points:
+          if(xice(i).ge.xice_threshold .and. xice(i).le.1._RKIND) then
+             sfc_albedo_p(i,j) = (sfc_albedo(i) - 0.08_RKIND*(1._RKIND-xice(i))) / xice(i)
+             sfc_emiss_p(i,j)  = (sfc_emiss(i) - 0.98_RKIND*(1._RKIND-xice(i))) / xice(i)
+          else
+             sfc_albedo_p(i,j) = sfc_albedo(i)
+             sfc_emiss_p(i,j)  = sfc_emiss(i)
+          endif
+
+          !initialize tsk_sea and tsk_ice:
+          tsk_sea(i,j) = tsk_p(i,j)
+          tsk_ice(i,j) = tsk_p(i,j)
+
+          !initialize extra variables (note that those variables are nor modified/used in NOAHMP):
+          chs_p(i,j)    = chs(i)
+          chs2_p(i,j)   = chs2(i)
+          cqs2_p(i,j)   = cqs2(i)
+          cpm_p(i,j)    = cpm(i)
+          qgh_p(i,j)    = qgh(i)
+          snoalb_p(i,j) = snoalb(i)
+       enddo
+    enddo
+
+    !calculate sea-surface and sea-ice temperatures over sea-ice grid cells:
+    call correct_tsk_over_seaice(ims,ime,jms,jme,its,ite,jts,jte,xice_threshold,xice_p, &
+                                 tsk_p,tsk_sea,tsk_ice)
+
+    do j = jts,jte
+       do i = its,ite
+          tsk_p(i,j) = tsk_ice(i,j)
+       enddo
+    enddo
+
+    !initialize the surface albedo, the surface albedo over snow-covered seaice, and the
+    !seaice thickness.
+    do j = jts,jte
+       do i = its,ite
+          albsi_p(i,j)    = seaice_albedo_default
+          icedepth_p(i,j) = seaice_thickness_default
+          snowsi_p(i,j)   = seaice_snowdepth_min
+       enddo
+    enddo
+ endif
+
 
 !--- inout arrays for NOAHMP only:
  do j = jts,jte
@@ -1084,10 +1182,14 @@
  type(mpas_pool_type),intent(inout):: sfc_input
 
 
+!local input pointers:
+ logical,pointer:: fractional_seaice
+
+
 !local inout pointers shared with the NOAH lsm:
  real(kind=RKIND),dimension(:),pointer:: &
-    skintemp,hfx,qfx,lai,lh,grdflx,smstav,smstot,sfcrunoff,udrunoff,sfc_albedo,snow,snowc,snowh, &
-    canwat,acsnom,acsnow,sfc_emiss,qsfc,z0,znt
+    skintemp,chs,chs2,cqs2,cpm,hfx,qfx,qgh,lai,lh,grdflx,smstav,smstot,sfcrunoff,udrunoff, &
+    sfc_albedo,snow,snowc,snowh,canwat,acsnom,acsnow,sfc_emiss,qsfc,z0,znt
 
  real(kind=RKIND),dimension(:,:),pointer:: &
     smois,sh2o,tslb
@@ -1145,14 +1247,20 @@
     rainlsm,snowlsm,forctlsm,forcqlsm,forcplsm,forczlsm,forcwlsm,eflxbxy,soilenergy,snowenergy,  &
     canhsxy
 
-
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine lsm_noahmp_to_MPAS:')
 
+ call mpas_pool_get_config(configs,'config_frac_seaice',fractional_seaice)
+
 !inout pointers shared with the NOAH lsm:
+ call mpas_pool_get_array(diag_physics,'chs'       ,chs       )
+ call mpas_pool_get_array(diag_physics,'chs2'      ,chs2      )
+ call mpas_pool_get_array(diag_physics,'cqs2'      ,cqs2      )
+ call mpas_pool_get_array(diag_physics,'cpm'       ,cpm       )
  call mpas_pool_get_array(diag_physics,'hfx'       ,hfx       )
  call mpas_pool_get_array(diag_physics,'qfx'       ,qfx       )
+ call mpas_pool_get_array(diag_physics,'qgh'       ,qgh       )
  call mpas_pool_get_array(diag_physics,'lh'        ,lh        )
  call mpas_pool_get_array(diag_physics,'grdflx'    ,grdflx    )
  call mpas_pool_get_array(diag_physics,'smstav'    ,smstav    )
@@ -1335,27 +1443,27 @@
 !inout arrays shared with the NOAH lsm:
  do j = jts,jte
     do i = its,ite
-       acsnom(i)     = acsnom_p(i,j)     !
-       acsnow(i)     = acsnow_p(i,j)     !
-       canwat(i)     = canwat_p(i,j)     !
-       grdflx(i)     = grdflx_p(i,j)     !
-       hfx(i)        = hfx_p(i,j)        !
-       lh(i)         = lh_p(i,j)         !
-       qfx(i)        = qfx_p(i,j)        !
-       qsfc(i)       = qsfc_p(i,j)       !
+       acsnom(i)     = acsnom_p(i,j)
+       acsnow(i)     = acsnow_p(i,j)
+       canwat(i)     = canwat_p(i,j)
+       grdflx(i)     = grdflx_p(i,j)
+       hfx(i)        = hfx_p(i,j)
+       lh(i)         = lh_p(i,j)
+       qfx(i)        = qfx_p(i,j)
+       qsfc(i)       = qsfc_p(i,j)
        rs(i)         = rs_p(i,j)
-       sfc_albedo(i) = sfc_albedo_p(i,j) !
-       sfc_emiss(i)  = sfc_emiss_p(i,j)  !
-       sfcrunoff(i)  = sfcrunoff_p(i,j)  !
-       smstav(i)     = smstav_p(i,j)     !
-       smstot(i)     = smstot_p(i,j)     !
-       snow(i)       = snow_p(i,j)       !
-       snowc(i)      = snowc_p(i,j)      !
-       snowh(i)      = snowh_p(i,j)      !
-       skintemp(i)   = tsk_p(i,j)        !
-       udrunoff(i)   = udrunoff_p(i,j)   !
-       z0(i)         = z0_p(i,j)         !
-       znt(i)        = znt_p(i,j)        !
+       sfc_albedo(i) = sfc_albedo_p(i,j)
+       sfc_emiss(i)  = sfc_emiss_p(i,j)
+       sfcrunoff(i)  = sfcrunoff_p(i,j)
+       smstav(i)     = smstav_p(i,j)
+       smstot(i)     = smstot_p(i,j)
+       snow(i)       = snow_p(i,j)
+       snowc(i)      = snowc_p(i,j)
+       snowh(i)      = snowh_p(i,j)
+       skintemp(i)   = tsk_p(i,j)
+       udrunoff(i)   = udrunoff_p(i,j)
+       z0(i)         = z0_p(i,j)
+       znt(i)        = znt_p(i,j)
 !for WRF_HYDRO only:
        sfcheadrt(i)    = sfcheadrt_p(i,j)
        infxsrt(i)      = infxsrt_p(i,j)
@@ -1366,13 +1474,34 @@
 
     do n = 1,num_soils
        do i = its,ite
-          sh2o(n,i)  = sh2o_p(i,n,j)     !
-          smois(n,i) = smois_p(i,n,j)    !
-          tslb(n,i)  = tslb_p(i,n,j)     !
+          sh2o(n,i)  = sh2o_p(i,n,j)
+          smois(n,i) = smois_p(i,n,j)
+          tslb(n,i)  = tslb_p(i,n,j)
        enddo
     enddo
  enddo
 
+ if(fractional_seaice) then
+    do j = jts,jte
+       do i = its,ite
+          if(xice_p(i,j).ge.xice_threshold .and. xice_p(i,j).le.1._RKIND) then
+             chs(i)        = xice_p(i,j)*chs_p(i,j)  + (1._RKIND-xice_p(i,j))*chs_sea(i,j)
+             chs2(i)       = xice_p(i,j)*chs2_p(i,j) + (1._RKIND-xice_p(i,j))*chs2_sea(i,j)
+             cqs2(i)       = xice_p(i,j)*cqs2_p(i,j) + (1._RKIND-xice_p(i,j))*cqs2_sea(i,j)
+             cpm(i)        = xice_p(i,j)*cpm_p(i,j)  + (1._RKIND-xice_p(i,j))*cpm_sea(i,j)
+             hfx(i)        = xice_p(i,j)*hfx_p(i,j)  + (1._RKIND-xice_p(i,j))*hfx_sea(i,j)
+             lh(i)         = xice_p(i,j)*lh_p(i,j)   + (1._RKIND-xice_p(i,j))*lh_sea(i,j)
+             qfx(i)        = xice_p(i,j)*qfx_p(i,j)  + (1._RKIND-xice_p(i,j))*qfx_sea(i,j)
+             qgh(i)        = xice_p(i,j)*qgh_p(i,j)  + (1._RKIND-xice_p(i,j))*qgh_sea(i,j)
+             qsfc(i)       = xice_p(i,j)*qsfc_p(i,j) + (1._RKIND-xice_p(i,j))*qsfc_sea(i,j)
+             znt(i)        = xice_p(i,j)*znt_p(i,j)  + (1._RKIND-xice_p(i,j))*znt_sea(i,j)
+             skintemp(i)   = xice_p(i,j)*tsk_p(i,j)  + (1._RKIND-xice_p(i,j))*tsk_sea(i,j)
+             sfc_albedo(i) = xice_p(i,j)*sfc_albedo_p(i,j) + (1._RKIND-xice_p(i,j))*0.08_RKIND
+             sfc_emiss(i)  = xice_p(i,j)*sfc_emiss_p(i,j)  + (1._RKIND-xice_p(i,j))*0.98_RKIND
+          endif
+       enddo
+    enddo
+ endif
 
 !--- inout arrays for NOAHMP only:
  do j = jts,jte
@@ -1621,6 +1750,8 @@
  type(mpas_pool_type),intent(inout):: output_noahmp
  type(mpas_pool_type),intent(inout):: sfc_input
 
+ real(kind=RKIND),dimension(its:ite):: tem1,tem2,tem3,tem4,tem5,tem6,tem7,tem8,tem9,tem10
+
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine driver_lsm_noahmp:')
@@ -1721,6 +1852,36 @@
       ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,                    &
       its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte                      &
                )
+
+
+ call seaice_noah( &
+      dz8w   = dz_p         , p8w3d     = pres2_hyd_p , t3d      = t_p         , &
+      qv3d   = qv_p         , xice      = xice_p      , snoalb2d = snoalb_p    , &
+      glw    = glw_p        , swdown    = swdown_p    , rainbl   = rainbl_p    , &
+      sr     = sr_p         , qgh       = qgh_p       , tsk      = tsk_p       , &
+      hfx    = hfx_p        , qfx       = qfx_p       , lh       = lh_p        , &
+      grdflx = grdflx_p     , qsfc      = qsfc_p      , emiss    = sfc_emiss_p , &
+      albedo = sfc_albedo_p , rib       = br_p        , cqs2     = cqs2_p      , &
+      chs    = chs_p        , chs2      = chs2_p      , z02d     = z0_p        , &
+      znt    = znt_p        , tslb      = tslb_p      , snow     = snow_p      , &
+      snowc  = snowc_p      , snowh2d   = snowh_p     , acsnow   = acsnow_p    , &
+      acsnom = acsnom_p     , sfcrunoff = sfcrunoff_p , albsi    = albsi_p     , &
+      snowsi = snowsi_p     , icedepth  = icedepth_p  , dt       = dt_pbl      , &
+      frpcpn = frpcpn       ,                                                    &
+      seaice_albedo_opt        = seaice_albedo_opt        ,                      &
+      seaice_albedo_default    = seaice_albedo_default    ,                      &
+      seaice_thickness_opt     = seaice_thickness_opt     ,                      &
+      seaice_thickness_default = seaice_thickness_default ,                      &
+      seaice_snowdepth_opt     = seaice_snowdepth_opt     ,                      &
+      seaice_snowdepth_max     = seaice_snowdepth_max     ,                      &
+      seaice_snowdepth_min     = seaice_snowdepth_min     ,                      &
+      xice_threshold           = xice_threshold           ,                      &
+      num_soil_layers          = num_soils                ,                      &
+      sf_urban_physics         = sf_urban_physics         ,                      &
+      ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde ,    &
+      ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,    &
+      its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte      &
+                 )
 
 
 !copy local arrays to MPAS grid:
