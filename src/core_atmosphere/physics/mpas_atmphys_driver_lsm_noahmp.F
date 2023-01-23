@@ -607,7 +607,7 @@
 !local inout pointers shared with the NOAH lsm:
  real(kind=RKIND),dimension(:),pointer:: &
     skintemp,chs,chs2,cqs2,cpm,hfx,qfx,qgh,lai,lh,grdflx,smstav,smstot,sfcrunoff,udrunoff, &
-    sfc_albedo,snow,snowc,snowh,canwat,acsnom,acsnow,sfc_emiss,qsfc,z0,znt
+    sfc_albedo,snow,snowc,snowh,canwat,acsnom,acsnow,sfc_emiss,qsfc,br,z0,znt
 
  real(kind=RKIND),dimension(:,:),pointer:: &
     smois,sh2o,tslb 
@@ -714,6 +714,7 @@
  call mpas_pool_get_array(diag_physics,'acsnow'    ,acsnow    )
  call mpas_pool_get_array(diag_physics,'sfc_emiss' ,sfc_emiss )
  call mpas_pool_get_array(diag_physics,'qsfc'      ,qsfc      )
+ call mpas_pool_get_array(diag_physics,'br'        ,br        )
  call mpas_pool_get_array(diag_physics,'z0'        ,z0        )
  call mpas_pool_get_array(diag_physics,'znt'       ,znt       )
 
@@ -891,6 +892,7 @@
        lh_p(i,j)         = lh(i)
        qfx_p(i,j)        = qfx(i)
        qsfc_p(i,j)       = qsfc(i)
+       br_p(i,j)         = br(i)
        sfc_albedo_p(i,j) = sfc_albedo(i)
        sfc_emiss_p(i,j)  = sfc_emiss(i)
        sfcrunoff_p(i,j)  = sfcrunoff(i)
