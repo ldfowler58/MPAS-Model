@@ -84,7 +84,7 @@ module atm_time_integration
    contains
 
 
-   subroutine atm_timestep(domain, dt, nowTime, itimestep)
+   subroutine atm_timestep(domain, dt, nowTime, itimestep, errmsg, errflg)
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
    ! Advance model state forward in time by the specified time step
    !
@@ -110,6 +110,9 @@ module atm_time_integration
       type (mpas_pool_type), pointer :: state
       character (len=StrKIND), pointer :: config_time_integration
 
+      character(len=*),intent(out):: errmsg
+      integer,intent(out):: errflg
+
 
       clock => domain % clock
       blocklist => domain % blocklist
@@ -118,7 +121,7 @@ module atm_time_integration
       call mpas_pool_get_config(domain % blocklist % configs, 'config_apply_lbcs', config_apply_lbcs)
 
       if (trim(config_time_integration) == 'SRK3') then
-         call atm_srk3(domain, dt, itimestep)
+         call atm_srk3(domain, dt, itimestep, errmsg, errflg)
       else
          call mpas_log_write('Unknown time integration option '//trim(config_time_integration), messageType=MPAS_LOG_ERR)
          call mpas_log_write('Currently, only ''SRK3'' is supported.', messageType=MPAS_LOG_CRIT)
@@ -139,7 +142,7 @@ module atm_time_integration
    end subroutine atm_timestep
 
 
-   subroutine atm_srk3(domain, dt, itimestep)
+   subroutine atm_srk3(domain, dt, itimestep, errmsg, errflg)
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
    ! Advance model state forward in time by the specified time step using 
    !   time-split RK3 scheme
@@ -229,6 +232,9 @@ module atm_time_integration
 
       real (kind=RKIND)  :: time_dyn_step
       logical, parameter :: debug = .false.
+
+      character(len=*),intent(out):: errmsg
+      integer,intent(out):: errflg
 
 
       !
@@ -1652,7 +1658,7 @@ module atm_time_integration
 !$OMP PARALLEL DO
             do thread=1,nThreads
                call driver_microphysics ( block % configs, mesh, state, 2, diag, diag_physics, tend, itimestep, &
-                                          cellSolveThreadStart(thread), cellSolveThreadEnd(thread))
+                                          cellSolveThreadStart(thread), cellSolveThreadEnd(thread),errmsg,errflg)
             end do
 !$OMP END PARALLEL DO
             call mpas_timer_stop('microphysics')

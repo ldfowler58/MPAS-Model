@@ -19,7 +19,9 @@
 !wrf physics:
  use module_mp_kessler
  use module_mp_thompson
- use module_mp_wsm6
+ use module_mp_wsm6,only: wsm6
+ use mp_wsm6,only: mp_wsm6_init
+
 
  implicit none
  private
@@ -241,7 +243,7 @@
  end subroutine deallocate_microphysics
 
 !=================================================================================================================
- subroutine microphysics_init(dminfo,configs,mesh,sfc_input,diag_physics)
+ subroutine microphysics_init(dminfo,configs,mesh,sfc_input,diag_physics,errmsg,errflg)
 !=================================================================================================================
 
 !input arguments:
@@ -249,6 +251,10 @@
  type(mpas_pool_type),intent(in):: configs
  type(mpas_pool_type),intent(in):: mesh
  type(mpas_pool_type),intent(in):: sfc_input
+
+!output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
 
 !inout arguments:
  type(mpas_pool_type),intent(inout):: diag_physics
@@ -267,7 +273,7 @@
         call init_thompson_clouddroplets_forMPAS(mesh,sfc_input,diag_physics)
 
      case("mp_wsm6")
-        call wsm6init(rho_a,rho_r,rho_s,cliq,cpv,hail_opt,.false.)
+        call mp_wsm6_init(rho_a,rho_r,rho_s,cliq,cpv,hail_opt,errmsg,errflg)
 
      case default
 
@@ -276,7 +282,8 @@
  end subroutine microphysics_init
 
 !=================================================================================================================
- subroutine driver_microphysics(configs,mesh,state,time_lev,diag,diag_physics,tend,itimestep,its,ite)
+ subroutine driver_microphysics(configs,mesh,state,time_lev,diag,diag_physics,tend,itimestep,its,ite, &
+                                errmsg,errflg)
 !=================================================================================================================
 
  use mpas_constants, only : rvord
@@ -294,6 +301,10 @@
  type(mpas_pool_type),intent(inout):: diag
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: tend
+
+!output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
 
 !local pointers:
  character(len=StrKIND),pointer:: microp_scheme
@@ -402,6 +413,7 @@
                   graupel  = graupelnc_p , graupelncv = graupelncv_p , sr       = sr_p      , &
                   re_cloud = recloud_p   , re_ice     = reice_p      , re_snow  = resnow_p  , &
                   has_reqc = has_reqc    , has_reqi   = has_reqi     , has_reqs = has_reqs  , &
+                  errmsg   = errmsg      , errflg     = errflg                              , &
                   ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde     , &
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme     , &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
@@ -671,7 +683,7 @@
              zp(k) = z_p(i,k,j) - z_p(i,1,j)+0.5*dz_p(i,1,j) ! height AGL
           enddo
 
-          call refl10cm_wsm6(qv1d,qr1d,qs1d,qg1d,t1d,p1d,dBZ1d,kts,kte,i,j)
+!         call refl10cm_wsm6(qv1d,qr1d,qs1d,qg1d,t1d,p1d,dBZ1d,kts,kte,i,j)
 
           kp = 1
           do k = kts,kte

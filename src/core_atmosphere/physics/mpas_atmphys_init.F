@@ -358,7 +358,7 @@
 
 !initialization of cloud microphysics processes:
  if(config_microp_scheme .ne. 'off') &
-    call microphysics_init(dminfo,configs,mesh,sfc_input,diag_physics)
+    call microphysics_init(dminfo,configs,mesh,sfc_input,diag_physics,errmsg,errflg)
 
 !initialization of surface layer processes:
  if(config_sfclayer_scheme .ne. 'off') call init_sfclayer(configs,errmsg,errflg)
