@@ -12,9 +12,10 @@
  use mpas_pool_routines
  use mpas_timer,only: mpas_timer_start, mpas_timer_stop
 
- use mpas_atmphys_constants,only: degrad
+ use mpas_atmphys_constants,only: cp,degrad,R_d,rcp
  use mpas_atmphys_driver_lsm_shared,only: correct_tsk_over_seaice
  use mpas_atmphys_manager,only: curr_julday,year
+ use mpas_atmphys_landuse,only: isurban
  use mpas_atmphys_lsm_noahmpinit,only: noahmp_init_formpas
  use mpas_atmphys_vars
  use mpas_atmphys_vars_noahmp
@@ -23,6 +24,7 @@
 !wrf physics:
  use module_sf_noahmpdrv
  use module_sf_noah_seaice_drv
+ use module_sf_sfcdiags_noahmp,only: sfcdiags_noahmp
 
 
  private
@@ -209,6 +211,10 @@
  if(.not.allocated(udrunoff_p)    ) allocate(udrunoff_p(ims:ime,jms:jme)                )
  if(.not.allocated(z0_p)          ) allocate(z0_p(ims:ime,jms:jme)                      )
  if(.not.allocated(znt_p)         ) allocate(znt_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(q2_p)          ) allocate(q2_p(ims:ime,jms:jme)                      )
+ if(.not.allocated(t2m_p)         ) allocate(t2m_p(ims:ime,jms:jme)                     )
+ if(.not.allocated(th2m_p)        ) allocate(th2m_p(ims:ime,jms:jme)                    )
+
 
  if(.not.allocated(sfcheadrt_p)   ) allocate(sfcheadrt_p(ims:ime,jms:jme)               )
  if(.not.allocated(infxsrt_p)     ) allocate(infxsrt_p(ims:ime,jms:jme)                 )
@@ -469,6 +475,9 @@
  if(allocated(udrunoff_p)    ) deallocate(udrunoff_p    )
  if(allocated(z0_p)          ) deallocate(z0_p          )
  if(allocated(znt_p)         ) deallocate(znt_p         )
+ if(allocated(q2_p)          ) deallocate(q2_p          )
+ if(allocated(t2m_p)         ) deallocate(t2m_p         )
+ if(allocated(th2m_p)        ) deallocate(th2m_p        )
 
  if(allocated(sfcheadrt_p)   ) deallocate(sfcheadrt_p   )
  if(allocated(infxsrt_p)     ) deallocate(infxsrt_p     )
@@ -607,7 +616,7 @@
 !local inout pointers shared with the NOAH lsm:
  real(kind=RKIND),dimension(:),pointer:: &
     skintemp,chs,chs2,cqs2,cpm,hfx,qfx,qgh,lai,lh,grdflx,smstav,smstot,sfcrunoff,udrunoff, &
-    sfc_albedo,snow,snowc,snowh,canwat,acsnom,acsnow,sfc_emiss,qsfc,br,z0,znt
+    sfc_albedo,snow,snowc,snowh,canwat,acsnom,acsnow,sfc_emiss,qsfc,br,z0,znt,q2,t2m,th2m
 
  real(kind=RKIND),dimension(:,:),pointer:: &
     smois,sh2o,tslb 
@@ -717,6 +726,9 @@
  call mpas_pool_get_array(diag_physics,'br'        ,br        )
  call mpas_pool_get_array(diag_physics,'z0'        ,z0        )
  call mpas_pool_get_array(diag_physics,'znt'       ,znt       )
+ call mpas_pool_get_array(diag_physics,'q2'        ,q2        )
+ call mpas_pool_get_array(diag_physics,'t2m'       ,t2m       )
+ call mpas_pool_get_array(diag_physics,'th2m'      ,th2m      )
 
  call mpas_pool_get_array(sfc_input,'skintemp',skintemp)
  call mpas_pool_get_array(sfc_input,'snow'    ,snow    )
@@ -887,6 +899,8 @@
        acsnom_p(i,j)     = acsnom(i)
        acsnow_p(i,j)     = acsnow(i)
        canwat_p(i,j)     = canwat(i)
+       chs2_p(i,j)       = chs2(i)
+       cqs2_p(i,j)       = cqs2(i)
        grdflx_p(i,j)     = grdflx(i)
        hfx_p(i,j)        = hfx(i)
        lh_p(i,j)         = lh(i)
@@ -905,6 +919,9 @@
        udrunoff_p(i,j)   = udrunoff(i)
        z0_p(i,j)         = z0(i)
        znt_p(i,j)        = znt(i)
+       q2_p(i,j)         = q2(i)
+       t2m_p(i,j)        = t2m(i)
+       th2m_p(i,j)       = th2m(i)
 !for WRF_HYDRO only:
        sfcheadrt_p(i,j)  = sfcheadrt(i)
        infxsrt_p(i,j)    = infxsrt(i)
@@ -940,8 +957,6 @@
 
           !initialize extra variables (note that those variables are nor modified/used in NOAHMP):
           chs_p(i,j)    = chs(i)
-          chs2_p(i,j)   = chs2(i)
-          cqs2_p(i,j)   = cqs2(i)
           cpm_p(i,j)    = cpm(i)
           qgh_p(i,j)    = qgh(i)
           snoalb_p(i,j) = snoalb(i)
@@ -1191,7 +1206,7 @@
 !local inout pointers shared with the NOAH lsm:
  real(kind=RKIND),dimension(:),pointer:: &
     skintemp,chs,chs2,cqs2,cpm,hfx,qfx,qgh,lai,lh,grdflx,smstav,smstot,sfcrunoff,udrunoff, &
-    sfc_albedo,snow,snowc,snowh,canwat,acsnom,acsnow,sfc_emiss,qsfc,z0,znt
+    sfc_albedo,snow,snowc,snowh,canwat,acsnom,acsnow,sfc_emiss,qsfc,z0,znt,q2,t2m,th2m
 
  real(kind=RKIND),dimension(:,:),pointer:: &
     smois,sh2o,tslb
@@ -1278,6 +1293,9 @@
  call mpas_pool_get_array(diag_physics,'qsfc'      ,qsfc      )
  call mpas_pool_get_array(diag_physics,'z0'        ,z0        )
  call mpas_pool_get_array(diag_physics,'znt'       ,znt       )
+ call mpas_pool_get_array(diag_physics,'q2'        ,q2        )
+ call mpas_pool_get_array(diag_physics,'t2m'       ,t2m       )
+ call mpas_pool_get_array(diag_physics,'th2m'      ,th2m      )
 
  call mpas_pool_get_array(sfc_input,'skintemp',skintemp)
  call mpas_pool_get_array(sfc_input,'snow'    ,snow    )
@@ -1466,6 +1484,9 @@
        udrunoff(i)   = udrunoff_p(i,j)
        z0(i)         = z0_p(i,j)
        znt(i)        = znt_p(i,j)
+       q2(i)         = q2_p(i,j)
+       t2m(i)        = t2m_p(i,j)
+       th2m(i)       = th2m_p(i,j)
 !for WRF_HYDRO only:
        sfcheadrt(i)    = sfcheadrt_p(i,j)
        infxsrt(i)      = infxsrt_p(i,j)
@@ -1754,9 +1775,22 @@
 
  real(kind=RKIND),dimension(its:ite):: tem1,tem2,tem3,tem4,tem5,tem6,tem7,tem8,tem9,tem10
 
+!local variables, arrays, and pointers:
+ integer,parameter:: &
+    lcz_1 = 0, lcz_2 = 0, lcz_3 = 0, lcz_4  = 0, lcz_5  = 0, lcz_6 = 0, &
+    lcz_7 = 0, lcz_8 = 0, lcz_9 = 0, lcz_10 = 0, lcz_11 = 0
+
+ integer,pointer:: isice,iswater
+
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine driver_lsm_noahmp:')
+
+ call mpas_pool_get_array(sfc_input,'isice'  ,isice  )
+ call mpas_pool_get_array(sfc_input,'iswater',iswater)
+ call mpas_log_write('--- isice   = $i',intArgs=(/isice/))
+ call mpas_log_write('--- isurban = $i',intArgs=(/isurban/))
+ call mpas_log_write('--- iswater = $i',intArgs=(/iswater/))
 
 
 !copy MPAS arrays to local arrays:
@@ -1884,6 +1918,20 @@
       ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,    &
       its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte      &
                  )
+
+
+ call sfcdiags_noahmp( &
+      isice  = isice    , isurban = isurban  , iswater = iswater  , lcz_1   = lcz_1    , &
+      lcz_2  = lcz_2    , lcz_3   = lcz_3    , lcz_4   = lcz_4    , lcz_5   = lcz_5    , &
+      lcz_6  = lcz_6    , lcz_7   = lcz_7    , lcz_8   = lcz_8    , lcz_9   = lcz_9    , &
+      lcz_10 = lcz_10   , lcz_11  = lcz_11   , cp      = cp       , R_d     = R_d      , &
+      rcp    = rcp      , ivgtyp  = ivgtyp_p , chs2    = chs2_p   , cqs2    = cqs2_p   , &
+      psfc   = psfc_p   , hfx     = hfx_p    , qfx     = qfx_p    , qsfc    = qsfc_p   , &
+      tsk    = tsk_p    , xice    = xice_p   , q2mbxy  = q2mbxy_p , q2mvxy  = q2mvxy_p , &
+      t2mbxy = t2mbxy_p , t2mvxy  = t2mvxy_p , fvegxy  = fvegxy_p , q2      = q2_p     , &
+      t2     = t2m_p    , th2    = th2m_p    , xice_threshold = xice_threshold         , &
+      ims = ims , ime = ime , jms = jms , jme = jme ,                                    &
+      its = its , ite = ite , jts = jts , jte = jte)
 
 
 !copy local arrays to MPAS grid:

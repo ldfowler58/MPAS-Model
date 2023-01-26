@@ -28,6 +28,7 @@ OBJS = \
 	module_ra_rrtmg_sw.o           \
 	module_ra_rrtmg_vinterp.o      \
 	module_sf_sfcdiags.o           \
+	module_sf_sfcdiags_noahmp.o    \
 	module_sf_mynn.o               \
 	module_sf_oml.o                \
 	module_sf_sfclay.o
