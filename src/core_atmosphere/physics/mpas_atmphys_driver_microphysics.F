@@ -399,24 +399,26 @@
     case ("mp_wsm6")
        call mpas_timer_start('WSM6')
        call wsm6( &
-                  th       = th_p        , q          = qv_p         , qc       = qc_p      , &
-                  qr       = qr_p        , qi         = qi_p         , qs       = qs_p      , &
-                  qg       = qg_p        , den        = rho_p        , pii      = pi_p      , &
-                  p        = pres_p      , delz       = dz_p         , delt     = dt_microp , &
-                  g        = gravity     , cpd        = cp           , cpv      = cpv       , &
-                  rd       = R_d         , rv         = R_v          , t0c      = svpt0     , &
-                  ep1      = ep_1        , ep2        = ep_2         , qmin     = epsilon   , &
-                  xls      = xls         , xlv0       = xlv          , xlf0     = xlf       , &
-                  den0     = rho_a       , denr       = rho_w        , cliq     = cliq      , &
-                  cice     = cice        , psat       = psat         , rain     = rainnc_p  , &
-                  rainncv  = rainncv_p   , snow       = snownc_p     , snowncv  = snowncv_p , &
-                  graupel  = graupelnc_p , graupelncv = graupelncv_p , sr       = sr_p      , &
-                  re_cloud = recloud_p   , re_ice     = reice_p      , re_snow  = resnow_p  , &
-                  has_reqc = has_reqc    , has_reqi   = has_reqi     , has_reqs = has_reqs  , &
-                  errmsg   = errmsg      , errflg     = errflg                              , &
-                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde     , &
-                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme     , &
-                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
+                  th        = th_p        , q          = qv_p         , qc        = qc_p      , &
+                  qr        = qr_p        , qi         = qi_p         , qs        = qs_p      , &
+                  qg        = qg_p        , den        = rho_p        , pii       = pi_p      , &
+                  p         = pres_p      , delz       = dz_p         , delt      = dt_microp , &
+                  g         = gravity     , cpd        = cp           , cpv       = cpv       , &
+                  rd        = R_d         , rv         = R_v          , t0c       = svpt0     , &
+                  ep1       = ep_1        , ep2        = ep_2         , qmin      = epsilon   , &
+                  xls       = xls         , xlv0       = xlv          , xlf0      = xlf       , &
+                  den0      = rho_a       , denr       = rho_w        , cliq      = cliq      , &
+                  cice      = cice        , psat       = psat         , rain      = rainnc_p  , &
+                  rainncv   = rainncv_p   , snow       = snownc_p     , snowncv   = snowncv_p , &
+                  graupel   = graupelnc_p , graupelncv = graupelncv_p , sr        = sr_p      , &
+                  re_cloud  = recloud_p   , re_ice     = reice_p      , re_snow   = resnow_p  , &
+                  has_reqc  = has_reqc    , has_reqi   = has_reqi     , has_reqs  = has_reqs  , &
+                  re_qc_bg  = re_qc_bg    , re_qi_bg   = re_qi_bg     , re_qs_bg  = re_qs_bg  , &
+                  re_qc_max = re_qc_max   , re_qi_max  = re_qi_max    , re_qs_max = re_qs_max , &
+                  errmsg    = errmsg      , errflg     = errflg                               , &
+                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde       , &
+                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme       , &
+                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte         &
                )
        call mpas_timer_stop('WSM6')
 
