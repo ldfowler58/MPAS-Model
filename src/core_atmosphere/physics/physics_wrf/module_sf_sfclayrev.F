@@ -190,8 +190,9 @@
        enddo
     endif
 
-    call sf_sfclayrev_timestep_init(its,ite,kts,kte,dz_hv,u_hv,v_hv,qv_hv,p_hv,t_hv, &
-                                    dz1d,u1d,v1d,qv1d,p1d,t1d,errmsg,errflg)
+    call sf_sfclayrev_timestep_init(dz2d=dz_hv,u2d=u_hv,v2d=v_hv,qv2d=qv_hv,p2d=p_hv,t2d=t_hv,     &
+                                    dz1d=dz1d,u1d=u1d,v1d=v1d,qv1d=qv1d,p1d=p1d,t1d=t1d,           &
+                                    its=its,ite=ite,kts=kts,kte=kte,errmsg=errmsg,errflg=errflg)
 
     call sf_sfclayrev_run(ux=u1d,vx=v1d,t1d=t1d,qv1d=qv1d,p1d=p1d,dz8w1d=dz1d,                     &
                           cp=cp,g=g,rovcp=rovcp,r=r,xlv=xlv,psfcpa=psfc_hv,chs=chs_hv,             &
