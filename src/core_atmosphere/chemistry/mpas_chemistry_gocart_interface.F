@@ -722,15 +722,8 @@
     do k = kts,kte
        dpres(i,k) = pres2(i,k)-pres2(i,k+1)
     enddo
-!   do k = kts,kte
-!      call mpas_log_write('$i $i $r $r $r',intArgs=(/i,k/),realArgs=(/pres2(i,k),pres(i,k),dpres(i,k)/))
-!   enddo
-!   k = kte+1
-!   call mpas_log_write('$i $i $r',intArgs=(/i,k/),realArgs=(/pres2(i,k)/))
-!   call mpas_log_write(' ')
  enddo
  if(allocated(pres2)) deallocate(pres2)
-
 
  call mpas_log_write('--- end subroutine mpas_chemistry_from_gocart:')
 
@@ -756,6 +749,10 @@
  real(kind=RKIND):: dt
  real(kind=RKIND),dimension(:),pointer:: nwfa2d_so4,nwfa2d_oc,nwfa2d_seas,nwfa2d
  real(kind=RKIND),dimension(:),pointer:: nifa2d_dust,nifa2d
+
+ integer,pointer:: index_qco
+ real(kind=RKIND),dimension(:,:),pointer:: qco
+ real(kind=RKIND),dimension(:,:,:),pointer:: chems
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -795,47 +792,30 @@
  call mpas_log_write(' ')
 
 
-!--- update diagnostics of the surface emissions of nwfa and nifa:
-!call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
-!call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
-!call mpas_pool_get_array(diag_chems,'nwfa2d_oc'  ,nwfa2d_oc)
-!call mpas_pool_get_array(diag_chems,'nwfa2d_so4' ,nwfa2d_so4)
-!call mpas_pool_get_array(diag_chems,'nwfa2d_seas',nwfa2d_seas)
-!call mpas_pool_get_array(diag_chems,'nifa2d_dust',nifa2d_dust)
-
-!k = kts
-!do i = its,ite
-!   nwfa2d(i) = 3*iconv_oc2*this%tend_qoc2(i,k)      &
-!             + 0.4*iconv_so4*this%tend_qso4a1(i,k)  &
-!             + 50*iconv_seas1*this%tend_qseas1(i,k) &
-!             + 50*iconv_seas2*this%tend_qseas2(i,k)
-
-!   nwfa2d_oc(i)   = 3*iconv_oc2*this%tend_qoc2(i,k)
-!   nwfa2d_so4(i)  = 0.4*iconv_so4*this%tend_qso4a1(i,k)
-!   nwfa2d_seas(i) = 50*iconv_seas1*this%tend_qseas1(i,k) &
-!                  + 50*iconv_seas2*this%tend_qseas2(i,k)
-
-!   nifa2d(i) = iconv_dust1*this%tend_qdust1(i,k) &
-!             + iconv_dust2*this%tend_qdust2(i,k) &
-!             + iconv_dust3*this%tend_qdust3(i,k) &
-!             + iconv_dust4*this%tend_qdust4(i,k) &
-!             + iconv_dust5*this%tend_qdust5(i,k)
-
-!   nifa2d_dust(i) = nifa2d(i)
-!enddo
-
-
+!--- update the surface emissions of "water-friendly" (nwfa2d) and "ice-friendly" (nifa2d) aerosols due to
+!    the surface emissions of anthropogenic and natural aerosols:
  call compute_sfc_nbThompson(its,ite,kts,kte,this%tend_qbc2,this%tend_qoc2,this%tend_qso4a1, &
                         this%tend_qseas1,this%tend_qdust1,this%tend_qdust2,this%tend_qdust3, &
                         this%tend_qdust4,this%tend_qdust5,this%nwfa2d_c,this%nifa2d_c)
 
-!---
  call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
  call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
 
  do i = its,ite
     nifa2d(i) = this%nifa2d_c(i)
     nwfa2d(i) = this%nwfa2d_c(i)
+ enddo
+
+
+!--- update the near-surface CO mixing ratio due to surface emission of CO:
+ call mpas_pool_get_dimension(state,'index_qco',index_qco)
+ call mpas_pool_get_array(state,'chems',chems,time_lev)
+ qco => chems(index_qco,:,:)
+
+ do i = its,ite
+    do k = kts,kte
+       qco(k,i) = this%qco(i,k)
+    enddo
  enddo
 
  call mpas_log_write('--- end subroutine mpas_chemistry_to_gocart:')
