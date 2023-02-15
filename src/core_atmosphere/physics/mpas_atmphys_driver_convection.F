@@ -8,6 +8,7 @@
 !=================================================================================================================
  module mpas_atmphys_driver_convection
  use mpas_kind_types
+ use mpas_dmpar
  use mpas_pool_routines
  use mpas_timer,only: mpas_timer_start,mpas_timer_stop
 
@@ -594,7 +595,7 @@
 !=================================================================================================================
 #ifdef ATM_CHEMISTRY
  subroutine driver_convection(itimestep,configs,mesh,sfc_input,diag_physics,diag_physics_cu,tend_physics,its,ite,&
-                              mpas_chems,mpas_tracers)
+                              dminfo,mpas_chems,mpas_tracers)
 #else
  subroutine driver_convection(itimestep,configs,mesh,sfc_input,diag_physics,diag_physics_cu,tend_physics,its,ite)
 #endif
@@ -604,6 +605,9 @@
  type(mpas_pool_type),intent(in):: configs
  type(mpas_pool_type),intent(in):: mesh
  type(mpas_pool_type),intent(in):: sfc_input
+#ifdef ATM_CHEMISTRY
+ type(dm_info),intent(in):: dminfo
+#endif
 
  integer,intent(in):: its,ite
  integer,intent(in):: itimestep
@@ -643,7 +647,13 @@
  real(kind=RKIND):: cudtacttime
 
 #ifdef ATM_CHEMISTRY
+ logical:: check_mass_conservation
+
  integer,pointer:: gfconv_thom_scaven,gfconv_thom_evap,gfconv_thom_implicit
+
+ real(kind=RKIND):: sum_area,sum_chem_i,sum_chem_f,diff_chem
+ real(kind=RKIND):: glb_chem_i,glb_chem_f,glb_chem_diff
+ real(kind=RKIND),dimension(:,:),allocatable:: chem_i,chem_f,mult_area
 #endif
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -747,6 +757,8 @@
        call mpas_log_write('gfconv_thom_scaven   = $i',intArgs=(/gfconv_thom_scaven/)  )
        call mpas_log_write('gfconv_thom_evap     = $i',intArgs=(/gfconv_thom_evap/)    )
        call mpas_log_write('gfconv_thom_implicit = $i',intArgs=(/gfconv_thom_implicit/))
+
+       check_mass_conservation = .false.
 #endif
 
        call mpas_timer_start('cu_grell_freitas_wrf390')
@@ -806,6 +818,50 @@
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme     , &
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte       &
                             )
+#ifdef ATM_CHEMISTRY
+       if(check_mass_conservation) then
+          if(.not.allocated(mult_area)) allocate(mult_area(its:ite,jts:jte))
+          if(.not.allocated(chem_i)) allocate(chem_i(its:ite,jts:jte))
+          if(.not.allocated(chem_f)) allocate(chem_f(its:ite,jts:jte))
+          sum_area   = 0._RKIND
+          sum_chem_i = 0._RKIND
+          sum_chem_f = 0._RKIND
+          mult_area(:,:) = 0._RKIND
+          chem_i(:,:) = 0._RKIND
+          chem_f(:,:) = 0._RKIND
+          do j = jts,jte
+             do i = its,ite
+                sum_area = sum_area + area_p(i,j)
+             enddo
+             do i = its,ite
+                mult_area(i,j) = area_p(i,j) / sum_area
+             enddo
+          enddo
+
+          do j = jts,jte
+             do i = its,ite
+                do k = kts,kte
+                   chem_i(i,j) = chem_i(i,j) + mpas_chems%chems_p(i,k,j,1)*rho_p(i,k,j)*dz_p(i,k,j)
+                   chem_f(i,j) = chem_f(i,j) + (mpas_chems%chems_p(i,k,j,1) &
+                               + mpas_chems%rchemscuten_p(i,k,j,1)*dt_dyn)*rho_p(i,k,j)*dz_p(i,k,j)
+                enddo
+                sum_chem_i = sum_chem_i + chem_i(i,j)*mult_area(i,j)
+                sum_chem_f = sum_chem_f + chem_f(i,j)*mult_area(i,j)
+             enddo
+          enddo
+          diff_chem = sum_chem_f - sum_chem_i
+          call mpas_dmpar_sum_real(dminfo,sum_chem_i,glb_chem_i)
+          call mpas_dmpar_sum_real(dminfo,sum_chem_f,glb_chem_f)
+          call mpas_dmpar_sum_real(dminfo,diff_chem,glb_chem_diff)
+          call mpas_log_write('--- GF chem conservation: $r $r $r',realArgs=(/glb_chem_i,glb_chem_f,glb_chem_diff/))
+          call mpas_log_write(' ')
+
+          if(allocated(mult_area)) deallocate(mult_area)
+          if(allocated(chem_i)) deallocate(chem_i)
+          if(allocated(chem_f)) deallocate(chem_f)
+       endif
+#endif
+
        call mpas_timer_stop('cu_grell_freitas_wrf390')
        call mpas_log_write('--- end subroutine cu_grell_freitas_wrf390.')
        call mpas_log_write('')
