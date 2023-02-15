@@ -574,15 +574,21 @@
     outtracer       !
 
 !local variables and arrays:
+ logical:: check_mass_conservation
+
  integer:: i,ic,it,k,k2,kb,kc,kd,kt
 
+ real(kind=kind_phys),dimension(nchem)  :: tot_chem
+ real(kind=kind_phys),dimension(ntracer):: tot_tracer
  real(kind=kind_phys),dimension(kts:kte):: fm,fp,znet
 
  real(kind=kind_phys),dimension(:),allocatable:: mult,aterm,bterm,cterm,dterm
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
- call mpas_log_write('--- subroutine cup_transport_tends: nchem = $i  ntracer = $i',intArgs=(/nchem,ntracer/))
+!call mpas_log_write('--- subroutine cup_transport_tends: nchem = $i  ntracer = $i',intArgs=(/nchem,ntracer/))
+
+ check_mass_conservation = .false.
 
  do i = its, itf
     if(ierr(i) .eq. 0) then
@@ -593,20 +599,12 @@
        kc = kt-kts+1
        do k = kts, ktf
           znet(k) = zu(i,k)-edt(i)*zd(i,k)
+          !multiply znet by cloud base mass flux:
+          znet(k) = xmb(i)*znet(k)
+
           fp(k) = 0.5*(znet(k)+abs(znet(k)))
           fm(k) = 0.5*(znet(k)-abs(znet(k)))
        enddo
-
-!      do k = kts,kte
-!         call mpas_log_write('$i $i $i $i $i $r $r $r',intArgs=(/i,k2,kb,kt,k/),realArgs= &
-!                       (/(chem_up(i,k,ic),ic=1,nchem),(tracer_up(i,k,it),it=1,ntracer)/))
-!      enddo
-!      call mpas_log_write(' ')
-!      do k = kts,kte
-!         call mpas_log_write('$i $i $i $r $r $r',intArgs=(/i,kd,k/),realArgs=(/(chem_dn(i,k,ic),ic=1,nchem), &
-!                              (tracer_dn(i,k,it),it=1,ntracer)/))
-!      enddo
-!      call mpas_log_write(' ')
 
        if(.not.allocated(mult) ) allocate(mult(kts:kt) )
        if(.not.allocated(aterm)) allocate(aterm(kts:kt))
@@ -625,7 +623,8 @@
           do k = kts,kt
              dterm(k) = (zu(i,k)*chem_up(i,k,ic)-zu(i,k+1)*chem_up(i,k+1,ic)) &
                       - edt(i)*(zd(i,k)*chem_dn(i,k,ic)-zd(i,k+1)*chem_dn(i,k+1,ic))
-             dterm(k) = chem(i,k,ic) + mult(k)*dtime*dterm(k)
+             !multiply dterm by cloud base mass flux:
+             dterm(k) = chem(i,k,ic) + mult(k)*dtime*xmb(i)*dterm(k)
           enddo
           call tridiag(kc,aterm,bterm,cterm,dterm)
           do k = kts,kt
@@ -638,7 +637,8 @@
           do k = kts,kt
              dterm(k) = (zu(i,k)*tracer_up(i,k,it)-zu(i,k+1)*tracer_up(i,k+1,it)) &
                       - edt(i)*(zd(i,k)*tracer_dn(i,k,it)-zd(i,k+1)*tracer_dn(i,k+1,it))
-             dterm(k) = tracer(i,k,it) + mult(k)*dtime*dterm(k)
+             !multiply dterm by cloud base mass flux:
+             dterm(k) = tracer(i,k,it) + mult(k)*dtime*xmb(i)*dterm(k)
           enddo
           call tridiag(kc,aterm,bterm,cterm,dterm)
           do k = kts,kt
@@ -646,21 +646,33 @@
           enddo
        enddo
 
+       !--- check conservation of mass of chemical species:
+       if(check_mass_conservation) then
+          do ic = 1,nchem
+             tot_chem(ic) = 0._kind_phys
+             do k = kts,kt
+                tot_chem(ic) = tot_chem(ic) + outchem(i,k,ic)*(p_cup(i,k)-p_cup(i,k+1))*100./grav
+             enddo
+             call mpas_log_write('--- $i tot chem = $i $r',intArgs=(/i,ic/),realArgs=(/tot_chem(ic)/))
+          enddo
+          do it = 1,ntracer
+             tot_tracer(it) = 0._kind_phys
+             do k = kts,kt
+                tot_tracer(it) = tot_tracer(it) + outtracer(i,k,it)*(p_cup(i,k)-p_cup(i,k+1))*100./grav
+             enddo
+             call mpas_log_write('--- $i tot tracer = $i $r',intArgs=(/i,it/),realArgs=(/tot_tracer(it)/))
+          enddo
+       endif
+
        if(allocated(mult) ) deallocate(mult )
        if(allocated(aterm)) deallocate(aterm)
        if(allocated(bterm)) deallocate(bterm)
        if(allocated(cterm)) deallocate(cterm)
        if(allocated(dterm)) deallocate(dterm)
-
-!      do k = kts,kte
-!         call mpas_log_write('$i $i $i $r $r $r',intArgs=(/i,kt,k/),realArgs= &
-!                   (/(outchem(i,k,ic),ic=1,nchem),(outtracer(i,k,it),it=1,ntracer)/))
-!      enddo
-!      call mpas_log_write(' ')
     endif
  enddo
 
- call mpas_log_write('--- end subroutine cup_transport_tends:')
+!call mpas_log_write('--- end subroutine cup_transport_tends:')
 !call mpas_log_write(' ')
 
  end subroutine cup_transport_tends
