@@ -197,7 +197,7 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine cup_up_moisture_ctrans:')
+!call mpas_log_write('--- enter subroutine cup_up_moisture_ctrans:')
 
 !--- initialization:
  do i = its, itf
@@ -410,7 +410,7 @@
     endif
  enddo
 
- call mpas_log_write('--- end subroutine cup_up_moisture_ctrans:')
+!call mpas_log_write('--- end subroutine cup_up_moisture_ctrans:')
 
  end subroutine cup_up_moisture_ctrans
 
@@ -463,7 +463,7 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine cup_transport_dn:')
+!call mpas_log_write('--- enter subroutine cup_transport_dn:')
 
 !--- initialization:
  do it = 1,ntracer
@@ -511,7 +511,7 @@
     endif
  enddo
 
- call mpas_log_write('--- exit subroutine cup_transport_dn:')
+!call mpas_log_write('--- exit subroutine cup_transport_dn:')
 
  end subroutine cup_transport_dn
 
