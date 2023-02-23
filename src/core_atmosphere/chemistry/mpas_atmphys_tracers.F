@@ -298,7 +298,7 @@
  integer:: i,it,k
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine tracers_get_tend_work:')
+!call mpas_log_write('--- enter subroutine tracers_get_tend_work:')
 
 !add coupled tendencies due to PBL processes:
  if(pbl_scheme .ne. 'off') then
@@ -322,7 +322,7 @@
     enddo
  endif
 
- call mpas_log_write('--- end subroutine tracers_get_tend_work:')
+!call mpas_log_write('--- end subroutine tracers_get_tend_work:')
 
  end subroutine tracers_get_tend_work
 

@@ -110,7 +110,7 @@
  integer:: i,ic,k
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine chems_get_tend_work:')
+!call mpas_log_write('--- enter subroutine chems_get_tend_work:')
 
 !add coupled tendencies due to PBL processes:
  if(pbl_scheme .ne. 'off') then
@@ -134,16 +134,7 @@
     enddo
  endif
 
-!ic = 1
-!do i = 1,nCellsSolve
-!   do k = 1,nVertLevels
-!      call mpas_log_write('$i $i $r $r $r $r',intArgs=(/i,k/),realArgs=(/mass(k,i),bl_chems(ic,k,i), &
-!                          cu_chems(ic,k,i),chems(ic,k,i)/))
-!   enddo
-!   call mpas_log_write(' ')
-!enddo
-
- call mpas_log_write('--- end subroutine chems_get_tend_work:')
+!call mpas_log_write('--- end subroutine chems_get_tend_work:')
 
  end subroutine chems_get_tend_work
 
