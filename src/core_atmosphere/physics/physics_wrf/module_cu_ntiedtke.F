@@ -50,7 +50,7 @@ module module_cu_ntiedtke
      use cu_ntiedtke,only: cu_ntiedtke_init
      use cu_ntiedtke_common
      use mpas_atmphys_constants, only: rd=>R_d, rv=>R_v, &
-   &       cpd=>cp, alv=>xlv, als=>xls, alf=>xlf, g=>gravity
+   &       cpd=>cp
 #else
      use module_model_constants, only:rd=>r_d, rv=>r_v, &
    &       cpd=>cp, alv=>xlv, als=>xls, alf=>xlf, g
@@ -74,6 +74,7 @@ contains
                 ,rthcuten,rqvcuten,rqccuten,rqicuten            &
                 ,rucuten, rvcuten                               &
                 ,f_qv    ,f_qc    ,f_qr    ,f_qi    ,f_qs       &
+                ,grav,xlf,xls,xlv                               &
                                                                 )
 !-------------------------------------------------------------------
       implicit none
@@ -134,6 +135,8 @@ contains
                                         its,ite, jts,jte, kts,kte,      &
                                         itimestep,                      &
                                         stepcu
+
+      real,    intent(in) :: grav,xlf,xls,xlv
 
       real,    intent(in) ::                                            &
                                         dt
@@ -257,15 +260,15 @@ contains
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine cu_ntiedtke:')
 
- call cu_ntiedtke_init(cpd,rd,rv,alv,als,alf,g)
+ call cu_ntiedtke_init(cpd,rd,rv,xlv,xls,xlf,grav)
 
  call mpas_log_write('--- rd  = $r',realArgs=(/rd/))
  call mpas_log_write('--- rv  = $r',realArgs=(/rv/))
  call mpas_log_write('--- cpd = $r',realArgs=(/cpd/))
- call mpas_log_write('--- alv = $r',realArgs=(/alv/))
- call mpas_log_write('--- als = $r',realArgs=(/als/))
- call mpas_log_write('--- alf = $r',realArgs=(/alf/))
- call mpas_log_write('--- g   = $r',realArgs=(/g/))
+ call mpas_log_write('--- alv = $r',realArgs=(/xlv/))
+ call mpas_log_write('--- als = $r',realArgs=(/xls/))
+ call mpas_log_write('--- alf = $r',realArgs=(/xlf/))
+ call mpas_log_write('--- g   = $r',realArgs=(/grav/))
  call mpas_log_write(' ')
  call mpas_log_write('--- t13     = $r',realArgs=(/t13/)    )
  call mpas_log_write('--- rcpd    = $r',realArgs=(/rcpd/)   )
@@ -352,7 +355,7 @@ contains
       do k=kts,kte
         kp=k+1
         do i=its,ite
-          dot(i,k)=-0.5*g*rho3d(i,k,j)*(w(i,k,j)+w(i,kp,j))
+          dot(i,k)=-0.5*grav*rho3d(i,k,j)*(w(i,k,j)+w(i,kp,j))
         enddo
       enddo
 
