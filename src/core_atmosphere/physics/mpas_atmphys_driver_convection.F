@@ -570,7 +570,7 @@
 
     case("cu_ntiedtke")
        call mpas_timer_start('New_Tiedtke')
-       call cu_ntiedtke( &
+       call cu_ntiedtke_run( &
              pcps      = pres_hyd_p  , p8w         = pres2_hyd_p ,                   &
              t3d       = t_p         , dz8w        = dz_p        ,                   &
              dt        = dt_dyn      , itimestep   = initflag    ,                   &

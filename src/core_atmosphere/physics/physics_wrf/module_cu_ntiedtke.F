@@ -47,6 +47,8 @@ module module_cu_ntiedtke
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #if defined(mpas)
+     use cu_ntiedtke,only: cu_ntiedtke_init
+     use cu_ntiedtke_common
      use mpas_atmphys_constants, only: rd=>R_d, rv=>R_v, &
    &       cpd=>cp, alv=>xlv, als=>xls, alf=>xlf, g=>gravity
 #else
@@ -55,96 +57,12 @@ module module_cu_ntiedtke
 #endif
 
      implicit none
-     real,private :: t13,rcpd,vtmpc1,tmelt,            &
-             c1es,c2es,c3les,c3ies,c4les,c4ies,c5les,c5ies,zrg
 
-     real,private :: r5alvcp,r5alscp,ralvdcp,ralsdcp,ralfdcp,rtwat,rtber,rtice 
-     real,private :: entrdd,cmfcmax,cmfcmin,cmfdeps,zdnoprc,cprcon,pgcoef
-     integer,private :: momtrans
-
-     parameter(         &
-      t13=1.0/3.0,      &
-      rcpd=1.0/cpd,     &
-      tmelt=273.16,     &
-      zrg=1.0/g,        &
-      c1es=610.78,      &
-      c2es=c1es*rd/rv,  &
-      c3les=17.2693882, &
-      c3ies=21.875,     &
-      c4les=35.86,      &
-      c4ies=7.66,       &
-      c5les=c3les*(tmelt-c4les),  &
-      c5ies=c3ies*(tmelt-c4ies),  &
-      r5alvcp=c5les*alv*rcpd,     &
-      r5alscp=c5ies*als*rcpd,     &
-      ralvdcp=alv*rcpd,           &
-      ralsdcp=als*rcpd,           &
-      ralfdcp=alf*rcpd,           &
-      rtwat=tmelt,                &
-      rtber=tmelt-5.,             &
-      rtice=tmelt-23.,            &
-      vtmpc1=rv/rd-1.0 )
-!
-!     entrdd: average entrainment & detrainment rate for downdrafts
-!     ------
-!
-      parameter(entrdd = 2.0e-4)
-!
-!     cmfcmax:   maximum massflux value allowed for updrafts etc
-!     -------
-!
-      parameter(cmfcmax = 1.0)
-!
-!     cmfcmin:   minimum massflux value (for safety)
-!     -------
-!
-      parameter(cmfcmin = 1.e-10)
-!
-!     cmfdeps:   fractional massflux for downdrafts at lfs
-!     -------
-!
-      parameter(cmfdeps = 0.30)
-
-!     zdnoprc:   deep cloud is thicker than this height (Unit:Pa)
-!
-      parameter(zdnoprc = 2.0e4)
-!     -------
-!   
-!     cprcon:    coefficient from cloud water to rain water
-!   
-      parameter(cprcon = 1.4e-3)
-!     -------
-!
-!     momtrans: momentum transport method
-!     ( 1 = IFS40r1 method; 2 = new method )
-!
-      parameter(momtrans = 2 )
-!     -------
-!
-!     coefficient for pressure gradient intensity
-!     (0.7 - 1.0 is recommended in this vesion of Tiedtke scheme) 
-      parameter(pgcoef=0.7)
-!     -------
-!
-      logical :: nonequil
-!     nonequil: representing equilibrium and nonequilibrium convection
-!     ( .false. [equilibrium: removing all CAPE]; .true. [nonequilibrium: relaxing CAPE toward CAPE from PBL]. 
-!       Ref. Bechtold et al. 2014 JAS )
-! 
-      parameter(nonequil = .true. )
-!
-!--------------------
-!     switches for deep, mid, shallow convections, downdraft, and momentum transport
-!     ------------------
-      logical :: lmfpen,lmfmid,lmfscv,lmfdd,lmfdudv
-      parameter(lmfpen=.true.,lmfmid=.true.,lmfscv=.true.,lmfdd=.true.,lmfdudv=.true.)
-!--------------------
-!#################### end of variables definition##########################
 !-----------------------------------------------------------------------
 !
 contains
 !-----------------------------------------------------------------------
-     subroutine cu_ntiedtke(                                    &
+     subroutine cu_ntiedtke_run(                                &
                  dt,itimestep,stepcu                            &
                 ,raincv,pratec,qfx,hfx                          &
                 ,u3d,v3d,w,t3d,qv3d,qc3d,qi3d,pi3d,rho3d        &
@@ -336,6 +254,59 @@ contains
 !
 
 !-----------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine cu_ntiedtke:')
+
+ call cu_ntiedtke_init(cpd,rd,rv,alv,als,alf,g)
+
+ call mpas_log_write('--- rd  = $r',realArgs=(/rd/))
+ call mpas_log_write('--- rv  = $r',realArgs=(/rv/))
+ call mpas_log_write('--- cpd = $r',realArgs=(/cpd/))
+ call mpas_log_write('--- alv = $r',realArgs=(/alv/))
+ call mpas_log_write('--- als = $r',realArgs=(/als/))
+ call mpas_log_write('--- alf = $r',realArgs=(/alf/))
+ call mpas_log_write('--- g   = $r',realArgs=(/g/))
+ call mpas_log_write(' ')
+ call mpas_log_write('--- t13     = $r',realArgs=(/t13/)    )
+ call mpas_log_write('--- rcpd    = $r',realArgs=(/rcpd/)   )
+ call mpas_log_write('--- tmelt   = $r',realArgs=(/tmelt/)  )
+ call mpas_log_write('--- zrg     = $r',realArgs=(/zrg/)    )
+ call mpas_log_write('--- c1es    = $r',realArgs=(/c1es/)   )
+ call mpas_log_write('--- c2es    = $r',realArgs=(/c2es/)   )
+ call mpas_log_write('--- c3les   = $r',realArgs=(/c3les/)  )
+ call mpas_log_write('--- c3ies   = $r',realArgs=(/c3ies/)  )
+ call mpas_log_write('--- c4les   = $r',realArgs=(/c4les/)  )
+ call mpas_log_write('--- c4ies   = $r',realArgs=(/c4ies/)  )
+ call mpas_log_write('--- c5les   = $r',realArgs=(/c5les/)  )
+ call mpas_log_write('--- c5ies   = $r',realArgs=(/c5ies/)  )
+ call mpas_log_write('--- r5alvcp = $r',realArgs=(/r5alvcp/))
+ call mpas_log_write('--- r5alscp = $r',realArgs=(/r5alscp/))
+ call mpas_log_write('--- ralvdcp = $r',realArgs=(/ralvdcp/))
+ call mpas_log_write('--- ralsdcp = $r',realArgs=(/ralsdcp/))
+ call mpas_log_write('--- ralfdcp = $r',realArgs=(/ralfdcp/))
+ call mpas_log_write('--- rtwat   = $r',realArgs=(/rtwat/)  )
+ call mpas_log_write('--- rtber   = $r',realArgs=(/rtber/)  )
+ call mpas_log_write('--- rtice   = $r',realArgs=(/rtice/)  )
+ call mpas_log_write('--- vtmpc1  = $r',realArgs=(/vtmpc1/) )
+ call mpas_log_write(' ')
+ call mpas_log_write('--- momtrans = $i',intArgs=(/momtrans/))
+ call mpas_log_write('--- entrdd   = $r',realArgs=(/entrdd/) )
+ call mpas_log_write('--- cmfcmax  = $r',realArgs=(/cmfcmax/))
+ call mpas_log_write('--- cmfcmin  = $r',realArgs=(/cmfcmin/))
+ call mpas_log_write('--- cmfdeps  = $r',realArgs=(/cmfdeps/))
+ call mpas_log_write('--- zdnoprc  = $r',realArgs=(/zdnoprc/))
+ call mpas_log_write('--- cprcon   = $r',realArgs=(/cprcon/) )
+ call mpas_log_write('--- pgcoef   = $r',realArgs=(/pgcoef/) )
+ call mpas_log_write(' ')
+ call mpas_log_write('--- nonequil = $l',logicArgs = (/nonequil/))
+ call mpas_log_write('--- lmfpen   = $l',logicArgs = (/lmfpen/)  )
+ call mpas_log_write('--- lmfmid   = $l',logicArgs = (/lmfmid/)  )
+ call mpas_log_write('--- lmfscv   = $l',logicArgs = (/lmfscv/)  )
+ call mpas_log_write('--- lmfdd    = $l',logicArgs = (/lmfdd/)   )
+ call mpas_log_write('--- lmfdudv  = $l',logicArgs = (/lmfdudv/) )
+ call mpas_log_write('--- end subroutine cu_ntiedtke:')
+ call mpas_log_write(' ')
+
       do j=jts,jte
          do i=its,ite
             cu_act_flag(i,j)=.true.
@@ -474,7 +445,7 @@ contains
 
    enddo
 
-   end subroutine cu_ntiedtke
+   end subroutine cu_ntiedtke_run
 
 !====================================================================
    subroutine ntiedtkeinit(rthcuten,rqvcuten,rqccuten,rqicuten,         &
