@@ -591,6 +591,8 @@
              rvcuten   = rvcuten_p   ,                                               &
              grav      = gravity     , xlf         = xlf         ,                   &
              xls       = xls         , xlv         = xlv         ,                   &
+             rd        = R_d         , rv          = R_v         ,                   &
+             cp        = cp          ,                                               &
              ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde , &
              ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme , &
              its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte   &

@@ -43,26 +43,24 @@
 !===========================================================
 !###########################################################
 
-module module_cu_ntiedtke
+ module module_cu_ntiedtke
+ use mpas_log
+ use mpas_kind_types,only: RKIND
 
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#if defined(mpas)
-     use cu_ntiedtke,only: cu_ntiedtke_init
-     use cu_ntiedtke_common
-     use mpas_atmphys_constants, only: rd=>R_d, rv=>R_v, &
-   &       cpd=>cp
-#else
-     use module_model_constants, only:rd=>r_d, rv=>r_v, &
-   &       cpd=>cp, alv=>xlv, als=>xls, alf=>xlf, g
-#endif
+ use cu_ntiedtke,only: cu_ntiedtke_init
+ use cu_ntiedtke_common
 
-     implicit none
+ implicit none
+ private
+ public:: cu_ntiedtke_run, &
+          ntiedtkeinit
 
-!-----------------------------------------------------------------------
-!
-contains
-!-----------------------------------------------------------------------
-     subroutine cu_ntiedtke_run(                                &
+
+ contains
+
+
+!=================================================================================================================
+ subroutine cu_ntiedtke_run(                                    &
                  dt,itimestep,stepcu                            &
                 ,raincv,pratec,qfx,hfx                          &
                 ,u3d,v3d,w,t3d,qv3d,qc3d,qi3d,pi3d,rho3d        &
@@ -74,11 +72,9 @@ contains
                 ,rthcuten,rqvcuten,rqccuten,rqicuten            &
                 ,rucuten, rvcuten                               &
                 ,f_qv    ,f_qc    ,f_qr    ,f_qi    ,f_qs       &
-                ,grav,xlf,xls,xlv                               &
+                ,grav,xlf,xls,xlv,rd,rv,cp                      &
                                                                 )
-!-------------------------------------------------------------------
-      implicit none
-!-------------------------------------------------------------------
+!=================================================================================================================
 !-- u3d         3d u-velocity interpolated to theta points (m/s)
 !-- v3d         3d v-velocity interpolated to theta points (m/s)
 !-- th3d        3d potential temperature (k)
@@ -136,7 +132,7 @@ contains
                                         itimestep,                      &
                                         stepcu
 
-      real,    intent(in) :: grav,xlf,xls,xlv
+      real,    intent(in) :: cp,rd,rv,grav,xlf,xls,xlv
 
       real,    intent(in) ::                                            &
                                         dt
@@ -260,11 +256,11 @@ contains
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine cu_ntiedtke:')
 
- call cu_ntiedtke_init(cpd,rd,rv,xlv,xls,xlf,grav)
+ call cu_ntiedtke_init(cp,rd,rv,xlv,xls,xlf,grav)
 
  call mpas_log_write('--- rd  = $r',realArgs=(/rd/))
  call mpas_log_write('--- rv  = $r',realArgs=(/rv/))
- call mpas_log_write('--- cpd = $r',realArgs=(/cpd/))
+ call mpas_log_write('--- cpd = $r',realArgs=(/cp/))
  call mpas_log_write('--- alv = $r',realArgs=(/xlv/))
  call mpas_log_write('--- als = $r',realArgs=(/xls/))
  call mpas_log_write('--- alf = $r',realArgs=(/xlf/))
