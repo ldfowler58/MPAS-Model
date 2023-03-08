@@ -142,13 +142,6 @@
       real,    dimension(ims:ime, jms:jme), intent(in) ::               &
                                         xland
 
-      real,    dimension(ims:ime, jms:jme), intent(inout) ::            &
-                                        raincv, pratec
-
-      logical, dimension(ims:ime,jms:jme), intent(inout) ::             &
-                                        cu_act_flag
-
-
       real,    dimension(ims:ime, kms:kme, jms:jme), intent(in) ::      &
                                         dz8w,                           &
                                         pcps,                           &
@@ -169,16 +162,6 @@
                                         hfx                            
 
 !--------------------------- optional vars ----------------------------
-
-      real, dimension(ims:ime, kms:kme, jms:jme),                       &
-               optional, intent(inout) ::                               &
-                                        rqccuten,                       &
-                                        rqicuten,                       &
-                                        rqvcuten,                       &
-                                        rthcuten,                       &
-                                        rucuten,                        &
-                                        rvcuten
-
 !
 ! flags relating to the optional tendency arrays declared above
 ! models that carry the optional tendencies will provdide the
@@ -192,6 +175,19 @@
                                                   ,f_qr      &
                                                   ,f_qi      &
                                                   ,f_qs
+
+!--- inout arguments:
+ logical,intent(inout),dimension(ims:ime,jms:jme):: cu_act_flag
+
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,jms:jme):: raincv, pratec
+
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+ rqccuten,  &
+ rqicuten,  &
+ rqvcuten,  &
+ rthcuten,  &
+ rucuten,   &
+ rvcuten
 
 !--- local variables and arrays:
  integer:: i,im,j,k,km,kp,kx,kx1
