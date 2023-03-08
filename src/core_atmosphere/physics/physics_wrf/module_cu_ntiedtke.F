@@ -193,59 +193,23 @@
                                                   ,f_qi      &
                                                   ,f_qs
 
-!--------------------------- local vars ------------------------------
-      real      ::                                      &
-                                        delt,                           &
-                                        rdelt
+!--- local variables and arrays:
+ integer:: i,im,j,k,km,kp,kx,kx1
+ integer:: zz,pp
 
-      real     , dimension(its:ite) ::                  &
-                                        rcs,                            &
-                                        rn,                             &
-                                        evap,                           &
-                                        heatflux,                       &
-                                        dx2d
+ integer,dimension(its:ite)::  slimsk
+ integer,dimension(its:ite):: kbot,ktop
 
-      integer  , dimension(its:ite) ::  slimsk
+ real(kind=kind_phys):: delt,rdelt
 
+ real(kind=kind_phys),dimension(its:ite):: rcs,rn,evap,heatflux,dx2d
 
-      real     , dimension(its:ite, kts:kte+1) ::         &
-                                        prsi,           &
-                                        ghti,           &
-                                          zi 
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: &
+      dot,prsl,q1,q2,q3,q1b,t1b,q11,q12,t1,u1,v1,zl,omg,ghtl
 
-      real     , dimension(its:ite, kts:kte) ::         &
-                                        dot,                            &
-                                        prsl,                           &
-                                        q1,                             &
-                                        q2,                             &
-                                        q3,                             &
-                                        q1b,                            &
-                                        t1b,                            &
-                                        q11,                            &
-                                        q12,                            &
-                                        t1,                             &
-                                        u1,                             &
-                                        v1,                             &
-                                        zl,                             &
-                                        omg,                            &
-                                        ghtl                           
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: &
+      prsi,ghti,zi
 
-      integer, dimension(its:ite) ::                                    &
-                                        kbot,                           &
-                                        ktop
-
-      integer ::                                                        &
-                                        i,                              &
-                                        im,                             &
-                                        j,                              &
-                                        k,                              &
-                                        km,                             &
-                                        kp,                             &
-                                        kx,                             &
-                                        kx1
-
-!-------other local variables----
-      integer                      :: zz, pp
 !-----------------------------------------------------------------------
 !
 !
