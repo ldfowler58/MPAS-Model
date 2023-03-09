@@ -125,56 +125,38 @@
 !-- jte         end index for j in tile
 !-- kts         start index for k in tile
 !-- kte         end index for k in tile
-!-------------------------------------------------------------------
-      integer, intent(in) ::            ids,ide, jds,jde, kds,kde,      &
-                                        ims,ime, jms,jme, kms,kme,      &
-                                        its,ite, jts,jte, kts,kte,      &
-                                        itimestep,                      &
-                                        stepcu
+!-----------------------------------------------------------------------------------------------------------------
 
-      real,    intent(in) :: cp,rd,rv,grav,xlf,xls,xlv
+!--- input arguments:
+ logical,intent(in),optional:: f_qv,f_qc,f_qr,f_qi,f_qs
 
-      real,    intent(in) ::                                            &
-                                        dt
-      real,    dimension(ims:ime, jms:jme), intent(in) ::               &
-                                        dx
+ integer,intent(in):: ids,ide,jds,jde,kds,kde, &
+                      ims,ime,jms,jme,kms,kme, &
+                      its,ite,jts,jte,kts,kte
 
-      real,    dimension(ims:ime, jms:jme), intent(in) ::               &
-                                        xland
+ integer,intent(in):: itimestep,stepcu
 
-      real,    dimension(ims:ime, kms:kme, jms:jme), intent(in) ::      &
-                                        dz8w,                           &
-                                        pcps,                           &
-                                        p8w,                            &
-                                        pi3d,                           &
-                                        qc3d,                           &
-                                        qvften,                         &
-                                        thften,                         &
-                                        qi3d,                           &
-                                        qv3d,                           &
-                                        rho3d,                          &
-                                        t3d,                            &
-                                        u3d,                            &
-                                        v3d,                            &
-                                        w
-      real,    dimension(ims:ime, jms:jme) ::                           &
-                                        qfx,                            &
-                                        hfx                            
+ real(kind=RKIND),intent(in):: cp,grav,rd,rv,xlf,xls,xlv
 
-!--------------------------- optional vars ----------------------------
-!
-! flags relating to the optional tendency arrays declared above
-! models that carry the optional tendencies will provdide the
-! optional arguments at compile time; these flags all the model
-! to determine at run-time whether a particular tracer is in
-! use or not.
-!
-     logical, optional ::                                      &
-                                                   f_qv      &
-                                                  ,f_qc      &
-                                                  ,f_qr      &
-                                                  ,f_qi      &
-                                                  ,f_qs
+ real(kind=kind_phys),intent(in):: dt
+
+ real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: dx,hfx,qfx,xland
+
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
+    dz8w,   &
+    pcps,   &
+    p8w,    &
+    pi3d,   &
+    qc3d,   &
+    qvften, &
+    thften, &
+    qi3d,   &
+    qv3d,   &
+    rho3d,  &
+    t3d,    &
+    u3d,    &
+    v3d,    &
+    w
 
 !--- inout arguments:
  logical,intent(inout),dimension(ims:ime,jms:jme):: cu_act_flag
@@ -206,13 +188,7 @@
  real(kind=kind_phys),dimension(its:ite,kts:kte+1):: &
       prsi,ghti,zi
 
-!-----------------------------------------------------------------------
-!
-!
-!***  check to see if this is a convection timestep
-!
-
-!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine cu_ntiedtke:')
 
