@@ -204,13 +204,13 @@
 !CAM-Chem aerosol mixing ratios and number concentrations:
  integer,pointer:: index_qco
  integer,pointer:: index_numa1,index_qbca1,index_qdsta1,index_qncla1,index_qpoma1,index_qso4a1
- integer,pointer:: index_numa2,index_qncla2,index_qso4a2
+ integer,pointer:: index_numa2,index_qdsta2,index_qncla2,index_qso4a2
  integer,pointer:: index_numa3,index_qdsta3,index_qncla3,index_qso4a3
  integer,pointer:: index_qbca4,index_qpoma4
 
  real(kind=RKIND),dimension(:,:),pointer:: qco_fg
  real(kind=RKIND),dimension(:,:),pointer:: qbca1_fg,qdsta1_fg,qncla1_fg,qpoma1_fg,qso4a1_fg
- real(kind=RKIND),dimension(:,:),pointer:: qncla2_fg,qso4a2_fg
+ real(kind=RKIND),dimension(:,:),pointer:: qdsta2_fg,qncla2_fg,qso4a2_fg
  real(kind=RKIND),dimension(:,:),pointer:: qdsta3_fg,qncla3_fg,qso4a3_fg
  real(kind=RKIND),dimension(:,:),pointer:: qbca4_fg,qpoma4_fg
  real(kind=RKIND),dimension(:,:),pointer:: numa1_fg,numa2_fg,numa3_fg
@@ -264,6 +264,7 @@
  call mpas_pool_get_dimension(fg,'index_qso4a1_fg',index_qso4a1)
  call mpas_pool_get_dimension(fg,'index_numa1_fg' ,index_numa1 )
 
+ call mpas_pool_get_dimension(fg,'index_qdsta2_fg',index_qdsta2)
  call mpas_pool_get_dimension(fg,'index_qncla2_fg',index_qncla2)
  call mpas_pool_get_dimension(fg,'index_qso4a2_fg',index_qso4a2)
  call mpas_pool_get_dimension(fg,'index_numa2_fg' ,index_numa2 )
@@ -304,6 +305,7 @@
  call mpas_log_write('--- index_numa1_fg  = $i',intArgs=(/index_numa1/) )
  call mpas_log_write(' ')
  call mpas_log_write('--- aitken mode:')
+ call mpas_log_write('--- index_qdsta2_fg = $i',intArgs=(/index_qdsta2/))
  call mpas_log_write('--- index_qncla2_fg = $i',intArgs=(/index_qncla2/))
  call mpas_log_write('--- index_qso4a2_fg = $i',intArgs=(/index_qso4a2/))
  call mpas_log_write('--- index_numa2_fg  = $i',intArgs=(/index_numa2/) )
@@ -356,6 +358,7 @@
  qso4a3_fg => chems_fg(index_qso4a3,:,:)
  numa3_fg  => chems_fg(index_numa3,:,:)
 
+ qdsta2_fg => chems_fg(index_qdsta2,:,:)
  qncla2_fg => chems_fg(index_qncla2,:,:)
  qso4a2_fg => chems_fg(index_qso4a2,:,:)
  numa2_fg  => chems_fg(index_numa2,:,:)
@@ -465,6 +468,7 @@
        index(field % field, 'NCLA1' ) /= 0 .or. &
        index(field % field, 'POMA1' ) /= 0 .or. &
        index(field % field, 'SO4A1' ) /= 0 .or. &
+       index(field % field, 'DSTA2' ) /= 0 .or. &
        index(field % field, 'NCLA2' ) /= 0 .or. &
        index(field % field, 'SO4A2' ) /= 0 .or. &
        index(field % field, 'DSTA3' ) /= 0 .or. &
@@ -545,6 +549,13 @@
           latPoints => latCell
           lonPoints => lonCell
           destField2d => qso4a1_fg
+       elseif(index(field%field,'DSTA2') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating DSTA2 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qdsta2_fg
        elseif(index(field%field,'NCLA2') /= 0) then
           k = nCAMLevels+1-field%xlvl
           call mpas_log_write('Interpolating NCLA2 at $i',intArgs=(/k/))
