@@ -140,6 +140,36 @@
            <var name="qso4a3_fg" array_group="gocart_fg" units="kg kg^{-1}"
                 description="SO4 - First guess sulfate mixing ratio (coarse mode)"/>
 
+           <var name="qsoa1_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA1 - mixing ratio (accumulation mode)"/>
+
+           <var name="qsoa2_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA2 - mixing ratio (accumulation mode)"/>
+
+           <var name="qsoa3_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA3 - mixing ratio (accumulation mode)"/>
+
+           <var name="qsoa4_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA4 - mixing ratio (accumulation mode)"/>
+
+           <var name="qsoa5_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA5 - mixing ratio (accumulation mode)"/>
+
+           <var name="qsoa1_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA1 - mixing ratio (aitken mode)"/>
+
+           <var name="qsoa2_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA1 - mixing ratio (aitken mode)"/>
+
+           <var name="qsoa3_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA1 - mixing ratio (aitken mode)"/>
+
+           <var name="qsoa4_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA1 - mixing ratio (aitken mode)"/>
+
+           <var name="qsoa5_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
+                description="SOA1 - mixing ratio (aitken mode)"/>
+
            <var name="qco_fg" array_group="gocart_fg"  units="mole mole^{-1}"
                 description="CO -  First guess carbon monoxide mixing ratio"/>
 

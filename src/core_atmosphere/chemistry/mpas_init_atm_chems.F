@@ -207,6 +207,8 @@
  integer,pointer:: index_numa2,index_qdsta2,index_qncla2,index_qso4a2
  integer,pointer:: index_numa3,index_qdsta3,index_qncla3,index_qso4a3
  integer,pointer:: index_qbca4,index_qpoma4
+ integer,pointer:: index_qsoa1_a1,index_qsoa2_a1,index_qsoa3_a1,index_qsoa4_a1,index_qsoa5_a1
+ integer,pointer:: index_qsoa1_a2,index_qsoa2_a2,index_qsoa3_a2,index_qsoa4_a2,index_qsoa5_a2
 
  real(kind=RKIND),dimension(:,:),pointer:: qco_fg
  real(kind=RKIND),dimension(:,:),pointer:: qbca1_fg,qdsta1_fg,qncla1_fg,qpoma1_fg,qso4a1_fg
@@ -214,6 +216,9 @@
  real(kind=RKIND),dimension(:,:),pointer:: qdsta3_fg,qncla3_fg,qso4a3_fg
  real(kind=RKIND),dimension(:,:),pointer:: qbca4_fg,qpoma4_fg
  real(kind=RKIND),dimension(:,:),pointer:: numa1_fg,numa2_fg,numa3_fg
+
+ real(kind=RKIND),dimension(:,:),pointer:: qsoa1_a1_fg,qsoa2_a1_fg,qsoa3_a1_fg,qsoa4_a1_fg,qsoa5_a1_fg
+ real(kind=RKIND),dimension(:,:),pointer:: qsoa1_a2_fg,qsoa2_a2_fg,qsoa3_a2_fg,qsoa4_a2_fg,qsoa5_a2_fg
 
 !GOCART aerosol mixing ratios:
  integer,pointer:: index_qbc1,index_qbc2,index_qoc1,index_qoc2
@@ -262,11 +267,21 @@
  call mpas_pool_get_dimension(fg,'index_qncla1_fg',index_qncla1)
  call mpas_pool_get_dimension(fg,'index_qpoma1_fg',index_qpoma1)
  call mpas_pool_get_dimension(fg,'index_qso4a1_fg',index_qso4a1)
+ call mpas_pool_get_dimension(fg,'index_qsoa1_a1_fg',index_qsoa1_a1)
+ call mpas_pool_get_dimension(fg,'index_qsoa2_a1_fg',index_qsoa2_a1)
+ call mpas_pool_get_dimension(fg,'index_qsoa3_a1_fg',index_qsoa3_a1)
+ call mpas_pool_get_dimension(fg,'index_qsoa4_a1_fg',index_qsoa4_a1)
+ call mpas_pool_get_dimension(fg,'index_qsoa5_a1_fg',index_qsoa5_a1)
  call mpas_pool_get_dimension(fg,'index_numa1_fg' ,index_numa1 )
 
  call mpas_pool_get_dimension(fg,'index_qdsta2_fg',index_qdsta2)
  call mpas_pool_get_dimension(fg,'index_qncla2_fg',index_qncla2)
  call mpas_pool_get_dimension(fg,'index_qso4a2_fg',index_qso4a2)
+ call mpas_pool_get_dimension(fg,'index_qsoa1_a2_fg',index_qsoa1_a2)
+ call mpas_pool_get_dimension(fg,'index_qsoa2_a2_fg',index_qsoa2_a2)
+ call mpas_pool_get_dimension(fg,'index_qsoa3_a2_fg',index_qsoa3_a2)
+ call mpas_pool_get_dimension(fg,'index_qsoa4_a2_fg',index_qsoa4_a2)
+ call mpas_pool_get_dimension(fg,'index_qsoa5_a2_fg',index_qsoa5_a2)
  call mpas_pool_get_dimension(fg,'index_numa2_fg' ,index_numa2 )
 
  call mpas_pool_get_dimension(fg,'index_qdsta3_fg',index_qdsta3)
@@ -276,6 +291,8 @@
 
  call mpas_pool_get_dimension(fg,'index_qbca4_fg' ,index_qbca4 )
  call mpas_pool_get_dimension(fg,'index_qpoma4_fg',index_qpoma4)
+
+
 
  call mpas_pool_get_dimension(fg,'index_qbc1_fg'  ,index_qbc1  )
  call mpas_pool_get_dimension(fg,'index_qbc2_fg'  ,index_qbc2  )
@@ -302,12 +319,22 @@
  call mpas_log_write('--- index_qncla1_fg = $i',intArgs=(/index_qncla1/))
  call mpas_log_write('--- index_qpoma1_fg = $i',intArgs=(/index_qpoma1/))
  call mpas_log_write('--- index_qso4a1_fg = $i',intArgs=(/index_qso4a1/))
+ call mpas_log_write('--- index_qsoa1_a1_fg = $i',intArgs=(/index_qsoa1_a1/))
+ call mpas_log_write('--- index_qsoa2_a1_fg = $i',intArgs=(/index_qsoa2_a1/))
+ call mpas_log_write('--- index_qsoa3_a1_fg = $i',intArgs=(/index_qsoa3_a1/))
+ call mpas_log_write('--- index_qsoa4_a1_fg = $i',intArgs=(/index_qsoa4_a1/))
+ call mpas_log_write('--- index_qsoa5_a1_fg = $i',intArgs=(/index_qsoa5_a1/))
  call mpas_log_write('--- index_numa1_fg  = $i',intArgs=(/index_numa1/) )
  call mpas_log_write(' ')
  call mpas_log_write('--- aitken mode:')
  call mpas_log_write('--- index_qdsta2_fg = $i',intArgs=(/index_qdsta2/))
  call mpas_log_write('--- index_qncla2_fg = $i',intArgs=(/index_qncla2/))
  call mpas_log_write('--- index_qso4a2_fg = $i',intArgs=(/index_qso4a2/))
+ call mpas_log_write('--- index_qsoa1_a2_fg = $i',intArgs=(/index_qsoa1_a2/))
+ call mpas_log_write('--- index_qsoa2_a2_fg = $i',intArgs=(/index_qsoa2_a2/))
+ call mpas_log_write('--- index_qsoa3_a2_fg = $i',intArgs=(/index_qsoa3_a2/))
+ call mpas_log_write('--- index_qsoa4_a2_fg = $i',intArgs=(/index_qsoa4_a2/))
+ call mpas_log_write('--- index_qsoa5_a2_fg = $i',intArgs=(/index_qsoa5_a2/))
  call mpas_log_write('--- index_numa2_fg  = $i',intArgs=(/index_numa2/) )
  call mpas_log_write(' ')
  call mpas_log_write('--- coarse mode:')
@@ -351,6 +378,11 @@
  qncla1_fg => chems_fg(index_qncla1,:,:)
  qpoma1_fg => chems_fg(index_qpoma1,:,:)
  qso4a1_fg => chems_fg(index_qso4a1,:,:)
+ qsoa1_a1_fg => chems_fg(index_qsoa1_a1,:,:)
+ qsoa2_a1_fg => chems_fg(index_qsoa2_a1,:,:)
+ qsoa3_a1_fg => chems_fg(index_qsoa3_a1,:,:)
+ qsoa4_a1_fg => chems_fg(index_qsoa4_a1,:,:)
+ qsoa5_a1_fg => chems_fg(index_qsoa5_a1,:,:)
  numa1_fg  => chems_fg(index_numa1,:,:)
 
  qdsta3_fg => chems_fg(index_qdsta3,:,:)
@@ -361,6 +393,11 @@
  qdsta2_fg => chems_fg(index_qdsta2,:,:)
  qncla2_fg => chems_fg(index_qncla2,:,:)
  qso4a2_fg => chems_fg(index_qso4a2,:,:)
+ qsoa1_a2_fg => chems_fg(index_qsoa1_a2,:,:)
+ qsoa2_a2_fg => chems_fg(index_qsoa2_a2,:,:)
+ qsoa3_a2_fg => chems_fg(index_qsoa3_a2,:,:)
+ qsoa4_a2_fg => chems_fg(index_qsoa4_a2,:,:)
+ qsoa5_a2_fg => chems_fg(index_qsoa5_a2,:,:)
  numa2_fg  => chems_fg(index_numa2,:,:)
 
  qbca4_fg  => chems_fg(index_qbca4,:,:)
@@ -549,6 +586,41 @@
           latPoints => latCell
           lonPoints => lonCell
           destField2d => qso4a1_fg
+       elseif(index(field%field,'SOA1A1') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA1A1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa1_a1_fg
+       elseif(index(field%field,'SOA2A1') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA2A1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa2_a1_fg
+       elseif(index(field%field,'SOA3A1') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA3A1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa3_a1_fg
+       elseif(index(field%field,'SOA4A1') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA4A1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa4_a1_fg
+       elseif(index(field%field,'SOA5A1') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA5A1 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa5_a1_fg
        elseif(index(field%field,'DSTA2') /= 0) then
           k = nCAMLevels+1-field%xlvl
           call mpas_log_write('Interpolating DSTA2 at $i',intArgs=(/k/))
@@ -570,6 +642,41 @@
           latPoints => latCell
           lonPoints => lonCell
           destField2d => qso4a2_fg
+       elseif(index(field%field,'SOA1A2') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA1A2 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa1_a2_fg
+       elseif(index(field%field,'SOA2A2') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA2A2 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa2_a2_fg
+       elseif(index(field%field,'SOA3A2') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA3A2 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa3_a2_fg
+       elseif(index(field%field,'SOA4A2') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA4A2 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa4_a2_fg
+       elseif(index(field%field,'SOA5A2') /= 0) then
+          k = nCAMLevels+1-field%xlvl
+          call mpas_log_write('Interpolating SOA5A2 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qsoa5_a2_fg
        elseif(index(field%field,'DSTA3') /= 0) then
           k = nCAMLevels+1-field%xlvl
           call mpas_log_write('Interpolating DSTA3 at $i',intArgs=(/k/))
