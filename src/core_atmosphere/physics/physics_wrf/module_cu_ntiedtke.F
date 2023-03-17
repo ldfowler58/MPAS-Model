@@ -45,9 +45,10 @@
 
  module module_cu_ntiedtke
  use mpas_log
- use mpas_kind_types,only: RKIND
+ use mpas_kind_types,only: RKIND,StrKIND
 
- use cu_ntiedtke,only: cu_ntiedtke_init
+ use cu_ntiedtke,only: cu_ntiedtke_init, &
+                       cu_ntiedtke_timestep_final
  use cu_ntiedtke_common
 
  implicit none
@@ -188,6 +189,14 @@
  real(kind=kind_phys),dimension(its:ite,kts:kte+1):: &
       prsi,ghti,zi
 
+
+!---
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: u_hv,v_hv
+
+ real(kind=kind_phys),dimension(its:ite):: raincv_hv,pratec_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: rthcuten_hv,rqvcuten_hv,rqccuten_hv,rqicuten_hv, &
+                                                   rucuten_hv,rvcuten_hv
+
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine cu_ntiedtke:')
@@ -258,6 +267,13 @@
 
    do j=jts,jte
 
+      do k = kts,kte
+         do i = its,ite
+            u_hv(i,k) = u3d(i,k,j)
+            v_hv(i,k) = v3d(i,k,j)
+         enddo
+      enddo
+
 ! --------------- compute zi and zl -----------------------------------------
       do i=its,ite
         zi(i,kts)=0.0
@@ -295,8 +311,8 @@
       do k=kts,kte
         zz = kte-pp
         do i=its,ite
-          u1(i,zz)=u3d(i,k,j)
-          v1(i,zz)=v3d(i,k,j)
+          u1(i,zz)=u_hv(i,k)
+          v1(i,zz)=v_hv(i,k)
           t1(i,zz)=t3d(i,k,j)
           q1(i,zz)=qv3d(i,k,j)
           if(itimestep == 1) then
@@ -335,18 +351,18 @@
                   rn,slimsk,im,kx,kx1,delt,dx2d)
 
       do i=its,ite
-         raincv(i,j)=rn(i)/stepcu
-         pratec(i,j)=rn(i)/(stepcu * dt)
+         raincv_hv(i)=rn(i)/stepcu
+         pratec_hv(i)=rn(i)/(stepcu * dt)
       enddo
 
       pp = 0
       do k=kts,kte
         zz = kte-pp
         do i=its,ite
-          rthcuten(i,k,j)=(t1(i,zz)-t3d(i,k,j))/pi3d(i,k,j)*rdelt
-          rqvcuten(i,k,j)=(q1(i,zz)-qv3d(i,k,j))*rdelt
-          rucuten(i,k,j) =(u1(i,zz)-u3d(i,k,j))*rdelt
-          rvcuten(i,k,j) =(v1(i,zz)-v3d(i,k,j))*rdelt
+          rthcuten_hv(i,k)=(t1(i,zz)-t3d(i,k,j))/pi3d(i,k,j)*rdelt
+          rqvcuten_hv(i,k)=(q1(i,zz)-qv3d(i,k,j))*rdelt
+          rucuten_hv(i,k) =(u1(i,zz)-u3d(i,k,j))*rdelt
+          rvcuten_hv(i,k) =(v1(i,zz)-v3d(i,k,j))*rdelt
         enddo
         pp = pp + 1
       enddo
@@ -357,7 +373,7 @@
           do k=kts,kte
             zz = kte-pp
             do i=its,ite
-              rqccuten(i,k,j)=(q2(i,zz)-qc3d(i,k,j))*rdelt
+              rqccuten_hv(i,k)=(q2(i,zz)-qc3d(i,k,j))*rdelt
             enddo
             pp = pp + 1
           enddo
@@ -370,13 +386,28 @@
           do k=kts,kte
             zz = kte-pp
             do i=its,ite
-              rqicuten(i,k,j)=(q3(i,zz)-qi3d(i,k,j))*rdelt
+              rqicuten_hv(i,k)=(q3(i,zz)-qi3d(i,k,j))*rdelt
             enddo
             pp = pp + 1
           enddo
         endif
       endif
 
+      do i = its,ite
+         raincv(i,j) = raincv_hv(i)
+         pratec(i,j) = pratec_hv(i)
+      enddo
+
+      do k = kts,kte
+         do i = its,ite
+            rucuten(i,k,j)  = rucuten_hv(i,k)
+            rvcuten(i,k,j)  = rvcuten_hv(i,k)
+            rthcuten(i,k,j) = rthcuten_hv(i,k)
+            rqvcuten(i,k,j) = rqvcuten_hv(i,k)
+            rqccuten(i,k,j) = rqccuten_hv(i,k)
+            rqicuten(i,k,j) = rqicuten_hv(i,k)
+         enddo
+      enddo
 
    enddo
 
