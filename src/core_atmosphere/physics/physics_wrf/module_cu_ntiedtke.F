@@ -191,7 +191,11 @@
 
 
 !---
- real(kind=kind_phys),dimension(its:ite,kts:kte):: u_hv,v_hv
+ character(len=StrKIND):: errmsg
+ integer:: errflg
+
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: pi_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qi_hv,t_hv,u_hv,v_hv
 
  real(kind=kind_phys),dimension(its:ite):: raincv_hv,pratec_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: rthcuten_hv,rqvcuten_hv,rqccuten_hv,rqicuten_hv, &
@@ -269,8 +273,13 @@
 
       do k = kts,kte
          do i = its,ite
-            u_hv(i,k) = u3d(i,k,j)
-            v_hv(i,k) = v3d(i,k,j)
+            pi_hv(i,k) = pi3d(i,k,j)
+            qv_hv(i,k) = qv3d(i,k,j)
+            qc_hv(i,k) = qc3d(i,k,j)
+            qi_hv(i,k) = qi3d(i,k,j)
+            t_hv(i,k)  = t3d(i,k,j)
+            u_hv(i,k)  = u3d(i,k,j)
+            v_hv(i,k)  = v3d(i,k,j)
          enddo
       enddo
 
@@ -313,8 +322,8 @@
         do i=its,ite
           u1(i,zz)=u_hv(i,k)
           v1(i,zz)=v_hv(i,k)
-          t1(i,zz)=t3d(i,k,j)
-          q1(i,zz)=qv3d(i,k,j)
+          t1(i,zz)=t_hv(i,k)
+          q1(i,zz)=qv_hv(i,k)
           if(itimestep == 1) then
              q1b(i,zz)=0.
              t1b(i,zz)=0.
@@ -322,8 +331,8 @@
              q1b(i,zz)=qvften(i,k,j)
              t1b(i,zz)=thften(i,k,j)
           endif
-          q2(i,zz)=qc3d(i,k,j)
-          q3(i,zz)=qi3d(i,k,j)
+          q2(i,zz)=qc_hv(i,k)
+          q3(i,zz)=qi_hv(i,k)
           omg(i,zz)=dot(i,k)
           ghtl(i,zz)=zl(i,k)
           prsl(i,zz) = pcps(i,k,j)
@@ -350,48 +359,11 @@
       call tiecnvn(u1,v1,t1,q1,q2,q3,q1b,t1b,ghtl,ghti,omg,prsl,prsi,evap,heatflux,  &
                   rn,slimsk,im,kx,kx1,delt,dx2d)
 
-      do i=its,ite
-         raincv_hv(i)=rn(i)/stepcu
-         pratec_hv(i)=rn(i)/(stepcu * dt)
-      enddo
-
-      pp = 0
-      do k=kts,kte
-        zz = kte-pp
-        do i=its,ite
-          rthcuten_hv(i,k)=(t1(i,zz)-t3d(i,k,j))/pi3d(i,k,j)*rdelt
-          rqvcuten_hv(i,k)=(q1(i,zz)-qv3d(i,k,j))*rdelt
-          rucuten_hv(i,k) =(u1(i,zz)-u3d(i,k,j))*rdelt
-          rvcuten_hv(i,k) =(v1(i,zz)-v3d(i,k,j))*rdelt
-        enddo
-        pp = pp + 1
-      enddo
-
-      if(present(rqccuten))then
-        if ( f_qc ) then
-          pp = 0
-          do k=kts,kte
-            zz = kte-pp
-            do i=its,ite
-              rqccuten_hv(i,k)=(q2(i,zz)-qc3d(i,k,j))*rdelt
-            enddo
-            pp = pp + 1
-          enddo
-        endif
-      endif
-
-      if(present(rqicuten))then
-        if ( f_qi ) then
-          pp = 0
-          do k=kts,kte
-            zz = kte-pp
-            do i=its,ite
-              rqicuten_hv(i,k)=(q3(i,zz)-qi3d(i,k,j))*rdelt
-            enddo
-            pp = pp + 1
-          enddo
-        endif
-      endif
+      errmsg = ' '
+      errflg = 0
+      call cu_ntiedtke_timestep_final(its,ite,kts,kte,stepcu,dt,pi_hv,qv_hv,qc_hv,qi_hv,t_hv, &
+                  u_hv,v_hv,q1,q2,q3,t1,u1,v1,rn,raincv_hv,pratec_hv,rthcuten_hv,rqvcuten_hv, &
+                  rqccuten_hv,rqicuten_hv,rucuten_hv,rvcuten_hv,errmsg,errflg)
 
       do i = its,ite
          raincv(i,j) = raincv_hv(i)
@@ -404,10 +376,28 @@
             rvcuten(i,k,j)  = rvcuten_hv(i,k)
             rthcuten(i,k,j) = rthcuten_hv(i,k)
             rqvcuten(i,k,j) = rqvcuten_hv(i,k)
-            rqccuten(i,k,j) = rqccuten_hv(i,k)
-            rqicuten(i,k,j) = rqicuten_hv(i,k)
          enddo
       enddo
+
+      if(present(rqccuten))then
+         if(f_qc) then
+            do k = kts,kte
+               do i = its,ite
+                  rqccuten(i,k,j) = rqccuten_hv(i,k)
+               enddo
+            enddo
+         endif
+      endif
+
+      if(present(rqicuten))then
+         if(f_qi) then
+            do k = kts,kte
+               do i = its,ite
+                  rqicuten(i,k,j) = rqicuten_hv(i,k)
+               enddo
+            enddo
+         endif
+      endif
 
    enddo
 
