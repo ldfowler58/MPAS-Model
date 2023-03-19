@@ -47,7 +47,8 @@
  use mpas_log
  use mpas_kind_types,only: RKIND,StrKIND
 
- use cu_ntiedtke,only: cu_ntiedtke_init, &
+ use cu_ntiedtke,only: cu_ntiedtke_init,          &
+                       cu_ntiedtke_timestep_init, &
                        cu_ntiedtke_timestep_final
  use cu_ntiedtke_common
 
@@ -181,7 +182,7 @@
 
  real(kind=kind_phys):: delt,rdelt
 
- real(kind=kind_phys),dimension(its:ite):: rcs,rn,evap,heatflux,dx2d
+ real(kind=kind_phys),dimension(its:ite):: rcs,rn,evap,heatflux
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
       dot,prsl,q1,q2,q3,q1b,t1b,q11,q12,t1,u1,v1,zl,omg,ghtl
@@ -189,13 +190,14 @@
  real(kind=kind_phys),dimension(its:ite,kts:kte+1):: &
       prsi,ghti,zi
 
-
 !---
  character(len=StrKIND):: errmsg
  integer:: errflg
 
- real(kind=kind_phys),dimension(its:ite,kts:kte):: pi_hv
- real(kind=kind_phys),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qi_hv,t_hv,u_hv,v_hv
+ real(kind=kind_phys),dimension(its:ite):: dx_hv,hfx_hv,qfx_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: dz_hv,pi_hv,prsl_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qi_hv,rho_hv,t_hv,u_hv,v_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: prsi_hv,w_hv
 
  real(kind=kind_phys),dimension(its:ite):: raincv_hv,pratec_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: rthcuten_hv,rqvcuten_hv,rqccuten_hv,rqicuten_hv, &
@@ -271,49 +273,40 @@
 
    do j=jts,jte
 
+      do i=its,ite
+         dx_hv(i)  = dx(i,j)
+         hfx_hv(i) = hfx(i,j)
+         qfx_hv(i) = qfx(i,j)
+      enddo
+
       do k = kts,kte
          do i = its,ite
-            pi_hv(i,k) = pi3d(i,k,j)
-            qv_hv(i,k) = qv3d(i,k,j)
-            qc_hv(i,k) = qc3d(i,k,j)
-            qi_hv(i,k) = qi3d(i,k,j)
-            t_hv(i,k)  = t3d(i,k,j)
-            u_hv(i,k)  = u3d(i,k,j)
-            v_hv(i,k)  = v3d(i,k,j)
+            dz_hv(i,k)   = dz8w(i,k,j)
+            pi_hv(i,k)   = pi3d(i,k,j)
+            prsl_hv(i,k) = pcps(i,k,j)
+            qv_hv(i,k)   = qv3d(i,k,j)
+            qc_hv(i,k)   = qc3d(i,k,j)
+            qi_hv(i,k)   = qi3d(i,k,j)
+            rho_hv(i,k)  = rho3d(i,k,j)
+            t_hv(i,k)    = t3d(i,k,j)
+            u_hv(i,k)    = u3d(i,k,j)
+            v_hv(i,k)    = v3d(i,k,j)
+         enddo
+      enddo
+      do k = kts,kte+1
+         do i = its,ite
+            prsi_hv(i,k) = p8w(i,k,j)
+            w_hv(i,k)    = w(i,k,j)
          enddo
       enddo
 
-! --------------- compute zi and zl -----------------------------------------
-      do i=its,ite
-        zi(i,kts)=0.0
-      enddo
-!
-      do k=kts,kte
-        do i=its,ite
-          zi(i,k+1)=zi(i,k)+dz8w(i,k,j)
-        enddo
-      enddo
-!
-      do k=kts,kte
-        do i=its,ite
-          zl(i,k)=0.5*(zi(i,k)+zi(i,k+1))
-        enddo
-      enddo
+      errmsg = ' '
+      errflg = 0
+      call cu_ntiedtke_timestep_init(its,ite,kts,kte,grav,dz_hv,prsl_hv,prsi_hv,rho_hv,w_hv, &
+                                     prsl,prsi,ghtl,ghti,omg,errmsg,errflg)
 
-! --------------- end compute zi and zl -------------------------------------
       do i=its,ite
         slimsk(i)=int(abs(xland(i,j)-2.))
-      enddo
-
-      do i=its,ite
-         dx2d(i) = dx(i,j)
-      enddo
-
-      do k=kts,kte
-        kp=k+1
-        do i=its,ite
-          dot(i,k)=-0.5*grav*rho3d(i,k,j)*(w(i,k,j)+w(i,kp,j))
-        enddo
       enddo
 
       pp = 0
@@ -333,31 +326,13 @@
           endif
           q2(i,zz)=qc_hv(i,k)
           q3(i,zz)=qi_hv(i,k)
-          omg(i,zz)=dot(i,k)
-          ghtl(i,zz)=zl(i,k)
-          prsl(i,zz) = pcps(i,k,j)
         enddo
         pp = pp + 1
       enddo
 
-      pp = 0
-      do k=kts,kte+1
-        zz = kte+1-pp
-        do i=its,ite
-          ghti(i,zz) = zi(i,k)
-          prsi(i,zz) = p8w(i,k,j) 
-        enddo
-        pp = pp + 1
-      enddo
-!
-      do i=its,ite
-        evap(i)    = qfx(i,j)
-        heatflux(i)= hfx(i,j)
-      enddo
-!
 !########################################################################
-      call tiecnvn(u1,v1,t1,q1,q2,q3,q1b,t1b,ghtl,ghti,omg,prsl,prsi,evap,heatflux,  &
-                  rn,slimsk,im,kx,kx1,delt,dx2d)
+      call tiecnvn(u1,v1,t1,q1,q2,q3,q1b,t1b,ghtl,ghti,omg,prsl,prsi,qfx_hv,hfx_hv, &
+                  rn,slimsk,im,kx,kx1,delt,dx_hv)
 
       errmsg = ' '
       errflg = 0
