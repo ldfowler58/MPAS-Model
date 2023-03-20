@@ -292,8 +292,6 @@
  call mpas_pool_get_dimension(fg,'index_qbca4_fg' ,index_qbca4 )
  call mpas_pool_get_dimension(fg,'index_qpoma4_fg',index_qpoma4)
 
-
-
  call mpas_pool_get_dimension(fg,'index_qbc1_fg'  ,index_qbc1  )
  call mpas_pool_get_dimension(fg,'index_qbc2_fg'  ,index_qbc2  )
  call mpas_pool_get_dimension(fg,'index_qoc1_fg'  ,index_qoc1  )
@@ -495,19 +493,25 @@
 
     mask_array => landmask
 
-!   if(index(field % field, 'CO'    ) /= 0 .or. &
-!      index(field % field, 'DSTA3' ) /= 0 .or. &
-!      index(field % field, 'PCAM'  ) /= 0 .or. &
-!      index(field % field, 'DPCAM' ) /= 0) then
     if(index(field % field, 'CO'    ) /= 0 .or. &
        index(field % field, 'BCA1'  ) /= 0 .or. &
        index(field % field, 'DSTA1' ) /= 0 .or. &
        index(field % field, 'NCLA1' ) /= 0 .or. &
        index(field % field, 'POMA1' ) /= 0 .or. &
        index(field % field, 'SO4A1' ) /= 0 .or. &
+       index(field % field, 'SOA1A1') /= 0 .or. &
+       index(field % field, 'SOA2A1') /= 0 .or. &
+       index(field % field, 'SOA3A1') /= 0 .or. &
+       index(field % field, 'SOA4A1') /= 0 .or. &
+       index(field % field, 'SOA5A1') /= 0 .or. &
        index(field % field, 'DSTA2' ) /= 0 .or. &
        index(field % field, 'NCLA2' ) /= 0 .or. &
        index(field % field, 'SO4A2' ) /= 0 .or. &
+       index(field % field, 'SOA1A2') /= 0 .or. &
+       index(field % field, 'SOA2A2') /= 0 .or. &
+       index(field % field, 'SOA3A2') /= 0 .or. &
+       index(field % field, 'SOA4A2') /= 0 .or. &
+       index(field % field, 'SOA5A2') /= 0 .or. &
        index(field % field, 'DSTA3' ) /= 0 .or. &
        index(field % field, 'NCLA3' ) /= 0 .or. &
        index(field % field, 'SO4A3' ) /= 0 .or. &
@@ -740,13 +744,6 @@
           latPoints => latCell
           lonPoints => lonCell
           destField2d => pcam_fg
-!      elseif(index(field%field,'DPCAM') /= 0) then
-!         k = nCAMLevels+1-field%xlvl
-!         call mpas_log_write('Interpolating DPCAM at $i',intArgs=(/k/))
-!         nInterpPoints = nCells
-!         latPoints => latCell
-!         lonPoints => lonCell
-!         destField2d => dpcam_fg
        elseif(index(field%field,'DPRES') /= 0) then
           k = nCAMLevels+1-field%xlvl
           call mpas_log_write('Interpolating DPRES at $i',intArgs=(/k/))
@@ -878,10 +875,12 @@
 
 !--- convert mass mixing ratios in the accumulation, aitken, and coarse modes to number concentrations
 !    and rescale the number concentrations:
- call init_scale_camchem(nCells,nCAMLevels,numa1_fg,numa2_fg,numa3_fg,qbca1_fg,qdsta1_fg,qncla1_fg, &
-                    qpoma1_fg,qso4a1_fg,qncla2_fg,qso4a2_fg,qdsta3_fg,qncla3_fg,qso4a3_fg,qbca4_fg, &
-                    qpoma4_fg,qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg,qbc1_fg,qbc2_fg,    &
-                    qoc1_fg,qoc2_fg,qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg,nifa_fg,nwfa_fg)
+ call init_scale_camchem(nCells,nCAMLevels,numa1_fg,numa2_fg,numa3_fg,qbca1_fg,qdsta1_fg,qncla1_fg,   &
+                   qpoma1_fg,qso4a1_fg,qsoa1_a1_fg,qsoa2_a1_fg,qsoa3_a1_fg,qsoa4_a1_fg,qsoa5_a1_fg,   &
+                   qncla2_fg,qso4a2_fg,qsoa1_a2_fg,qsoa2_a2_fg,qsoa3_a2_fg,qsoa4_a2_fg,qsoa5_a2_fg,   &
+                   qdsta3_fg,qncla3_fg,qso4a3_fg,qbca4_fg,qpoma4_fg,qdust1_fg,qdust2_fg,qdust3_fg,    &
+                   qdust4_fg,qdust5_fg,qbc1_fg,qbc2_fg,qoc1_fg,qoc2_fg,qseas1_fg,qseas2_fg,qseas3_fg, &
+                   qseas4_fg,nifa_fg,nwfa_fg)
 
  call mpas_log_write('--- exit subroutine init_hinterp_camchem.')
  call mpas_log_write(' ')
@@ -891,9 +890,11 @@
 
 !=================================================================================================================
  subroutine init_scale_camchem(nCells,nCAMLevels,numa1_fg,numa2_fg,numa3_fg,qbca1_fg,qdsta1_fg,qncla1_fg, &
-                          qpoma1_fg,qso4a1_fg,qncla2_fg,qso4a2_fg,qdsta3_fg,qncla3_fg,qso4a3_fg,qbca4_fg, &
-                          qpoma4_fg,qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg,qbc1_fg,qbc2_fg,    &
-                          qoc1_fg,qoc2_fg,qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg,nifa_fg,nwfa_fg)
+                       qpoma1_fg,qso4a1_fg,qsoa1_a1_fg,qsoa2_a1_fg,qsoa3_a1_fg,qsoa4_a1_fg,qsoa5_a1_fg,   &
+                       qncla2_fg,qso4a2_fg,qsoa1_a2_fg,qsoa2_a2_fg,qsoa3_a2_fg,qsoa4_a2_fg,qsoa5_a2_fg,   &
+                       qdsta3_fg,qncla3_fg,qso4a3_fg,qbca4_fg,qpoma4_fg,qdust1_fg,qdust2_fg,qdust3_fg,    &
+                       qdust4_fg,qdust5_fg,qbc1_fg,qbc2_fg,qoc1_fg,qoc2_fg,qseas1_fg,qseas2_fg,qseas3_fg, &
+                       qseas4_fg,nifa_fg,nwfa_fg)
 !=================================================================================================================
 
 !input arguments:
@@ -901,16 +902,21 @@
  real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(in):: numa1_fg,numa2_fg,numa3_fg
 
 !inout arguments:
- real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qbca1_fg,qdsta1_fg,qncla1_fg,qpoma1_fg,qso4a1_fg
- real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qncla2_fg,qso4a2_fg
- real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qso4a3_fg,qncla3_fg,qdsta3_fg
- real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qbca4_fg,qpoma4_fg
+ real(kind=RKIND),intent(inout),dimension(nCAMLevels,nCells+1):: qbca1_fg,qdsta1_fg,qncla1_fg,qpoma1_fg,qso4a1_fg
+ real(kind=RKIND),intent(inout),dimension(nCAMLevels,nCells+1):: qncla2_fg,qso4a2_fg
+ real(kind=RKIND),intent(inout),dimension(nCAMLevels,nCells+1):: qso4a3_fg,qncla3_fg,qdsta3_fg
+ real(kind=RKIND),intent(inout),dimension(nCAMLevels,nCells+1):: qbca4_fg,qpoma4_fg
 
- real(kind=RKIND),dimension(NCAMLevels,nCells+1),intent(inout):: qbc1_fg,qbc2_fg,qoc1_fg,qoc2_fg
- real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg
- real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg
+ real(kind=RKIND),intent(inout),dimension(NCAMLevels,nCells+1):: qbc1_fg,qbc2_fg,qoc1_fg,qoc2_fg
+ real(kind=RKIND),intent(inout),dimension(nCAMLevels,nCells+1):: qdust1_fg,qdust2_fg,qdust3_fg,qdust4_fg,qdust5_fg
+ real(kind=RKIND),intent(inout),dimension(nCAMLevels,nCells+1):: qseas1_fg,qseas2_fg,qseas3_fg,qseas4_fg
 
- real(kind=RKIND),dimension(nCAMLevels,nCells+1),intent(inout):: nifa_fg,nwfa_fg
+ real(kind=RKIND),intent(inout),dimension(nCAMLevels,nCells+1):: qsoa1_a1_fg,qsoa2_a1_fg,qsoa3_a1_fg, &
+                                                           qsoa4_a1_fg,qsoa5_a1_fg
+ real(kind=RKIND),intent(inout),dimension(nCAMLevels,nCells+1):: qsoa1_a2_fg,qsoa2_a2_fg,qsoa3_a2_fg, &
+                                                           qsoa4_a2_fg,qsoa5_a2_fg
+
+ real(kind=RKIND),intent(inout),dimension(nCAMLevels,nCells+1):: nifa_fg,nwfa_fg
 
 
 !local variables and arrays:
@@ -921,6 +927,7 @@
 
  real(kind=RKIND),parameter:: dens_bc       = 1.7e03  ! density of black carbon (kg/m3).
  real(kind=RKIND),parameter:: dens_oc       = 1.0e03  ! density of organic carbon (kg/m3).
+ real(kind=RKIND),parameter:: dens_soa      = 1.0e03  ! density of secondary organic carbon (kg/m3)
  real(kind=RKIND),parameter:: dens_so4      = 1.77e03 ! density of sulfates (kg/m3).
  real(kind=RKIND),parameter:: dens_ncl      = 1.9e03  ! density of seasalts (kg/m3).
  real(kind=RKIND),parameter:: dens_dst      = 2.6e03  ! density of dust (kg/m3).
@@ -939,10 +946,12 @@
  real(kind=RKIND),parameter:: sigmag_coarse = 1.2     ! (-).
  real(kind=RKIND):: alnsg_coarse,voltonumb_coarse
  real(kind=RKIND):: sum_a3,ratio_a3
- real(kind=RKIND):: mr_to_nb_bc,mr_to_nb_oc,mr_to_nb_so4,mr_to_nb_ncl,mr_to_nb_dst
+ real(kind=RKIND):: mr_to_nb_bc,mr_to_nb_oc,mr_to_nb_so4,mr_to_nb_ncl,mr_to_nb_dst,mr_to_nb_soa
 
  real(kind=RKIND),dimension(nCAMLevels,nCells+1):: nbca1,ndsta1,nncla1,npoma1,nso4a1
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1):: nsoa1_a1,nsoa2_a1,nsoa3_a1,nsoa4_a1,nsoa5_a1
  real(kind=RKIND),dimension(nCAMLevels,nCells+1):: nncla2,nso4a2
+ real(kind=RKIND),dimension(nCAMLevels,nCells+1):: nsoa1_a2,nsoa2_a2,nsoa3_a2,nsoa4_a2,nsoa5_a2
  real(kind=RKIND),dimension(nCAMLevels,nCells+1):: ndsta3,nncla3,nso4a3
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -958,6 +967,7 @@
  mr_to_nb_so4 = voltonumb_accum/dens_so4
  mr_to_nb_ncl = voltonumb_accum/dens_ncl
  mr_to_nb_dst = voltonumb_accum/dens_dst
+ mr_to_nb_soa = voltonumb_accum/dens_soa
 
  call mpas_log_write('--- alnsg_accum      = $r',realArgs=(/alnsg_accum/))
  call mpas_log_write('--- voltonumb_accum  = $r',realArgs=(/voltonumb_accum/))
@@ -966,6 +976,7 @@
  call mpas_log_write('--- mr_to_nb_ncl     = $r',realArgs=(/mr_to_nb_ncl/))
  call mpas_log_write('--- mr_to_nb_oc      = $r',realArgs=(/mr_to_nb_oc/))
  call mpas_log_write('--- mr_to_nb_so4     = $r',realArgs=(/mr_to_nb_so4/))
+ call mpas_log_write('--- mr_to_nb_soa     = $r',realArgs=(/mr_to_nb_soa/))
  call mpas_log_write(' ')
 
  do iCell = 1,nCells
@@ -975,10 +986,18 @@
        nncla1(k,iCell) = mr_to_nb_ncl*qncla1_fg(k,iCell)
        npoma1(k,iCell) = mr_to_nb_oc*qpoma1_fg(k,iCell)
        nso4a1(k,iCell) = mr_to_nb_so4*qso4a1_fg(k,iCell)
+
+       nsoa1_a1(k,iCell) = mr_to_nb_soa*qsoa1_a1_fg(k,iCell)
+       nsoa2_a1(k,iCell) = mr_to_nb_soa*qsoa2_a1_fg(k,iCell)
+       nsoa3_a1(k,iCell) = mr_to_nb_soa*qsoa3_a1_fg(k,iCell)
+       nsoa4_a1(k,iCell) = mr_to_nb_soa*qsoa4_a1_fg(k,iCell)
+       nsoa5_a1(k,iCell) = mr_to_nb_soa*qsoa5_a1_fg(k,iCell)
     enddo
 
     do k = 1,nCAMLevels
-       sum_a1 = nbca1(k,iCell) + ndsta1(k,iCell) + nncla1(k,iCell) + npoma1(k,iCell) + nso4a1(k,iCell)
+       sum_a1 = nbca1(k,iCell) + ndsta1(k,iCell) + nncla1(k,iCell) + npoma1(k,iCell) + nso4a1(k,iCell) &
+              + nsoa1_a1(k,iCell) + nsoa2_a1(k,iCell) + nsoa3_a1(k,iCell) + nsoa4_a1(k,iCell)          &
+              + nsoa5_a1(k,iCell)
        ratio_a1 = numa1_fg(k,iCell)/sum_a1
 
        nbca1(k,iCell)  = ratio_a1*nbca1(k,iCell)
@@ -986,6 +1005,12 @@
        nncla1(k,iCell) = ratio_a1*nncla1(k,iCell)
        npoma1(k,iCell) = ratio_a1*npoma1(k,iCell)
        nso4a1(k,iCell) = ratio_a1*nso4a1(k,iCell)
+
+       nsoa1_a1(k,iCell) = ratio_a1*nsoa1_a1(k,iCell)
+       nsoa2_a1(k,iCell) = ratio_a1*nsoa2_a1(k,iCell)
+       nsoa3_a1(k,iCell) = ratio_a1*nsoa3_a1(k,iCell)
+       nsoa4_a1(k,iCell) = ratio_a1*nsoa4_a1(k,iCell)
+       nsoa5_a1(k,iCell) = ratio_a1*nsoa5_a1(k,iCell)
     enddo
  enddo
 
@@ -996,25 +1021,40 @@
 
  mr_to_nb_ncl = voltonumb_aitken/dens_ncl
  mr_to_nb_so4 = voltonumb_aitken/dens_so4
+ mr_to_nb_soa = voltonumb_aitken/dens_soa
 
  call mpas_log_write('--- alnsg_aitken     = $r',realArgs=(/alnsg_aitken/))
  call mpas_log_write('--- voltonumb_aitken = $r',realArgs=(/voltonumb_aitken/))
  call mpas_log_write('--- mr_to_nb_ncl     = $r',realArgs=(/mr_to_nb_ncl/))
  call mpas_log_write('--- mr_to_nb_so4     = $r',realArgs=(/mr_to_nb_so4/))
+ call mpas_log_write('--- mr_to_nb_soa     = $r',realArgs=(/mr_to_nb_soa/))
  call mpas_log_write(' ')
 
  do iCell = 1,nCells
     do k = 1,nCAMLevels
        nncla2(k,iCell) = mr_to_nb_ncl*qncla2_fg(k,iCell)
        nso4a2(k,iCell) = mr_to_nb_so4*qso4a2_fg(k,iCell)
+
+       nsoa1_a2(k,iCell) = mr_to_nb_soa*qsoa1_a2_fg(k,iCell)
+       nsoa2_a2(k,iCell) = mr_to_nb_soa*qsoa2_a2_fg(k,iCell)
+       nsoa3_a2(k,iCell) = mr_to_nb_soa*qsoa3_a2_fg(k,iCell)
+       nsoa4_a2(k,iCell) = mr_to_nb_soa*qsoa4_a2_fg(k,iCell)
+       nsoa5_a2(k,iCell) = mr_to_nb_soa*qsoa5_a2_fg(k,iCell)
     enddo
 
     do k = 1,nCAMLevels
-       sum_a2 = nncla2(k,iCell) + nso4a2(k,iCell)
+       sum_a2 = nncla2(k,iCell) + nso4a2(k,iCell) + nsoa1_a2(k,iCell) + nsoa2_a2(k,iCell) &
+              + nsoa3_a2(k,iCell) + nsoa4_a2(k,iCell) + nsoa5_a2(k,iCell)
        ratio_a2 = numa2_fg(k,iCell)/sum_a2
 
        nncla2(k,iCell) = ratio_a2*nncla2(k,iCell)
        nso4a2(k,iCell) = ratio_a2*nso4a2(k,iCell)
+
+       nsoa1_a2(k,iCell) = ratio_a2*nsoa1_a2(k,iCell)
+       nsoa2_a2(k,iCell) = ratio_a2*nsoa2_a2(k,iCell)
+       nsoa3_a2(k,iCell) = ratio_a2*nsoa3_a2(k,iCell)
+       nsoa4_a2(k,iCell) = ratio_a2*nsoa4_a2(k,iCell)
+       nsoa5_a2(k,iCell) = ratio_a2*nsoa5_a2(k,iCell)
      enddo
  enddo
 
