@@ -174,18 +174,12 @@
  rvcuten
 
 !--- local variables and arrays:
- integer:: i,im,j,k,km,kp,kx,kx1
-
+ integer:: i,im,j,k,kx,kx1
  integer,dimension(its:ite)::  slimsk
- integer,dimension(its:ite):: kbot,ktop
 
- real(kind=kind_phys):: delt,rdelt
-
- real(kind=kind_phys),dimension(its:ite):: rcs,rn,evap,heatflux
-
- real(kind=kind_phys),dimension(its:ite,kts:kte):: &
-      dot,prsl,q11,q12,zl,omg,ghtl
-
+ real(kind=kind_phys):: delt
+ real(kind=kind_phys),dimension(its:ite):: rn
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: prsl,omg,ghtl
  real(kind=kind_phys),dimension(its:ite,kts:kte):: uf,vf,tf,qvf,qcf,qif
  real(kind=kind_phys),dimension(its:ite,kts:kte):: qvftenz,thftenz
  real(kind=kind_phys),dimension(its:ite,kts:kte+1):: prsi,ghti,zi
@@ -194,7 +188,7 @@
  character(len=StrKIND):: errmsg
  integer:: errflg
 
- real(kind=kind_phys),dimension(its:ite):: dx_hv,hfx_hv,qfx_hv
+ real(kind=kind_phys),dimension(its:ite):: dx_hv,hfx_hv,qfx_hv,xland_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: dz_hv,pi_hv,prsl_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qi_hv,rho_hv,t_hv,u_hv,v_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: qvften_hv,thften_hv
@@ -264,20 +258,13 @@
          enddo
       enddo
 
-      im=ite-its+1
-      kx=kte-kts+1
-      kx1=kx+1
-      delt=dt*stepcu
-      rdelt=1./delt
-
-!-------------  j loop (outer) --------------------------------------------------
-
    do j=jts,jte
 
       do i=its,ite
-         dx_hv(i)  = dx(i,j)
-         hfx_hv(i) = hfx(i,j)
-         qfx_hv(i) = qfx(i,j)
+         dx_hv(i)    = dx(i,j)
+         hfx_hv(i)   = hfx(i,j)
+         qfx_hv(i)   = qfx(i,j)
+         xland_hv(i) = xland(i,j)
       enddo
 
       do k = kts,kte
@@ -306,17 +293,10 @@
 
       errmsg = ' '
       errflg = 0
-      call cu_ntiedtke_timestep_init(its,ite,kts,kte,itimestep,grav,dz_hv,prsl_hv,prsi_hv,t_hv,rho_hv, &
-                       qv_hv,qc_hv,qi_hv,u_hv,v_hv,w_hv,qvften_hv,thften_hv,qvftenz,thftenz,prsl,ghtl, &
-                       tf,qvf,qcf,qif,uf,vf,prsi,ghti,omg,errmsg,errflg)
+      call cu_ntiedtke_timestep_init(its,ite,kts,kte,im,kx,kx1,itimestep,stepcu,dt,grav,xland_hv,dz_hv,prsl_hv, &
+                              prsi_hv,t_hv,rho_hv,qv_hv,qc_hv,qi_hv,u_hv,v_hv,w_hv,qvften_hv,thften_hv,qvftenz, &
+                              thftenz,slimsk,delt,prsl,ghtl,tf,qvf,qcf,qif,uf,vf,prsi,ghti,omg,errmsg,errflg)
 
-      do i=its,ite
-        slimsk(i)=int(abs(xland(i,j)-2.))
-      enddo
-
-!########################################################################
-!     call tiecnvn(u1,v1,t1,q1,q2,q3,q1b,t1b,ghtl,ghti,omg,prsl,prsi,qfx_hv,hfx_hv, &
-!                 rn,slimsk,im,kx,kx1,delt,dx_hv)
       call tiecnvn(uf,vf,tf,qvf,qcf,qif,qvftenz,thftenz,ghtl,ghti,omg,prsl,prsi,qfx_hv,hfx_hv, &
                   rn,slimsk,im,kx,kx1,delt,dx_hv)
 
