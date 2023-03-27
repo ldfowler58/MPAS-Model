@@ -175,7 +175,6 @@
 
 !--- local variables and arrays:
  integer:: i,im,j,k,km,kp,kx,kx1
- integer:: zz,pp
 
  integer,dimension(its:ite)::  slimsk
  integer,dimension(its:ite):: kbot,ktop
@@ -185,10 +184,11 @@
  real(kind=kind_phys),dimension(its:ite):: rcs,rn,evap,heatflux
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
-      dot,prsl,q1,q2,q3,q1b,t1b,q11,q12,t1,u1,v1,zl,omg,ghtl
+      dot,prsl,q11,q12,zl,omg,ghtl
 
- real(kind=kind_phys),dimension(its:ite,kts:kte+1):: &
-      prsi,ghti,zi
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: uf,vf,tf,qvf,qcf,qif
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: qvftenz,thftenz
+ real(kind=kind_phys),dimension(its:ite,kts:kte+1):: prsi,ghti,zi
 
 !---
  character(len=StrKIND):: errmsg
@@ -197,6 +197,7 @@
  real(kind=kind_phys),dimension(its:ite):: dx_hv,hfx_hv,qfx_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: dz_hv,pi_hv,prsl_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qi_hv,rho_hv,t_hv,u_hv,v_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: qvften_hv,thften_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte+1):: prsi_hv,w_hv
 
  real(kind=kind_phys),dimension(its:ite):: raincv_hv,pratec_hv
@@ -291,6 +292,9 @@
             t_hv(i,k)    = t3d(i,k,j)
             u_hv(i,k)    = u3d(i,k,j)
             v_hv(i,k)    = v3d(i,k,j)
+
+            qvften_hv(i,k) = qvften(i,k,j)
+            thften_hv(i,k) = thften(i,k,j)
          enddo
       enddo
       do k = kts,kte+1
@@ -302,43 +306,25 @@
 
       errmsg = ' '
       errflg = 0
-      call cu_ntiedtke_timestep_init(its,ite,kts,kte,grav,dz_hv,prsl_hv,prsi_hv,rho_hv,w_hv, &
-                                     prsl,prsi,ghtl,ghti,omg,errmsg,errflg)
+      call cu_ntiedtke_timestep_init(its,ite,kts,kte,itimestep,grav,dz_hv,prsl_hv,prsi_hv,t_hv,rho_hv, &
+                       qv_hv,qc_hv,qi_hv,u_hv,v_hv,w_hv,qvften_hv,thften_hv,qvftenz,thftenz,prsl,ghtl, &
+                       tf,qvf,qcf,qif,uf,vf,prsi,ghti,omg,errmsg,errflg)
 
       do i=its,ite
         slimsk(i)=int(abs(xland(i,j)-2.))
       enddo
 
-      pp = 0
-      do k=kts,kte
-        zz = kte-pp
-        do i=its,ite
-          u1(i,zz)=u_hv(i,k)
-          v1(i,zz)=v_hv(i,k)
-          t1(i,zz)=t_hv(i,k)
-          q1(i,zz)=qv_hv(i,k)
-          if(itimestep == 1) then
-             q1b(i,zz)=0.
-             t1b(i,zz)=0.
-          else
-             q1b(i,zz)=qvften(i,k,j)
-             t1b(i,zz)=thften(i,k,j)
-          endif
-          q2(i,zz)=qc_hv(i,k)
-          q3(i,zz)=qi_hv(i,k)
-        enddo
-        pp = pp + 1
-      enddo
-
 !########################################################################
-      call tiecnvn(u1,v1,t1,q1,q2,q3,q1b,t1b,ghtl,ghti,omg,prsl,prsi,qfx_hv,hfx_hv, &
+!     call tiecnvn(u1,v1,t1,q1,q2,q3,q1b,t1b,ghtl,ghti,omg,prsl,prsi,qfx_hv,hfx_hv, &
+!                 rn,slimsk,im,kx,kx1,delt,dx_hv)
+      call tiecnvn(uf,vf,tf,qvf,qcf,qif,qvftenz,thftenz,ghtl,ghti,omg,prsl,prsi,qfx_hv,hfx_hv, &
                   rn,slimsk,im,kx,kx1,delt,dx_hv)
 
       errmsg = ' '
       errflg = 0
       call cu_ntiedtke_timestep_final(its,ite,kts,kte,stepcu,dt,pi_hv,qv_hv,qc_hv,qi_hv,t_hv, &
-                  u_hv,v_hv,q1,q2,q3,t1,u1,v1,rn,raincv_hv,pratec_hv,rthcuten_hv,rqvcuten_hv, &
-                  rqccuten_hv,rqicuten_hv,rucuten_hv,rvcuten_hv,errmsg,errflg)
+                           u_hv,v_hv,qvf,qcf,qif,tf,uf,vf,rn,raincv_hv,pratec_hv,rthcuten_hv, &
+                           rqvcuten_hv,rqccuten_hv,rqicuten_hv,rucuten_hv,rvcuten_hv,errmsg,errflg)
 
       do i = its,ite
          raincv(i,j) = raincv_hv(i)
