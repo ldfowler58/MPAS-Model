@@ -78,25 +78,25 @@
                 description="sprinkler evaporation loss accumuated"/>
 
       <var name="rs" type="real" dimensions="nCells Time" units="s m^{-1}"
-                description="surface resistance"/>
+                description="total stomatal resistance" missing_value="-1.e36"/>
 
       <var name="tvxy" type="real" dimensions="nCells Time" units="K"
-                description="vegetation leaf temperature"/>
+                description="vegetation leaf temperature" missing_value="-1.e36"/>
 
       <var name="tgxy" type="real" dimensions="nCells Time" units="K"
                 description="bulk ground temperature"/>
 
       <var name="canicexy" type="real" dimensions="nCells Time" units="mm"
-                description="intercepted ice mass"/>
+                description="intercepted ice mass" missing_value="-1.e36"/>
 
       <var name="canliqxy" type="real" dimensions="nCells Time" units="mm"
-                description="intercepted liquid water"/>
+                description="intercepted liquid water" missing_value="-1.e36"/>
 
       <var name="eahxy" type="real" dimensions="nCells Time" units="Pa"
-                description="canopy air vapor pressure"/>
+                description="canopy air vapor pressure" missing_value="-1.e36"/>
 
       <var name="tahxy" type="real" dimensions="nCells Time" units="K"
-                description="canopy air temperature"/>
+                description="canopy air temperature" missing_value="-1.e36"/>
 
       <var name="cmxy" type="real" dimensions="nCells Time" units="m s^{-1}"
                 description="surface exchange coefficient for momentum"/>
@@ -105,7 +105,7 @@
                 description="surface exchange coefficient for heat"/>
 
       <var name="fwetxy" type="real" dimensions="nCells Time" units="-"
-                description="wetted or snowed canopy fraction"/>
+                description="wetted or snowed canopy fraction" missing_value="-1.e36"/>
 
       <var name="sneqvoxy" type="real" dimensions="nCells Time" units="mm"
                 description="snow mass at last time step"/>
@@ -120,46 +120,46 @@
                 description="snowfall on the ground"/>
 
       <var name="wslakexy" type="real" dimensions="nCells Time" units="mm"
-                description="lake water storage"/>
+                description="lake water storage" missing_value="-1.e36"/>
 
       <var name="zwtxy" type="real" dimensions="nCells Time" units="m"
                 description="water table depth"/>
 
       <var name="waxy" type="real" dimensions="nCells Time" units="mm"
-                description="water in the acquifer"/>
+                description="water in the acquifer" missing_value="-1.e36"/>
 
       <var name="wtxy" type="real" dimensions="nCells Time" units="mm"
-                description="groundwater storage"/>
+                description="groundwater storage" missing_value="-1.e36"/>
 
       <var name="lfmassxy" type="real" dimensions="nCells Time" units="g m^{-2}"
-                description="leaf mass"/>
+                description="leaf mass" missing_value="-1.e36"/>
 
       <var name="rtmassxy" type="real" dimensions="nCells Time" units="g m^{-2}"
-                description="mass of fine roots"/>
+                description="mass of fine roots" missing_value="-1.e36"/>
 
       <var name="stmassxy" type="real" dimensions="nCells Time" units="g m^{-2}"
-                description="stem mass"/>
+                description="stem mass" missing_value="-1.e36"/>
 
       <var name="woodxy" type="real" dimensions="nCells Time" units="g m^{-2}"
-                description="mass of wood"/>
+                description="mass of wood" missing_value="-1.e36"/>
 
       <var name="grainxy" type="real" dimensions="nCells Time" units="g m^{-2}"
-                description="mass of grain"/>
+                description="mass of grain" missing_value="-1.e36"/>
 
       <var name="gddxy" type="real" dimensions="nCells Time" units="-"
-                description="growing degree days"/>
+                description="growing degree days" missing_value="-1.e36"/>
 
       <var name="pgsxy" type="real" dimensions="nCells Time" units="-"
                 description="pgs"/>
 
       <var name="stblcpxy" type="real" dimensions="nCells Time" units="g m^{-2}"
-                description="stable carbon pool"/>
+                description="stable carbon pool" missing_value="-1.e36"/>
 
       <var name="fastcpxy" type="real" dimensions="nCells Time" units="g m^{-2}"
-                description="short-lived carbon"/>
+                description="short-lived carbon" missing_value="-1.e36"/>
 
       <var name="xsaixy" type="real" dimensions="nCells Time" units="-"
-                description="stem area index"/>
+                description="stem area index" missing_value="-1.e36"/>
 
       <var name="taussxy" type="real" dimensions="nCells Time" units="-"
                 description="non-dimensional snow age"/>
@@ -240,7 +240,7 @@
                 description="soil column drainage"/>
 
       <var name="qtiledrain" type="real" dimensions="nCells Time" units="mm"
-                description="tile drainage"/>
+                description="tile drainage" missing_value="-1.e36"/>
 
       <var name="zwatble2d" type="real" dimensions="nCells Time" units="m"
                 description="water table depth for tile drainage"/>
@@ -254,13 +254,13 @@
                 description="dummy exchange coefficient"/>
 
       <var name="t2mvxy" type="real" dimensions="nCells Time" units="K"
-                description="2-meter temperature over canopy"/>
+                description="2-meter temperature over canopy" missing_value="-1.e36"/>
 
       <var name="t2mbxy" type="real" dimensions="nCells Time" units="K"
                 description="2-meter temperature over bare ground"/>
 
       <var name="q2mvxy" type="real" dimensions="nCells Time" units="kg kg^{-1}"
-                description="2-meter water vapor mixing ratio over canopy"/>
+                description="2-meter water vapor mixing ratio over canopy" missing_value="-1.e36"/>
 
       <var name="q2mbxy" type="real" dimensions="nCells Time" units="kg kg^{-1}"
                 description="2-meter water vapor mixing ratio ovrer bare ground"/>
@@ -269,13 +269,13 @@
                 description="surfrac radiative temperature"/>
 
       <var name="neexy"  type="real" dimensions="nCells Time" units="g m^{-2} s^{-1} C"
-                description="net ecosystem exchange"/>
+                description="net ecosystem exchange" missing_value="-1.e36"/>
 
       <var name="gppxy"  type="real" dimensions="nCells Time" units="g m^{-2} s^{-1} C"
-                description="gross primary productivity"/>
+                description="gross primary productivity" missing_value="-1.e36"/>
 
       <var name="nppxy"  type="real" dimensions="nCells Time" units="g m^{-2} s^{-1} C"
-                description="net primary productivity"/>
+                description="net primary productivity" missing_value="-1.e36"/>
 
       <var name="fvegxy" type="real" dimensions="nCells Time" units="-"
                 description="NOAHMP vegetation fraction"/>
@@ -302,10 +302,10 @@
                 description="total net longwave radiation"/>
 
       <var name="aparxy" type="real" dimensions="nCells Time" units="W m^{-2}"
-                description="iphotosynthesis active energy by canopy"/>
+                description="iphotosynthesis active energy by canopy" missing_value="-1.e36"/>
 
       <var name="psnxy" type="real" dimensions="nCells Time" units="umol CO2 m^{-2} s^{-1}"
-                description="total photosynthesis"/>
+                description="total photosynthesis" missing_value="-1.e36"/>
 
       <var name="savxy" type="real" dimensions="nCells Time" units="W m^{-2}"
                 description="solar radiation absorbed by vegetation"/>
@@ -314,25 +314,25 @@
                 description="solar radiation absorbed by ground"/>
 
       <var name="rssunxy" type="real" dimensions="nCells Time" units="s m^{-1}"
-                description="sunlit stomatal resistance"/>
+                description="sunlit stomatal resistance" missing_value="-1.e36"/>
 
       <var name="rsshaxy" type="real" dimensions="nCells Time" units="s m^{-1}"
-                description="shaded stomatal resistance"/>
+                description="shaded stomatal resistance" missing_value="-1.e36"/>
 
       <var name="bgapxy" type="real" dimensions="nCells Time" units="-"
-                description="between canopy gap"/>
+                description="between canopy gap" missing_value="-1.e36"/>
 
       <var name="wgapxy" type="real" dimensions="nCells Time" units="-"
-                description="within canopy gap"/>
+                description="within canopy gap" missing_value="-1.e36"/>
 
       <var name="tgvxy" type="real" dimensions="nCells Time" units="K"
-                description="ground temperature under canopy"/>
+                description="ground temperature under canopy" missing_value="-1.e36"/>
 
       <var name="tgbxy" type="real" dimensions="nCells Time" units="K"
                 description="bare gorund temperature"/>
 
       <var name="chvxy" type="real" dimensions="nCells Time" units="s m^{-1}"
-                description="vegetated heat exchange coefficient"/>
+                description="vegetation heat exchange coefficient" missing_value="-1.e36"/>
 
       <var name="chbxy" type="real" dimensions="nCells Time" units="s m^{-1}"
                 description="bare-ground heat exchange coefficient"/>
@@ -374,13 +374,13 @@
                 description="canopy evaporation"/>
 
       <var name="chleafxy" type="real" dimensions="nCells Time" units="m s^{-1}"
-                description="leaf exchange coefficient"/>
+                description="leaf exchange coefficient" missing_value="-1.e36"/>
 
       <var name="chucxy" type="real" dimensions="nCells Time" units="m s^{-1}"
-                description="under canopy exchange coefficient"/>
+                description="under canopy exchange coefficient" missing_value="-1.e36"/>
 
       <var name="chv2xy" type="real" dimensions="nCells Time" units="m s^{-1}"
-                description="leaf exchange coefficient"/>
+                description="leaf exchange coefficient" missing_value="-1.e36"/>
 
       <var name="chb2xy" type="real" dimensions="nCells Time" units="m s^{-1}"
                 description="under canopy exchange coefficient"/>

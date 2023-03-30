@@ -2381,7 +2381,7 @@
                      packages="bl_mynn_in;bl_ysu_in"/>
 
                 <var name="br" type="real" dimensions="nCells Time" units="unitless"
-                     description="Richardson number"
+                     description="Richardson number" missing_value="-1.e36"
                      packages="bl_mynn_in;bl_ysu_in"/>
 
                 <var name="cd" type="real" dimensions="nCells Time" units="unitless"
@@ -2790,7 +2790,7 @@
                      description="ground heat flux"/>
 
                 <var name="lai" type="real" dimensions="nCells Time" units="m^{-2} m^{-2}"
-                     description="leaf area index"/>
+                     description="leaf area index" missing_value="-1.e36"/>
 
                 <var name="noahres" type="real" dimensions="nCells Time" units="W m^{-2}"
                      description="residual of the Noah surface energy budget"/>
