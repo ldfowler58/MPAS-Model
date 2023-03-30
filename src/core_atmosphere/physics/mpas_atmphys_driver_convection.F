@@ -19,7 +19,7 @@
  use module_cu_gf
  use module_cu_kfeta
  use module_cu_tiedtke
- use module_cu_ntiedtke
+ use module_cu_ntiedtke,only: cu_ntiedtke_driver
 
  implicit none
  private
@@ -399,7 +399,8 @@
  end subroutine init_convection
 
 !=================================================================================================================
- subroutine driver_convection(itimestep,configs,mesh,sfc_input,diag_physics,tend_physics,its,ite)
+ subroutine driver_convection(itimestep,configs,mesh,sfc_input,diag_physics,tend_physics,its,ite, &
+                              errmsg,errflg)
 !=================================================================================================================
 
 !input arguments:
@@ -413,6 +414,10 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: tend_physics
+
+!output arguments:
+ character(len=*),intent(out):: errmsg
+ integer,intent(out):: errflg
 
 !local variables and arrays:
  logical:: log_convection
@@ -570,7 +575,7 @@
 
     case("cu_ntiedtke")
        call mpas_timer_start('New_Tiedtke')
-       call cu_ntiedtke_run( &
+       call cu_ntiedtke_driver( &
              pcps      = pres_hyd_p  , p8w         = pres2_hyd_p ,                   &
              t3d       = t_p         , dz8w        = dz_p        ,                   &
              dt        = dt_dyn      , itimestep   = initflag    ,                   &
@@ -588,11 +593,11 @@
              f_qs      = f_qs        , rthcuten    = rthcuten_p  ,                   &
              rqvcuten  = rqvcuten_p  , rqccuten    = rqccuten_p  ,                   &
              rqicuten  = rqicuten_p  , rucuten     = rucuten_p   ,                   &
-             rvcuten   = rvcuten_p   ,                                               &
-             grav      = gravity     , xlf         = xlf         ,                   &
-             xls       = xls         , xlv         = xlv         ,                   &
-             rd        = R_d         , rv          = R_v         ,                   &
-             cp        = cp          ,                                               &
+             rvcuten   = rvcuten_p   , grav        = gravity     ,                   &
+             xlf       = xlf         , xls         = xls         ,                   &
+             xlv       = xlv         , rd          = R_d         ,                   &
+             rv        = R_v         , cp          = cp          ,                   &
+             errmsg    = errmsg      , errflg      = errflg      ,                   &
              ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde , &
              ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme , &
              its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte   &
