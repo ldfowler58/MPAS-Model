@@ -19,6 +19,13 @@
     real(kind=RKIND),dimension(:),pointer:: qnh3_em       => null()
     real(kind=RKIND),dimension(:),pointer:: qso2_em       => null()
 
+    real(kind=RKIND),dimension(:),pointer:: emis_qseas1   => null()
+    real(kind=RKIND),dimension(:),pointer:: emis_qseas2   => null()
+    real(kind=RKIND),dimension(:),pointer:: emis_qseas3   => null()
+    real(kind=RKIND),dimension(:),pointer:: emis_nseas1   => null()
+    real(kind=RKIND),dimension(:),pointer:: emis_nseas2   => null()
+    real(kind=RKIND),dimension(:),pointer:: emis_nseas3   => null()
+
     real(kind=RKIND),dimension(:),pointer:: emis_qdust1   => null()
     real(kind=RKIND),dimension(:),pointer:: emis_qdust2   => null()
     real(kind=RKIND),dimension(:),pointer:: emis_qdust3   => null()
@@ -83,6 +90,7 @@
 
     !--- local variables from the MPAS dynamical core:
     integer,dimension(:),pointer           :: isltyp_c    => null()
+    integer,dimension(:),pointer           :: ivgtyp_c    => null()
 
     real(kind=RKIND):: dt_c
     real(kind=RKIND):: grav_c
@@ -99,6 +107,7 @@
     real(kind=RKIND),dimension(:),pointer  :: znt_c       => null()
     real(kind=RKIND),dimension(:,:),pointer:: erod_c      => null()
     real(kind=RKIND),dimension(:,:),pointer:: zgrid_c     => null()
+    real(kind=RKIND),dimension(:,:),pointer:: dzgrid_c    => null()
     real(kind=RKIND),dimension(:,:),pointer:: rho_c       => null()
     real(kind=RKIND),dimension(:,:),pointer:: pres_c      => null()
     real(kind=RKIND),dimension(:,:),pointer:: dpres_c     => null()
@@ -179,6 +188,13 @@
  if(.not.associated(this%qnh3_em)    ) allocate(this%qnh3_em(its:ite)            )
  if(.not.associated(this%qso2_em)    ) allocate(this%qso2_em(its:ite)            )
 
+ if(.not.associated(this%emis_qseas1)) allocate(this%emis_qseas1(its:ite)        )
+ if(.not.associated(this%emis_qseas2)) allocate(this%emis_qseas2(its:ite)        )
+ if(.not.associated(this%emis_qseas3)) allocate(this%emis_qseas3(its:ite)        )
+ if(.not.associated(this%emis_nseas1)) allocate(this%emis_nseas1(its:ite)        )
+ if(.not.associated(this%emis_nseas2)) allocate(this%emis_nseas2(its:ite)        )
+ if(.not.associated(this%emis_nseas3)) allocate(this%emis_nseas3(its:ite)        )
+
 
 !--- allocate mixing ratios:
  if(.not.associated(this%qbc1)       ) allocate(this%qbc1(its:ite,kts:kte)       )
@@ -251,6 +267,7 @@
 
 !--- allocate mesh and meteorological fields:
  if(.not.associated(this%isltyp_c)   ) allocate(this%isltyp_c(its:ite)           )
+ if(.not.associated(this%ivgtyp_c)   ) allocate(this%ivgtyp_c(its:ite)           )
  if(.not.associated(this%clay_c)     ) allocate(this%clay_c(its:ite)             )
  if(.not.associated(this%sand_c)     ) allocate(this%sand_c(its:ite)             )
  if(.not.associated(this%porosity_c) ) allocate(this%porosity_c(its:ite)         )
@@ -263,6 +280,7 @@
  if(.not.associated(this%ust_c)      ) allocate(this%ust_c(its:ite)              )
  if(.not.associated(this%znt_c)      ) allocate(this%znt_c(its:ite)              )
  if(.not.associated(this%zgrid_c)    ) allocate(this%zgrid_c(its:ite,kts:ktep1)  )
+ if(.not.associated(this%dzgrid_c)   ) allocate(this%dzgrid_c(its:ite,kts:kte)   )
  if(.not.associated(this%rho_c)      ) allocate(this%rho_c(its:ite,kts:kte)      )
  if(.not.associated(this%pres_c)     ) allocate(this%pres_c(its:ite,kts:kte)     )
  if(.not.associated(this%dpres_c)    ) allocate(this%dpres_c(its:ite,kts:kte)    )
@@ -292,6 +310,13 @@
  if(associated(this%qco_em)     ) deallocate(this%qco_em     )
  if(associated(this%qnh3_em)    ) deallocate(this%qnh3_em    )
  if(associated(this%qso2_em)    ) deallocate(this%qso2_em    )
+
+ if(associated(this%emis_qseas1)) deallocate(this%emis_qseas1)
+ if(associated(this%emis_qseas2)) deallocate(this%emis_qseas2)
+ if(associated(this%emis_qseas3)) deallocate(this%emis_qseas3)
+ if(associated(this%emis_nseas1)) deallocate(this%emis_nseas1)
+ if(associated(this%emis_nseas2)) deallocate(this%emis_nseas2)
+ if(associated(this%emis_nseas3)) deallocate(this%emis_nseas3)
 
 
 !--- deallocate mixing ratios:
@@ -365,6 +390,7 @@
 
 !--- deallocate mesh and meteorological fields:
  if(associated(this%isltyp_c)   ) deallocate(this%isltyp_c   )
+ if(associated(this%ivgtyp_c)   ) deallocate(this%ivgtyp_c   )
  if(associated(this%clay_c)     ) deallocate(this%clay_c     )
  if(associated(this%sand_c)     ) deallocate(this%sand_c     )
  if(associated(this%porosity_c) ) deallocate(this%porosity_c )
@@ -377,6 +403,7 @@
  if(associated(this%ust_c)      ) deallocate(this%ust_c      )
  if(associated(this%znt_c)      ) deallocate(this%znt_c      )
  if(associated(this%zgrid_c)    ) deallocate(this%zgrid_c    )
+ if(associated(this%dzgrid_c)   ) deallocate(this%dzgrid_c   )
  if(associated(this%rho_c)      ) deallocate(this%rho_c      )
  if(associated(this%pres_c)     ) deallocate(this%pres_c     )
  if(associated(this%dpres_c)    ) deallocate(this%dpres_c    )
@@ -425,7 +452,7 @@
 !local variables and arrays for meteorological fields:
  integer,pointer:: index_qv
  integer,pointer:: index_qco
- integer,dimension(:),pointer:: isltyp
+ integer,dimension(:),pointer:: isltyp,ivgtyp
 
  real(kind=RKIND),pointer:: dt
  real(kind=RKIND),dimension(:),pointer:: area,clay,sand,xland
@@ -638,6 +665,7 @@
  call mpas_log_write(' ')
 
  call mpas_pool_get_array(sfc_input,'isltyp'  ,isltyp  )
+ call mpas_pool_get_array(sfc_input,'ivgtyp'  ,ivgtyp  )
  call mpas_pool_get_array(sfc_input,'porosity',porosity)
  call mpas_pool_get_array(sfc_input,'smois'   ,smois   )
  call mpas_pool_get_array(sfc_input,'snowh'   ,snowh   )
@@ -658,6 +686,7 @@
 
  do i = its,ite
     this%isltyp_c(i)   = isltyp(i)
+    this%ivgtyp_c(i)   = ivgtyp(i)
     this%area_c(i)     = area(i)
     this%xland_c(i)    = xland(i)
     this%u10_c(i)      = u10(i)
@@ -677,7 +706,7 @@
     do k = kts,kte
        this%qco(i,k)     = qco(k,i)
        this%zgrid_c(i,k) = zgrid(k,i)
-       this%zgrid_c(i,k) = max(0._RKIND,this%zgrid_c(i,k))
+!      this%zgrid_c(i,k) = max(0._RKIND,this%zgrid_c(i,k))
        this%rho_c(i,k)   = zz(k,i)*rho_zz(k,i)*(1.+qv(k,i))
        this%pres_c(i,k)  = pres_b(k,i)+pres_p(k,i)
        this%u_c(i,k)     = uzonal(k,i)
@@ -685,7 +714,13 @@
     enddo
     k = kte+1
     this%zgrid_c(i,k) = zgrid(k,i)
+
+    do k = kts,kte
+       this%dzgrid_c(i,k) = this%zgrid_c(i,k+1) - this%zgrid_c(i,k)
+    enddo
  enddo
+ call mpas_log_write('--- min dzgrid_c = $r',realArgs=(/minval(this%dzgrid_c(:,kts))/))
+
 
 !--- interpolation of pressure thickness:
  pres  => this%pres_c
@@ -796,7 +831,9 @@
 !    the surface emissions of anthropogenic and natural aerosols:
  call compute_sfc_nbThompson(its,ite,kts,kte,this%tend_qbc2,this%tend_qoc2,this%tend_qso4a1, &
                         this%tend_qseas1,this%tend_qdust1,this%tend_qdust2,this%tend_qdust3, &
-                        this%tend_qdust4,this%tend_qdust5,this%nwfa2d_c,this%nifa2d_c)
+                        this%tend_qdust4,this%tend_qdust5,this%emis_qseas1,this%emis_qseas2, &
+                        this%emis_qseas3,this%emis_nseas1,this%emis_nseas2,this%emis_nseas3, &
+                        this%nwfa2d_c,this%nifa2d_c)
 
  call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
  call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
@@ -824,13 +861,16 @@
 
 !=================================================================================================================
  subroutine compute_sfc_nbThompson(its,ite,kts,kte,tend_qbc2,tend_qoc2,tend_qso4a1,tend_qseas1,tend_qdust1, &
-                                   tend_qdust2,tend_qdust3,tend_qdust4,tend_qdust5,tend_nwfa,tend_nifa)
+                                   tend_qdust2,tend_qdust3,tend_qdust4,tend_qdust5,emis_qseas1,emis_qseas2, &
+                                   emis_qseas3,emis_nseas1,emis_nseas2,emis_nseas3,tend_nwfa,tend_nifa)
 !=================================================================================================================
 
 !input arguments:
  integer,intent(in):: its,ite,kts,kte
- real(kind=RKIND),dimension(its:ite,kts:kte),intent(in):: tend_qbc2,tend_qoc2,tend_qso4a1,tend_qseas1
- real(kind=RKIND),dimension(its:ite,kts:kte),intent(in):: tend_qdust1,tend_qdust2,tend_qdust3,tend_qdust4, &
+ real(kind=RKIND),intent(in),dimension(its:ite):: emis_qseas1,emis_qseas2,emis_qseas3
+ real(kind=RKIND),intent(in),dimension(its:ite):: emis_nseas1,emis_nseas2,emis_nseas3
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: tend_qbc2,tend_qoc2,tend_qso4a1,tend_qseas1
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte):: tend_qdust1,tend_qdust2,tend_qdust3,tend_qdust4, &
                                                           tend_qdust5
 
 !inout arguments:
@@ -870,6 +910,11 @@
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine compute_sfc_nbThompson:')
+ do i = its,ite
+    call mpas_log_write('$i $r $r $r $r $r $r',intArgs=(/i/),realArgs=(/emis_qseas1(i),emis_qseas2(i), &
+                        emis_qseas3(i),emis_nseas1(i),emis_nseas2(i),emis_nseas3(i)/))
+ enddo
+
 
 !--- accumulation mode for nwfa:
  alnsg_accum = log(sigmag_accum)
@@ -897,7 +942,8 @@
     tend_nso4a1(i)  = mr_to_nb_so4*tend_qso4a1(i,k)
     tend_nseasa1(i) = mr_to_nb_so4*tend_qseas1(i,k)
 
-    tend_nwfa(i)   = tend_nbca1(i) + tend_npoma1(i) + tend_nso4a1(i) + tend_nseasa1(i)
+    tend_nwfa(i)   = tend_nbca1(i) + tend_npoma1(i) + tend_nso4a1(i) + emis_nseas1(i)
+!   tend_nwfa(i)   = tend_nbca1(i) + tend_npoma1(i) + tend_nso4a1(i) + tend_nseasa1(i)
 !   call mpas_log_write('$i $r $r $r $r $r $r $r $r $r',intArgs=(/i/),realArgs=(/tend_qbc2(i,k),tend_nbca1(i), &
 !              tend_qoc2(i,k),tend_npoma1(i),tend_qso4a1(i,k),tend_nso4a1(i),tend_qseas1(i,k),tend_nseasa1(i), &
 !              tend_nwfa(i)/))

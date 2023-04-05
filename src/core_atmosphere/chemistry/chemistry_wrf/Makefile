@@ -6,6 +6,7 @@ dummy:
 	echo "****** compiling chemistry_wrf ******"
 
 OBJS = \
+	module_cam_mam_addemiss_seasalt.o \
 	module_gocart_aerosols.o \
 	module_gocart_dusts_afwa.o \
 	module_gocart_dusts.o \

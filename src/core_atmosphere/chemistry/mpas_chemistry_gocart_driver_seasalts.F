@@ -3,6 +3,7 @@
 
  use mpas_chemistry_gocart_interface
  use module_gocart_seasalts
+ use module_cam_mam_addemiss_seasalt
 
 
  implicit none
@@ -32,6 +33,8 @@
  real(kind=RKIND),dimension(:),pointer:: area,xland,u10,v10
  real(kind=RKIND),dimension(:,:),pointer:: dpres,rho,u,v,zgrid
 
+ real(kind=RKIND),dimension(:),pointer:: emis_qseas1,emis_qseas2,emis_qseas3
+ real(kind=RKIND),dimension(:),pointer:: emis_nseas1,emis_nseas2,emis_nseas3
  real(kind=RKIND),dimension(:,:),pointer:: qseas1,qseas2,qseas3,qseas4
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -48,6 +51,13 @@
 
  dt    = this%dt_c
  grav  = this%grav_c
+
+ emis_qseas1 => this%emis_qseas1
+ emis_qseas2 => this%emis_qseas2
+ emis_qseas3 => this%emis_qseas3
+ emis_nseas1 => this%emis_nseas1
+ emis_nseas2 => this%emis_nseas2
+ emis_nseas3 => this%emis_nseas3
 
  qseas1 => this%qseas1
  qseas2 => this%qseas2
@@ -66,9 +76,11 @@
 
 
 !--- calls seasalts surface emission:
- call gocart_seasalts_emission(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,qseas4,xland,area, &
-                               dpres,zgrid,u10,v10,rho,u,v)
-
+!call gocart_seasalts_emission(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,qseas4,xland,area, &
+!                              dpres,zgrid,u10,v10,rho,u,v)
+ call cam_mam_mosaic_seasalt_emiss(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,u10,v10,xland, &
+                              rho,zgrid,emis_qseas1,emis_qseas2,emis_qseas3,emis_nseas1,emis_nseas2, &
+                              emis_nseas3)
 
  call mpas_log_write('--- end subroutine driver_gocart_seasalts:')
 

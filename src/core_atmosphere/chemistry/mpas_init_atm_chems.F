@@ -1108,9 +1108,14 @@
        qdust4_fg(k,iCell) = 0.0_RKIND
        qdust5_fg(k,iCell) = 0.0_RKIND
 
-       qseas1_fg(k,iCell) = 1.0*qncla1_fg(k,iCell) + 1.0*qncla2_fg(k,iCell)
-       qseas2_fg(k,iCell) = 0.5*qncla3_fg(k,iCell)
-       qseas3_fg(k,iCell) = 0.5*qncla3_fg(k,iCell)
+!--- do not remap to GOCART aerosols so that we can use the CAM MAM4 parameterization of sea-salt emission.
+!      qseas1_fg(k,iCell) = 1.0*qncla1_fg(k,iCell) + 1.0*qncla2_fg(k,iCell)
+!      qseas2_fg(k,iCell) = 0.5*qncla3_fg(k,iCell)
+!      qseas3_fg(k,iCell) = 0.5*qncla3_fg(k,iCell)
+!      qseas4_fg(k,iCell) = 0.0_RKIND
+       qseas1_fg(k,iCell) = qncla1_fg(k,iCell) !accumulation mode.
+       qseas2_fg(k,iCell) = qncla2_fg(k,iCell) !aitken mode.
+       qseas3_fg(k,iCell) = qncla3_fg(k,iCell) !coarse mode.
        qseas4_fg(k,iCell) = 0.0_RKIND
 
        nifa_fg(k,iCell)   = ndsta3(k,iCell)
@@ -1275,8 +1280,8 @@
        scalars(index_nifa,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
                                               order=1,extrap=0)
     enddo
-    k = 1
-    nifa2d(iCell) = scalars(index_nifa,k,iCell)
+!   k = 1
+!   nifa2d(iCell) = scalars(index_nifa,k,iCell)
 
     !nwfa:
     sorted_arr(1,1:nCAMLevels) = 0._RKIND
@@ -1290,8 +1295,8 @@
        scalars(index_nwfa,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
                                               order=1,extrap=0)
     enddo
-    k = 1
-    nwfa2d(iCell) = scalars(index_nwfa,k,iCell)
+!   k = 1
+!   nwfa2d(iCell) = scalars(index_nwfa,k,iCell)
  enddo
 
  if(allocated(sorted_arr)) deallocate(sorted_arr)
