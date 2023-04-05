@@ -89,8 +89,11 @@
 !   mult = rho(i,k)*(zgrid(i,k+1)-zgrid(i,k))
     mult = grav*dt/dpres(i,k)
 
-    qso4a1(i,k) = qso4a1(i,k) + 0.5*mult*qso2_em(i)
-    qso4a2(i,k) = qso4a2(i,k) + 0.5*mult*qso2_em(i)
+!   qso4a1(i,k) = qso4a1(i,k) + 0.5*mult*qso2_em(i)
+!   qso4a2(i,k) = qso4a2(i,k) + 0.5*mult*qso2_em(i)
+!--- increase source of so2 to 80% for accumulation mode:
+    qso4a1(i,k) = qso4a1(i,k) + 0.8*mult*qso2_em(i)
+    qso4a2(i,k) = qso4a2(i,k) + 0.2*mult*qso2_em(i)
  enddo
 
  call mpas_log_write('--- end subroutine gocart_add_CAMS_emissions:')
