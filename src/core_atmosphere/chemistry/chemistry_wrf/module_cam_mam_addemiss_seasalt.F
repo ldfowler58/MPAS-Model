@@ -67,7 +67,6 @@
  real(kind=RKIND):: factaa,factbb
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine cam_mam_mosaic_seasalt_emiss:')
 
  do i = its,ite
