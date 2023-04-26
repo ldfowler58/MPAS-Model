@@ -1,6 +1,5 @@
 !=================================================================================================================
  module module_cu_ntiedtke
- use mpas_log
  use mpas_kind_types,only: RKIND,StrKIND
 
  use cu_ntiedtke,only: cu_ntiedtke_run,           &
@@ -156,61 +155,11 @@
                                                    rucuten_hv,rvcuten_hv
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine cu_ntiedtke:')
 
  errmsg = ' '
  errflg = 0
 
  call cu_ntiedtke_init(cp,rd,rv,xlv,xls,xlf,grav,errmsg,errflg)
-
- call mpas_log_write('--- rd  = $r',realArgs=(/rd/))
- call mpas_log_write('--- rv  = $r',realArgs=(/rv/))
- call mpas_log_write('--- cpd = $r',realArgs=(/cp/))
- call mpas_log_write('--- alv = $r',realArgs=(/xlv/))
- call mpas_log_write('--- als = $r',realArgs=(/xls/))
- call mpas_log_write('--- alf = $r',realArgs=(/xlf/))
- call mpas_log_write('--- g   = $r',realArgs=(/grav/))
- call mpas_log_write(' ')
- call mpas_log_write('--- t13     = $r',realArgs=(/t13/)    )
- call mpas_log_write('--- rcpd    = $r',realArgs=(/rcpd/)   )
- call mpas_log_write('--- tmelt   = $r',realArgs=(/tmelt/)  )
- call mpas_log_write('--- zrg     = $r',realArgs=(/zrg/)    )
- call mpas_log_write('--- c1es    = $r',realArgs=(/c1es/)   )
- call mpas_log_write('--- c2es    = $r',realArgs=(/c2es/)   )
- call mpas_log_write('--- c3les   = $r',realArgs=(/c3les/)  )
- call mpas_log_write('--- c3ies   = $r',realArgs=(/c3ies/)  )
- call mpas_log_write('--- c4les   = $r',realArgs=(/c4les/)  )
- call mpas_log_write('--- c4ies   = $r',realArgs=(/c4ies/)  )
- call mpas_log_write('--- c5les   = $r',realArgs=(/c5les/)  )
- call mpas_log_write('--- c5ies   = $r',realArgs=(/c5ies/)  )
- call mpas_log_write('--- r5alvcp = $r',realArgs=(/r5alvcp/))
- call mpas_log_write('--- r5alscp = $r',realArgs=(/r5alscp/))
- call mpas_log_write('--- ralvdcp = $r',realArgs=(/ralvdcp/))
- call mpas_log_write('--- ralsdcp = $r',realArgs=(/ralsdcp/))
- call mpas_log_write('--- ralfdcp = $r',realArgs=(/ralfdcp/))
- call mpas_log_write('--- rtwat   = $r',realArgs=(/rtwat/)  )
- call mpas_log_write('--- rtber   = $r',realArgs=(/rtber/)  )
- call mpas_log_write('--- rtice   = $r',realArgs=(/rtice/)  )
- call mpas_log_write('--- vtmpc1  = $r',realArgs=(/vtmpc1/) )
- call mpas_log_write(' ')
- call mpas_log_write('--- momtrans = $i',intArgs=(/momtrans/))
- call mpas_log_write('--- entrdd   = $r',realArgs=(/entrdd/) )
- call mpas_log_write('--- cmfcmax  = $r',realArgs=(/cmfcmax/))
- call mpas_log_write('--- cmfcmin  = $r',realArgs=(/cmfcmin/))
- call mpas_log_write('--- cmfdeps  = $r',realArgs=(/cmfdeps/))
- call mpas_log_write('--- zdnoprc  = $r',realArgs=(/zdnoprc/))
- call mpas_log_write('--- cprcon   = $r',realArgs=(/cprcon/) )
- call mpas_log_write('--- pgcoef   = $r',realArgs=(/pgcoef/) )
- call mpas_log_write(' ')
- call mpas_log_write('--- nonequil = $l',logicArgs = (/nonequil/))
- call mpas_log_write('--- lmfpen   = $l',logicArgs = (/lmfpen/)  )
- call mpas_log_write('--- lmfmid   = $l',logicArgs = (/lmfmid/)  )
- call mpas_log_write('--- lmfscv   = $l',logicArgs = (/lmfscv/)  )
- call mpas_log_write('--- lmfdd    = $l',logicArgs = (/lmfdd/)   )
- call mpas_log_write('--- lmfdudv  = $l',logicArgs = (/lmfdudv/) )
- call mpas_log_write('--- end subroutine cu_ntiedtke:')
- call mpas_log_write(' ')
 
  do j = jts,jte
     do i = its,ite
