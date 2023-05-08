@@ -869,7 +869,7 @@
  real(kind=RKIND),parameter:: dens_oc       = 1.0e03  ! density of organic carbon (kg/m3).
  real(kind=RKIND),parameter:: dens_soa      = 1.0e03  ! density of secondary organic carbon (kg/m3)
  real(kind=RKIND),parameter:: dens_so4      = 1.77e03 ! density of sulfates (kg/m3).
- real(kind=RKIND),parameter:: dens_ncl      = 1.9e03  ! density of seasalts (kg/m3).
+ real(kind=RKIND),parameter:: dens_ncl      = 1.9e03  ! density of seasalt (kg/m3).
  real(kind=RKIND),parameter:: dens_dst      = 2.6e03  ! density of dust (kg/m3).
 
  real(kind=RKIND),parameter:: dgnum_accum   = 1.1e-07 ! (m).
