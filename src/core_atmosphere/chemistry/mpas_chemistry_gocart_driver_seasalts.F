@@ -32,6 +32,7 @@
  real(kind=RKIND),dimension(:),pointer:: area,xland,u10,v10
  real(kind=RKIND),dimension(:,:),pointer:: dpres,rho,u,v,zgrid
 
+ real(kind=RKIND),dimension(:),pointer  :: emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4
  real(kind=RKIND),dimension(:,:),pointer:: qseas1,qseas2,qseas3,qseas4
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -49,10 +50,14 @@
  dt    = this%dt_c
  grav  = this%grav_c
 
- qseas1 => this%qseas1
- qseas2 => this%qseas2
- qseas3 => this%qseas3
- qseas4 => this%qseas4
+ qseas1      => this%qseas1
+ qseas2      => this%qseas2
+ qseas3      => this%qseas3
+ qseas4      => this%qseas4
+ emis_qseas1 => this%emis_qseas1
+ emis_qseas2 => this%emis_qseas2
+ emis_qseas3 => this%emis_qseas3
+ emis_qseas4 => this%emis_qseas4
 
  area   => this%area_c
  xland  => this%xland_c
@@ -67,7 +72,7 @@
 
 !--- calls seasalts surface emission:
  call gocart_seasalts_emission(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,qseas4,xland,area, &
-                               dpres,zgrid,u10,v10,rho,u,v)
+                        dpres,zgrid,u10,v10,rho,u,v,emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4)
 
 
  call mpas_log_write('--- end subroutine driver_gocart_seasalts:')

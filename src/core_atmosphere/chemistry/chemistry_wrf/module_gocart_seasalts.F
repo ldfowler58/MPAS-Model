@@ -23,9 +23,7 @@
 
 !=================================================================================================================
  subroutine gocart_seasalts_emission(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,qseas4,xland,area, &
-                                dpres,zgrid,u10,v10,rho,u,v,emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4)
-!subroutine gocart_seasalts_emission(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,qseas4,xland,area, &
-!                               dpres,zgrid,u10,v10,rho,u,v)
+                              dpres,zgrid,u10,v10,rho,u,v,emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4)
 !=================================================================================================================
 
 !input arguments:
@@ -72,15 +70,14 @@
  converi = 1.d9
  gravi   = 1./grav
 
-!if(present(emis_qseas1) .and. present(emis_qseas2) .and. &
-!   present(emis_qseas3) .and. present(emis_qseas4)) then
-!   do i = its,ite
-!      emis_qseas1(i) = 0._RKIND
-!      emis_qseas2(i) = 0._RKIND
-!      emis_qseas3(i) = 0._RKIND
-!      emis_qseas4(i) = 0._RKIND
-!   enddo
-!endif
+ if(present(emis_qseas1) .and. present(emis_qseas2) .and. present(emis_qseas3) .and. present(emis_qseas4)) then
+    do i = its,ite
+       emis_qseas1(i) = 0._RKIND
+       emis_qseas2(i) = 0._RKIND
+       emis_qseas3(i) = 0._RKIND
+       emis_qseas4(i) = 0._RKIND
+    enddo
+ endif
 
  k = kts
  do i = its,ite
@@ -89,9 +86,8 @@
        ilwi(imx) = 0
        dxy(imx)  = area(i)
        dz = zgrid(i,k+1)-zgrid(i,k)
-       dz = max(0.,dz)
-!      airmas(imx,lmx) = rho(i,k)*dz*area(i)
-       airmas(imx,lmx) = gravi*dpres(i,k)*area(i)
+       airmas(imx,lmx) = rho(i,k)*dz*area(i)
+!      airmas(imx,lmx) = gravi*dpres(i,k)*area(i)
 
        tc(imx,lmx,1) = qseas1(i,k)
        tc(imx,lmx,2) = qseas2(i,k)
@@ -109,23 +105,12 @@
        qseas3(i,k) = real(tc(imx,lmx,3),RKIND)
        qseas4(i,k) = real(tc(imx,lmx,4),RKIND)
 
-       tem1 = real(bems(imx,1),RKIND)
-       tem2 = real(bems(imx,2),RKIND)
-       tem3 = real(bems(imx,3),RKIND)
-       tem4 = real(bems(imx,4),RKIND)
-!      call mpas_log_write('$i $r $r $r $r',intArgs=(/i/),realArgs=(/tem1,tem2,tem3,tem4/))
+       emis_qseas1(i) = bems(imx,1)/(dt*airmas(imx,lmx))
+       emis_qseas2(i) = bems(imx,2)/(dt*airmas(imx,lmx))
+       emis_qseas3(i) = bems(imx,3)/(dt*airmas(imx,lmx))
+       emis_qseas4(i) = bems(imx,4)/(dt*airmas(imx,lmx))
     endif
  enddo
-
-!if(present(emis_qseas1) .and. present(emis_qseas2) .and. &
-!   present(emis_qseas3) .and. present(emis_qseas4)) then
-!   do i = its,ite
-!      emis_qseas1(i) = bems(imx,1)
-!      emis_qseas2(i) = bems(imx,2)
-!      emis_qseas3(i) = bems(imx,3)
-!      emis_qseas4(i) = bems(imx,4)
-!   enddo
-!endif
 
  call mpas_log_write('--- end subroutine gocart_seasalts_emission:')
 

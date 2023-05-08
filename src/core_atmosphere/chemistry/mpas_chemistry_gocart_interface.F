@@ -19,6 +19,11 @@
     real(kind=RKIND),dimension(:),pointer:: qnh3_em       => null()
     real(kind=RKIND),dimension(:),pointer:: qso2_em       => null()
 
+    real(kind=RKIND),dimension(:),pointer:: emis_qseas1   => null() !GOCART seasalt emission (0.1-0.5 microns).
+    real(kind=RKIND),dimension(:),pointer:: emis_qseas2   => null() !GOCART seasalt emission (0.5-1.5 microns).
+    real(kind=RKIND),dimension(:),pointer:: emis_qseas3   => null() !GOCART seasalt emission (1.5-5.0 microns).
+    real(kind=RKIND),dimension(:),pointer:: emis_qseas4   => null() !GOCART seasalt emission (5.0-10. microns).
+
     real(kind=RKIND),dimension(:),pointer:: emis_qdust1   => null()
     real(kind=RKIND),dimension(:),pointer:: emis_qdust2   => null()
     real(kind=RKIND),dimension(:),pointer:: emis_qdust3   => null()
@@ -204,6 +209,11 @@
 
 
 !--- allocate diagnostics:
+ if(.not.associated(this%emis_qseas1)) allocate(this%emis_qseas1(its:ite)        )
+ if(.not.associated(this%emis_qseas2)) allocate(this%emis_qseas2(its:ite)        )
+ if(.not.associated(this%emis_qseas3)) allocate(this%emis_qseas3(its:ite)        )
+ if(.not.associated(this%emis_qseas4)) allocate(this%emis_qseas4(its:ite)        )
+
  if(.not.associated(this%emis_qdust1)) allocate(this%emis_qdust1(its:ite)        )
  if(.not.associated(this%emis_qdust2)) allocate(this%emis_qdust2(its:ite)        )
  if(.not.associated(this%emis_qdust3)) allocate(this%emis_qdust3(its:ite)        )
@@ -318,6 +328,11 @@
 
 
 !--- deallocate diagnostics:
+ if(associated(this%emis_qseas1)) deallocate(this%emis_qseas1)
+ if(associated(this%emis_qseas2)) deallocate(this%emis_qseas2)
+ if(associated(this%emis_qseas3)) deallocate(this%emis_qseas3)
+ if(associated(this%emis_qseas4)) deallocate(this%emis_qseas4)
+
  if(associated(this%emis_qdust1)) deallocate(this%emis_qdust1)
  if(associated(this%emis_qdust2)) deallocate(this%emis_qdust2)
  if(associated(this%emis_qdust3)) deallocate(this%emis_qdust3)
@@ -548,6 +563,11 @@
 
 !--- initialization of diagnostics:
  do i = its,ite
+    this%emis_qseas1(i) = 0._RKIND
+    this%emis_qseas2(i) = 0._RKIND
+    this%emis_qseas3(i) = 0._RKIND
+    this%emis_qseas4(i) = 0._RKIND
+
     this%emis_qdust1(i) = 0._RKIND
     this%emis_qdust2(i) = 0._RKIND
     this%emis_qdust3(i) = 0._RKIND
@@ -796,7 +816,8 @@
 !    the surface emissions of anthropogenic and natural aerosols:
  call compute_sfc_nbThompson(its,ite,kts,kte,this%tend_qbc2,this%tend_qoc2,this%tend_qso4a1, &
                         this%tend_qseas1,this%tend_qdust1,this%tend_qdust2,this%tend_qdust3, &
-                        this%tend_qdust4,this%tend_qdust5,this%nwfa2d_c,this%nifa2d_c)
+                        this%tend_qdust4,this%tend_qdust5,this%emis_qseas1,this%emis_qseas2, &
+                        this%emis_qseas3,this%emis_qseas4,this%nwfa2d_c,this%nifa2d_c)
 
  call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
  call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
@@ -824,11 +845,13 @@
 
 !=================================================================================================================
  subroutine compute_sfc_nbThompson(its,ite,kts,kte,tend_qbc2,tend_qoc2,tend_qso4a1,tend_qseas1,tend_qdust1, &
-                                   tend_qdust2,tend_qdust3,tend_qdust4,tend_qdust5,tend_nwfa,tend_nifa)
+                                   tend_qdust2,tend_qdust3,tend_qdust4,tend_qdust5,emis_qseas1,emis_qseas2, &
+                                   emis_qseas3,emis_qseas4,tend_nwfa,tend_nifa)
 !=================================================================================================================
 
 !input arguments:
  integer,intent(in):: its,ite,kts,kte
+ real(kind=RKIND),dimension(its:ite),intent(in):: emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4
  real(kind=RKIND),dimension(its:ite,kts:kte),intent(in):: tend_qbc2,tend_qoc2,tend_qso4a1,tend_qseas1
  real(kind=RKIND),dimension(its:ite,kts:kte),intent(in):: tend_qdust1,tend_qdust2,tend_qdust3,tend_qdust4, &
                                                           tend_qdust5
@@ -865,6 +888,7 @@
  real(kind=RKIND):: sum_a3,ratio_a3
  real(kind=RKIND):: mr_to_nb_bc,mr_to_nb_oc,mr_to_nb_so4,mr_to_nb_ncl,mr_to_nb_dst
 
+ real(kind=RKIND):: a1
  real(kind=RKIND),dimension(its:ite):: tend_nbca1,tend_npoma1,tend_nso4a1,tend_nseasa1
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -890,17 +914,14 @@
  call mpas_log_write('--- mr_to_nb_so4     = $r',realArgs=(/mr_to_nb_so4/))
  call mpas_log_write(' ')
 
- k = kts
+ a1 = 0.6171
+ k  = kts
  do i = its,ite
     tend_nbca1(i)   = mr_to_nb_bc*tend_qbc2(i,k)
     tend_npoma1(i)  = mr_to_nb_oc*tend_qoc2(i,k)
     tend_nso4a1(i)  = mr_to_nb_so4*tend_qso4a1(i,k)
-    tend_nseasa1(i) = mr_to_nb_so4*tend_qseas1(i,k)
-
-    tend_nwfa(i)   = tend_nbca1(i) + tend_npoma1(i) + tend_nso4a1(i) + tend_nseasa1(i)
-!   call mpas_log_write('$i $r $r $r $r $r $r $r $r $r',intArgs=(/i/),realArgs=(/tend_qbc2(i,k),tend_nbca1(i), &
-!              tend_qoc2(i,k),tend_npoma1(i),tend_qso4a1(i,k),tend_nso4a1(i),tend_qseas1(i,k),tend_nseasa1(i), &
-!              tend_nwfa(i)/))
+    tend_nseasa1(i) = a1*mr_to_nb_so4*emis_qseas1(i)
+    tend_nwfa(i) = tend_nbca1(i) + tend_npoma1(i) + tend_nso4a1(i) + tend_nseasa1(i)
  enddo
 
 
@@ -925,8 +946,6 @@
     tend_nifa(i) = tend_qdust1(i,k) + tend_qdust2(i,k) + tend_qdust3(i,k) &
                  + tend_qdust4(i,k) + tend_qdust5(i,k)
     tend_nifa(i) = mr_to_nb_dst*tend_nifa(i)
-!   call mpas_log_write('$i $r $r $r $r $r $r',intArgs=(/i/),realArgs=(/tend_qdust1(i,k),tend_qdust2(i,k), &
-!             tend_qdust3(i,k),tend_qdust4(i,k),tend_qdust5(i,k),tend_nifa(i)/))
  enddo
 
 
