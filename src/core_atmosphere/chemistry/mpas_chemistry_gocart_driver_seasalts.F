@@ -2,7 +2,7 @@
  module mpas_chemistry_gocart_driver_seasalts
 
  use mpas_chemistry_gocart_interface
- use module_gocart_seasalts
+ use module_gocart_seasalt
 
 
  implicit none
@@ -71,8 +71,8 @@
 
 
 !--- calls seasalts surface emission:
- call gocart_seasalts_emission(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,qseas4,xland,area, &
-                        dpres,zgrid,u10,v10,rho,u,v,emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4)
+ call gocart_seasalt_emission(its,ite,kts,kte,ktep1,dt,grav,qseas1,qseas2,qseas3,qseas4,xland,area, &
+                       dpres,zgrid,u10,v10,rho,u,v,emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4)
 
 
  call mpas_log_write('--- end subroutine driver_gocart_seasalts:')
