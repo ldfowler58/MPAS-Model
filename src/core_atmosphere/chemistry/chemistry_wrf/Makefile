@@ -7,8 +7,8 @@ dummy:
 
 OBJS = \
 	module_gocart_aerosols.o \
-	module_gocart_dusts_afwa.o \
-	module_gocart_dusts.o \
+	module_gocart_dust_afwa.o \
+	module_gocart_dust.o \
 	module_gocart_seasalt.o
 
 chemistry_wrf: $(OBJS)

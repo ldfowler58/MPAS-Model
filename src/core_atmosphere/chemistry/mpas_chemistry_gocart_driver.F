@@ -8,7 +8,7 @@
  use mpas_chemistry_gocart_interface
  use mpas_chemistry_gocart_driver_aerosols
  use mpas_chemistry_gocart_driver_co
- use mpas_chemistry_gocart_driver_dusts
+ use mpas_chemistry_gocart_driver_dust
  use mpas_chemistry_gocart_driver_seasalt
  use mpas_chemistry_gocart_driver_sulfates
 
@@ -22,7 +22,7 @@
 !Laura D. Fowler (laura@ucar.edu) / (2022-02-08).
 !
 !subroutine chemistry_driver is the top chemistry driver that calls the chemistry drivers for the treatment of
-!gocart aerosols,gocart seasalt,and gocart dusts.
+!gocart aerosols,gocart seasalt,and gocart dust.
 
 
  contains
@@ -88,8 +88,8 @@
     call driver_gocart_aerosols(mpas_chems)
 
 
-    !--- gocart chemistry for dusts:
-    call driver_gocart_dusts(mpas_chems)
+    !--- gocart chemistry for dust:
+    call driver_gocart_dust(mpas_chems)
 
 
     !--- gocart chemistry for seasalt:
