@@ -5,6 +5,7 @@
  use mpas_log
 
 
+ implicit none
  save
 
  integer,parameter:: ndust=5,ndcls=3,ndsrc=1,maxstypes=100
@@ -41,13 +42,18 @@
  use module_gocart_dust_data
 
 
+ implicit none
+ private
+ public:: gocart_dust_emission
+
+
  contains
 
 
 !=================================================================================================================
  subroutine gocart_dust_emission(its,ite,kts,kte,ktep1,nerod,dt,grav,qdust1,qdust2,qdust3,qdust4,qdust5, &
-                       isltyp,xland,porosity,smois,area,erod,dpres,zgrid,rho,u,v,emis_qdust1,emis_qdust2, &
-                       emis_qdust3,emis_qdust4,emis_qdust5)
+                      isltyp,xland,porosity,smois,area,erod,dpres,zgrid,rho,u,v,emis_qdust1,emis_qdust2, &
+                      emis_qdust3,emis_qdust4,emis_qdust5)
 !=================================================================================================================
 
 !input arguments:
@@ -79,7 +85,7 @@
  integer:: i,k,n
  integer,dimension(imx):: ilwi
 
- real(kind=RKIND):: gravi
+ real(kind=RKIND):: dz,gravi
  real(kind=RKIND),dimension(imx):: dxy,gwet,w10m
  real(kind=RKIND),dimension(imx,nmx):: bems
  real(kind=RKIND),dimension(imx,lmx):: airden,airmas
@@ -96,10 +102,12 @@
     if(xland(i).lt.1.5)then
        ilwi(imx) = 1
        dxy(imx)  = area(i)
+       dz = zgrid(i,k+1)-zgrid(i,k)
        w10m(imx) = sqrt(u(i,k)*u(i,k)+v(i,k)*v(i,k))
        gwet(imx) = smois(i)/porosity(i)
        airden(imx,lmx) = rho(i,k)
-       airmas(imx,lmx) = gravi*dpres(i,k)*area(i)
+       airmas(imx,lmx) = rho(i,k)*dz*area(i)
+!      airmas(imx,lmx) = gravi*dpres(i,k)*area(i)
 
        tc(imx,lmx,1) = qdust1(i,k)
        tc(imx,lmx,2) = qdust2(i,k)
@@ -129,15 +137,9 @@
           present(emis_qdust4) .and. present(emis_qdust5)) then
           emis_qdust1(i) = bems(imx,1)/(dt*airmas(imx,lmx))
           emis_qdust2(i) = bems(imx,2)/(dt*airmas(imx,lmx))
-          emis_qdust3(i) = bems(imx,3)/(dt*airmas(imx,lms))
+          emis_qdust3(i) = bems(imx,3)/(dt*airmas(imx,lmx))
           emis_qdust4(i) = bems(imx,4)/(dt*airmas(imx,lmx))
           emis_qdust5(i) = bems(imx,5)/(dt*airmas(imx,lmx))
-
-!         if(emis_qdust1(i).gt.0._RKIND .or. emis_qdust2(i).gt.0._RKIND .or. emis_qdust3(i).gt.0._RKIND .or. &
-!            emis_qdust4(i).gt.0._RKIND .or. emis_qdust5(i).gt.0._RKIND) then
-!            call mpas_log_write('--- dust: $i $r $r $r $r $r',intArgs=(/i/),realArgs=(/emis_qdust1(i), &
-!                                emis_qdust2(i),emis_qdust3(i),emis_qdust4(i),emis_qdust5(i)/))
-!         endif
        endif
     endif
  enddo
