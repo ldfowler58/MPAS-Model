@@ -11,7 +11,9 @@
 
  real(kind=RKIND),dimension(maxstypes):: porosity
  
- real(kind=RKIND),parameter:: ch_dust  = 1.0E-9    ! Empirical constant used in dust emission calculation
+ real(kind=RKIND),parameter:: ch_dust  = 1.0E-9 !empirical constant used in dust emission calculation. default is
+                                                !1 ug s2 m-5 == 1.e-09 kg s2 m-5.
+
  real(kind=RKIND),parameter:: dyn_visc = 1.5E-5
 !dust density (clay = 2500 kg m-3; Silt = 2650 kg m-3):
  real(kind=RKIND),dimension(ndust),parameter:: den_dust=(/2500.,2650.,2650.,2650.,2650./)
@@ -117,12 +119,6 @@
 
        call source_dust(imx,lmx,nmx,dt,tc,erodin,ilwi,dxy,w10m,gwet,airden,airmas,bems,grav)
 
-!      if(bems(imx,1).gt.0.) &
-!         call mpas_log_write('bems $i $r $r $r $r $r $r $r $r $r $r',intArgs=(/i/),realArgs=(/bems(imx,1),  &
-!                             bems(imx,2),bems(imx,3),bems(imx,4),bems(imx,5),tc(imx,lmx,1)-qdust1(i,k),     &
-!                             tc(imx,lmx,2)-qdust2(i,k),tc(imx,lmx,3)-qdust3(i,k),tc(imx,lmx,4)-qdust4(i,k), &
-!                             tc(imx,lmx,5)-qdust5(i,k)/))
-
        qdust1(i,k) = tc(imx,lmx,1)
        qdust2(i,k) = tc(imx,lmx,2)
        qdust3(i,k) = tc(imx,lmx,3)
@@ -131,11 +127,17 @@
 
        if(present(emis_qdust1) .and. present(emis_qdust2) .and. present(emis_qdust3) .and. &
           present(emis_qdust4) .and. present(emis_qdust5)) then
-          emis_qdust1(i) = bems(imx,1)
-          emis_qdust2(i) = bems(imx,2)
-          emis_qdust3(i) = bems(imx,3)
-          emis_qdust4(i) = bems(imx,4)
-          emis_qdust5(i) = bems(imx,5)
+          emis_qdust1(i) = bems(imx,1)/(dt*airmas(imx,lmx))
+          emis_qdust2(i) = bems(imx,2)/(dt*airmas(imx,lmx))
+          emis_qdust3(i) = bems(imx,3)/(dt*airmas(imx,lms))
+          emis_qdust4(i) = bems(imx,4)/(dt*airmas(imx,lmx))
+          emis_qdust5(i) = bems(imx,5)/(dt*airmas(imx,lmx))
+
+!         if(emis_qdust1(i).gt.0._RKIND .or. emis_qdust2(i).gt.0._RKIND .or. emis_qdust3(i).gt.0._RKIND .or. &
+!            emis_qdust4(i).gt.0._RKIND .or. emis_qdust5(i).gt.0._RKIND) then
+!            call mpas_log_write('--- dust: $i $r $r $r $r $r',intArgs=(/i/),realArgs=(/emis_qdust1(i), &
+!                                emis_qdust2(i),emis_qdust3(i),emis_qdust4(i),emis_qdust5(i)/))
+!         endif
        endif
     endif
  enddo
@@ -192,7 +194,7 @@
  integer:: i,k,m,n
 
  real(kind=RKIND),parameter:: c0 = .2_RKIND
- real(kind=RKIND):: cw,dsrc,g,rhoa,srce,u_ts0,u_ts,tsrc
+ real(kind=RKIND):: cw,dsrc,g,rhoa,srce,u_ts0,u_ts
  real(kind=RKIND),dimension(nmx):: diam,den
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -200,13 +202,12 @@
  do n = 1,nmx
     !Threshold velocity as a function of the dust density and the diameter
     !from Bagnold (1941):
-    den(n)  = den_dust(n)*1.e-3_RKIND
-    diam(n) = 2._RKIND*reff_dust(n)*1.e2_RKIND
+    den(n)  = den_dust(n)*1.e-3_RKIND          ! conversion from kg/m3 to g/cm3.
+    diam(n) = 2._RKIND*reff_dust(n)*1.e2_RKIND ! conversion from m to cm.
     g = g0*1.E2_RKIND
 
     !Pointer to the 3 classes considered in the source data files:
     m = ipoint(n)
-    tsrc = 0._RKIND
 
     do k = 1,ndsrc
        !No flux if wet soil:
@@ -230,17 +231,17 @@
 
           srce = frac_s(n)*erod(i,m,k)*dxy(i)  ! (m2)
           if(ilwi(i) == 1) then
-             dsrc = ch_dust*srce*w10m(i)**2*(w10m(i)-u_ts)*dt1  ! (kg)
+             dsrc = ch_dust*srce*w10m(i)**2*(w10m(i)-u_ts)*dt1 ! where dsrc is in kg.
           else
-             dsrc = 0._RKIND
+             dsrc = 0._RKIND                                   ! where dsrc is in kg.
           endif
-!         dsrc = cw*ch_dust(k)*srce*w10m(i)**2*(w10m(i)-u_ts)*dt1          ! (kg)
-!         dsrc = cw*ch_dust(n,dt(1)%mn)*srce*w10m(i)**2*(w10m(i)-u_ts)*dt1 ! (kg)
+!         dsrc = cw*ch_dust(k)*srce*w10m(i)**2*(w10m(i)-u_ts)*dt1          ! where dsrc is in kg.
+!         dsrc = cw*ch_dust(n,dt(1)%mn)*srce*w10m(i)**2*(w10m(i)-u_ts)*dt1 ! where dsrc is in kg.
           if(dsrc < 0._RKIND) dsrc = 0._RKIND
 
           !update dust mixing ratio at first model level:
-          tc(i,1,n) = tc(i,1,n) + c0*dsrc/airmas(i,1)
-          bems(i,n) = c0*dsrc
+          tc(i,1,n) = tc(i,1,n) + c0*dsrc/airmas(i,1)                      ! where tc is in kg/kg.
+          bems(i,n) = c0*dsrc                                              ! where bems is in kg.
        enddo
     enddo
  enddo
