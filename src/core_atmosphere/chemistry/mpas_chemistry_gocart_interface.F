@@ -896,6 +896,11 @@
  call mpas_log_write('--- enter subroutine compute_sfc_nbThompson:')
 
 !--- accumulation mode for nwfa:
+!    the surface emission of seasalt is obtained by first computing the emission of seasalt using the GOCART
+!    seasalt emission in four separate intervals. only the GOCART emission in the interval (0.1-0.5 microns)
+!    overlaps with the spectral interval (0.058-0.270 microns) for the accumulation mode. the coefficent a1
+!    is computed as ln(0.27/0.10) / ln(0.50/0.10) = 0.617142.
+
  alnsg_accum = log(sigmag_accum)
  voltonumb_accum = 1./((pii/6.)*(dgnum_accum**3.)*exp(4.5*alnsg_accum**2.))
 
@@ -914,13 +919,13 @@
  call mpas_log_write('--- mr_to_nb_so4     = $r',realArgs=(/mr_to_nb_so4/))
  call mpas_log_write(' ')
 
- a1 = 0.6171
+ a1 = 0.617142
  k  = kts
  do i = its,ite
     tend_nbca1(i)   = mr_to_nb_bc*tend_qbc2(i,k)
     tend_npoma1(i)  = mr_to_nb_oc*tend_qoc2(i,k)
     tend_nso4a1(i)  = mr_to_nb_so4*tend_qso4a1(i,k)
-    tend_nseasa1(i) = a1*mr_to_nb_so4*emis_qseas1(i)
+    tend_nseasa1(i) = a1*mr_to_nb_ncl*emis_qseas1(i)
     tend_nwfa(i) = tend_nbca1(i) + tend_npoma1(i) + tend_nso4a1(i) + tend_nseasa1(i)
  enddo
 
