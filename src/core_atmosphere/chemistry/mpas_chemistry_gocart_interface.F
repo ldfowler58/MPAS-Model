@@ -24,11 +24,11 @@
     real(kind=RKIND),dimension(:),pointer:: emis_qseas3   => null() !GOCART seasalt emission (1.5-5.0 microns).
     real(kind=RKIND),dimension(:),pointer:: emis_qseas4   => null() !GOCART seasalt emission (5.0-10. microns).
 
-    real(kind=RKIND),dimension(:),pointer:: emis_qdust1   => null()
-    real(kind=RKIND),dimension(:),pointer:: emis_qdust2   => null()
-    real(kind=RKIND),dimension(:),pointer:: emis_qdust3   => null()
-    real(kind=RKIND),dimension(:),pointer:: emis_qdust4   => null()
-    real(kind=RKIND),dimension(:),pointer:: emis_qdust5   => null()
+    real(kind=RKIND),dimension(:),pointer:: emis_qdust1   => null() !GOCART dust emission (0.1-1.0 microns).
+    real(kind=RKIND),dimension(:),pointer:: emis_qdust2   => null() !GOCART dust emission (1.0-1.8 microns).
+    real(kind=RKIND),dimension(:),pointer:: emis_qdust3   => null() !GOCART dust emission (1.8-3.0 microns).
+    real(kind=RKIND),dimension(:),pointer:: emis_qdust4   => null() !GOCART dust emission (3.0-6.0 microns).
+    real(kind=RKIND),dimension(:),pointer:: emis_qdust5   => null() !GOCART dust emission (6.0-10. microns).
 
     real(kind=RKIND),dimension(:,:),pointer:: qbc1        => null()
     real(kind=RKIND),dimension(:,:),pointer:: qbc2        => null()
@@ -697,7 +697,7 @@
     do k = kts,kte
        this%qco(i,k)     = qco(k,i)
        this%zgrid_c(i,k) = zgrid(k,i)
-       this%zgrid_c(i,k) = max(0._RKIND,this%zgrid_c(i,k))
+!      this%zgrid_c(i,k) = max(0._RKIND,this%zgrid_c(i,k))
        this%rho_c(i,k)   = zz(k,i)*rho_zz(k,i)*(1.+qv(k,i))
        this%pres_c(i,k)  = pres_b(k,i)+pres_p(k,i)
        this%u_c(i,k)     = uzonal(k,i)
@@ -817,7 +817,9 @@
  call compute_sfc_nbThompson(its,ite,kts,kte,this%tend_qbc2,this%tend_qoc2,this%tend_qso4a1, &
                         this%tend_qseas1,this%tend_qdust1,this%tend_qdust2,this%tend_qdust3, &
                         this%tend_qdust4,this%tend_qdust5,this%emis_qseas1,this%emis_qseas2, &
-                        this%emis_qseas3,this%emis_qseas4,this%nwfa2d_c,this%nifa2d_c)
+                        this%emis_qseas3,this%emis_qseas4,this%emis_qdust1,this%emis_qdust2, &
+                        this%emis_qdust3,this%emis_qdust4,this%emis_qdust5,this%nwfa2d_c,    &
+                        this%nifa2d_c)
 
  call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
  call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
@@ -846,12 +848,14 @@
 !=================================================================================================================
  subroutine compute_sfc_nbThompson(its,ite,kts,kte,tend_qbc2,tend_qoc2,tend_qso4a1,tend_qseas1,tend_qdust1, &
                                    tend_qdust2,tend_qdust3,tend_qdust4,tend_qdust5,emis_qseas1,emis_qseas2, &
-                                   emis_qseas3,emis_qseas4,tend_nwfa,tend_nifa)
+                                   emis_qseas3,emis_qseas4,emis_qdust1,emis_qdust2,emis_qdust3,emis_qdust4, &
+                                   emis_qdust5,tend_nwfa,tend_nifa)
 !=================================================================================================================
 
 !input arguments:
  integer,intent(in):: its,ite,kts,kte
  real(kind=RKIND),dimension(its:ite),intent(in):: emis_qseas1,emis_qseas2,emis_qseas3,emis_qseas4
+ real(kind=RKIND),dimension(its:ite),intent(in):: emis_qdust1,emis_qdust2,emis_qdust3,emis_qdust4,emis_qdust5
  real(kind=RKIND),dimension(its:ite,kts:kte),intent(in):: tend_qbc2,tend_qoc2,tend_qso4a1,tend_qseas1
  real(kind=RKIND),dimension(its:ite,kts:kte),intent(in):: tend_qdust1,tend_qdust2,tend_qdust3,tend_qdust4, &
                                                           tend_qdust5
@@ -888,8 +892,8 @@
  real(kind=RKIND):: sum_a3,ratio_a3
  real(kind=RKIND):: mr_to_nb_bc,mr_to_nb_oc,mr_to_nb_so4,mr_to_nb_ncl,mr_to_nb_dst
 
- real(kind=RKIND):: a1
- real(kind=RKIND),dimension(its:ite):: tend_nbca1,tend_npoma1,tend_nso4a1,tend_nseasa1
+ real(kind=RKIND):: a1,a2,a3,a4,a5
+ real(kind=RKIND),dimension(its:ite):: tend_nbca1,tend_ndusta1,tend_npoma1,tend_nso4a1,tend_nseasa1
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -898,8 +902,8 @@
 !--- accumulation mode for nwfa:
 !    the surface emission of seasalt is obtained by first computing the emission of seasalt using the GOCART
 !    seasalt emission in four separate intervals. only the GOCART emission in the interval (0.1-0.5 microns)
-!    overlaps with the spectral interval (0.058-0.270 microns) for the accumulation mode. the coefficent a1
-!    is computed as ln(0.27/0.10) / ln(0.50/0.10) = 0.617142.
+!    overlaps with the spectral interval (0.058-0.270 microns) for the MAM4 accumulation mode. the coefficent
+!    a1 is computed as ln(0.27/0.10) / ln(0.50/0.10) = 0.617142.
 
  alnsg_accum = log(sigmag_accum)
  voltonumb_accum = 1./((pii/6.)*(dgnum_accum**3.)*exp(4.5*alnsg_accum**2.))
@@ -920,17 +924,25 @@
  call mpas_log_write(' ')
 
  a1 = 0.617142
+ a2 = 0.431364
  k  = kts
  do i = its,ite
     tend_nbca1(i)   = mr_to_nb_bc*tend_qbc2(i,k)
     tend_npoma1(i)  = mr_to_nb_oc*tend_qoc2(i,k)
     tend_nso4a1(i)  = mr_to_nb_so4*tend_qso4a1(i,k)
     tend_nseasa1(i) = a1*mr_to_nb_ncl*emis_qseas1(i)
-    tend_nwfa(i) = tend_nbca1(i) + tend_npoma1(i) + tend_nso4a1(i) + tend_nseasa1(i)
+    tend_ndusta1(i) = a2*mr_to_nb_dst*emis_qdust1(i)
+    tend_nwfa(i) = tend_nbca1(i) + tend_npoma1(i) + tend_nso4a1(i) + tend_nseasa1(i) + tend_ndusta1(i)
  enddo
 
 
 !--- coarse mode for nifa:
+!    the surface emission of the "ice-friendly" Thompson aerosols is set as the emission of dust in the
+!    MAM4 coarse mode. it is obtained by first computing the emission of dust using the GOCART dust
+!    emission in five separate intervals. the GOCART emission in the intervals 1 to 4 overlaps with the
+!    spectral interval (0.80-3.65 microns) for the MAM4 coarse mode. the coefficient a1 is computed as
+!    ln(1.0/0.8) / ln(1.0/0.10) = 0.096910 and a4 is computed as ln(3.65/3.00) / ln (6.0/3.0) = 0.282934.
+
  alnsg_coarse = log(sigmag_coarse)
  voltonumb_coarse = 1./((pii/6.)*(dgnum_coarse**3.)*exp(4.5*alnsg_coarse**2.))
 
@@ -946,13 +958,16 @@
  call mpas_log_write('--- mr_to_nb_dst     = $r',realArgs=(/mr_to_nb_dst/))
  call mpas_log_write(' ')
 
- k = kts
+ a1 = 0.096910
+ a2 = 1.
+ a3 = 1.
+ a4 = 0.282934
+ a5 = 0.
  do i = its,ite
-    tend_nifa(i) = tend_qdust1(i,k) + tend_qdust2(i,k) + tend_qdust3(i,k) &
-                 + tend_qdust4(i,k) + tend_qdust5(i,k)
+    tend_nifa(i) = a1*emis_qdust1(i) + a2*emis_qdust2(i) + a3*emis_qdust3(i) &
+                 + a4*emis_qdust4(i) + a5*emis_qdust5(i)
     tend_nifa(i) = mr_to_nb_dst*tend_nifa(i)
  enddo
-
 
  call mpas_log_write('--- end subroutine compute_sfc_nbThompson:')
 
