@@ -596,8 +596,13 @@
  integer,intent(out):: errflg
 
 !local pointers:
- logical,pointer:: config_do_restart
+ logical,pointer:: config_do_restart, &
+                   bl_mynn_tkeadvect
+
  character(len=StrKIND),pointer:: pbl_scheme
+
+ integer,pointer:: bl_mynn_cloudpdf, &
+                   bl_mynn_tkebudget
 
 !local variables:
  integer:: initflag
@@ -648,6 +653,20 @@
        call mpas_timer_stop('YSU')
 
     case("bl_mynn")
+       call mpas_pool_get_config(configs,'config_mynn_cloudpdf'   ,bl_mynn_cloudpdf   )
+       call mpas_pool_get_config(configs,'config_mynn_tkeadvect'  ,bl_mynn_tkeadvect  )
+       call mpas_pool_get_config(configs,'config_mynn_tkebudget'  ,bl_mynn_tkebudget  )
+       call mpas_log_write(' ')
+       call mpas_log_write('--- enter subroutine mynn_bl_driver:')
+       call mpas_log_write('--- config_mynn_cloudpdf    = $i',intArgs=(/bl_mynn_cloudpdf/))
+       call mpas_log_write('--- config_mynn_tkeadvect   = $l',logicArgs=(/bl_mynn_tkeadvect/))
+       call mpas_log_write('--- config_mynn_tkebudget   = $i',intArgs=(/bl_mynn_tkebudget/))
+       call mpas_log_write(' ')
+       call mpas_log_write('--- f_qc   = $l',logicArgs=(/f_qc/)  )
+       call mpas_log_write('--- f_qi   = $l',logicArgs=(/f_qi/)  )
+       call mpas_log_write('--- f_nc   = $l',logicArgs=(/f_nc/)  )
+       call mpas_log_write('--- f_ni   = $l',logicArgs=(/f_ni/)  )
+
        call mpas_timer_start('MYNN_pbl')
        call  mynn_bl_driver ( &
                  p        = pres_hyd_p  , exner    = pi_p        , ps       = psfc_p     , &
@@ -656,8 +675,8 @@
                  qi       = qi_p        , qni      = ni_p        , rho      = rho_p      , &
                  du       = rublten_p   , dv       = rvblten_p   , dth      = rthblten_p , &
                  dqv      = rqvblten_p  , dqc      = rqcblten_p  , dqi      = rqiblten_p , &
-                 dqni     = rniblten_p  , flag_qc  = f_qc        , flag_qnc = f_qnc      , &
-                 flag_qi  = f_qi        , flag_qni = f_qni       , kpbl     = kpbl_p     , &
+                 dqni     = rniblten_p  , flag_qc  = f_qc        , flag_qnc = f_nc       , &
+                 flag_qi  = f_qi        , flag_qni = f_ni        , kpbl     = kpbl_p     , &
                  pblh     = hpbl_p      , xland    = xland_p     , ts       = tsk_p      , &
                  hfx      = hfx_p       , qfx      = qfx_p       , ch       = ch_p       , &
                  sh3d     = sh3d_p      , tsq      = tsq_p       , qsq      = qsq_p      , &

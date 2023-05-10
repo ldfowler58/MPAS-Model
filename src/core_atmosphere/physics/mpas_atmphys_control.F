@@ -74,6 +74,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2016-12-30.
 ! * added the option sf_monin_obukhov_rev to run the revised surface layer scheme with the YSU PBL scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2022-11-11.
+! * now defines the variable bl_mynn_cloudpdf in Registry.xml so that it can be assigned different values
+!   depending on the version of the PBL scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2023-05-10.
 
 
  contains
@@ -98,6 +101,8 @@
                                   config_radt_sw_scheme,    &
                                   config_sfclayer_scheme
 
+ integer,pointer:: config_mynn_cloudpdf
+
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write('')
 !call mpas_log_write('--- enter subroutine physics_namelist_check:')
@@ -112,6 +117,8 @@
  call mpas_pool_get_config(configs,'config_radt_lw_scheme'   ,config_radt_lw_scheme   )
  call mpas_pool_get_config(configs,'config_radt_sw_scheme'   ,config_radt_sw_scheme   )
  call mpas_pool_get_config(configs,'config_sfclayer_scheme'  ,config_sfclayer_scheme  )
+
+ call mpas_pool_get_config(configs,'config_mynn_cloudpdf',config_mynn_cloudpdf)
 
  call mpas_log_write('')
  call mpas_log_write('----- Setting up physics suite '''//trim(config_physics_suite)//''' -----')
@@ -197,6 +204,8 @@
           trim(config_pbl_scheme)
     call physics_error_fatal(mpas_err_message)
 
+    !ensure that config_mynn_cloudpdf is correctly defined as a function of
+    !the MYNN version of the PBL scheme:
  endif
 
 !gravity wave drag over orography scheme:
@@ -266,6 +275,8 @@
           trim(config_sfclayer_scheme)
     call physics_error_fatal(mpas_err_message)
  else
+    !ensure that config_sfclayer_scheme is properly chosen and that config_mynn_cloudpdf is
+    !correctly defined as a function of the PBL scheme:
     if(config_pbl_scheme == 'bl_mynn') then
        config_sfclayer_scheme = 'sf_mynn'
     elseif(config_pbl_scheme == 'bl_ysu') then

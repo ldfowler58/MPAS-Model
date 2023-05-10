@@ -1105,7 +1105,7 @@
                         type="input"
                         filename_template="lbc.$Y-$M-$D_$h.$m.$s.nc"
                         filename_interval="input_interval"
-                        input_interval="3:00:00" 
+                        input_interval="3:00:00"
                         runtime_format="single_file"
                         immutable="true"
                         packages="limited_area">
@@ -2028,6 +2028,66 @@
                      description="closure option for shallow convection in Grell-Freitas convection scheme"
                      possible_values="8"/>
 
+                <nml_option name="config_mynn_tkeadvect" type="logical" default_value="false" in_defaults="false"
+                     units="-"
+                     description="= true:do MYNN TKE advection"
+                     possible_values=".true. or .false."/>
+
+                <nml_option name="config_mynn_tkebudget" type="integer" default_value="0" in_defaults="false"
+                     units="-"
+                     description="=1:option to add the MYNN TKE budget terms to output"
+                     possible_values="0,1"/>
+
+                <nml_option name="config_mynn_closure" type="integer" default_value="2" in_defaults="false"
+                     units="-"
+                     description="2.5 (set to 2) level or 3.0 (set to 3) level for the MYNN TKE turbulence closure"
+                     possible_values="2,3"/>
+
+                <nml_option name="config_mynn_cloudpdf" type="integer" default_value="2" in_defaults="false"
+                     units="-"
+                     description="switch to different cloud PDFs to represent subgrid clouds in the MYNN PBL scheme"
+                     possible_values="0,1,2"/>
+
+                <nml_option name="config_mynn_mixlength" type="integer" default_value="2" in_defaults="false"
+                     units="-"
+                     description="mixing length in the MYNN PBL scheme:=0(Nakanishi and Niino 2009);=1(RAP/HRRR);=2(Ito et al. 2015)"
+                     possible_values="0,1,2"/>
+
+                <nml_option name="config_mynn_edmf" type="integer" default_value="1" in_defaults="false"
+                     units="-"
+                     description="=1:activate the EDMF option in the MYNN PBL scheme (=0 otherwise)"
+                     possible_values="0,1"/>
+
+                <nml_option name="config_mynn_edmf_mom" type="integer" default_value="0" in_defaults="false"
+                     units="-"
+                     description="=1:activate momentum transport with the EDMF option of the MYNN PBL scheme(=0 otherwise)"
+                     possible_values="0,1"/>
+
+                <nml_option name="config_mynn_edmf_tke" type="integer" default_value="0" in_defaults="false"
+                     units="-"
+                     description="=1:activate TKE transport with the EDMF option of the MYNN PBL scheme (=0 otherwise)"
+                     possible_values="0,1"/>
+
+                <nml_option name="config_mynn_edmf_output" type="integer" default_value="0" in_defaults="false"
+                     units="-"
+                     description="=0:suppress the allocation of variables needed in the EDMF option of the MYNN PBL scheme"
+                     possible_values="0,1"/>
+
+                <nml_option name="config_mynn_mixscalars" type="integer" default_value="1" in_defaults="false"
+                     units="-"
+                     description="=1:activate mixing of scalars in the MYNN PBL scheme (=0 otherwise)"
+                     possible_values="0,1"/>
+
+                <nml_option name="config_mynn_mixclouds" type="integer" default_value="1" in_defaults="false"
+                     units="-"
+                     description="1:activate mixing of cloud condensates in the MYNN PBL scheme"
+                     possible_values="0,1"/>
+
+                <nml_option name="config_mynn_mixqt" type="integer" default_value="0" in_defaults="false"
+                     units="-"
+                     description="=0:activatevmixing of moisture species separately;= 1:activate mixing of total water in the mynn PBL scheme"
+                     possible_values="0,1"/>
+
                 <nml_option name="config_bucket_radt" type="real" default_value="1.0e9" in_defaults="false"
                      units="-"
                      description="threshold above which accumulated radiation diagnostics are reset"
@@ -2284,6 +2344,18 @@
 
 
                 <!-- MYNN PBL SCHEME: -->
+                <var name="cldfrac_bl" type="real" dimensions="nVertLevels nCells Time" units="unitless"
+                     description="cloud fraction in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="qc_bl" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+                     descrition="cloud liquid water mixing ratio in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="qi_bl" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+                     descrition="cloud ice mixing ratio in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
                 <var name="cov" type="real" dimensions="nVertLevels nCells Time" units="K kg kg^{-1}"
                      description="liquid water - liquid water potential temperature covariance"
                      packages="bl_mynn_in"/>
@@ -2330,6 +2402,46 @@
 
                 <var name="qwt" type="real" dimensions="nVertLevels nCells Time" units="m^{2} s^{-2}"
                      description="TKE vertical distribution"
+                     packages="bl_mynn_in"/>
+
+                <var name="edmf_a" type="real" dimensions="nVertLevels nCells Time" units="unitless"
+                     description="EDMF relative updraft area of moist updrafts in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="edmf_w" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
+                     description="EDMF vertical velocity of  moist updrafts in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="edmf_qt" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+                     description="EDMF total water mixing ratio in moist updrafts in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="edmf_qc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+                     description="EDMF liquid water mixing ratio in moist updrafts in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="edmf_thl" type="real" dimensions="nVertLevels nCells Time" units="K"
+                     description="EDMF liquid-ice water potential temperature in moist updrafts in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="edmf_ent" type="real" dimensions="nVertLevels nCells Time" units="m^{-1}"
+                     description="EDMF entrainment rate in moist updrafts in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="sub_thl" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+                     description="EDMF subsidence of liquid-ice potential temperature in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="sub_qv" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="EDMF subsidence of water vapor mixing ratio in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="det_thl" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+                     description="EDMF detrainment of liquid-ice potential temperature in the MYNN PBL scheme"
+                     packages="bl_mynn_in"/>
+
+                <var name="det_qv" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="EDMF detrainment of water vapor mixing ratio in the MYNN PBL scheme"
                      packages="bl_mynn_in"/>
 
 
@@ -2944,6 +3056,10 @@
                      description="tendency of cloud ice number concentration due to pbl processes"
                      packages="bl_mynn_in"/>
 
+                <var name="rnrblten" type="real" dimensions="nVertLevels nCells Time" units="nb kg^{-1} s^{-1}"
+                     description="tendency of rain number concentration due to pbl processes"
+                     packages="bl_mynn_in"/>
+
 	        <!-- MGD should we add packages to the field below? -->
 	        <var name="rublten_Edge" type="real"     dimensions="nVertLevels nEdges Time"/>
 
@@ -2958,7 +3074,7 @@
                      description="tendency of potential temperature due to short wave radiation"/>
 
                 <var name="rthratenlw" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
-                     description="tendency of potential temperature due to short wave radiation"/>
+                     description="tendency of potential temperature due to long wave radiation"/>
         </var_struct>
 
 
