@@ -838,7 +838,7 @@
 
        glw_p(i,j)    = glw(i)
        swddif_p(i,j) = swddif(i)
-       swddir_p(i,j) = swddif(i)
+       swddir_p(i,j) = swddir(i)
        swdown_p(i,j) = gsw(i) / (1._RKIND - sfc_albedo(i))
     enddo
  enddo
