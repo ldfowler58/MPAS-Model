@@ -859,13 +859,15 @@ contains
         ALBSNI(1: NBAND) = 0.
 
 ! when cosz > 0
-
+        if ( cosz > 0) then
         SL=2.0
         SL1=1./SL
         SL2=2.*SL
         CF1=((1.+SL1)/(1.+SL2*COSZ)-SL1)
         FZEN=AMAX1(CF1,0.)
-
+        else
+        fzen=0
+        endif
         ALBSNI(1)=0.95*(1.-C1*FAGE)         
         ALBSNI(2)=0.65*(1.-C2*FAGE)        
 
