@@ -1,8 +1,8 @@
 !=================================================================================================================
 module module_sf_noah_seaice_drv
 
-!reference: WRF-v4.4
-!Laura D. Fowler (laura@ucar.edu) / 2022-02-11.
+!reference: WRF-v4.5.1
+!Laura D. Fowler (laura@ucar.edu)/2023-04-21.
 #if defined(mpas)
 use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
 #define FATAL_ERROR(M) call physics_error_fatal(M)

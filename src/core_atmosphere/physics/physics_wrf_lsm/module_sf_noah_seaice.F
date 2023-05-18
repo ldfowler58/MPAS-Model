@@ -1,8 +1,8 @@
 !=================================================================================================================
 MODULE module_sf_noah_seaice
 
-!reference: WRF-v4.4
-!Laura D. Fowler (laura@ucar.edu) / 2022-02-11.
+!reference: WRF-v4.5.1
+!Laura D. Fowler (laura@ucar.edu)/2023-04-21.
 #if defined(mpas)
 use mpas_atmphys_constants,only: cp,R_D=>R_d,XLF,XLV,RHOWATER=>rho_w,STBOLT
 use mpas_atmphys_utilities, only: physics_error_fatal

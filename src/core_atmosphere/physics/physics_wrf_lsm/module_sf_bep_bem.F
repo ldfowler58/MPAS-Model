@@ -1,7 +1,7 @@
 MODULE module_sf_bep_bem
 
-!reference: WRF-v4.4
-!laura D. Fowler (laura@ucar.edu) / 2022-02-11.
+!reference: WRF-v4.5.1
+!Laura D. Fowler (laura@ucar.edu)/2023-04-21.
 #if defined(mpas)
 use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
 #define FATAL_ERROR(M) call physics_error_fatal(M)
@@ -11,7 +11,6 @@ use module_wrf_error
 #define FATAL_ERROR(M) call wrf_error_fatal(M)
 #define WRITE_MESSAGE(M) call wrf_message(M)
 #endif
-
  USE module_sf_urban
  USE module_sf_bem
  USE module_bep_bem_helper, ONLY: nurbm
@@ -5321,7 +5320,7 @@ do iz= kts,kte
                      (1-emr_u)*rld*(1.-pv_frac_roof)+(1-0.79)*pv_frac_roof*rld)*ss(iz)*bs(id)/(ws(id)+bs(id))/ndu
              rl_inc=rl_inc+rld*ss(iz)*bs(id)/(ws(id)+bs(id))/ndu
              rs_abs=rs_abs+((1.-albr_u)*rs*(1.-pv_frac_roof)+(1.-0.11)*rs*pv_frac_roof)*ss(iz)*bs(id)/(ws(id)+bs(id))/ndu
-             gfl=(1.-albr_u)*rs*(1-pv_frac_roof)+emr_u*rld*((1-pv_frac_roof)+pv_frac_roof*emr_u*sigma*tpvlev(id,iz)**4) &
+             gfl=(1.-albr_u)*rs*(1-pv_frac_roof)+emr_u*rld*(1-pv_frac_roof)+pv_frac_roof*emr_u*sigma*tpvlev(id,iz)**4 &
                 -emr_u*sigma*(tr_av(id,iz)**4.)+(1-gr_frac_roof)*sfr(id,iz)+(sfrv(id,iz)+lfrv(id,iz))*gr_frac_roof+(1.-gr_frac_roof)*lfr(id,iz)
              grdflx_urb=grdflx_urb-gfl*ss(iz)*bs(id)/(ws(id)+bs(id))/ndu  
          enddo

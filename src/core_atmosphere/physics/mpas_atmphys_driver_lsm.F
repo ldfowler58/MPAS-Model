@@ -194,9 +194,6 @@
  if(.not.allocated(frc_urb_p)   ) allocate(frc_urb_p(ims:ime,jms:jme)   )
  if(.not.allocated(ust_urb_p)   ) allocate(ust_urb_p(ims:ime,jms:jme)   )
  if(.not.allocated(utype_urb_p) ) allocate(utype_urb_p(ims:ime,jms:jme) )
- if(.not.allocated(infxsrt_p)   ) allocate(infxsrt_p(ims:ime,jms:jme)   )
- if(.not.allocated(sfcheadrt_p) ) allocate(sfcheadrt_p(ims:ime,jms:jme) )
- if(.not.allocated(soldrain_p)  ) allocate(soldrain_p(ims:ime,jms:jme)  )
 
 !arrays for seaice grid-points:
  if(.not.allocated(tsk_sea)     ) allocate(tsk_sea(ims:ime,jms:jme)     )
@@ -281,9 +278,6 @@
  if(allocated(frc_urb_p)   ) deallocate(frc_urb_p   )
  if(allocated(ust_urb_p)   ) deallocate(ust_urb_p   )
  if(allocated(utype_urb_p) ) deallocate(utype_urb_p )
- if(allocated(infxsrt_p)   ) deallocate(infxsrt_p   )
- if(allocated(sfcheadrt_p) ) deallocate(sfcheadrt_p )
- if(allocated(soldrain_p)  ) deallocate(soldrain_p  )
 
 !arrays for seaice grid-points:
  if(allocated(tsk_sea)     ) deallocate(tsk_sea     )
@@ -487,12 +481,6 @@
     frc_urb_p(i,j)    = 0._RKIND
     ust_urb_p(i,j)    = 0._RKIND
     utype_urb_p(i,j)  = 0
-
-    !initialization of arrays to run the Noah LSM hydrological parameterization (not currently
-    !implemented in MPAS):
-    infxsrt_p(i,j)    = 0._RKIND
-    sfcheadrt_p(i,j)  = 0._RKIND
-    soldrain_p(i,j)   = 0._RKIND
  enddo
  enddo
 
@@ -863,7 +851,6 @@
                 opt_thcnd   = opt_thcnd   , ua_phys     = ua_phys      , flx4_2d   = flxsnow_p    , &
                 fvb_2d      = fvbsnow_p   , fbur_2d     = fbursnow_p   , fgsn_2d   = fgsnsnow_p   , &
                 utype_urb2d = utype_urb_p , frc_urb2d   = frc_urb_p    , ust_urb2d = ust_urb_p    , &
-                infxsrt     = infxsrt_p   , sfcheadrt   = sfcheadrt_p  , soldrain  = soldrain_p   , &
                 fasdas      = fasdas      , julian      = 0            , julyr     = 0            , &
                 num_soil_layers  = num_soils         ,                                              &
                 xice_threshold   = xice_threshold    ,                                              &
