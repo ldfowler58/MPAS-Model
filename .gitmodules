@@ -1,0 +1,3 @@
+[submodule "src/core_atmosphere/physics/physics_noahmp"]
+	path = src/core_atmosphere/physics/physics_noahmp
+	url = https://github.com/ldfowler58/noahmp.git
