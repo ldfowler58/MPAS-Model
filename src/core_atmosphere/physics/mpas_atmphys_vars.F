@@ -397,6 +397,7 @@
     kzq_p              !
 
 !... MYNN PBL scheme (module_bl_mynn.F):
+ integer,parameter:: spp_pbl       = 0          !generate array with random perturbations (0=off,1=on).
  integer,parameter:: grav_settling = 0
 
  logical,parameter:: bl_mynn_tkeadvect = .false.!
@@ -418,6 +419,9 @@
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     rniblten_p         !
+
+ real(kind=RKIND),dimension(:,:,:),allocatable:: &
+    pattern_spp_pbl    !stochastic forcing for the MYMM PBL and surface layer schemes.
 
 !=================================================================================================================
 !... variables and arrays related to parameterization of gravity wave drag over orography:
