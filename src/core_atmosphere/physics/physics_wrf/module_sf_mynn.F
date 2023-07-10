@@ -353,7 +353,7 @@
                      svp3     = svp3      , svpt0    = svpt0     , ep1     = ep1      , ep2       = ep2       , &
                      karman   = karman    , ch       = ch_hv     , qcg     = qcg_hv   , itimestep = itimestep , &
                      wstar    = wstar_hv  , qstar    = qstar_hv  , ustm    = ustm_hv  , ck        = ck_hv     , &
-                     cka      = cka_hv    , cd       = cd_hv     , cda     = cda_hv   , spp_pbl   = spp_pbl   , &
+                     cka      = cka_hv    , cd       = cd_hv     , cda     = cda_hv   , spp_pbl   = f_spp     , &
                      rstoch1d = rstoch1d  , isftcflx = isftcflx  , iz0tlnd = iz0tlnd                          , &
                      its      = its       , ite      = ite       , errmsg  = errmsg   , errflg    = errflg      &
                         )
