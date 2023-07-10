@@ -3,8 +3,8 @@
 !=================================================================================================================
  use mpas_kind_types,only: RKIND,StrKIND
 
- use sf_mynn,only     : sf_mynn_run
- use sf_mynn_mpas,only: sf_mynn_mpas_run
+ use sf_mynn,only    : sf_mynn_run
+ use sf_mynn_pre,only: sf_mynn_pre_run
 
  implicit none
  private
@@ -269,9 +269,9 @@
            qstar_hv(i) = qstar(i,j)
         enddo
 
-        call sf_mynn_mpas_run(its,ite,kte,itimestep,dz8w,u3d,v3d,p3d,t3d,rho3d,qv3d,qc3d,f_spp, &
-                   pattern_spp_pbl,ust_hv,mol_hv,qsfc_hv,qstar_hv,dz8w1d,u1d,v1d,p1d,t1d,rho1d, &
-                   qv1d,qc1d,rstoch1d,dz2w1d,u1d2,v1d2,errmsg,errflg)
+        call sf_mynn_pre_run(its,ite,kte,itimestep,dz8w,u3d,v3d,p3d,t3d,rho3d,qv3d,qc3d,f_spp, &
+                  pattern_spp_pbl,ust_hv,mol_hv,qsfc_hv,qstar_hv,dz8w1d,u1d,v1d,p1d,t1d,rho1d, &
+                  qv1d,qc1d,rstoch1d,dz2w1d,u1d2,v1d2,errmsg,errflg)
 
         !ccpp-physics:
         !input arguments:

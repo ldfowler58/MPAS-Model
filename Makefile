@@ -281,11 +281,11 @@ ifort:   # BUILDTARGET Intel Fortran, C, and C++ compiler suite
 	"CC_SERIAL = icc" \
 	"CXX_SERIAL = icpc" \
 	"FFLAGS_PROMOTION = -real-size 64" \
-	"FFLAGS_OPT = -O3 -convert big_endian -free -align array64byte" \
-	"CFLAGS_OPT = -O3" \
-	"CXXFLAGS_OPT = -O3" \
-	"LDFLAGS_OPT = -O3" \
-	"FFLAGS_DEBUG = -g -convert big_endian -free -check all -fpe0 -traceback" \
+	"FFLAGS_OPT = -O3 -fp-model precise -convert big_endian -free -align array64byte" \
+	"CFLAGS_OPT = -O3 -fp-model precise" \
+	"CXXFLAGS_OPT = -O3 -fp-model precise" \
+	"LDFLAGS_OPT = -O3 -fp-model precise" \
+	"FFLAGS_DEBUG = -g -convert big_endian -free -CU -CB -check all -fpe0 -traceback" \
 	"CFLAGS_DEBUG = -g -traceback" \
 	"CXXFLAGS_DEBUG = -g -traceback" \
 	"LDFLAGS_DEBUG = -g -fpe0 -traceback" \
