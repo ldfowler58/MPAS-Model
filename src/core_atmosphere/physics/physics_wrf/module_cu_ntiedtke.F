@@ -159,7 +159,11 @@
  errmsg = ' '
  errflg = 0
 
- call cu_ntiedtke_init(cp,rd,rv,xlv,xls,xlf,grav,errmsg,errflg)
+ call cu_ntiedtke_init( &
+                       con_cp  = cp  , con_rd = rd   , con_rv   = rv   , con_xlv = xlv    , &
+                       con_xls = xls , con_xlf = xlf , con_grav = grav , errmsg  = errmsg , &
+                       errflg  = errflg                                                     &
+                      )
 
  do j = jts,jte
     do i = its,ite
@@ -200,17 +204,39 @@
        enddo
     enddo
 
-    call cu_ntiedtke_timestep_init(its,ite,kts,kte,im,kx,kx1,itimestep,stepcu,dt,grav,xland_hv,dz_hv, &
-                    prsl_hv,prsi_hv,t_hv,rho_hv,qv_hv,qc_hv,qi_hv,u_hv,v_hv,w_hv,qvften_hv,thften_hv, &
-                    qvftenz,thftenz,slimsk,delt,prsl,ghtl,tf,qvf,qcf,qif,uf,vf,prsi,ghti,omg,         &
-                    errmsg,errflg)
+    call cu_ntiedtke_timestep_init( &
+                     its    = its       , ite     = ite     , kts     = kts     , kte       = kte       , &
+                     im     = im        , kx      = kx      , kx1     = kx1     , itimestep = itimestep , &
+                     stepcu = stepcu    , dt      = dt      , grav    = grav    , xland     = xland_hv  , &
+                     dz     = dz_hv     , pres    = prsl_hv , presi   = prsi_hv , t         = t_hv      , &
+                     rho    = rho_hv    , qv      = qv_hv   , qc      = qc_hv   , qi        = qi_hv     , &
+                     u      = u_hv      , v       = v_hv    , w       = w_hv    , qvften    = qvften_hv , &
+                     thften = thften_hv , qvftenz = qvftenz , thftenz = thftenz , slimsk    = slimsk    , &
+                     delt   = delt      , prsl    = prsl    , ghtl    = ghtl    , tf        = tf        , &
+                     qvf    = qvf       , qcf     = qcf     , qif     = qif     , uf        = uf        , &
+                     vf     = vf        , prsi    = prsi    , ghti    = ghti    , omg       = omg       , &
+                     errmsg = errmsg    , errflg  = errflg                                                &
+                                  )
 
-    call cu_ntiedtke_run(uf,vf,tf,qvf,qcf,qif,qvftenz,thftenz,ghtl,ghti,omg,prsl,prsi,qfx_hv,hfx_hv, &
-                         rn,slimsk,im,kx,kx1,delt,dx_hv,errmsg,errflg)
+    call cu_ntiedtke_run( &
+                     pu   = uf     , pv   = vf     , pt     = tf      , pqv    = qvf     , &
+                     pqc  = qcf    , pqi  = qif    , pqvf   = qvftenz , ptf    = thftenz , &
+                     poz  = ghtl   , pzz  = ghti   , pomg   = omg     , pap    = prsl    , &
+                     paph = prsi   , evap = qfx_hv , hfx    = hfx_hv  , zprecc = rn      , &
+                     lndj = slimsk , lq   = im     , km     = kx      , km1    = kx1     , &
+                     dt   = delt   , dx   = dx_hv  , errmsg = errmsg  , errflg = errflg    &
+                        )
 
-    call cu_ntiedtke_timestep_final(its,ite,kts,kte,stepcu,dt,pi_hv,qv_hv,qc_hv,qi_hv,t_hv,u_hv,v_hv, &
-                     qvf,qcf,qif,tf,uf,vf,rn,raincv_hv,pratec_hv,rthcuten_hv,rqvcuten_hv,rqccuten_hv, &
-                     rqicuten_hv,rucuten_hv,rvcuten_hv,errmsg,errflg)
+    call cu_ntiedtke_timestep_final( &
+                     its      = its         , ite      = ite         , kts      = kts         , kte      = kte         , &
+                     stepcu   = stepcu      , dt       = dt          , exner    = pi_hv       , qv       = qv_hv       , &
+                     qc       = qc_hv       , qi       = qi_hv       , t        = t_hv        , u        = u_hv        , &
+                     v        = v_hv        , qvf      = qvf         , qcf      = qcf         , qif      = qif         , &
+                     tf       = tf          , uf       = uf          , vf       = vf          , rn       = rn          , &
+                     raincv   = raincv_hv   , pratec   = pratec_hv   , rthcuten = rthcuten_hv , rqvcuten = rqvcuten_hv , &
+                     rqccuten = rqccuten_hv , rqicuten = rqicuten_hv , rucuten  = rucuten_hv  , rvcuten  = rvcuten_hv  , &
+                     errmsg   = errmsg      , errflg   = errflg                                                          &
+                                   )
 
     do i = its,ite
        raincv(i,j) = raincv_hv(i)

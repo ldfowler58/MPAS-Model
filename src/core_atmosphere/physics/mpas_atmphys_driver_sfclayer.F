@@ -83,9 +83,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2017-02-16.
 ! * in subroutine driver_sfclayer, replaced the call to sfclay with a call to sfclayrev to use the revised
 !   version of the MONIN-OBUKHOV surface layer scheme.
-!   Laura D. Fowler (laura@ucar.edu) / 2021-10-25.
+!   Laura D. Fowler (laura@ucar.edu) / 2023-05-15.
 ! * added the option sf_monin_obukhov_rev to run the revised surface layer scheme with the YSU PBL scheme.
-!   Laura D. Fowler (laura@ucar.edu) / 2022-11-16.
+!   Laura D. Fowler (laura@ucar.edu) / 2023-05-15.
 
 
  contains
@@ -199,9 +199,16 @@
           if(.not.allocated(fm_sea)) allocate(fm_sea(ims:ime,jms:jme))
        endif
 
-       if(.not.allocated(waterdepth_p)) allocate(waterdepth_p(ims:ime,jms:jme))
-       if(.not.allocated(lakedepth_p) ) allocate(lakedepth_p(ims:ime,jms:jme) )
-       if(.not.allocated(lakemask_p)  ) allocate(lakemask_p(ims:ime,jms:jme)  )
+       sfclayer2_select: select case(sfclayer_scheme)
+
+          case("sf_monin_obukhov_rev")
+             if(.not.allocated(waterdepth_p)) allocate(waterdepth_p(ims:ime,jms:jme))
+             if(.not.allocated(lakedepth_p) ) allocate(lakedepth_p(ims:ime,jms:jme) )
+             if(.not.allocated(lakemask_p)  ) allocate(lakemask_p(ims:ime,jms:jme)  )
+
+          case default
+
+       end select sfclayer2_select
 
     case("sf_mynn")
        if(.not.allocated(snowh_p)) allocate(snowh_p(ims:ime,jms:jme))
@@ -320,9 +327,16 @@
           if(allocated(fm_sea)) deallocate(fm_sea)
        endif
 
-       if(allocated(waterdepth_p)) deallocate(waterdepth_p)
-       if(allocated(lakedepth_p) ) deallocate(lakedepth_p )
-       if(allocated(lakemask_p)  ) deallocate(lakemask_p  )
+       sfclayer2_select: select case(sfclayer_scheme)
+
+          case("sf_monin_obukhov_rev")
+             if(allocated(waterdepth_p)) deallocate(waterdepth_p)
+             if(allocated(lakedepth_p) ) deallocate(lakedepth_p )
+             if(allocated(lakemask_p)  ) deallocate(lakemask_p  )
+
+          case default
+
+       end select sfclayer2_select
 
     case("sf_mynn")
        if(allocated(snowh_p)) deallocate(snowh_p)
@@ -549,6 +563,22 @@
           lakemask_p(i,j)   = 0._RKIND
        enddo
        enddo
+
+       sfclayer2_select: select case(sfclayer_scheme)
+
+          case("sf_monin_obukhov_rev")
+
+             do j = jts,jte
+             do i = its,ite
+                waterdepth_p(i,j) = 0._RKIND
+                lakedepth_p(i,j)  = 0._RKIND
+                lakemask_p(i,j)   = 0._RKIND
+             enddo
+             enddo
+
+          case default
+
+       end select sfclayer2_select
 
     case("sf_mynn")
        !input variables:
@@ -816,6 +846,10 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 
+!initialization of CCPP-compliant flags:
+ errmsg = ' '
+ errflg = 0
+
  call mpas_pool_get_config(configs,'config_sfclayer_scheme',sfclayer_scheme)
 
  sfclayer_select: select case (trim(sfclayer_scheme))
@@ -868,6 +902,10 @@
 !call mpas_log_write('')
 !call mpas_log_write('--- enter subroutine driver_sfclayer:')
 
+!initialization of CCPP-compliant flags:
+ errmsg = ' '
+ errflg = 0
+
  call mpas_pool_get_config(configs,'config_do_restart'     ,config_do_restart )
  call mpas_pool_get_config(configs,'config_frac_seaice'    ,config_frac_seaice)
  call mpas_pool_get_config(configs,'config_sfclayer_scheme',sfclayer_scheme   )
@@ -885,7 +923,7 @@
  sfclayer_select: select case (trim(sfclayer_scheme))
 
     case("sf_monin_obukhov")
-       call mpas_timer_start('Monin-Obukhov')
+       call mpas_timer_start('sf_monin_obukhov')
        call sfclay( &
                    p3d      = pres_hyd_p , psfc     = psfc_p     , t3d      = t_p        , &
                    u3d      = u_p        , v3d      = v_p        , qv3d     = qv_p       , &
@@ -943,10 +981,11 @@
                       its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte   &
                      )
        endif
-       call mpas_timer_stop('Monin-Obukhov')
+       call mpas_timer_stop('sf_monin_obukhov')
 
     case("sf_monin_obukhov_rev")
-       call mpas_timer_start('Monin-Obukhov_rev')
+       call mpas_timer_start('sf_monin_obukhov_rev')
+       call mpas_log_write('--- enter subroutine sfclayrev:')
        call sfclayrev( &
                p3d         = pres_hyd_p   , psfc           = psfc_p         , t3d      = t_p                    , &
                u3d         = u_p          , v3d            = v_p            , qv3d     = qv_p                   , &
@@ -976,8 +1015,10 @@
                ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,                            &
                its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte                              &
                      )
+       call mpas_log_write('--- end subroutine sfclayrev:')
 
        if(config_frac_seaice) then
+          call mpas_log_write('--- enter subroutine sfclayrev seaice:')
           call sfclayrev( &
                   p3d         = pres_hyd_p   , psfc           = psfc_p         , t3d             = t_p             , &
                   u3d         = u_p          , v3d            = v_p            , qv3d            = qv_p            , &
@@ -1007,8 +1048,9 @@
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme , &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte   &
                         )
+          call mpas_log_write('--- end subroutine sfclayrev seaice:')
        endif
-       call mpas_timer_stop('Monin-Obukhov_rev')
+       call mpas_timer_stop('sf_monin_obukhov_rev')
 
     case("sf_mynn")
        call mpas_timer_start('MYNN_sfclay')

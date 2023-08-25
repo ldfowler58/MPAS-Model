@@ -12,10 +12,10 @@ dummy:
 	echo "****** compiling physics ******"
 
 OBJS_init = \
-	ccpp_kinds.o                 \
-	mpas_atmphys_constants.o     \
-	mpas_atmphys_date_time.o     \
-	mpas_atmphys_functions.o     \
+	ccpp_kinds.o             \
+	mpas_atmphys_constants.o \
+	mpas_atmphys_date_time.o \
+	mpas_atmphys_functions.o \
 	mpas_atmphys_utilities.o
 
 OBJS = \
@@ -54,7 +54,7 @@ lookup_tables:
 core_physics_mmm: core_physics_init
 	(cd physics_mmm; $(MAKE) all)
 
-core_physics_wrf: core_physics_init
+core_physics_wrf: core_physics_init core_physics_mmm
 	(cd physics_wrf; $(MAKE) all COREDEF="$(COREDEF)")
 
 core_physics_init: $(OBJS_init)
@@ -200,6 +200,7 @@ mpas_atmphys_update.o: \
 clean:
 	$(RM) *.o *.mod *.f90 libphys.a
 	( cd physics_wrf; $(MAKE) clean )
+	( cd physics_mmm; $(MAKE) clean )
 	@# Certain systems with intel compilers generate *.i files
 	@# This removes them during the clean process
 	$(RM) *.i

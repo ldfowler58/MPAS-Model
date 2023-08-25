@@ -7,6 +7,7 @@ dummy:
 
 OBJS = \
 	libmassv.o                     \
+	module_bep_bem_helper.o        \
 	module_bl_gwdo.o               \
 	module_bl_mynn.o               \
 	module_bl_ysu.o                \
@@ -18,7 +19,6 @@ OBJS = \
 	module_cu_ntiedtke.o           \
 	module_cu_kfeta.o              \
 	module_mp_kessler.o            \
-	module_mp_radar.o              \
 	module_mp_thompson.o           \
 	module_mp_thompson_cldfra3.o   \
 	module_mp_wsm6.o               \
@@ -52,12 +52,6 @@ module_bl_mynn.o: \
 module_cam_support.o: \
 	module_cam_shr_kind_mod.o
 
-module_mp_thompson.o: \
-	module_mp_radar.o
-
-module_mp_wsm6.o: \
-	module_mp_radar.o
-
 module_ra_cam.o: \
 	module_cam_support.o \
 	module_ra_cam_support.o
@@ -70,9 +64,11 @@ module_ra_rrtmg_sw.o: \
 	module_ra_rrtmg_vinterp.o
 
 module_sf_bep.o: \
+	module_bep_bem_helper.o \
 	module_sf_urban.o
 
 module_sf_bep_bem.o: \
+	module_bep_bem_helper.o \
 	module_sf_bem.o \
 	module_sf_urban.o
 
