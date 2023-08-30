@@ -642,10 +642,10 @@
     end if
  endif
 
- call mpas_log_write('     DT_RADTLW   =$r', realArgs=(/dt_radtlw/))
- call mpas_log_write('     DT_RADTSW   =$r', realArgs=(/dt_radtsw/))
- call mpas_log_write('     DT_CU       =$r', realArgs=(/dt_cu/))
- call mpas_log_write('     DT_PBL      =$r', realArgs=(/dt_pbl/))
+ call mpas_log_write('     DT_RADTLW   = $r', realArgs=(/dt_radtlw/))
+ call mpas_log_write('     DT_RADTSW   = $r', realArgs=(/dt_radtsw/))
+ call mpas_log_write('     DT_CU       = $r', realArgs=(/dt_cu/))
+ call mpas_log_write('     DT_PBL      = $r', realArgs=(/dt_pbl/))
 
 !initialization of physics dimensions to mimic a rectangular grid:
  ims=1   ; ime = nCellsSolve
@@ -660,15 +660,15 @@
  jts=jms ; jte = jme
  kts=kms ; kte = kme-1
 
- call mpas_log_write('     IMS =$i   IME =$i', intArgs=(/ims,ime/))
- call mpas_log_write('     JMS =$i   JME =$i', intArgs=(/jms,jme/))
- call mpas_log_write('     KMS =$i   KME =$i', intArgs=(/kms,kme/))
- call mpas_log_write('     IDS =$i   IDE =$i', intArgs=(/ids,ide/))
- call mpas_log_write('     JDS =$i   JDE =$i', intArgs=(/jds,jde/))
- call mpas_log_write('     KDS =$i   KDE =$i', intArgs=(/kds,kde/))
- call mpas_log_write('     ITS =$i   ITE =$i', intArgs=(/its,ite/))
- call mpas_log_write('     JTS =$i   JTE =$i', intArgs=(/jts,jte/))
- call mpas_log_write('     KTS =$i   KTE =$i', intArgs=(/kts,kte/))
+ call mpas_log_write('     IMS = $i   IME = $i', intArgs=(/ims,ime/))
+ call mpas_log_write('     JMS = $i   JME = $i', intArgs=(/jms,jme/))
+ call mpas_log_write('     KMS = $i   KME = $i', intArgs=(/kms,kme/))
+ call mpas_log_write('     IDS = $i   IDE = $i', intArgs=(/ids,ide/))
+ call mpas_log_write('     JDS = $i   JDE = $i', intArgs=(/jds,jde/))
+ call mpas_log_write('     KDS = $i   KDE = $i', intArgs=(/kds,kde/))
+ call mpas_log_write('     ITS = $i   ITE = $i', intArgs=(/its,ite/))
+ call mpas_log_write('     JTS = $i   JTE = $i', intArgs=(/jts,jte/))
+ call mpas_log_write('     KTS = $i   KTE = $i', intArgs=(/kts,kte/))
 
 !initialization local physics variables:
  num_months = nMonths
