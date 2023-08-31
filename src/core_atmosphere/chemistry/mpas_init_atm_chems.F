@@ -480,11 +480,16 @@
 
  do while(istatus == 0)
 
+!--- use the same values as the default values for meteorological fields in mpas_init_case_gfs:
+!   interp_list(1) = FOUR_POINT
+!   interp_list(2) = W_AVERAGE4
+!   interp_list(3) = W_AVERAGE16
+!   interp_list(4) = SEARCH
+!   interp_list(5) = 0
     interp_list(1) = FOUR_POINT
-    interp_list(2) = W_AVERAGE4
-    interp_list(3) = W_AVERAGE16
-    interp_list(4) = SEARCH
-    interp_list(5) = 0
+    interp_list(2) = SEARCH
+    interp_list(3) = 0
+!--- end use.
 
     maskval = -1.0
     masked  = -1
@@ -1147,6 +1152,7 @@
  integer,pointer:: index_qco,index_qco_fg
  integer,pointer:: index_nwfa,index_nwfa_fg,index_nifa,index_nifa_fg
  integer,pointer:: index_chems,index_chems_fg
+ integer,dimension(:),pointer:: indexToCellID
 
  real(kind=RKIND),dimension(:),pointer:: nifa2d,nwfa2d
  real(kind=RKIND),dimension(:,:),pointer:: pcam_fg,pressure
@@ -1166,6 +1172,8 @@
  call mpas_pool_get_dimension(mesh,'nCells',nCells)
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
  call mpas_pool_get_dimension(mesh,'nCAMLevels' ,nCAMLevels )
+
+ call mpas_pool_get_array(mesh,'indexToCellID',indexToCellID)
 
  call mpas_pool_get_dimension(state,'num_chems' ,num_chems )
  call mpas_pool_get_dimension(state,'gas_start' ,gas_start )
@@ -1201,7 +1209,7 @@
  call mpas_log_write('--- index_qco_fg    = $i',intArgs=(/index_qco_fg/)   )
  call mpas_log_write(' ')
 
- call mpas_pool_get_array(diag,'pressure_base',pressure)
+ call mpas_pool_get_array(diag,'pressure',pressure)
 
  call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
  call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
@@ -1215,30 +1223,51 @@
  chems(:,:,:)        = 0._RKIND
 
  if(.not.allocated(sorted_arr)) allocate(sorted_arr(2,nCAMLevels))
-!--- interpolation of the first-guess CAM-Chem aerosols for use in the initialization of GOCART aerosols.
- nn = 0
+!--- interpolation of the first-guess CAM-Chem aerosols (in Registry_init_chems.xml, interpolation of first-
+!    guess fields in chems_fg (qbc1_fg to qsoa4a3_fg) to pressure-interpolated fields in chems_gocart (qbc1
+!    to qsoa4a3, i.e. first 18 fields):
+ call mpas_log_write('--- vertical interpolation of aerosols: num_chems_gocart = $i',intArgs=(/num_chems_gocart/))
  do n = 1,num_chems_gocart
-    if(n .ne. index_qco_fg) then
-       nn = nn + 1
-!      call mpas_log_write('$i $i',intArgs=(/n,nn/))
-       do iCell = 1,nCells
-          sorted_arr(1,1:nCAMLevels) = 0._RKIND
-          sorted_arr(2,1:nCAMLevels) = 0._RKIND
-          do k = 1,nCAMLevels
-             sorted_arr(1,k) = pcam_fg(k,iCell)
-             sorted_arr(2,k) = chems_fg(nn,k,iCell)
-          enddo
-          do k = 1,nVertLevels
-             target_p = pressure(k,iCell)
-             chems_gocart(n,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
-                                                order=1,extrap=0)
-          enddo
+    do iCell = 1,nCells
+       sorted_arr(1,1:nCAMLevels) = 0._RKIND
+       sorted_arr(2,1:nCAMLevels) = 0._RKIND
+       do k = 1,nCAMLevels
+          sorted_arr(1,k) = pcam_fg(k,iCell)
+          sorted_arr(2,k) = chems_fg(n,k,iCell)
        enddo
-    endif
+!      if(pressure(1,iCell) .ge. sorted_arr(1,1)) then
+!         call mpas_log_write('--- before vertical interpolation: PCAM levels')
+!         do k = 1,nCAMLevels
+!            call mpas_log_write('$i $i $i $i $r $r',intArgs=(/n,iCell,indexToCellID(iCell),k/), &
+!                                                    realArgs=(/sorted_arr(1,k),sorted_arr(2,k)/))
+!         enddo
+!         call mpas_log_write('------:')
+!      endif
+       do k = nVertLevels,1,-1
+          target_p = pressure(k,iCell)
+          chems_gocart(n,k,iCell) = pressure_interp(iCell,k,target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels))
+          if(target_p.gt.sorted_arr(1,1)) chems_gocart(n,k,iCell) = chems_gocart(n,k+1,iCell)
+       enddo
+!      if(pressure(1,iCell) .ge. sorted_arr(1,1)) then
+!         call mpas_log_write('--- after vertical interpolation: PRESSURE levels')
+!         do k = 1,nVertLevels
+!            call mpas_log_write('$i $i $i $r $r',intArgs=(/iCell,indexToCellID(iCell),k/), &
+!                                realArgs=(/pressure(k,iCell),chems_gocart(n,k,iCell)/))
+!         enddo
+!         call mpas_log_write(' ')
+!      endif
+    enddo
  enddo
+ call mpas_log_write('--- end vertical interpolation of aerosols:')
+
+!--- interpolation of the CO first-guess CAM-Chem mixing ratio (in Registry_init_chems.mxl, index_qco_fg
+!    equals 29, meaning that we have to loop beyond num_chems_gocart to find it). This is the reason why
+!    the length of the loop below equals num_chems_fg instead of num_chems_gocart:
  do n = 1,num_chems_fg
     if(n .eq. index_qco_fg) then
-!      call mpas_log_write('$i',intArgs=(/n/))
+       call mpas_log_write(' ')
+       call mpas_log_write('--- vertical interpolation of CO mixing ratio: index_qco_fg = $i',intArgs=(/n/))
+       call mpas_log_write('--- index_qco = $i',intArgs=(/index_qco/))
        conv = m_CO / m_air
        do iCell = 1,nCells
           sorted_arr(1,1:nCAMLevels) = 0._RKIND
@@ -1247,17 +1276,36 @@
              sorted_arr(1,k) = pcam_fg(k,iCell)
              sorted_arr(2,k) = chems_fg(n,k,iCell)
           enddo
-          do k = 1,nVertLevels
+!         if(pressure(1,iCell) .ge. sorted_arr(1,1)) then
+!            call mpas_log_write('--- before vertical interpolation: PCAM levels')
+!            do k = 1,nCAMLevels
+!               call mpas_log_write('$i $i $i $i $r $r',intArgs=(/n,iCell,indexToCellID(iCell),k/), &
+!                                                       realArgs=(/sorted_arr(1,k),sorted_arr(2,k)/))
+!            enddo
+!            call mpas_log_write('------:')
+!         endif
+          do k = nVertLevels,1,-1
              target_p = pressure(k,iCell)
-             chems(index_qco,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
-                                                 order=1,extrap=0)
+             chems(index_qco,k,iCell) = pressure_interp(iCell,k,target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels))
              chems(index_qco,k,iCell) = conv*chems(index_qco,k,iCell)
+             if(target_p.gt.sorted_arr(1,1)) chems(index_qco,k,iCell) = chems(index_qco,k+1,iCell)
           enddo
+!         if(pressure(1,iCell) .ge. sorted_arr(1,1)) then
+!            call mpas_log_write('--- after vertical interpolation: PRESSURE levels')
+!            do k = 1,nVertLevels
+!               call mpas_log_write('$i $i $i $r $r',intArgs=(/iCell,indexToCellID(iCell),k/), &
+!                                   realArgs=(/pressure(k,iCell),chems(index_qco,k,iCell)/))
+!            enddo
+!            call mpas_log_write(' ')
+!         endif
        enddo
+       call mpas_log_write('--- end vertical interpolation of CO mixing ratio:')
+       call mpas_log_write(' ')
     endif
  enddo
 
 !--- interpolation of the first-guess Thompson ice-friendly and water-friendly aerosols:
+ call mpas_log_write('--- vertical interpolation of water- and ice-friendly Thompson aerosols:')
  nifa2d(:) = 0._RKIND
  nwfa2d(:) = 0._RKIND
  scalars(index_nifa,:,:) = 0._RKIND
@@ -1270,11 +1318,27 @@
        sorted_arr(1,k) = pcam_fg(k,iCell)
        sorted_arr(2,k) = chems_fg(index_nifa_fg,k,iCell)
     enddo
-    do k = 1,nVertLevels
+!   if(pressure(1,iCell) .ge. sorted_arr(1,1)) then
+!      call mpas_log_write('--- before vertical interpolation: PCAM levels')
+!      do k = 1,nCAMLevels
+!         call mpas_log_write('$i $i $i $i $r $r',intArgs=(/n,iCell,indexToCellID(iCell),k/), &
+!                                                 realArgs=(/sorted_arr(1,k),sorted_arr(2,k)/))
+!      enddo
+!      call mpas_log_write('------:')
+!   endif
+    do k = nVertLevels,1,-1
        target_p = pressure(k,iCell)
-       scalars(index_nifa,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
-                                              order=1,extrap=0)
+       scalars(index_nifa,k,iCell) = pressure_interp(iCell,k,target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels))
+       if(target_p.gt.sorted_arr(1,1)) scalars(index_nifa,k,iCell) = scalars(index_nifa,k+1,iCell)
     enddo
+!   if(pressure(1,iCell) .ge. sorted_arr(1,1)) then
+!      call mpas_log_write('--- after vertical interpolation: PRESSURE levels')
+!      do k = 1,nVertLevels
+!         call mpas_log_write('$i $i $i $r $r',intArgs=(/iCell,indexToCellID(iCell),k/), &
+!                             realArgs=(/pressure(k,iCell),scalars(index_nifa,k,iCell)/))
+!      enddo
+!      call mpas_log_write(' ')
+!   endif
     k = 1
     nifa2d(iCell) = scalars(index_nifa,k,iCell)
 
@@ -1285,11 +1349,27 @@
        sorted_arr(1,k) = pcam_fg(k,iCell)
        sorted_arr(2,k) = chems_fg(index_nwfa_fg,k,iCell)
     enddo
-    do k = 1,nVertLevels
+!   if(pressure(1,iCell) .ge. sorted_arr(1,1)) then
+!      call mpas_log_write('--- before vertical interpolation: PCAM levels')
+!      do k = 1,nCAMLevels
+!         call mpas_log_write('$i $i $i $i $r $r',intArgs=(/n,iCell,indexToCellID(iCell),k/), &
+!                                                 realArgs=(/sorted_arr(1,k),sorted_arr(2,k)/))
+!      enddo
+!      call mpas_log_write('------:')
+!   endif
+    do k = nVertLevels,1,-1
        target_p = pressure(k,iCell)
-       scalars(index_nwfa,k,iCell) = pressure_interp(target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels), &
-                                              order=1,extrap=0)
+       scalars(index_nwfa,k,iCell) = pressure_interp(iCell,k,target_p,nCAMLevels,sorted_arr(:,1:nCAMLevels))
+       if(target_p.gt.sorted_arr(1,1)) scalars(index_nwfa,k,iCell) = scalars(index_nwfa,k+1,iCell)
     enddo
+!   if(pressure(1,iCell) .ge. sorted_arr(1,1)) then
+!      call mpas_log_write('--- after vertical interpolation: PRESSURE levels')
+!      do k = 1,nVertLevels
+!         call mpas_log_write('$i $i $i $r $r',intArgs=(/iCell,indexToCellID(iCell),k/), &
+!                             realArgs=(/pressure(k,iCell),scalars(index_nwfa,k,iCell)/))
+!      enddo
+!      call mpas_log_write(' ')
+!   endif
     k = 1
     nwfa2d(iCell) = scalars(index_nwfa,k,iCell)
  enddo
@@ -1466,78 +1546,34 @@
  end subroutine init_camchem_tothompson
 
 !=================================================================================================================
- real(kind=RKIND) function pressure_interp(target_z,nz,zf,order,extrap,surface_val,sealev_val)
+ real(kind=RKIND) function pressure_interp(ii,kk,target_z,nz,zf)
 !=================================================================================================================
 
 !input arguments:
+ integer,intent(in):: ii,kk
  integer,intent(in):: nz
- integer,intent(in),optional:: order
- integer,intent(in),optional:: extrap
 
  real(kind=RKIND),intent(in):: target_z
- real(kind=RKIND),intent(in),optional:: surface_val
- real(kind=RKIND),intent(in),optional:: sealev_val
  real(kind=RKIND),intent(in),dimension(2,nz):: zf
 
 !local variables:
  integer:: k,lm,lp
- integer:: interp_order,extrap_type
-
  real(kind=RKIND):: wm,wp
- real(kind=RKIND):: slope
- real(kind=RKIND):: surface,sealevel
 
 !-----------------------------------------------------------------------------------------------------------------
 
- if(present(order)) then
-    interp_order = order
- else
-    interp_order = 2
- endif
- if(present(extrap)) then
-    extrap_type = extrap
- else
-    extrap_type = 1
- endif
- if(present(surface_val)) then
-    surface = surface_val
- else
-    surface = 200100.0
- endif
- if(present(sealev_val)) then
-    sealevel = sealev_val
- else
-    sealevel = 201300.0
- endif
-
-!--- Extrapolation required:
- if(target_z > zf(1,1)) then
-    if(extrap_type == 0) then
-       pressure_interp = zf(2,1)
-    elseif(extrap_type == 1) then
-       slope = (zf(2,2) - zf(2,1))/(zf(1,2) - zf(1,1))
-       pressure_interp = zf(2,1) + slope * (target_z - zf(1,1))
-    endif
-    return
- endif
- if(target_z <= zf(1,nz)) then
-    if(extrap_type == 0) then
-       pressure_interp = zf(2,nz)
-    elseif(extrap_type == 1) then
-       slope = (zf(2,nz) - zf(2,nz-1)) / (zf(1,nz) - zf(1,nz-1))
-       pressure_interp = zf(2,nz) + slope * (target_z - zf(1,nz))
-    endif
-    return
- endif
-
-!--- No extrapolation required:
- do k =1,nz-1
+ do k = 1,nz-1
     if(target_z <= zf(1,k) .and. target_z > zf(1,k+1)) then
        lm = k
        lp = k+1
        wm = (zf(1,k+1) - target_z)/(zf(1,k+1) - zf(1,k))
        wp = (target_z - zf(1,k))/(zf(1,k+1) - zf(1,k))
        exit
+    else
+       lm = nz-1
+       lp = nz
+       wm = 0.
+       wp = 0.
     endif
  enddo
  pressure_interp = wm*zf(2,lm) + wp*zf(2,lp)
