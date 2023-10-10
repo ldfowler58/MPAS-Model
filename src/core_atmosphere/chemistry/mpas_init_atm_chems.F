@@ -5,6 +5,7 @@
  use mpas_kind_types
  use mpas_pool_routines
  use mpas_stream_manager
+ use mpas_timekeeping,only: sub_t_t
  use mpas_derived_types,only     : mpas_time_type,mpas_timeinterval_type
  use mpas_timekeeping,only       : mpas_get_clock_time,mpas_set_time,mpas_get_timeInterval
  use init_atm_read_met,only      : met_data,read_met_init,read_met_close,read_next_met_field
@@ -103,9 +104,9 @@
  currTime = mpas_get_clock_time(clock,MPAS_NOW)
 
 !calculate time deltas between the times that were actually read and the current time:
- totalDelta  = afterTime - beforeTime
- beforeDelta = currTime - beforeTime
- afterDelta  = afterTime - currTime
+ totalDelta  = sub_t_t(afterTime,beforeTime)
+ beforeDelta = sub_t_t(currTime,beforeTime)
+ afterDelta  = sub_t_t(afterTime,currTime)
 
 !retrieve time deltas as real values:
  call mpas_get_timeInterval(totalDelta ,dt=total_dt)
