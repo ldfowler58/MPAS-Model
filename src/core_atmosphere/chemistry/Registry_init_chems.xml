@@ -41,13 +41,13 @@
 
  <var_struct name="mesh" time_levs="1">
 
-      <var name="erod_gocart" type="real" dimensions="nDustErosionDim nCells" units="-"
+      <var name="erod" type="real" dimensions="nDustErosionDim nCells" units="-"
                 description="fraction of erodible surface for use in GOCART chemistry"/>
 
-      <var name="clayfrac_gocart" type="real" dimensions="nCells" units="-"
+      <var name="clayfrac" type="real" dimensions="nCells" units="-"
                 description="fraction of clay soil for use in GOCART chemistry"/>
 
-      <var name="sandfrac_gocart" type="real" dimensions="nCells" units="-"
+      <var name="sandfrac" type="real" dimensions="nCells" units="-"
                 description="fraction of sand soil fraction for use in GOCART chemistry"/>
 
  </var_struct>

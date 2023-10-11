@@ -436,9 +436,9 @@
                         <var name="zb3" packages="met_stage_in"/>
                         <var name="dss" packages="met_stage_in"/>
 #ifdef ATM_CHEMISTRY
-                        <var name="erod_gocart" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
-                        <var name="clayfrac_gocart" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
-                        <var name="sandfrac_gocart" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="erod" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="clayfrac" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
+                        <var name="sandfrac" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
 #endif
 		</stream>
 
@@ -591,9 +591,9 @@
                         <var name="oc1_em_anthro" packages="met_stage_out"/>
                         <var name="nh3_em_anthro" packages="met_stage_out"/>
                         <var name="so2_em_anthro" packages="met_stage_out"/>
-                        <var name="erod_gocart" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
-                        <var name="clayfrac_gocart" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
-                        <var name="sandfrac_gocart" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
+                        <var name="erod" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
+                        <var name="clayfrac" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
+                        <var name="sandfrac" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
                         <var name="pcam_fg" packages="met_stage_out"/>
                         <var name="dpcam_fg" packages="met_stage_out"/>
                         <var_array name="chems" packages="met_stage_out"/>

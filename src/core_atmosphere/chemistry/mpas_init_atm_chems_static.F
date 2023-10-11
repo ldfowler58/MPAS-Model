@@ -68,11 +68,11 @@
  integer,dimension(:),pointer:: landmask
 
  real(kind=RKIND):: lat,lon,x,y
- real(kind=RKIND),dimension(:,:),allocatable  :: clayfrac,sandfrac
- real(kind=RKIND),dimension(:,:,:),allocatable:: erod
+ real(kind=RKIND),dimension(:,:),allocatable  :: clayfrac_r,sandfrac_r
+ real(kind=RKIND),dimension(:,:,:),allocatable:: erod_r
  real(kind=RKIND),dimension(:),pointer  :: latCell,lonCell
- real(kind=RKIND),dimension(:),pointer  :: clayfrac_gocart,sandfrac_gocart
- real(kind=RKIND),dimension(:,:),pointer:: erod_gocart
+ real(kind=RKIND),dimension(:),pointer  :: clayfrac,sandfrac
+ real(kind=RKIND),dimension(:,:),pointer:: erod
 
  character(kind=c_char),dimension(StrKIND+1):: c_fname
  integer(c_int):: nx,ny,nz
@@ -104,7 +104,7 @@
 !
 ! Interpolate EROD:
 !
- call mpas_pool_get_array(mesh,'erod_gocart',erod_gocart)
+ call mpas_pool_get_array(mesh,'erod',erod)
 
  interp_list(1) = FOUR_POINT
  interp_list(2) = W_AVERAGE4
@@ -122,7 +122,7 @@
  missing_value = 9.99E9 
 
  allocate(rarray(nx,ny,nz))
- allocate(erod(1:1440,1:720,3))
+ allocate(erod_r(1:1440,1:720,3))
 
  call map_set(PROJ_LATLON, proj,      &
               latinc = 0.25_RKIND,    &
@@ -140,13 +140,14 @@
  rarray_ptr = c_loc(rarray)
  call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,scalefactor,wordsize,istatus)
  call init_atm_check_read_error(istatus,fname)
- erod(1:1440,1:720,1:3) = rarray(1:1440,1:720,1:3)
+ erod_r(1:1440,1:720,1:3) = rarray(1:1440,1:720,1:3)
 
  do k = 1,nz
-    call mpas_log_write('--- max erod = $r',realArgs=(/maxval(erod(1:1140,1:720,k))/))
+    call mpas_log_write('--- max erod_r = $r',realArgs=(/maxval(erod_r(1:1140,1:720,k))/))
+    call mpas_log_write('--- min erod_r = $r',realArgs=(/minval(erod_r(1:1140,1:720,k))/))
  enddo
 
- erod_gocart(:,:) = 0._RKIND
+ erod(:,:) = 0._RKIND
  do iCell = 1,nCells
     if(landmask(iCell) == 1) then
        lat = latCell(iCell)*DEG_PER_RAD
@@ -162,28 +163,29 @@
        if (y < 1.0) y = 1.0
        if (y > 719.0) y = 719.0
        do k = 1,3
-          erod_gocart(k,iCell) = interp_sequence(x,y,k,erod,1,1440,1,720, &
-                                        1,3,missing_value,interp_list,1)
+          erod(k,iCell) = interp_sequence(x,y,k,erod_r,1,1440,1,720, &
+                                      1,3,missing_value,interp_list,1)
        enddo
     else
-       erod_gocart(:,iCell) = 0.0
+       erod(:,iCell) = 0.0
     endif
  enddo
+
  do k = 1,nz
-    call mpas_log_write('--- min erod_gocart = $r',realArgs=(/minval(erod_gocart(k,1:nCells))/))
-    call mpas_log_write('--- max erod_gocart = $r',realArgs=(/maxval(erod_gocart(k,1:nCells))/))
+    call mpas_log_write('--- min erod   = $r',realArgs=(/minval(erod(k,1:nCells))/))
+    call mpas_log_write('--- max erod   = $r',realArgs=(/maxval(erod(k,1:nCells))/))
  enddo
 
  deallocate(rarray)
- deallocate(erod)
- call mpas_log_write('--- end interpolate EROD_GOCART.')
+ deallocate(erod_r)
+ call mpas_log_write('--- end interpolate EROD.')
  call mpas_log_write(' ')
 
 
 !
 !--- Interpolate CLAYFRAC:
 !
- call mpas_pool_get_array(mesh,'clayfrac_gocart',clayfrac_gocart)
+ call mpas_pool_get_array(mesh,'clayfrac',clayfrac)
 
  interp_list(1) = FOUR_POINT
  interp_list(2) = W_AVERAGE4
@@ -201,8 +203,8 @@
  missing_value = 0.
 
  allocate(rarray(nx,ny,nz))
- allocate(clayfrac(1:4500,1:2250))
- clayfrac_gocart = 0._RKIND
+ allocate(clayfrac_r(1:4500,1:2250))
+ clayfrac = 0._RKIND
 
  call map_set(PROJ_LATLON, proj,      &
               latinc = 0.08_RKIND,    &
@@ -220,9 +222,10 @@
  rarray_ptr = c_loc(rarray)
  call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,scalefactor,wordsize,istatus)
  call init_atm_check_read_error(istatus,fname)
- clayfrac(1:4500,1:2250) = rarray(1:4500,1:2250,1)
+ clayfrac_r(1:4500,1:2250) = rarray(1:4500,1:2250,1)
 
- call mpas_log_write('--- max clayfrac = $r',realArgs=(/maxval(clayfrac(1:4500,1:2250))/))
+ call mpas_log_write('--- max clayfrac_r = $r',realArgs=(/maxval(clayfrac_r(1:4500,1:2250))/))
+ call mpas_log_write('--- min clayfrac_r = $r',realArgs=(/minval(clayfrac_r(1:4500,1:2250))/))
 
  do iCell = 1,nCells
     if(landmask(iCell) == 1) then
@@ -238,24 +241,26 @@
        end if
        if (y < 1.0) y = 1.0
        if (y > 2249.0) y = 2249.0
-       clayfrac_gocart(iCell) = interp_sequence(x,y,1,clayfrac,1,4500,1,2250, &
-                                                1,1,missing_value,interp_list,1)
+       clayfrac(iCell) = interp_sequence(x,y,1,clayfrac_r,1,4500,1,2250, &
+                                         1,1,missing_value,interp_list,1)
     else
-       clayfrac_gocart(iCell) = 0.0
+       clayfrac(iCell) = 0.0
     endif
  enddo
- call mpas_log_write('--- clayfrac_gocart = $r',realArgs=(/maxval(clayfrac_gocart(1:nCells))/))
+
+ call mpas_log_write('--- max clayfrac  = $r',realArgs=(/maxval(clayfrac(1:nCells))/))
+ call mpas_log_write('--- min clayfrac  = $r',realArgs=(/minval(clayfrac(1:nCells))/))
 
  deallocate(rarray)
- deallocate(clayfrac)
- call mpas_log_write('--- end interpolate CLAYFRAC_GOCART.')
+ deallocate(clayfrac_r)
+ call mpas_log_write('--- end interpolate CLAYFRAC.')
  call mpas_log_write(' ')
 
 
 !
 !--- Interpolate SANDFRAC:
 !
- call mpas_pool_get_array(mesh,'sandfrac_gocart',sandfrac_gocart)
+ call mpas_pool_get_array(mesh,'sandfrac',sandfrac)
 
  nx = 4500
  ny = 2250
@@ -267,8 +272,8 @@
  missing_value = 0.
 
  allocate(rarray(nx,ny,nz))
- allocate(sandfrac(1:4500,1:2250))
- sandfrac_gocart = 0._RKIND
+ allocate(sandfrac_r(1:4500,1:2250))
+ sandfrac = 0._RKIND
 
  call map_set(PROJ_LATLON, proj,      &
               latinc = 0.08_RKIND,    &
@@ -286,8 +291,10 @@
  rarray_ptr = c_loc(rarray)
  call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,scalefactor,wordsize,istatus)
  call init_atm_check_read_error(istatus,fname)
- sandfrac(1:4500,1:2250) = rarray(1:4500,1:2250,1)
- call mpas_log_write('--- max sandfrac = $r',realArgs=(/maxval(sandfrac(1:4500,1:2250))/))
+ sandfrac_r(1:4500,1:2250) = rarray(1:4500,1:2250,1)
+
+ call mpas_log_write('--- max sandfrac_r = $r',realArgs=(/maxval(sandfrac_r(1:4500,1:2250))/))
+ call mpas_log_write('--- min sandfrac_r = $r',realArgs=(/minval(sandfrac_r(1:4500,1:2250))/))
 
  do iCell = 1,nCells
     if(landmask(iCell) == 1) then
@@ -303,17 +310,19 @@
        end if
        if (y < 1.0) y = 1.0
        if (y > 2249.0) y = 2249.0
-       sandfrac_gocart(iCell) = interp_sequence(x,y,1,sandfrac,1,4500,1,2250, &
-                                                1,1,missing_value,interp_list,1)
+       sandfrac(iCell) = interp_sequence(x,y,1,sandfrac_r,1,4500,1,2250, &
+                                         1,1,missing_value,interp_list,1)
     else
-       sandfrac_gocart(iCell) = 0.0
+       sandfrac(iCell) = 0.0
     endif
  enddo
- call mpas_log_write('--- sandfrac_gocart = $r',realArgs=(/maxval(sandfrac_gocart(1:nCells))/))
+
+ call mpas_log_write('--- max sandfrac  = $r',realArgs=(/maxval(sandfrac(1:nCells))/))
+ call mpas_log_write('--- min sandfrac  = $r',realArgs=(/minval(sandfrac(1:nCells))/))
 
  deallocate(rarray)
- deallocate(sandfrac)
- call mpas_log_write('--- end interpolate SANDFRAC_GOCART.')
+ deallocate(sandfrac_r)
+ call mpas_log_write('--- end interpolate SANDFRAC.')
 
 
  call mpas_log_write('--- end subroutine init_atm_chems_static:')
