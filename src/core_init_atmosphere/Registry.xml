@@ -584,8 +584,6 @@
                         <var name="pwif_clim" packages="met_stage_out"/>
 #ifdef ATM_CHEMISTRY
                         <var_array name="tracers" packages="met_stage_out"/>
-                        <var name="nifa2d" packages="met_stage_out"/>
-                        <var name="nwfa2d" packages="met_stage_out"/>
                         <var name="bc1_em_anthro" packages="met_stage_out"/>
                         <var name="co_em_anthro" packages="met_stage_out"/>
                         <var name="oc1_em_anthro" packages="met_stage_out"/>
@@ -598,7 +596,6 @@
                         <var name="dpcam_fg" packages="met_stage_out"/>
                         <var_array name="chems" packages="met_stage_out"/>
                         <var_array name="chems_fg" packages="met_stage_out"/>
-                        <var_array name="chems_gocart" packages="met_stage_out"/>
 #endif
 		</stream>
 

@@ -25,7 +25,7 @@ module init_atm_cases
    use mpas_atmphys_initialize_real
    use mpas_log, only : mpas_log_write
 #ifdef ATM_CHEMISTRY
-   use mpas_init_atm_chems,only: init_atm_CAMS_emissions,init_atm_camchem
+   use mpas_init_atm_chems,only: init_atm_CAMS_emissions,init_atm_camchem_toGOCART
    use mpas_init_atm_chems_static,only: init_atm_chems_static
    use mpas_init_atm_tracers
 #endif
@@ -80,7 +80,6 @@ module init_atm_cases
       logical, pointer :: config_tracers_interp
 
       type (mpas_pool_type), pointer :: CAMS_emissions
-      type (mpas_pool_type), pointer :: chems_input
 #endif
       character (len=StrKIND), pointer :: config_start_time
       character (len=StrKIND), pointer :: config_met_prefix
@@ -309,11 +308,9 @@ module init_atm_cases
                call mpas_pool_get_subpool(block_ptr%structs,'mesh'        ,mesh        )
                call mpas_pool_get_subpool(block_ptr%structs,'fg'          ,fg          )
                call mpas_pool_get_subpool(block_ptr%structs,'diag'        ,diag        )
-               call mpas_pool_get_subpool(block_ptr%structs,'diag_physics',diag_physics)
-               call mpas_pool_get_subpool(block_ptr%structs,'chems_input' ,chems_input )
                call mpas_pool_get_subpool(block_ptr%structs,'state'       ,state       )
 
-               call init_atm_camchem(block_ptr%configs,mesh,fg,diag,diag_physics,chems_input,state)
+               call init_atm_camchem_toGOCART(block_ptr%configs,mesh,fg,diag,state)
             endif
 
             block_ptr => block_ptr % next

@@ -53,17 +53,6 @@
  </var_struct>
 
 
- <var_struct name="diag_physics" time_levs="1">
-
-      <var name="nwfa2d" type="real" dimensions="nCells Time" units="nb kg^{-1}"
-                description="water-friendly aerosols number in layer adjacent to surface"/>
-
-      <var name="nifa2d" type="real" dimensions="nCells Time" units="nb kg^{-1}"
-                description="ice-friendly aerosols number in layer adjacent to surface"/>
-
- </var_struct>
-
-
  <var_struct name="CAMS_emissions" time_levs="1">
 
       <var name="bc1_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
@@ -86,137 +75,74 @@
  <var_struct name="fg" time_levs="1">
 
       <var_array name="chems_fg" type="real" dimensions="nCAMLevels nCells Time">
-           <var name="qbc1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="BC1 - First guess black carbon hydrophobic mixing ratio"/>
+           <var name="qbca1_fg" array_group="camchem" units="kg kg^{-1}"
+                description="BC - first guess black carbon (accumulation carbon mode)"/>
 
-           <var name="qbc2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="BC2 - First guess black carbon hydrophilic mixing ratio"/>
+           <var name="qbca4_fg" array_group="camchem" units="kg kg^{-1}"
+                description="BC - first guess black carbon (primary carbon mode)"/>
 
-           <var name="qoc1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="OC1 - First guess organic carbon hydrophobic mixing ratio"/>
+           <var name="qpoma1_fg" array_group="camchem" units="kg kg^{-1}"
+                description="POM - first guess organic carbon (accumulation carbon mode)"/>
 
-           <var name="qoc2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="OC2 - First guess organic carbon hydrophilic mixing ratio"/>
+           <var name="qpoma4_fg" array_group="camchem" units="kg kg^{-1}"
+                description="POM - first guess organic carbon (primary carbon mode)"/>
 
-           <var name="qseas1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SEAS1 - First guess sea-salt size bin 1 mixing ratio (0.3um eff. radius)"/>
+           <var name="qdsta1_fg" array_group="camchem" units="kg kg^{-1}"
+                description="DST - first guess dust mixing ratio (accumulation mode)"/>
 
-           <var name="qseas2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SEAS2 - First guess sea-salt size bin 2 mixing ratio (1.0um eff. radius)"/>
+           <var name="qdsta2_fg" array_group="camchem" units="kg kg^{-1}"
+                description="DST - first guess dust mixing ratio (aitken mode)"/>
 
-           <var name="qseas3_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SEAS3 - First guess sea-salt size bin 3 mixing ratio (3.2um eff. radius)"/>
+           <var name="qdsta3_fg" array_group="camchem" units="kg kg^{-1}"
+                description="DST - first guess dust mixing ratio (coarse mode)"/>
 
-           <var name="qseas4_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SEAS4 - First guess sea-salt size bin 4 mixing ratio (7.5um eff. radius)"/>
+           <var name="qncla1_fg" array_group="camchem" units="kg kg^{-1}"
+                description="NCL - first guess sea-salt mixing ratio (accumulation mode)"/>
 
-           <var name="qdust1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="DUST1 - First guess dust size bin 1 mixing ratio (0.5um eff. radius)"/>
+           <var name="qncla2_fg" array_group="camchem" units="kg kg^{-1}"
+                description="NCL - first guess sea-salt mixing ratio (aitken mode)"/>
 
-           <var name="qdust2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="DUST2 - First guess dust size bin 2 mixing ratio (1.4um eff. radius)"/>
+           <var name="qncla3_fg" array_group="camchem" units="kg kg^{-1}"
+                description="NCL - first guess sea-salt mixing ratio (coarse mode)"/>
 
-           <var name="qdust3_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="DUST3 - First guess dust size bin 3 mixing ratio (2.4um eff. radius)"/>
+           <var name="qso4a1_fg" array_group="camchem" units="kg kg^{-1}"
+                description="SO4 - first guess sulfate mixing ratio (accumulation mode)"/>
 
-           <var name="qdust4_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="DUST4 - First guess dust size bin 4 mixing ratio (4.5um eff. radius)"/>
+           <var name="qso4a2_fg" array_group="camchem" units="kg kg^{-1}"
+                description="SO4 - first guess sulfate mixing ratio (aitken mode)"/>
 
-           <var name="qdust5_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="DUST5 - First guess dust size bin 5 mixing ratio (8.0um eff. radius)"/>
+           <var name="qso4a3_fg" array_group="camchem" units="kg kg^{-1}"
+                description="SO4 - first guess sulfate mixing ratio (coarse mode)"/>
 
-           <var name="qnh3_fg" array_group="gocart_fg" units="mole mole^{-1}"
-                description="NH3 - First guess ammonia mixing ratio"/>
+           <var name="numa1_fg" array_group="camchem" units="per kg"
+                description="NUM_A1 - first guess number concentration in accumulation mode"/>
 
-           <var name="qso2_fg" array_group="gocart_fg" units="mole mole^{-1}"
-                description="SO2 - First guess sulfur dioxide mixing ratio"/>
+           <var name="numa2_fg" array_group="camchem" units="per kg"
+                description="NUM_A2 - first guess number concentration in aitken mode"/>
 
-           <var name="qso4a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SO4 - First guess sulfate mixing ratio (accumulation mode)"/>
+           <var name="numa3_fg" array_group="camchem" units="per kg"
+                description="NUM_A3 - first guess number concentration in coarse mode"/>
 
-           <var name="qso4a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SO4 - First guess sulfate mixing ratio (aitken mode)"/>
+           <var name="qdms_fg" array_group="camchem" units="mole mole^{-1}"
+                description="DMS - first guess concentration of dimethyl sulfide"/>
 
-           <var name="qso4a3_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SO4 - First guess sulfate mixing ratio (coarse mode)"/>
+           <var name="qmsa_fg" array_group="camchem" units="mole mole^{-1}"
+                description="MSA - first guess concentration of methanesulfonic acid"/>
 
-           <var name="qsoa1_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA1 - mixing ratio (accumulation mode)"/>
+           <var name="qco_fg" array_group="camchem"  units="mole mole^{-1}"
+                description="CO -  first guess concentration of carbon monoxide"/>
 
-           <var name="qsoa2_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA2 - mixing ratio (accumulation mode)"/>
+           <var name="qh2o2_fg" array_group="camchem"  units="mole mole^{-1}"
+                description="H2O2 -  first guess concentration of hydrogen peroxide"/>
 
-           <var name="qsoa3_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA3 - mixing ratio (accumulation mode)"/>
+           <var name="qoh_fg" array_group="camchem"  units="mole mole^{-1}"
+                description="OH -  first guess concentration of hydroxide"/>
 
-           <var name="qsoa4_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA4 - mixing ratio (accumulation mode)"/>
+           <var name="qso2_fg" array_group="camchem" units="mole mole^{-1}"
+                description="SO2 - first guess concentration of sulfur dioxide"/>
 
-           <var name="qsoa5_a1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA5 - mixing ratio (accumulation mode)"/>
-
-           <var name="qsoa1_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA1 - mixing ratio (aitken mode)"/>
-
-           <var name="qsoa2_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA1 - mixing ratio (aitken mode)"/>
-
-           <var name="qsoa3_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA1 - mixing ratio (aitken mode)"/>
-
-           <var name="qsoa4_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA1 - mixing ratio (aitken mode)"/>
-
-           <var name="qsoa5_a2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="SOA1 - mixing ratio (aitken mode)"/>
-
-           <var name="qco_fg" array_group="gocart_fg"  units="mole mole^{-1}"
-                description="CO -  First guess carbon monoxide mixing ratio"/>
-
-           <var name="qbca1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="BC - First guess black carbon (accumulation carbon mode)"/>
-
-           <var name="qbca4_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="BC - First guess black carbon (primary carbon mode)"/>
-
-           <var name="qpoma1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="POM - First guess organic carbon (accumulation carbon mode)"/>
-
-           <var name="qpoma4_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="POM - First guess organic carbon (primary carbon mode)"/>
-
-           <var name="qncla1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="NCL - First guess sea-salt mixing ratio (accumulation mode)"/>
-
-           <var name="qncla2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="NCL - First guess sea-salt mixing ratio (aitken mode)"/>
-
-           <var name="qncla3_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="NCL - First guess sea-salt mixing ratio (coarse mode)"/>
-
-           <var name="qdsta1_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="DST - First guess dust mixing ratio (accumulation mode)"/>
-
-           <var name="qdsta2_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="DST - First guess dust mixing ratio (aitken mode)"/>
-
-           <var name="qdsta3_fg" array_group="gocart_fg" units="kg kg^{-1}"
-                description="DST - First guess dust mixing ratio (coarse mode)"/>
-
-           <var name="numa1_fg" array_group="gocart_fg" units="per kg"
-                description="NUM_A1 - First guess number concentration in accumulation mode"/>
-
-           <var name="numa2_fg" array_group="gocart_fg" units="per kg"
-                description="NUM_A2 - First guess number concentration in aitken mode"/>
-
-           <var name="numa3_fg" array_group="gocart_fg" units="per kg"
-                description="NUM_A3 - First guess number concentration in coarse mode"/>
-
-           <var name="nifa_fg" array_group="gocart_fg" units="per kg"
-                description="First guess number concentration of ice-friendly aerosols"/>
-
-           <var name="nwfa_fg" array_group="gocart_fg" units="per kg"
-                description="First guess number concentration of water-friendly aerosols"/>
+           <var name="qno3_fg" array_group="camchem" units="mole mole^{-1}"
+                description="NO3 - first guess concentration of nitrate"/>
       </var_array>
 
       <var name="dpcam_fg" type="real" dimensions="nCAMLevels nCells Time" units="Pa"
@@ -228,73 +154,71 @@
  </var_struct>
 
 
- <var_struct name="chems_input" time_levs="1">
-
-      <var_array name="chems_gocart" type="real" dimensions="nVertLevels nCells Time">
-           <var name="qbc1" array_group="gocart" units="kg kg^{-1}"
-                description="BC1 - Black carbon hydrophobic mixing ratio"/>
-
-           <var name="qbc2" array_group="gocart" units="kg kg^{-1}"
-                description="BC2 - Black carbon hydrophilic mixing ratio"/>
-
-           <var name="qoc1" array_group="gocart" units="kg kg^{-1}"
-                description="OC1 - Organic carbon hydrophobic mixing ratio"/>
-
-           <var name="qoc2" array_group="gocart" units="kg kg^{-1}"
-                description="OC2 - Organic carbon hydrophilic mixing ratio"/>
-
-           <var name="qseas1" array_group="gocart" units="kg kg^{-1}"
-                description="SEAS1 - Sea-salt size bin 1 mixing ratio (0.3um eff. radius)"/>
-
-           <var name="qseas2" array_group="gocart" units="kg kg^{-1}"
-                description="SEAS2 - Sea-salt size bin 2 mixing ratio (1.0um eff. radius)"/>
-
-           <var name="qseas3" array_group="gocart" units="kg kg^{-1}"
-                description="SEAS3 - Sea-salt size bin 3 mixing ratio (3.2um eff. radius)"/>
-
-           <var name="qseas4" array_group="gocart" units="kg kg^{-1}"
-                description="SEAS4 - Sea-salt size bin 4 mixing ratio (7.5um eff. radius)"/>
-
-           <var name="qdust1" array_group="gocart" units="kg kg^{-1}"
-                description="DUST1 - Dust size bin 1 mixing ratio (0.5um eff. radius)"/>
-
-           <var name="qdust2" array_group="gocart" units="kg kg^{-1}"
-                description="DUST2 - Dust size bin 2 mixing ratio (1.4um eff. radius)"/>
-
-           <var name="qdust3" array_group="gocart" units="kg kg^{-1}"
-                description="DUST3 - Dust size bin 3 mixing ratio (2.4um eff. radius)"/>
-
-           <var name="qdust4" array_group="gocart" units="kg kg^{-1}"
-                description="DUST4 - Dust size bin 4 mixing ratio (4.5um eff. radius)"/>
-
-           <var name="qdust5" array_group="gocart" units="kg kg^{-1}"
-                description="DUST5 - Dust size bin 5 mixing ratio (8.0um eff. radius)"/>
-
-           <var name="qnh3" array_group="gocart" units="mole mole{-1}"
-                description="NH3 - Ammonia mixing ratio"/>
-
-           <var name="qso2" array_group="gocart" units="mole mole{-1}"
-                description="SO2 - Sulfur dioxide mixing ratio"/>
-
-           <var name="qso4a1" array_group="gocart" units="kg kg^{-1}"
-                description="SO4 - Sulfate mixing ratio (accumulation mode)"/>
-
-           <var name="qso4a2" array_group="gocart" units="kg kg^{-1}"
-                description="SO4 - Sulfate mixing ratio (aitken mode)"/>
-
-           <var name="qso4a3" array_group="gocart" units="kg kg^{-1}"
-                description="SO4 - Sulfate mixing ratio (coarse mode)"/>
-
-      </var_array>
-
- </var_struct>
-
-
  <var_struct name="state" time_levs="1">
 
     <var_array name="chems" type="real" dimensions="nVertLevels nCells Time">
-           <var name="qco" array_group="gas" units="kg kg{-1}"
-                description="CO -  Carbon monoxide mixing ratio"/>
+           <var name="qbc1" array_group="gocart" units="kg kg^{-1}"
+                description="BC1 - black carbon hydrophobic mass mixing ratio"/>
+
+           <var name="qbc2" array_group="gocart" units="kg kg^{-1}"
+                description="BC2 - black carbon hydrophilic mass mixing ratio"/>
+
+           <var name="qoc1" array_group="gocart" units="kg kg^{-1}"
+                description="OC1 - organic carbon hydrophobic mass mixing ratio"/>
+
+           <var name="qoc2" array_group="gocart" units="kg kg^{-1}"
+                description="OC2 - organic carbon hydrophilic mass mixing ratio"/>
+
+           <var name="qdust1" array_group="gocart" units="kg kg^{-1}"
+                description="DUST1 - dust size bin 1 mass mixing ratio (0.5um eff. radius)"/>
+
+           <var name="qdust2" array_group="gocart" units="kg kg^{-1}"
+                description="DUST2 - dust size bin 2 mass mixing ratio (1.4um eff. radius)"/>
+
+           <var name="qdust3" array_group="gocart" units="kg kg^{-1}"
+                description="DUST3 - dust size bin 3 mass mixing ratio (2.4um eff. radius)"/>
+
+           <var name="qdust4" array_group="gocart" units="kg kg^{-1}"
+                description="DUST4 - dust size bin 4 mass mixing ratio (4.5um eff. radius)"/>
+
+           <var name="qdust5" array_group="gocart" units="kg kg^{-1}"
+                description="DUST5 - dust size bin 5 mass mixing ratio (8.0um eff. radius)"/>
+
+           <var name="qseas1" array_group="gocart" units="kg kg^{-1}"
+                description="SEAS1 - sea-salt size bin 1 mass mixing ratio (0.3um eff. radius)"/>
+
+           <var name="qseas2" array_group="gocart" units="kg kg^{-1}"
+                description="SEAS2 - sea-salt size bin 2 mass mixing ratio (1.0um eff. radius)"/>
+
+           <var name="qseas3" array_group="gocart" units="kg kg^{-1}"
+                description="SEAS3 - sea-salt size bin 3 mass mixing ratio (3.2um eff. radius)"/>
+
+           <var name="qseas4" array_group="gocart" units="kg kg^{-1}"
+                description="SEAS4 - sea-salt size bin 4 mass mixing ratio (7.5um eff. radius)"/>
+
+           <var name="qsulf" array_group="gocart" units="kg kg^{-1}"
+                description="SULF - sulfate mass mixing ratio"/>
+
+           <var name="qdms" array_group="gocart" units="mole mole^{-1}"
+                description="DMS - dimethyl sulfide mass mixing ratio"/>
+
+           <var name="qmsa" array_group="gocart" units="mole mole^{-1}"
+                description="MSA - methanesulfonic acid mass mixing ratio"/>
+
+           <var name="qco" array_group="gocart"  units="mole mole^{-1}"
+                description="CO -  carbon monoxide mass mixing ratio"/>
+
+           <var name="qh2o2" array_group="gocart"  units="mole mole^{-1}"
+                description="H2O2 - hydrogen peroxide mass mixing ratio"/>
+
+           <var name="qoh" array_group="gocart"  units="mole mole^{-1}"
+                description="OH -  hydroxide mass mixing ratio"/>
+
+           <var name="qso2" array_group="gocart" units="mole mole^{-1}"
+                description="SO2 - sulfur dioxide mass mixing ratio"/>
+
+           <var name="qno3" array_group="gocart" units="mole mole^{-1}"
+                description="NO3 - nitrate mass mixing ratio"/>
     </var_array>
 
  </var_struct>
