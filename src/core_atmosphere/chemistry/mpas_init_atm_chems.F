@@ -137,7 +137,7 @@
  end subroutine init_atm_CAMS_emissions
 
 !=================================================================================================================
- subroutine init_atm_camchem_toGOCART(configs,mesh,fg,diag,state)
+ subroutine init_atm_camchem_toGOCART(configs,mesh,fg,diag,state,GOCART_backgrounds)
 !=================================================================================================================
 
 !input arguments:
@@ -148,6 +148,7 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: fg
  type(mpas_pool_type),intent(inout):: state
+ type(mpas_pool_type),intent(inout):: GOCART_backgrounds
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -155,11 +156,68 @@
 
  call init_hinterp_camchem(configs,mesh,fg)
  call init_vinterp_camchem(configs,mesh,fg,diag,state)
+ call init_backgrounds_gocart(mesh,state,GOCART_backgrounds)
 
  call mpas_log_write('--- end subroutine init_atm_camchem.')
  call mpas_log_write(' ')
 
  end subroutine init_atm_camchem_toGOCART
+
+!=================================================================================================================
+ subroutine init_backgrounds_gocart(mesh,state,GOCART_backgrounds)
+!=================================================================================================================
+
+!input arguments:
+ type(mpas_pool_type),intent(in):: mesh
+
+!inout arguments:
+ type(mpas_pool_type),intent(inout):: state
+ type(mpas_pool_type),intent(inout):: GOCART_backgrounds
+
+!local variables and arrays:
+ integer,pointer:: nCells,nVertLevels
+ integer,pointer:: index_qdms,index_qoh,index_qh2o2,index_qno3
+ integer:: iCell,k
+
+ real(kind=RKIND),dimension(:),pointer:: background_dms
+ real(kind=RKIND),dimension(:,:),pointer:: background_oh,background_h2o2,background_no3
+ real(kind=RKIND),dimension(:,:,:),pointer:: chems
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine init_backgrounds_gocart:')
+
+ call mpas_pool_get_dimension(mesh,'nCells',nCells)
+ call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
+
+ call mpas_pool_get_dimension(state,'index_qdms' ,index_qdms )
+ call mpas_pool_get_dimension(state,'index_qoh'  ,index_qoh  )
+ call mpas_pool_get_dimension(state,'index_qh2o2',index_qh2o2)
+ call mpas_pool_get_dimension(state,'index_qno3' ,index_qno3 )
+
+ call mpas_pool_get_array(GOCART_backgrounds,'background_dms' ,background_dms )
+ call mpas_pool_get_array(GOCART_backgrounds,'background_oh'  ,background_oh  )
+ call mpas_pool_get_array(GOCART_backgrounds,'background_h2o2',background_h2o2)
+ call mpas_pool_get_array(GOCART_backgrounds,'background_no3' ,background_no3 )
+
+ call mpas_pool_get_array(state,'chems',chems)
+
+ k = 1
+ do iCell = 1,nCells
+    background_dms(iCell)  = chems(index_qdms,k,iCell)
+ enddo
+
+ do k = 1,nVertLevels
+    do iCell = 1,nCells
+       background_oh(k,iCell)   = chems(index_qoh,k,iCell)
+       background_h2o2(k,iCell) = chems(index_qh2o2,k,iCell)
+       background_no3(k,iCell)  = chems(index_qno3,k,iCell)
+    enddo
+ enddo
+
+ call mpas_log_write('--- exit subroutine init_backgrounds_gocart:')
+
+ end subroutine init_backgrounds_gocart
 
 !=================================================================================================================
  subroutine init_hinterp_camchem(configs,mesh,fg)

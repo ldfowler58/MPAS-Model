@@ -589,6 +589,10 @@
                         <var name="oc1_em_anthro" packages="met_stage_out"/>
                         <var name="nh3_em_anthro" packages="met_stage_out"/>
                         <var name="so2_em_anthro" packages="met_stage_out"/>
+                        <var name="background_dms" packages="met_stage_out"/>
+                        <var name="background_oh" packages="met_stage_out"/>
+                        <var name="background_h2o2" packages="met_stage_out"/>
+                        <var name="background_no3" packages="met_stage_out"/>
                         <var name="erod" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
                         <var name="clayfrac" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
                         <var name="sandfrac" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>

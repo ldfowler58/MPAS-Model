@@ -72,6 +72,24 @@
 
  </var_struct>
 
+
+ <var_struct name="GOCART_backgrounds" time_levs="1">
+
+      <var name="background_dms" type="real" dimensions="nCells Time" units="nM/L"
+           description="Surface concentration of dimethyl sulfide (DMS) over oceans"/>
+
+      <var name="background_oh" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
+           description="Background of hydroxide (OH)"/>
+
+      <var name="background_h2o2" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
+           description="Background of hydrogen peroxide (H2O2)"/>
+
+      <var name="background_no3" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
+           description="Background of nitrate (NO3)"/>
+
+ </var_struct>
+
+
  <var_struct name="fg" time_levs="1">
 
       <var_array name="chems_fg" type="real" dimensions="nCAMLevels nCells Time">

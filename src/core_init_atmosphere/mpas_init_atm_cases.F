@@ -80,6 +80,7 @@ module init_atm_cases
       logical, pointer :: config_tracers_interp
 
       type (mpas_pool_type), pointer :: CAMS_emissions
+      type (mpas_pool_type), pointer :: GOCART_backgrounds
 #endif
       character (len=StrKIND), pointer :: config_start_time
       character (len=StrKIND), pointer :: config_met_prefix
@@ -305,12 +306,13 @@ module init_atm_cases
             endif
 
             if(config_chems_interp) then
-               call mpas_pool_get_subpool(block_ptr%structs,'mesh'        ,mesh        )
-               call mpas_pool_get_subpool(block_ptr%structs,'fg'          ,fg          )
-               call mpas_pool_get_subpool(block_ptr%structs,'diag'        ,diag        )
-               call mpas_pool_get_subpool(block_ptr%structs,'state'       ,state       )
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh'              ,mesh              )
+               call mpas_pool_get_subpool(block_ptr%structs,'fg'                ,fg                )
+               call mpas_pool_get_subpool(block_ptr%structs,'diag'              ,diag              )
+               call mpas_pool_get_subpool(block_ptr%structs,'state'             ,state             )
+               call mpas_pool_get_subpool(block_ptr%structs,'GOCART_backgrounds',GOCART_backgrounds)
 
-               call init_atm_camchem_toGOCART(block_ptr%configs,mesh,fg,diag,state)
+               call init_atm_camchem_toGOCART(block_ptr%configs,mesh,fg,diag,state,GOCART_backgrounds)
             endif
 
             block_ptr => block_ptr % next
