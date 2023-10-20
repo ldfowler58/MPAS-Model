@@ -305,7 +305,7 @@
       <var name="snliqxy" type="real" dimensions="nSnowLevels nCells Time" units="mm"
                 description="snow layer liquid"/>
 
-      <var name="smoiseq" type="real" dimensions="nSoilLevels nCells Time" units="mm"
+      <var name="smoiseq" type="real" dimensions="nSoilLevels nCells Time" units="m3 m^{-3}"
                 description="equivalent soil moisture"/>
 
       <var name="cropcat" type="integer" dimensions="nCells Time" units="-"
