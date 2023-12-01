@@ -10,7 +10,8 @@
  use mpas_log
  use mpas_pool_routines
 
- use mpas_atmphys_vars,only: mpas_noahmp
+ use mpas_atmphys_utilities,only: physics_error_fatal
+ use mpas_atmphys_vars,only     : mpas_noahmp
 
  use NoahmpInitMainMod,only : NoahmpInitMain
  use NoahmpIOVarInitMod,only: NoahmpIOVarInitDefault
@@ -82,38 +83,15 @@
  call mpas_pool_get_dimension(mesh,'nSoilLevels',nSoilLevels)
  call mpas_pool_get_dimension(mesh,'nSnowLevels',nSnowLevels)
 
- mpas_noahmp%ims = 1
- mpas_noahmp%ime = nCellsSolve
- mpas_noahmp%ids = 1
- mpas_noahmp%ide = nCellsSolve + 1
  mpas_noahmp%its = 1
  mpas_noahmp%ite = nCellsSolve
-
- mpas_noahmp%jms = 1
- mpas_noahmp%jme = 1
- mpas_noahmp%jds = 1
- mpas_noahmp%jde = 1
- mpas_noahmp%jts = 1
- mpas_noahmp%jte = 1
-
- mpas_noahmp%kms = 1
- mpas_noahmp%kme = nVertLevels + 1
- mpas_noahmp%kds = 1
- mpas_noahmp%kde = nVertLevels + 1
  mpas_noahmp%kts = 1
  mpas_noahmp%kte = nVertLevels
 
  mpas_noahmp%nsoil = nSoilLevels
  mpas_noahmp%nsnow = nSnowLevels
 
- call mpas_log_write('    ims = $i   ime = $i', intArgs=(/mpas_noahmp%ims,mpas_noahmp%ime/))
- call mpas_log_write('    jms = $i   jme = $i', intArgs=(/mpas_noahmp%jms,mpas_noahmp%jme/))
- call mpas_log_write('    kms = $i   kme = $i', intArgs=(/mpas_noahmp%kms,mpas_noahmp%kme/))
- call mpas_log_write('    ids = $i   ide = $i', intArgs=(/mpas_noahmp%ids,mpas_noahmp%ide/))
- call mpas_log_write('    jds = $i   jde = $i', intArgs=(/mpas_noahmp%jds,mpas_noahmp%jde/))
- call mpas_log_write('    kds = $i   kde = $i', intArgs=(/mpas_noahmp%kds,mpas_noahmp%kde/))
  call mpas_log_write('    its = $i   ite = $i', intArgs=(/mpas_noahmp%its,mpas_noahmp%ite/))
- call mpas_log_write('    jts = $i   jte = $i', intArgs=(/mpas_noahmp%jts,mpas_noahmp%jte/))
  call mpas_log_write('    kts = $i   kte = $i', intArgs=(/mpas_noahmp%kts,mpas_noahmp%kte/))
 
 
@@ -187,6 +165,13 @@
  mpas_noahmp%iopt_infdv  = iopt_infdv
  mpas_noahmp%iopt_tdrn   = iopt_tdrn
 
+!--- check options that are not available in MPAS:
+ if(iopt_soil == 4) call physics_error_fatal("NOAHmp: iopt_soil = 4 is not an available option")
+ if(iopt_crop > 0 ) call physics_error_fatal("NOAHmp: crop model is not an available option. set iopt_crop = 0")
+ if(iopt_irr > 0  ) call physics_error_fatal("NOAHmp: irrigation is not an available option. set iopt_irr = 0" )
+ if(iopt_irrm > 0 ) call physics_error_fatal("NOAHmp: irrigation is not an available option. set iopt_irrm = 0")
+ if(iopt_tdrn > 0 ) call physics_error_fatal("NOAHmp: drainage is not an available option. set iopt_tdrn = 0"  )
+
  call mpas_log_write('--- end subroutine noahmp_read_namelist:')
 
  end subroutine noahmp_read_namelist
@@ -209,18 +194,23 @@
  logical,pointer:: urban_physics
  character(len=StrKIND),pointer:: mminlu
 
+ integer,pointer:: nsoilcomps
  integer,dimension(:),pointer:: isltyp,ivgtyp
  integer,dimension(:),pointer:: isnowxy,cropcat
  integer,dimension(:),pointer:: irnumsi,irnummi,irnumfi
  
  real(kind=RKIND),pointer:: dt
+
+ real(kind=RKIND),dimension(:),pointer:: soilcl1,soilcl2,soilcl3,soilcl4
+ real(kind=RKIND),dimension(:,:),pointer:: soilcomp
+
  real(kind=RKIND),dimension(:),pointer:: areaCell,latCell,lonCell
  real(kind=RKIND),dimension(:),pointer:: canwat,lai,skintemp,snow,snowh,tmn,xice
- real(kind=RKIND),dimension(:),pointer:: alboldxy,canicexy,canliqxy,chxy,cmxy,eahxy,fastcpxy,fwetxy,gddxy,    &
-                                         grainxy,lfmassxy,qrainxy,qsnowxy,qtdrain,rtmassxy,sneqvoxy,stblcpxy, &
-                                         stmassxy,tahxy,tgxy,tvxy,xsaixy,waxy,woodxy,wslakexy,wtxy,zwtxy
+ real(kind=RKIND),dimension(:),pointer:: alboldxy,canicexy,canliqxy,chxy,cmxy,eahxy,fastcpxy,fwetxy,gddxy,     &
+                                         grainxy,lfmassxy,qrainxy,qsnowxy,rtmassxy,sneqvoxy,stblcpxy,stmassxy, &
+                                         tahxy,tgxy,tvxy,xsaixy,waxy,woodxy,wslakexy,wtxy,zwtxy
  real(kind=RKIND),dimension(:),pointer:: irwatsi,ireloss,irrsplh,irwatmi,irmivol,irwatfi,irfivol
- real(kind=RKIND),dimension(:),pointer:: t2mbxy,t2mvxy
+ real(kind=RKIND),dimension(:),pointer:: qtdrain,t2mbxy,t2mvxy
  
  real(kind=RKIND),dimension(:,:),pointer:: dzs,sh2o,smois,tslb
  real(kind=RKIND),dimension(:,:),pointer:: snicexy,snliqxy,tsnoxy,zsnsoxy
@@ -228,7 +218,7 @@
 
 !local variables and pointers:
  logical,parameter:: fndsnowh = .true.
- integer:: i,its,ite,ns,nsoil,nsnow
+ integer:: i,its,ite,ns,nsoil,nsnow,nzsnow
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -255,9 +245,17 @@
  call mpas_pool_get_config(configs,'config_urban_physics',urban_physics)
  call mpas_pool_get_config(configs,'config_dt',dt)
 
+ call mpas_pool_get_dimension(mesh,'nSoilComps',nsoilcomps)
+
  call mpas_pool_get_array(mesh,'areaCell',areaCell)
  call mpas_pool_get_array(mesh,'latCell' ,latCell )
  call mpas_pool_get_array(mesh,'lonCell' ,lonCell )
+
+ call mpas_pool_get_array(mesh,'soilcomp',soilcomp)
+ call mpas_pool_get_array(mesh,'soilcl1' ,soilcl1 )
+ call mpas_pool_get_array(mesh,'soilcl2' ,soilcl2 )
+ call mpas_pool_get_array(mesh,'soilcl3' ,soilcl3 )
+ call mpas_pool_get_array(mesh,'soilcl4' ,soilcl4 )
 
  call mpas_pool_get_array(sfc_input,'dzs'     ,dzs     )
  call mpas_pool_get_array(sfc_input,'isltyp'  ,isltyp  )
@@ -288,7 +286,6 @@
  call mpas_pool_get_array(diag_physics_noahmp,'lfmassxy',lfmassxy)
  call mpas_pool_get_array(diag_physics_noahmp,'qrainxy' ,qrainxy )
  call mpas_pool_get_array(diag_physics_noahmp,'qsnowxy' ,qsnowxy )
- call mpas_pool_get_array(diag_physics_noahmp,'qtdrain' ,qtdrain )
  call mpas_pool_get_array(diag_physics_noahmp,'rtmassxy',rtmassxy)
  call mpas_pool_get_array(diag_physics_noahmp,'sneqvoxy',sneqvoxy)
  call mpas_pool_get_array(diag_physics_noahmp,'stblcpxy',stblcpxy)
@@ -322,13 +319,30 @@
  call mpas_pool_get_array(diag_physics_noahmp,'tsnoxy'  ,tsnoxy  )
  call mpas_pool_get_array(diag_physics_noahmp,'zsnsoxy' ,zsnsoxy )
 
- call mpas_pool_get_array(output_noahmp,'t2mbxy',t2mbxy)
- call mpas_pool_get_array(output_noahmp,'t2mvxy',t2mvxy)
+ call mpas_pool_get_array(output_noahmp,'t2mbxy',t2mbxy  )
+ call mpas_pool_get_array(output_noahmp,'t2mvxy',t2mvxy  )
+ call mpas_pool_get_array(output_noahmp,'qtdrain',qtdrain)
  
+
  its   = mpas_noahmp%its
  ite   = mpas_noahmp%ite
  nsoil = mpas_noahmp%nsoil
  nsnow = mpas_noahmp%nsnow
+ nzsnow = nsnow + nsoil
+
+
+ if(mpas_noahmp%iopt_soil > 1) then
+    do i = its,ite
+       mpas_noahmp%soilcl1(i) = soilcl1(i)
+       mpas_noahmp%soilcl2(i) = soilcl2(i)
+       mpas_noahmp%soilcl3(i) = soilcl3(i)
+       mpas_noahmp%soilcl4(i) = soilcl4(i)
+       do ns = 1,nsoilcomps
+          mpas_noahmp%soilcomp(i,ns) = soilcomp(ns,i)
+       enddo
+    enddo
+ endif
+
 
  mpas_noahmp%sf_urban_physics = 0
  if(urban_physics) mpas_noahmp%sf_urban_physics = 1
@@ -358,9 +372,18 @@
     enddo
  enddo
 
-
+ do i = its,ite
+    if(mpas_noahmp%snowh(i).gt.0._RKIND .and. mpas_noahmp%snow(i).eq.0._RKIND) then
+       call mpas_log_write('--- before NoahmpInitMain SNOW: $i $r $r',intArgs=(/i/),realArgs=(/mpas_noahmp%snowh(i),mpas_noahmp%snow(i)/))
+    endif
+ enddo
  call NoahmpInitMain(mpas_noahmp)
-
+ call mpas_log_write(' ')
+ do i = its,ite
+    if(mpas_noahmp%snowh(i).gt.0._RKIND .and. mpas_noahmp%snow(i).eq.0._RKIND) then
+       call mpas_log_write('--- after NoahmpInitMain SNOW: $i $r $r',intArgs=(/i/),realArgs=(/mpas_noahmp%snowh(i),mpas_noahmp%snow(i)/))
+    endif
+ enddo
 
  do i = its, ite
     canwat(i) = mpas_noahmp%canwat(i)
@@ -374,6 +397,29 @@
        sh2o(ns,i)  = mpas_noahmp%sh2o(i,ns)
        smois(ns,i) = mpas_noahmp%smois(i,ns)
        tslb(ns,i)  = mpas_noahmp%tslb(i,ns)
+    enddo
+ enddo
+
+ do ns = 1,nsnow
+    n = ns - nsnow
+    do i = its,ite
+       tsnoxy(ns,i)  = mpas_noahmp%tsnoxy(i,n)
+       snicexy(ns,i) = mpas_noahmp%snicexy(i,n)
+       snliqxy(ns,i) = mpas_noahmp%snliqxy(i,n)
+       zsnsoxy(ns,i) = mpas_noahmp%zsnsoxy(i,n)
+       if(i.eq.4 .and. snowh(i) .gt. 0._RKIND) then
+          call mpas_log_write('$i $i $i $r $r $r $r $r',intArgs=(/i,ns,n/),realArgs=(/zsnsoxy(ns,i), &
+                        snowh(i),tsnoxy(ns,i),snicexy(ns,i),snliqxy(ns,i)/))
+       endif
+    enddo
+ enddo
+ do ns = nsnow+1,nzsnow
+    n = ns - nsnow
+    do i = its,ite
+       zsnsoxy(ns,i) = mpas_noahmp%zsnsoxy(i,n)
+       if(i.eq.4 .and. snowh(i) .gt. 0._RKIND) then
+          call mpas_log_write('$i $i $i $r',intArgs=(/i,ns,n/),realArgs=(/zsnsoxy(ns,i)/))
+       endif
     enddo
  enddo
 
@@ -392,7 +438,6 @@
     lfmassxy(i) = mpas_noahmp%lfmassxy(i)
     qrainxy(i)  = mpas_noahmp%qrainxy(i)
     qsnowxy(i)  = mpas_noahmp%qsnowxy(i)
-    qtdrain(i)  = mpas_noahmp%qtdrain(i)
     rtmassxy(i) = mpas_noahmp%rtmassxy(i)
     sneqvoxy(i) = mpas_noahmp%sneqvoxy(i)
     stblcpxy(i) = mpas_noahmp%stblcpxy(i)
@@ -407,6 +452,7 @@
     xsaixy(i)   = mpas_noahmp%xsaixy(i)
     zwtxy(i)    = mpas_noahmp%zwtxy(i)
 
+    qtdrain(i)  = mpas_noahmp%qtdrain(i)
     t2mbxy(i)   = mpas_noahmp%t2mbxy(i)
     t2mvxy(i)   = mpas_noahmp%t2mvxy(i)
  enddo
@@ -428,6 +474,7 @@
     irfivol(i) = mpas_noahmp%irfivol(i)
  enddo
  
+
 
  call mpas_log_write('--- end subroutine noahmp_init:')
 

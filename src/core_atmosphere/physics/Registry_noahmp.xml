@@ -16,6 +16,9 @@
       <dim name="nSnowLevels" definition="3"
                 description="The number of snow layers used by the NOAHMP land-surface scheme"/>
 
+      <dim name="nzSnowLevels" definition="7"
+                description="The number of snow layer depths used by the NOAHMP land-surface scheme"/>
+
  </dims>
 
 
@@ -41,7 +44,7 @@
 
  <nml_record name="physics_lsm_noahmp" in_defaults="true">
 
-      <nml_option name="config_noahmp_iopt_dveg" type="integer" default_value="4"
+      <nml_option name="config_noahmp_iopt_dveg" type="integer" default_value="6"
            units="-"
            description="option for dynamic vegetation"
            possible_values="1 to 6"/>
@@ -121,12 +124,12 @@
            description="option for subrface resistance"
            possible_values="0 or 1"/>
 
-      <nml_option name="config_noahmp_iopt_soil" type="integer" default_value="4"
+      <nml_option name="config_noahmp_iopt_soil" type="integer" default_value="1"
            units="-"
            description="option for soil data"
            possible_values="0 or 1"/>
 
-      <nml_option name="config_noahmp_iopt_pedo" type="integer" default_value="4"
+      <nml_option name="config_noahmp_iopt_pedo" type="integer" default_value="1"
            units="-"
            description="option for pedo transfer"
            possible_values="0 or 1"/>
@@ -146,12 +149,12 @@
            description="option for irrigaton method"
            possible_values="0 or 1"/>
 
-      <nml_option name="config_noahmp_iopt_infdv" type="integer" default_value="4"
+      <nml_option name="config_noahmp_iopt_infdv" type="integer" default_value="1"
            units=" "
            description="option for dvic infiltration"
            possible_values="0 or 1"/>
 
-      <nml_option name="config_noahmp_iopt_tdrn" type="integer" default_value="4"
+      <nml_option name="config_noahmp_iopt_tdrn" type="integer" default_value="0"
            units="-"
            description="option for drainage option"
            possible_values="or 1"/>
@@ -197,8 +200,20 @@
       <var name="irrsplh" type="real" dimensions="nCells Time" units="Joules m ^{-2}"
                 description="sprinkler evaporation loss accumuated"/>
 
-      <var name="rs" type="real" dimensions="nCells Time" units="s m^{-1}"
-                description="total stomatal resistance" missing_value="-1.e36"/>
+      <var name="irfract" type="real" dimensions="nCells Time" units="-"
+                description="irrigation fraction"/>
+
+      <var name="sifract" type="real" dimensions="nCells Time" units="-"
+                description="sprinkler irrigation fraction"/>
+
+      <var name="mifract" type="real" dimensions="nCells Time" units="-"
+                description="micro irrigation fraction"/>
+
+      <var name="fifract" type="real" dimensions="nCells Time" units="-"
+                description="flood irrigation fraction"/>
+
+      <var name="loctim" type="real" dimensions="nCells Time" units="-"
+                description="local time"/>
 
       <var name="tvxy" type="real" dimensions="nCells Time" units="K"
                 description="vegetation leaf temperature" missing_value="-1.e36"/>
@@ -296,7 +311,7 @@
       <var name="tsnoxy" type="real" dimensions="nSnowLevels nCells Time" units="K"
                 description="snow temperature"/>
 
-      <var name="zsnsoxy" type="real" dimensions="nSnowLevels nCells Time" units="m"
+      <var name="zsnsoxy" type="real" dimensions="nzSnowLevels nCells Time" units="m"
                 description="layer-bottom depth from snow surf"/>
 
       <var name="snicexy" type="real" dimensions="nSnowLevels nCells Time" units="mm"
@@ -313,9 +328,6 @@
 
       <var name="croptype" type="real" dimensions="FIVE nCells Time" units="-"
                 description="dominant crop type"/>
-
-      <var name="qtdrain" type="real" dimensions="nCells Time" units="-"
-                description="tile drainage"/>
 
       <var name="td_fraction" type="real" dimensions="nCells Time" units="-"
                 description="tile drainage map"/>
@@ -538,6 +550,9 @@
       <var name="qsnsubxy" type="real" dimensions="nCells Time" units="mm s^{-1}"
                 description="snow pack sublimation rate"/>
 
+      <var name="qmeltxy" type="real" dimensions="nCells Time" units="mm s^{-1}"
+	        description="snowpack melting rate due to phase change"/>
+
       <var name="qsnfroxy" type="real" dimensions="nCells Time" units="mm s^{-1}"
                 description="snow pack frost rate"/>
 
@@ -568,6 +583,12 @@
       <var name="fpicexy" type="real" dimensions="nCells Time" units="-"
                 description="fraction of ice in precipitation"/>
 
+      <var name="qtdrain" type="real" dimensions="nCells Time" units="-"
+                description="tile drainage"/>
+
+      <var name="rs" type="real" dimensions="nCells Time" units="s m^{-1}"
+                description="total stomatal resistance" missing_value="-1.e36"/>
+
       <var name="rainlsm" type="real" dimensions="nCells Time" units="mm"
                 description="accumulated liquid precipitation into LSM"/>
 
@@ -589,6 +610,15 @@
       <var name="forcwlsm" type="real" dimensions="nCells Time" units="m s^{-1}"
                 description="lowest model wind speed into LSM"/>
 
+      <var name="acc_ssoilxy" type="real" dimensions="nCells Time" units="W m^{-2} s^{-1}"
+                description="accumulated ground heat flux"/>
+
+      <var name="acc_qinsurxy" type="real" dimensions="nCells Time" units="m s^{-1}"
+                description="accumulated water flux into soil"/>
+
+      <var name="acc_qsevaxy" type="real" dimensions="nCells Time" units="m s^{-1}"
+                description="accumulated soil surface evaporation"/>
+
       <var name="eflxbxy" type="real" dimensions="nCells Time" units="W m^{-2}"
                 description="bottom soil heat flux"/>
 
@@ -600,6 +630,24 @@
 
       <var name="canhsxy" type="real" dimensions="nCells Time" units="W m^{-2}"
                 description="canopy heat storage change due to canopy temperature change"/>
+
+      <var name="acc_dwaterxy" type="real" dimensions="nCells Time" units="mm"
+	        description="accumulated snow,soil,canopy water change per soil timestep"/>
+
+      <var name="acc_prcpxy" type="real" dimensions="nCells Time" units="mm"
+	        description="accumulated precipitation per soil timestep"/>
+
+      <var name="acc_ecanxy" type="real" dimensions="nCells Time" units="mm"
+                description="accumulated net canopy evaporation per soil timestep"/>
+
+      <var name="acc_etranxy" type="real"  dimensions="nCells Time" units="mm"
+	        description="accumulated transpiration per soil timestep"/>
+
+      <var name="acc_edirxy" type="real" dimensions="nCells Time" units="mm"
+	        description="accumulated net ground (soil/snow) evaporation per soil timestep"/>
+
+      <var name="acc_etranixy" type="real" dimensions="nSoilLevels nCells Time" units="m s^{-1}"
+                description="accumulated  transpiration rate within soil timestep"/>
 
 </var_struct>
 
