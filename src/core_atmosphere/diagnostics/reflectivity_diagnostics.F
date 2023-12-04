@@ -226,7 +226,7 @@
           endif
        enddo
 
-    case ("mp_thompson")
+    case ("mp_thompson","mp_thompson_aerosols")
        call mpas_pool_get_dimension(state,'index_qc',index_qc)
        call mpas_pool_get_dimension(state,'index_nr',index_nr)
        qc => scalars(index_qc,:,:)

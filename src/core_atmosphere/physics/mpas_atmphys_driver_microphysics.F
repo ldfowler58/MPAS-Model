@@ -569,7 +569,7 @@
 !variables specific to different cloud microphysics schemes:
  microp_select: select case(microp_scheme)
 
-    case ("mp_thompson","mp_wsm6")
+    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
        do j = jts, jte
        do i = its, ite
           snowncv_p(i,j)    = 0._RKIND
@@ -663,7 +663,7 @@
 !variables specific to different cloud microphysics schemes:
  microp_select_init: select case(microp_scheme)
 
-    case ("mp_thompson","mp_wsm6")
+    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
        do j = jts,jte
        do i = its,ite
           !time-step precipitation:
@@ -764,7 +764,7 @@
        if(allocated(dBz1d)) deallocate(dBZ1d)
        if(allocated(zp)   ) deallocate(zp   )
 
-    case ("mp_thompson")
+    case ("mp_thompson","mp_thompson_aerosols")
        if(.not.allocated(p1d)  ) allocate(p1d(kts:kte)  )
        if(.not.allocated(t1d)  ) allocate(t1d(kts:kte)  )
        if(.not.allocated(qv1d) ) allocate(qv1d(kts:kte) )
