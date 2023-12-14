@@ -1,7 +1,5 @@
  module module_mp_wsm6
- use mpas_log
  use mpas_kind_types,only: RKIND
-
  use mp_wsm6,only: mp_wsm6_run
  use mp_wsm6_effectrad,only: mp_wsm6_effectRad_run
 
