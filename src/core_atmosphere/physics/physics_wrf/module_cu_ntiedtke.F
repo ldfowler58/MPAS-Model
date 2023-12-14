@@ -1,6 +1,6 @@
 !=================================================================================================================
  module module_cu_ntiedtke
- use mpas_kind_types,only: RKIND,StrKIND
+ use mpas_kind_types,only: kind_phys => RKIND,StrKIND
 
  use cu_ntiedtke,only: cu_ntiedtke_run,           &
                        cu_ntiedtke_init,          &
@@ -94,7 +94,7 @@
 
  integer,intent(in):: itimestep,stepcu
 
- real(kind=RKIND),intent(in):: cp,grav,rd,rv,xlf,xls,xlv
+ real(kind=kind_phys),intent(in):: cp,grav,rd,rv,xlf,xls,xlv
 
  real(kind=kind_phys),intent(in):: dt
 
