@@ -1,7 +1,8 @@
 !=================================================================================================================
  module module_bl_gwdo
  use mpas_kind_types,only: kind_phys => RKIND
- use bl_gwdo
+ use bl_gwdo,only: bl_gwdo_run
+
 
  implicit none
  private
