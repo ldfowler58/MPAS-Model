@@ -202,7 +202,7 @@
        enddo
     enddo
 
-    call cu_ntiedtke_timestep_init( &
+    call cu_ntiedtke_pre_run( &
                      its    = its       , ite     = ite     , kts     = kts     , kte       = kte       , &
                      im     = im        , kx      = kx      , kx1     = kx1     , itimestep = itimestep , &
                      stepcu = stepcu    , dt      = dt      , grav    = grav    , xland     = xland_hv  , &
@@ -214,7 +214,7 @@
                      qvf    = qvf       , qcf     = qcf     , qif     = qif     , uf        = uf        , &
                      vf     = vf        , prsi    = prsi    , ghti    = ghti    , omg       = omg       , &
                      errmsg = errmsg    , errflg  = errflg                                                &
-                                  )
+                            )
 
     call cu_ntiedtke_run( &
                      pu   = uf     , pv   = vf     , pt     = tf      , pqv    = qvf     , &
@@ -225,7 +225,7 @@
                      dt   = delt   , dx   = dx_hv  , errmsg = errmsg  , errflg = errflg    &
                         )
 
-    call cu_ntiedtke_timestep_final( &
+    call cu_ntiedtke_post_run( &
                      its      = its         , ite      = ite         , kts      = kts         , kte      = kte         , &
                      stepcu   = stepcu      , dt       = dt          , exner    = pi_hv       , qv       = qv_hv       , &
                      qc       = qc_hv       , qi       = qi_hv       , t        = t_hv        , u        = u_hv        , &
@@ -234,7 +234,7 @@
                      raincv   = raincv_hv   , pratec   = pratec_hv   , rthcuten = rthcuten_hv , rqvcuten = rqvcuten_hv , &
                      rqccuten = rqccuten_hv , rqicuten = rqicuten_hv , rucuten  = rucuten_hv  , rvcuten  = rvcuten_hv  , &
                      errmsg   = errmsg      , errflg   = errflg                                                          &
-                                   )
+                             )
 
     do i = its,ite
        raincv(i,j) = raincv_hv(i)
@@ -350,9 +350,9 @@
  end subroutine ntiedtkeinit
 
 !=================================================================================================================
- subroutine cu_ntiedtke_timestep_init(its,ite,kts,kte,im,kx,kx1,itimestep,stepcu,dt,grav,xland,dz,pres,presi, &
-                        t,rho,qv,qc,qi,u,v,w,qvften,thften,qvftenz,thftenz,slimsk,delt,prsl,ghtl,tf,qvf,qcf,  &
-                        qif,uf,vf,prsi,ghti,omg,errmsg,errflg)
+ subroutine cu_ntiedtke_pre_run(its,ite,kts,kte,im,kx,kx1,itimestep,stepcu,dt,grav,xland,dz,pres,presi,   &
+                                t,rho,qv,qc,qi,u,v,w,qvften,thften,qvftenz,thftenz,slimsk,delt,prsl,ghtl, &
+                                tf,qvf,qcf,qif,uf,vf,prsi,ghti,omg,errmsg,errflg)
 !=================================================================================================================
 
 !--- input arguments:
@@ -467,14 +467,14 @@
     enddo
  endif
 
- errmsg = 'cu_ntiedtke_timestep_init OK'
+ errmsg = 'cu_ntiedtke_pre_run OK'
  errflg = 0
 
- end subroutine cu_ntiedtke_timestep_init
+ end subroutine cu_ntiedtke_pre_run
 
 !=================================================================================================================
- subroutine cu_ntiedtke_timestep_final(its,ite,kts,kte,stepcu,dt,exner,qv,qc,qi,t,u,v,qvf,qcf,qif,tf,uf,vf,rn, &
-                              raincv,pratec,rthcuten,rqvcuten,rqccuten,rqicuten,rucuten,rvcuten,errmsg,errflg)
+ subroutine cu_ntiedtke_post_run(its,ite,kts,kte,stepcu,dt,exner,qv,qc,qi,t,u,v,qvf,qcf,qif,tf,uf,vf,rn,raincv, &
+                                 pratec,rthcuten,rqvcuten,rqccuten,rqicuten,rucuten,rvcuten,errmsg,errflg)
 !=================================================================================================================
 
 !--- input arguments:
@@ -526,7 +526,7 @@
  errmsg = 'cu_ntiedtke_timestep_final OK'
  errflg = 0
 
- end subroutine cu_ntiedtke_timestep_final
+ end subroutine cu_ntiedtke_post_run
 
 !=================================================================================================================
  end module module_cu_ntiedtke
