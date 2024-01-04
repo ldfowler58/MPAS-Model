@@ -1070,10 +1070,14 @@ module atm_time_integration
                                  config_time_integration_order, config_split_dynamics_transport)
 
 #ifdef ATM_CHEMISTRY
+            call mpas_timer_start('advance_scalars: chems')
             call advance_scalars('chems', domain, rk_step, rk_timestep, config_monotonic, config_positive_definite, &
                                  config_time_integration_order, config_split_dynamics_transport)
+            call mpas_timer_stop('advance_scalars: chems')
+            call mpas_timer_start('advance_scalars: tracers')
             call advance_scalars('tracers', domain, rk_step, rk_timestep, config_monotonic, config_positive_definite, &
                                  config_time_integration_order, config_split_dynamics_transport)
+            call mpas_timer_stop('advance_scalars: tracers')
 #endif
 
             if (config_apply_lbcs) then  ! adjust boundary tendencies for regional_MPAS scalar transport
@@ -1367,6 +1371,7 @@ module atm_time_integration
       call mpas_pool_get_dimension(mesh, 'nVertLevels', nVertLevels)
 !     call mpas_pool_get_dimension(state, 'num_scalars', num_scalars)
       call mpas_pool_get_dimension(state, 'num_'//trim(field_name), num_scalars)
+      if(trim(field_name) == 'chems') call mpas_log_write('--- num_chems = $i',intArgs=(/num_scalars/))
 
       call mpas_pool_get_dimension(block % dimensions, 'nThreads', nThreads)
 
