@@ -1,5 +1,7 @@
 !=================================================================================================================
  module mpas_chemistry_gocart_driver_dust
+ use mpas_kind_types
+ use mpas_log
 
  use mpas_chemistry_gocart_interface
  use module_gocart_dust

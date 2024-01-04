@@ -17,8 +17,11 @@ OBJS = \
 	mpas_atmphys_tracers.o \
 	mpas_atmphys_tracers_physics.o \
 	mpas_chemistry_gocart_driver_aerosols.o \
+	mpas_chemistry_gocart_driver_chem.o \
 	mpas_chemistry_gocart_driver_co.o \
+	mpas_chemistry_gocart_driver_dms.o \
 	mpas_chemistry_gocart_driver_dust.o \
+	mpas_chemistry_gocart_driver_opt.o \
 	mpas_chemistry_gocart_driver_seasalt.o \
 	mpas_chemistry_gocart_driver_sulfates.o \
 	mpas_chemistry_gocart_driver.o \
@@ -41,13 +44,31 @@ mpas_atmphys_tracers.o: \
 mpas_chemistry_gocart_driver_aerosols.o: \
 	mpas_chemistry_gocart_interface.o
 
+mpas_chemistry_gocart_driver_chem.o: \
+	mpas_chemistry_gocart_interface.o
+
+mpas_chemistry_gocart_driver_co.o: \
+	mpas_chemistry_gocart_interface.o
+
+mpas_chemistry_gocart_driver_dms.o: \
+	mpas_chemistry_gocart_interface.o
+
+mpas_chemistry_gocart_driver_dust.o: \
+	mpas_chemistry_gocart_interface.o
+
 mpas_chemistry_gocart_driver_seasalt.o: \
+	mpas_chemistry_gocart_interface.o
+
+mpas_chemistry_gocart_driver_sulfates.o: \
 	mpas_chemistry_gocart_interface.o
 
 mpas_chemistry_gocart_driver.o: \
 	mpas_chemistry_gocart_driver_aerosols.o \
+	mpas_chemistry_gocart_driver_chem.o \
 	mpas_chemistry_gocart_driver_co.o \
+	mpas_chemistry_gocart_driver_dms.o \
 	mpas_chemistry_gocart_driver_dust.o \
+	mpas_chemistry_gocart_driver_opt.o \
 	mpas_chemistry_gocart_driver_seasalt.o \
 	mpas_chemistry_gocart_driver_sulfates.o \
 	mpas_chemistry_gocart_interface.o

@@ -1,5 +1,7 @@
 !=================================================================================================================
  module mpas_chemistry_gocart_driver_sulfates
+ use mpas_kind_types
+ use mpas_log
 
  use mpas_chemistry_gocart_interface
 
@@ -42,17 +44,17 @@
  dt    = this%dt_c
  grav  = this%grav_c
 
- qso2_em => this%qso2_em
- qso4a1  => this%qso4a1
- qso4a2  => this%qso4a2
+!qso2_em => this%qso2_em
+!qso4a1  => this%qso4a1
+!qso4a2  => this%qso4a2
 
- rho     => this%rho_c
- dpres   => this%dpres_c
- zgrid   => this%zgrid_c
+!rho     => this%rho_c
+!dpres   => this%dpres_c
+!zgrid   => this%zgrid_c
 
 
 !--- adds CAMS surface emissions:
- call gocart_add_CAMS_emission(its,ite,kts,kte,dt,grav,qso2_em,rho,dpres,zgrid,qso4a1,qso4a2)
+!call gocart_add_CAMS_emission(its,ite,kts,kte,dt,grav,qso2_em,rho,dpres,zgrid,qso4a1,qso4a2)
 
 
  call mpas_log_write('--- end subroutine driver_gocart_sulfates:')

@@ -2,40 +2,202 @@
 <!-- chemical species:                                                                                              -->
 <!-- ============================================================================================================== -->
 
-<!-- state variables for the chemical species: -->
- <var_struct name="state" time_levs="2">
-
-      <var_array name="chems" type="real" dimensions="nVertLevels nCells Time">
-           <var name="qco" array_group="gas" units="kg kg{-1}"
-                description="CO -  Carbon monoxide mixing ratio"/>
-      </var_array>
-
- </var_struct>
-
-
- <var_struct name="tend" time_levs="1">
-
-      <var_array name="chems_tend" type="real" dimensions="nVertLevels nCells Time">
-           <var name="tend_qco" name_in_code="qco" array_group="gas" units="kg m^{-3} s^{-1}"
-                description="tendency of carbon monoxide mr multiplied by dry air density divied by d(zeta)/dz"/>
-      </var_array>
-
- </var_struct>
-
-
 <!-- tendencies associated with boundary layer and convective transport of chemical species: -->
  <var_struct name="tend_chems" time_levs="1">
-
       <var_array name="bl_chems" type="real" dimensions="nVertLevels nCells Time">
-           <var name="bl_qco" array_group="gas" units="kg kg^{-1} s^{-1}"
-                     description="tendency of carbon monoxide due to PBL processes"/>
+           <var name="bl_qbc1" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qbc2" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qoc1" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qoc2" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qdust1" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qdust2" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qdust3" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qdust4" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qdust5" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qseas1" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qseas2" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qseas3" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qseas4" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qsulf" array_group="bl_gocart" units="?"
+                description=" "/>
+
+           <var name="bl_qdms" array_group="bl_gocart" units="?}"
+                description=" "/>
+
+           <var name="bl_qmsa" array_group="bl_gocart" units="?}"
+                description=" "/>
+
+           <var name="bl_qco" array_group="bl_gocart"  units="?}"
+                description=" "/>
+
+           <var name="bl_qh2o2" array_group="bl_gocart"  units="?}"
+                description=" "/>
+
+           <var name="bl_qoh" array_group="bl_gocart"  units="?}"
+                description=" "/>
+
+           <var name="bl_qso2" array_group="bl_gocart" units="?}"
+                description=" "/>
+
+           <var name="bl_qno3" array_group="bl_gocart" units="?}"
+                description=" "/>
       </var_array>
 
       <var_array name="cu_chems" type="real" dimensions="nVertLevels nCells Time">
-           <var name="cu_qco" array_group="gas" units="kg kg^{-1} s^{-1}"
-                     description="tendency of carbon monoxide due to convective processes"/>
+           <var name="cu_qbc1" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qbc2" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qoc1" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qoc2" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qdust1" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qdust2" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qdust3" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qdust4" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qdust5" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qseas1" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qseas2" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qseas3" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qseas4" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qsulf" array_group="cu_gocart" units="?"
+                description=" "/>
+
+           <var name="cu_qdms" array_group="cu_gocart" units="?}"
+                description=" "/>
+
+           <var name="cu_qmsa" array_group="cu_gocart" units="?}"
+                description=" "/>
+
+           <var name="cu_qco" array_group="cu_gocart"  units="?}"
+                description=" "/>
+
+           <var name="cu_qh2o2" array_group="cu_gocart"  units="?}"
+                description=" "/>
+
+           <var name="cu_qoh" array_group="cu_gocart"  units="?}"
+                description=" "/>
+
+           <var name="cu_qso2" array_group="cu_gocart" units="?}"
+                description=" "/>
+
+           <var name="cu_qno3" array_group="cu_gocart" units="?}"
+                description=" "/>
       </var_array>
 
+      <var_array name="gc_chems" type="real" dimensions="nVertLevels nCells Time">
+           <var name="gc_qbc1" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qbc2" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qoc1" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qoc2" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qdust1" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qdust2" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qdust3" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qdust4" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qdust5" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qseas1" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qseas2" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qseas3" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qseas4" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qsulf" array_group="gc_gocart" units="?"
+                description=" "/>
+
+           <var name="gc_qdms" array_group="gc_gocart" units="?}"
+                description=" "/>
+
+           <var name="gc_qmsa" array_group="gc_gocart" units="?}"
+                description=" "/>
+
+           <var name="gc_qco" array_group="gc_gocart"  units="?}"
+                description=" "/>
+
+           <var name="gc_qh2o2" array_group="gc_gocart"  units="?}"
+                description=" "/>
+
+           <var name="gc_qoh" array_group="gc_gocart"  units="?}"
+                description=" "/>
+
+           <var name="gc_qso2" array_group="gc_gocart" units="?}"
+                description=" "/>
+
+           <var name="gc_qno3" array_group="gc_gocart" units="?}"
+                description=" "/>
+      </var_array>
  </var_struct>
 
 <!-- ============================================================================================================== -->

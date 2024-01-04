@@ -57,7 +57,7 @@
  real(kind=RKIND),dimension(:),allocatable:: qke,sqv,th,thv,dzw,zw
 
 !-----------------------------------------------------------------------------------------------------------------
-!call mpas_log_write(' ')
+ call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine update_tracers:')
 
  call mpas_pool_get_config(configs,'config_do_restart',config_do_restart)

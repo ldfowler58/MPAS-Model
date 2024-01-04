@@ -7,8 +7,11 @@
 
  use mpas_chemistry_gocart_interface
  use mpas_chemistry_gocart_driver_aerosols
+ use mpas_chemistry_gocart_driver_chem
  use mpas_chemistry_gocart_driver_co
+ use mpas_chemistry_gocart_driver_dms
  use mpas_chemistry_gocart_driver_dust
+ use mpas_chemistry_gocart_driver_opt
  use mpas_chemistry_gocart_driver_seasalt
  use mpas_chemistry_gocart_driver_sulfates
 
@@ -40,11 +43,12 @@
  type(mpas_pool_type),pointer:: mesh
  type(mpas_pool_type),pointer:: state
  type(mpas_pool_type),pointer:: diag
- type(mpas_pool_type),pointer:: diag_chems
  type(mpas_pool_type),pointer:: diag_physics
  type(mpas_pool_type),pointer:: sfc_input
- type(mpas_pool_type),pointer:: chems_input
  type(mpas_pool_type),pointer:: CAMS_emissions
+ type(mpas_pool_type),pointer:: GOCART_backgrounds
+ type(mpas_pool_type),pointer:: diag_chemistry
+ type(mpas_pool_type),pointer:: tend_chems
  type(block_type),pointer:: block
 
  type(chems_gocart):: mpas_chems
@@ -61,14 +65,15 @@
  block => domain % blocklist
  do while(associated(block))
 
-    call mpas_pool_get_subpool(block%structs,'mesh'          ,mesh          )
-    call mpas_pool_get_subpool(block%structs,'state'         ,state         )
-    call mpas_pool_get_subpool(block%structs,'diag'          ,diag          )
-    call mpas_pool_get_subpool(block%structs,'diag_chems'    ,diag_chems    )
-    call mpas_pool_get_subpool(block%structs,'diag_physics'  ,diag_physics  )
-    call mpas_pool_get_subpool(block%structs,'sfc_input'     ,sfc_input     )
-    call mpas_pool_get_subpool(block%structs,'chems_input'   ,chems_input   )
-    call mpas_pool_get_subpool(block%structs,'CAMS_emissions',CAMS_emissions)
+    call mpas_pool_get_subpool(block%structs,'mesh'              ,mesh              )
+    call mpas_pool_get_subpool(block%structs,'state'             ,state             )
+    call mpas_pool_get_subpool(block%structs,'diag'              ,diag              )
+    call mpas_pool_get_subpool(block%structs,'diag_physics'      ,diag_physics      )
+    call mpas_pool_get_subpool(block%structs,'sfc_input'         ,sfc_input         )
+    call mpas_pool_get_subpool(block%structs,'CAMS_emissions'    ,CAMS_emissions    )
+    call mpas_pool_get_subpool(block%structs,'GOCART_backgrounds',GOCART_backgrounds)
+    call mpas_pool_get_subpool(block%structs,'diag_chemistry'    ,diag_chemistry    )
+    call mpas_pool_get_subpool(block%structs,'tend_chems'        ,tend_chems        )
 
 
     !--- defines dimensions used to run the GOCART chemistry:
@@ -80,7 +85,7 @@
 
 
     !--- fills local chemistry arrays with global chemistry arrays:
-    call mpas_chems%from_gocart(CAMS_emissions,block%configs,mesh,chems_input,state,time_lev,diag, &
+    call mpas_chems%from_gocart(CAMS_emissions,GOCART_backgrounds,block%configs,mesh,state,time_lev,diag, &
                                 diag_physics,sfc_input)
 
 
@@ -97,15 +102,27 @@
 
 
     !--- gocart_chemistry for sulfates:
-    call driver_gocart_sulfates(mpas_chems)
+    !call driver_gocart_sulfates(mpas_chems)
 
 
     !--- gocart chemistry for carbon monoxide:
     call driver_gocart_co(mpas_chems)
 
 
+    !--- gocart chemistry for chemical species:
+    call driver_gocart_chem(mpas_chems)
+
+
+    !--- gocart chemistry for dms emissions:
+    call driver_gocart_dms(mpas_chems)
+
+
+    !--- gocart aerosol optical depth:
+    call driver_gocart_opt(mpas_chems)
+
+
     !--- fills global chemistry arrays with local chemistry arrays:
-    call mpas_chems%to_gocart(chems_input,state,time_lev,diag_chems,diag_physics)
+    call mpas_chems%to_gocart(state,time_lev,diag_chemistry,tend_chems)
 
 
     !--- deallocates local arrays used to run the GOCART chemistry:
