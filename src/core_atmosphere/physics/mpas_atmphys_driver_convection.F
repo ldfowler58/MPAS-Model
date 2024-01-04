@@ -806,10 +806,6 @@
                use_thom_implicit = gfconv_thom_implicit    ,                                                &
                nifa              = nifa_p                  , nwfa          = nwfa_p                       , &
                rnifacuten        = rnifacuten_p            , rnwfacuten    = rnwfacuten_p                 , &
-               nifa3d_evapt      = mpas_chems%nifa_evapt_p , nifa3d_scavt  = mpas_chems%nifa_scavt_p      , &
-               nwfa3d_evapt      = mpas_chems%nwfa_evapt_p , nwfa3d_scavt  = mpas_chems%nwfa_scavt_p      , &
-               nifa3d_evap       = mpas_chems%nifa_evap_p  , nifa3d_scav   = mpas_chems%nifa_scav_p       , &
-               nwfa3d_evap       = mpas_chems%nwfa_evap_p  , nwfa3d_scav   = mpas_chems%nwfa_scav_p       , &
                nchem             = mpas_chems%nchems       , ntracer       = mpas_tracers%ntracers        , &
                tracer3d          = mpas_tracers%tracers_p  , rtracercuten  = mpas_tracers%rtracerscuten_p , &
                chem3d            = mpas_chems%chems_p      , rchemcuten    = mpas_chems%rchemscuten_p     , &
