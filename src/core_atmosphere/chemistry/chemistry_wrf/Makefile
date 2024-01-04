@@ -6,9 +6,20 @@ dummy:
 	echo "****** compiling chemistry_wrf ******"
 
 OBJS = \
+	module_data_gocart_chem.o \
+	module_data_gocart_dust.o \
+	module_data_gocart_seas.o \
+	module_data_mosaic_asect.o \
+	module_data_radm2.o \
+	module_data_rrtmg_aeropt.o \
+	module_data_sorgam.o \
 	module_gocart_aerosols.o \
+	module_gocart_chem.o \
+	module_gocart_dms_emission.o \
 	module_gocart_dust_afwa.o \
 	module_gocart_dust.o \
+	module_gocart_mie.o \
+	module_gocart_opt.o \
 	module_gocart_seasalt.o
 
 chemistry_wrf: $(OBJS)
@@ -16,6 +27,29 @@ chemistry_wrf: $(OBJS)
 
 
 # DEPENDENCIES:
+module_data_sorgam.o: \
+	module_data_radm2.o
+
+module_gocart_dms_emission.o: \
+	module_data_gocart_chem.o
+
+module_gocart_dust.o: \
+	module_data_gocart_dust.o
+
+module_gocart_mie.o: \
+	module_data_rrtmg_aeropt.o
+
+module_gocart_opt.o: \
+	module_data_gocart_chem.o \
+	module_data_gocart_dust.o \
+	module_data_gocart_seas.o \
+	module_data_mosaic_asect.o \
+	module_data_rrtmg_aeropt.o \
+	module_data_sorgam.o \
+	module_gocart_mie.o
+
+module_gocart_seas.o: \
+	module_data_gocart_seas.o
 
 
 clean:
