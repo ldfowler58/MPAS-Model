@@ -160,7 +160,6 @@
  type(chems_physics)  :: mpas_chems
  type(tracers_physics):: mpas_tracers
 
- type(mpas_pool_type),pointer:: diag_chems
  type(mpas_pool_type),pointer:: tend_chems
  type(mpas_pool_type),pointer:: tend_tracers
 #endif
@@ -214,7 +213,6 @@
     time_lev = 1
 
 #ifdef ATM_CHEMISTRY
-    call mpas_pool_get_subpool(block%structs,'diag_chems',diag_chems)
     call mpas_pool_get_subpool(block%structs,'tend_chems',tend_chems)
     call mpas_pool_get_subpool(block%structs,'tend_tracers',tend_tracers)
 
@@ -387,7 +385,7 @@
     call deallocate_forall_physics
 
 #ifdef ATM_CHEMISTRY
-    call mpas_chems%chems_from_physics(tend_chems,diag_chems)
+    call mpas_chems%chems_from_physics(tend_chems)
     call mpas_chems%deallocate_mem
     call mpas_tracers%tracers_from_physics(tend_tracers)
     call mpas_tracers%deallocate_mem

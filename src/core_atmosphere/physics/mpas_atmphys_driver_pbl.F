@@ -780,6 +780,8 @@
 #ifdef ATM_CHEMISTRY
        call mpas_pool_get_config(configs,'config_mynn_mixchems' ,bl_mynn_mixchem)
        call mpas_log_write('--- config_mynn_mixchems   = $i',intArgs=(/bl_mynn_mixchem/))
+       call mpas_log_write('--- mpas_chems%nchems      = $i',intArgs=(/mpas_chems%nchems/))
+       call mpas_log_write(' ')
 #endif
 
        call mpas_timer_start('bl_mynn')
