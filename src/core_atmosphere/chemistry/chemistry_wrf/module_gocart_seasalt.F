@@ -1,21 +1,15 @@
 !=================================================================================================================
  module module_gocart_seasalt
 !=================================================================================================================
- use mpas_kind_types,only: RKIND,R8KIND
+ use mpas_kind_types,only: RKIND,RKIND
  use mpas_log
+
+ use module_data_gocart_seas
 
 
  implicit none
  private
  public:: gocart_seasalt_emission
-
- real(kind=RKIND),dimension(4,12):: ch_ss
-
- real(kind=R8KIND),parameter:: pi=3.141592653559
- real(kind=R8KIND),dimension(4),parameter:: ra(4)=(/1.d-1,5.d-1,1.5d0,5.0d0/)
- real(kind=R8KIND),dimension(4),parameter:: rb(4)=(/5.d-1,1.5d0,5.d0,1.d1/)
- real(kind=R8KIND),dimension(4),parameter:: den_seas(4)=(/2.2d3,2.2d3,2.2d3,2.2d3/)
- real(kind=R8KIND),dimension(4),parameter:: reff_seas(4)=(/0.30D-6,1.00D-6,3.25D-6,7.50D-6/)
 
 
  contains
@@ -53,12 +47,12 @@
  integer:: i,k,ndt1
  integer,dimension(imx):: ilwi
 
- real(kind=R8KIND):: conver,converi,dz,gravi
- real(kind=R8KIND),dimension(imx):: w10m,gwet
- real(kind=R8KIND),dimension(imx):: dxy
- real(kind=R8KIND),dimension(imx,nmx):: bems
- real(kind=R8KIND),dimension(imx,lmx):: airmas
- real(kind=R8KIND),dimension(imx,lmx,nmx):: tc
+ real(kind=RKIND):: conver,converi,dz,gravi
+ real(kind=RKIND),dimension(imx):: w10m,gwet
+ real(kind=RKIND),dimension(imx):: dxy
+ real(kind=RKIND),dimension(imx,nmx):: bems
+ real(kind=RKIND),dimension(imx,lmx):: airmas
+ real(kind=RKIND),dimension(imx,lmx,nmx):: tc
 
  real(kind=RKIND):: tem1,tem2,tem3,tem4
 
@@ -157,14 +151,14 @@
  integer, intent(in):: imx,lmx,nmx,ndt1
  integer,intent(in):: ilwi(imx)
 
- real(kind=R8KIND),intent(in),dimension(imx)    :: dxy,w10m
- real(kind=R8KIND),intent(in),dimension(imx,lmx):: airmas
+ real(kind=RKIND),intent(in),dimension(imx)    :: dxy,w10m
+ real(kind=RKIND),intent(in),dimension(imx,lmx):: airmas
 
 !inout arguments:
- real(kind=R8KIND),intent(inout),dimension(imx,lmx,nmx):: tc
+ real(kind=RKIND),intent(inout),dimension(imx,lmx,nmx):: tc
 
 !output arguments:
- real(kind=R8KIND),intent(out),dimension(imx,nmx):: bems
+ real(kind=RKIND),intent(out),dimension(imx,nmx):: bems
 
 !local variables and arrays:
  logical,parameter:: old=.TRUE.,new=.FALSE.
@@ -174,73 +168,73 @@
 
  integer:: i,n,nr,ir
 
- real(kind=R8KIND):: c0(5), b0(2)
-!real(kind=R8KIND),parameter:: c_old(5)=(/1.373, 3.41, 0.057, 1.05, 1.190/) 
-!real(kind=R8KIND),parameter:: c_new(5)=(/1.373, 3.41, 0.057, 3.45, 1.607/)
+ real(kind=RKIND):: c0(5), b0(2)
+!real(kind=RKIND),parameter:: c_old(5)=(/1.373, 3.41, 0.057, 1.05, 1.190/)
+!real(kind=RKIND),parameter:: c_new(5)=(/1.373, 3.41, 0.057, 3.45, 1.607/)
 !change suggested by mc:
- real(kind=R8KIND),parameter:: c_old(5)=(/1.373, 3.2, 0.057, 1.05, 1.190/) 
- real(kind=R8KIND),parameter:: c_new(5)=(/1.373, 3.2, 0.057, 3.45, 1.607/)
- real(kind=R8KIND),parameter:: b_old(2)=(/0.380, 0.650/)
- real(kind=R8KIND),parameter:: b_new(2)=(/0.433, 0.433/)
- real(kind=R8KIND),parameter:: dr=5.0d-2 ! um   
- real(kind=R8KIND),parameter:: theta=30.0
+ real(kind=RKIND),parameter:: c_old(5)=(/1.373, 3.2, 0.057, 1.05, 1.190/)
+ real(kind=RKIND),parameter:: c_new(5)=(/1.373, 3.2, 0.057, 3.45, 1.607/)
+ real(kind=RKIND),parameter:: b_old(2)=(/0.380, 0.650/)
+ real(kind=RKIND),parameter:: b_new(2)=(/0.433, 0.433/)
+ real(kind=RKIND),parameter:: dr=5.0d-2 ! um
+ real(kind=RKIND),parameter:: theta=30.0
 !swelling coefficient frh (d rwet / d rd)
-!real(kind=R8KIND),parameter:: frh = 1.65
- real(kind=R8KIND),parameter:: frh = 2.d0
+!real(kind=RKIND),parameter:: frh = 1.65
+ real(kind=RKIND),parameter:: frh = 2.d0
 
- real(kind=R8KIND):: rho_d,r0,r1,r,r_w,a,b,dfn,r_d,dfm,src
- real(kind=R8KIND),dimension(nmx):: tcmw,ar,tcvv
- real(kind=R8KIND),dimension(nmx):: ar_wetdep,kc
- real(kind=R8KIND),dimension(imx,lmx,nmx):: tc1
+ real(kind=RKIND):: rho_d,r0,r1,r,r_w,a,b,dfn,r_d,dfm,src
+ real(kind=RKIND),dimension(nmx):: tcmw,ar,tcvv
+ real(kind=RKIND),dimension(nmx):: ar_wetdep,kc
+ real(kind=RKIND),dimension(imx,lmx,nmx):: tc1
 
- real(kind=R8KIND),dimension(imx,lmx,nmx),target:: tcms ! tracer mass (kg; kgS for sulfur case)
- real(kind=R8KIND),dimension(imx,lmx,nmx),target:: tcgm ! g/m3
+ real(kind=RKIND),dimension(imx,lmx,nmx),target:: tcms ! tracer mass (kg; kgS for sulfur case)
+ real(kind=RKIND),dimension(imx,lmx,nmx),target:: tcgm ! g/m3
 
 !-----------------------------------------------------------------------------------------------------------------  
 ! sea salt specific
 !-----------------------------------------------------------------------------------------------------------------  
-!real(kind=R8KIND),dimension(nmx):: ra,rb
-!real(kind=R8KIND),dimension(nmx,12):: ch_ss
+!real(kind=RKIND),dimension(nmx):: ra,rb
+!real(kind=RKIND),dimension(nmx,12):: ch_ss
 
 !-----------------------------------------------------------------------------------------------------------------  
 ! emissions (input)
 !-----------------------------------------------------------------------------------------------------------------  
- real(kind=R8KIND),dimension(imx,nmx):: e_bb
- real(kind=R8KIND),dimension(imx,2,nmx):: e_an
- real(kind=R8KIND),dimension(imx,lmx,nmx):: e_ac
+ real(kind=RKIND),dimension(imx,nmx):: e_bb
+ real(kind=RKIND),dimension(imx,2,nmx):: e_an
+ real(kind=RKIND),dimension(imx,lmx,nmx):: e_ac
 
 !-----------------------------------------------------------------------------------------------------------------  
 ! diagnostics (budget)
 !-----------------------------------------------------------------------------------------------------------------  
 !tendencies per time step and process
-!real(kind=R8KIND),dimension(imx,jmx,nmx),target:: bems,bdry,bstl
-!real(kind=R8KIND),dimension(imx,jmx,nmx),target:: bwet,bcnv
+!real(kind=RKIND),dimension(imx,jmx,nmx),target:: bems,bdry,bstl
+!real(kind=RKIND),dimension(imx,jmx,nmx),target:: bwet,bcnv
 
 !integrated tendencies per process
-!real(kind=R8KIND),dimension(imx,jmx,nmx),target:: tems,tstl
-!real(kind=R8KIND),dimension(imx,jmx,nmx),target:: tdry,twet,tcnv
+!real(kind=RKIND),dimension(imx,jmx,nmx),target:: tems,tstl
+!real(kind=RKIND),dimension(imx,jmx,nmx),target:: tdry,twet,tcnv
 
 !global mass balance per time step 
- real(kind=R8KIND),dimension(nmx):: tmas0,tmas1
- real(kind=R8KIND),dimension(nmx):: dtems,dttrp,dtdif,dtcnv
- real(kind=R8KIND),dimension(nmx):: dtwet,dtdry,dtstl
- real(kind=R8KIND),dimension(nmx):: dtems2,dttrp2,dtdif2,dtcnv2
- real(kind=R8KIND),dimension(nmx):: dtwet2,dtdry2,dtstl2
+ real(kind=RKIND),dimension(nmx):: tmas0,tmas1
+ real(kind=RKIND),dimension(nmx):: dtems,dttrp,dtdif,dtcnv
+ real(kind=RKIND),dimension(nmx):: dtwet,dtdry,dtstl
+ real(kind=RKIND),dimension(nmx):: dtems2,dttrp2,dtdif2,dtcnv2
+ real(kind=RKIND),dimension(nmx):: dtwet2,dtdry2,dtstl2
 
 !detailed integrated budgets for individual emissions
- real(kind=R8KIND),dimension(imx),target:: ems_tp
- real(kind=R8KIND),dimension(imx,nmx),target:: ems_an,ems_bb
+ real(kind=RKIND),dimension(imx),target:: ems_tp
+ real(kind=RKIND),dimension(imx,nmx),target:: ems_an,ems_bb
 
- real(kind=R8KIND),dimension(imx,nmx),target:: ems_co
- real(kind=R8KIND),dimension(imx,lmx,nmx),target:: ems_ac
+ real(kind=RKIND),dimension(imx,nmx),target:: ems_co
+ real(kind=RKIND),dimension(imx,lmx,nmx),target:: ems_ac
 
 !-----------------------------------------------------------------------------------------------------------------  
 
  do n = 1,nmx
     bems(:,n) = 0.0
     rho_d = den_seas(n)
-    r0 = ra(n)*frh
-    r1 = rb(n)*frh
+    r0 = ra_seas(n)*frh
+    r1 = rb_seas(n)*frh
     r = r0
     nr = int((r1-r0)/dr+.001)
 
