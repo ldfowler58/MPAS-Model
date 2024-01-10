@@ -8,6 +8,12 @@
 
       <dim name="nCAMLevels" definition="namelist:config_chems_levels"
            description="The number of atmospheric levels in the first-guess CAM-Chem data set"/>
+
+      <dim name="nlwBands" definition="16"
+	   description="The number of longwave spectral intervals in the RRTMG longwave radiation code"/>
+
+      <dim name="nswBands" definition="4"
+	   description="The number of shortwave spectral intervals in the RRTMG shortwave radiation code"/>
  </dims>
 
 
@@ -36,13 +42,13 @@
 
  <var_struct name="mesh" time_levs="1">
 
-      <var name="erod_gocart" type="real" dimensions="nDustErosionDim nCells" units="-"
+      <var name="erod" type="real" dimensions="nDustErosionDim nCells" units="-"
                 description="fraction of erodible surface for use in GOCART chemistry"/>
 
-      <var name="clayfrac_gocart" type="real" dimensions="nCells" units="-"
+      <var name="clayfrac" type="real" dimensions="nCells" units="-"
                 description="fraction of clay soil for use in GOCART chemistry"/>
 
-      <var name="sandfrac_gocart" type="real" dimensions="nCells" units="-"
+      <var name="sandfrac" type="real" dimensions="nCells" units="-"
                 description="fraction of sand soil fraction for use in GOCART chemistry"/>
 
  </var_struct>
@@ -68,117 +74,209 @@
  </var_struct>
 
 
- <var_struct name="chems_input" time_levs="1">
+ <var_struct name="GOCART_backgrounds" time_levs="1">
 
-      <var_array name="chems_gocart" type="real" dimensions="nVertLevels nCells Time">
+      <var name="background_dms" type="real" dimensions="nCells Time" units="nM/L"
+           description="Surface concentration of dimethyl sulfide (DMS) over oceans"/>
+
+      <var name="background_oh" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
+           description="Background of hydroxide (OH)"/>
+
+      <var name="background_h2o2" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
+           description="Background of hydrogen peroxide (H2O2)"/>
+
+      <var name="background_no3" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
+           description="Background of nitrate (NO3)"/>
+
+ </var_struct>
+
+
+ <var_struct name="state" time_levs="2">
+
+      <var_array name="chems" type="real" dimensions="nVertLevels nCells Time">
            <var name="qbc1" array_group="gocart" units="kg kg^{-1}"
-                description="BC1 - Black carbon hydrophobic mixing ratio"/>
+                description="BC1 - black carbon hydrophobic mass mixing ratio"/>
 
            <var name="qbc2" array_group="gocart" units="kg kg^{-1}"
-                description="BC2 - Black carbon hydrophilic mixing ratio"/>
+                description="BC2 - black carbon hydrophilic mass mixing ratio"/>
 
            <var name="qoc1" array_group="gocart" units="kg kg^{-1}"
-                description="OC1 - Organic carbon hydrophobic mixing ratio"/>
+                description="OC1 - organic carbon hydrophobic mass mixing ratio"/>
 
            <var name="qoc2" array_group="gocart" units="kg kg^{-1}"
-                description="OC2 - Organic carbon hydrophilic mixing ratio"/>
-
-           <var name="qseas1" array_group="gocart" units="kg kg^{-1}"
-                description="SEAS1 - Sea-salt size bin 1 mixing ratio (0.3um eff. radius)"/>
-
-           <var name="qseas2" array_group="gocart" units="kg kg^{-1}"
-                description="SEAS2 - Sea-salt size bin 2 mixing ratio (1.0um eff. radius)"/>
-
-           <var name="qseas3" array_group="gocart" units="kg kg^{-1}"
-                description="SEAS3 - Sea-salt size bin 3 mixing ratio (3.2um eff. radius)"/>
-
-           <var name="qseas4" array_group="gocart" units="kg kg^{-1}"
-                description="SEAS4 - Sea-salt size bin 4 mixing ratio (7.5um eff. radius)"/>
+                description="OC2 - organic carbon hydrophilic mass mixing ratio"/>
 
            <var name="qdust1" array_group="gocart" units="kg kg^{-1}"
-                description="DUST1 - Dust size bin 1 mixing ratio (0.5um eff. radius)"/>
+                description="DUST1 - dust size bin 1 mass mixing ratio (0.5um eff. radius)"/>
 
            <var name="qdust2" array_group="gocart" units="kg kg^{-1}"
-                description="DUST2 - Dust size bin 2 mixing ratio (1.4um eff. radius)"/>
+                description="DUST2 - dust size bin 2 mass mixing ratio (1.4um eff. radius)"/>
 
            <var name="qdust3" array_group="gocart" units="kg kg^{-1}"
-                description="DUST3 - Dust size bin 3 mixing ratio (2.4um eff. radius)"/>
+                description="DUST3 - dust size bin 3 mass mixing ratio (2.4um eff. radius)"/>
 
            <var name="qdust4" array_group="gocart" units="kg kg^{-1}"
-                description="DUST4 - Dust size bin 4 mixing ratio (4.5um eff. radius)"/>
+                description="DUST4 - dust size bin 4 mass mixing ratio (4.5um eff. radius)"/>
 
            <var name="qdust5" array_group="gocart" units="kg kg^{-1}"
-                description="DUST5 - Dust size bin 5 mixing ratio (8.0um eff. radius)"/>
+                description="DUST5 - dust size bin 5 mass mixing ratio (8.0um eff. radius)"/>
 
-           <var name="qnh3" array_group="gocart" units="mole mole{-1}"
-                description="NH3 - Ammonia mixig ratio - sector All"/>
+           <var name="qseas1" array_group="gocart" units="kg kg^{-1}"
+                description="SEAS1 - sea-salt size bin 1 mass mixing ratio (0.3um eff. radius)"/>
 
-           <var name="qso2" array_group="gocart" units="mole mole{-1}"
-                description="SO2 - Sulfur dioxide mixing ratio - sector All"/>
+           <var name="qseas2" array_group="gocart" units="kg kg^{-1}"
+                description="SEAS2 - sea-salt size bin 2 mass mixing ratio (1.0um eff. radius)"/>
 
-           <var name="qso4a1" array_group="gocart" units="kg kg^{-1}"
-                description="SO4 - Sulfate mixing ratio (accumulation mode)"/>
+           <var name="qseas3" array_group="gocart" units="kg kg^{-1}"
+                description="SEAS3 - sea-salt size bin 3 mass mixing ratio (3.2um eff. radius)"/>
 
-           <var name="qso4a2" array_group="gocart" units="kg kg^{-1}"
-                description="SO4 - Sulfate mixing ratio (aitken mode)"/>
+           <var name="qseas4" array_group="gocart" units="kg kg^{-1}"
+                description="SEAS4 - sea-salt size bin 4 mass mixing ratio (7.5um eff. radius)"/>
 
-           <var name="qso4a3" array_group="gocart" units="kg kg^{-1}"
-                description="SO4 - Sulfate mixing ratio (coarse mode)"/>
+           <var name="qsulf" array_group="gocart" units="kg kg^{-1}"
+                description="SULF - sulfate mass mixing ratio"/>
 
-           <var name="qwfa" array_group="gocart" units="kg kg^{-1}"
-                description="water-friendly Thompson aerosol mixing ratio"/>
+           <var name="qdms" array_group="gocart" units="mole mole^{-1}"
+                description="DMS - dimethyl sulfide mass mixing ratio"/>
 
-           <var name="qifa" array_group="gocart" units="kg kg^{-1}"
-                description="water-friendly Thompson aerosol mixing ratio"/>
+           <var name="qmsa" array_group="gocart" units="mole mole^{-1}"
+                description="MSA - methanesulfonic acid mass mixing ratio"/>
 
-           <var name="tend_qwfa" array_group="gocart" units="kg kg^{-1} s^{-1}"
-                description="tendency of water-friendly Thompson aerosol mixing ratio"/>
+           <var name="qco" array_group="gocart"  units="mole mole^{-1}"
+                description="CO -  carbon monoxide mass mixing ratio"/>
 
-           <var name="tend_qifa" array_group="gocart" units="kg kg^{-1} s^{-1}"
-                description="tendency of water-friendly Thompson aerosol mixing ratio"/>
+           <var name="qh2o2" array_group="gocart"  units="mole mole^{-1}"
+                description="H2O2 - hydrogen peroxide mass mixing ratio"/>
+
+           <var name="qoh" array_group="gocart"  units="mole mole^{-1}"
+                description="OH -  hydroxide mass mixing ratio"/>
+
+           <var name="qso2" array_group="gocart" units="mole mole^{-1}"
+                description="SO2 - sulfur dioxide mass mixing ratio"/>
+
+           <var name="qno3" array_group="gocart" units="mole mole^{-1}"
+                description="NO3 - nitrate mass mixing ratio"/>
       </var_array>
 
  </var_struct>
 
 
-<!-- aerosols diagnostics due to wet scavenging of deep convection: -->
- <var_struct name="diag_chems" time_levs="1">
+ <var_struct name="tend" time_levs="1">
 
-      <var name="nwfa2d_so4" type="real" dimensions="nCells Time" units="# kg^{-1} s^{-1}"
-           description="surface emission of water-friendly Thompson aerosol due to SO4"/>
+      <var_array name="chems_tend" type="real" dimensions="nVertLevels nCells Time">
+           <var name="tend_qbc1" name_in_code="qbc1" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="BC1 - black carbon hydrophobic mass mixing ratio"/>
 
-      <var name="nwfa2d_oc" type="real" dimensions="nCells Time" units="# kg^{-1} s^{-1}"
-           description="surface emission of water-friendly Thompson aerosol due to OC"/>
+           <var name="tend_qbc2" name_in_code="qbc2" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="BC2 - black carbon hydrophilic mass mixing ratio"/>
 
-      <var name="nwfa2d_seas" type="real" dimensions="nCells Time" units="# kg^{-1} s^{-1}"
-           description="surface emission of water-friendly Thompson aerosol due to SEAS"/>
+           <var name="tend_qoc1" name_in_code="qoc1" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="OC1 - organic carbon hydrophobic mass mixing ratio"/>
 
-      <var name="nifa2d_dust" type="real" dimensions="nCells Time" units="# kg^{-1} s^{-1}"
-           description="surface emission of ice-friendly Thompson aerosol due to DUST"/>
+           <var name="tend_qoc2" name_in_code="qoc2" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="OC2 - organic carbon hydrophilic mass mixing ratio"/>
 
-      <var name="nifa_scavt" type="real" dimensions="nCells Time" units="# kg^{-1}"
-           description=" "/>
+           <var name="tend_qdust1" name_in_code="qdust1" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="DUST1 - dust size bin 1 mass mixing ratio (0.5um eff. radius)"/>
 
-      <var name="nifa_evapt" type="real" dimensions="nCells Time" units="# kg^{-1}"
-           description=" "/>
+           <var name="tend_qdust2" name_in_code="qdust2" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="DUST2 - dust size bin 2 mass mixing ratio (1.4um eff. radius)"/>
 
-      <var name="nwfa_scavt" type="real" dimensions="nCells Time" units="# kg^{-1}"
-           description=" "/>
+           <var name="tend_qdust3" name_in_code="qdust3" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="DUST3 - dust size bin 3 mass mixing ratio (2.4um eff. radius)"/>
 
-      <var name="nwfa_evapt" type="real" dimensions="nCells Time" units="# kg^{-1}"
-           description=" "/>
+           <var name="tend_qdust4" name_in_code="qdust4" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="DUST4 - dust size bin 4 mass mixing ratio (4.5um eff. radius)"/>
 
-      <var name="nifa_scav" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
-           description="ice-friendly aerosols due to wet scavening in updrafts"/>
+           <var name="tend_qdust5" name_in_code="qdust5" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="DUST5 - dust size bin 5 mass mixing ratio (8.0um eff. radius)"/>
 
-      <var name="nifa_evap" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
-           description="ice-friendly aerosols due to evaporation in downdrafts"/>
+           <var name="tend_qseas1" name_in_code="qseas1" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="SEAS1 - sea-salt size bin 1 mass mixing ratio (0.3um eff. radius)"/>
 
-      <var name="nwfa_scav" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
-           description="water-friendly aerosols due to wet scavening in updrafts"/>
+           <var name="tend_qseas2" name_in_code="qseas2" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="SEAS2 - sea-salt size bin 2 mass mixing ratio (1.0um eff. radius)"/>
 
-      <var name="nwfa_evap" type="real" dimensions="nVertLevels nCells Time" units="# kg^{-1}"
-           description="water-friendly aerosols due to evaporation in downdrafts"/>
+           <var name="tend_qseas3" name_in_code="qseas3" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="SEAS3 - sea-salt size bin 3 mass mixing ratio (3.2um eff. radius)"/>
+
+           <var name="tend_qseas4" name_in_code="qseas4" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="SEAS4 - sea-salt size bin 4 mass mixing ratio (7.5um eff. radius)"/>
+
+           <var name="tend_qsulf" name_in_code="qsulf" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="SULF - sulfate mass mixing ratio"/>
+
+           <var name="tend_qdms" name_in_code="qdms" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="DMS - dimethyl sulfide mass mixing ratio"/>
+
+           <var name="tend_qmsa" name_in_code="qmsa" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="MSA - methanesulfonic acid mass mixing ratio"/>
+
+           <var name="tend_qco" name_in_code="qco" array_group="gocart"  units="kg m^{-3} s^{-1}"
+                description="CO -  carbon monoxide mass mixing ratio"/>
+
+           <var name="tend_qh2o2" name_in_code="qh2o2" array_group="gocart"  units="kg m^{-3} s^{-1}"
+                description="H2O2 - hydrogen peroxide mass mixing ratio"/>
+
+           <var name="tend_qoh" name_in_code="qoh" array_group="gocart"  units="kg m^{-3} s^{-1}"
+                description="OH -  hydroxide mass mixing ratio"/>
+
+           <var name="tend_qso2" name_in_code="qso2" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="SO2 - sulfur dioxide mass mixing ratio"/>
+
+           <var name="tend_qno3" name_in_code="qno3" array_group="gocart" units="kg m^{-3} s^{-1}"
+                description="NO3 - nitrate mass mixing ratio"/>
+      </var_array>
+
+ </var_struct>
+
+
+ <var_struct name="diag_chemistry" time_levs="1">
+
+     <var name="pm25" type="real" dimensions="nVertLevels nCells Time" units="?"
+          description="?"/>
+
+     <var name="pm10" type="real" dimensions="nVertLevels nCells Time" units="?"
+          description="?"/>
+
+     <var name="tauaerlw" type="real" dimensions="nlwBands nVertLevels nCells Time" units="?"
+	  description="aerosol optical depth at long wavelengths in the RRTMG lw radiation code"/>
+
+     <var name="extaerlw" type="real" dimensions="nlwBands nVertLevels nCells Time" units="?"
+	     description="aerosol extinction coefficient at long wavelengths in the RRTMG lw radiation code"/>
+
+     <var name="tauaersw" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	     description="aerosol optical depth at short wavelengths in the RRTMG sw radiation code"/>
+
+     <var name="extaersw" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol extinction coefficient at short wavelengths in the RRTMG sw radiation code"/>
+
+     <var name="gaersw" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol asymmetry factor at short wavelengths in the RRTMG sw radiation code"/>
+
+     <var name="waersw" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol single scattering albedo at short wavelengths in the RRTMG sw radiation code"/>
+
+     <var name="bscoefsw" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol ? in the RRTMG sw radiation code"/>
+
+     <var name="sw12aer" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol ? in the RRTMG sw radiation code"/>
+
+     <var name="sw13aer" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol ? in the RRTMG sw radiation code"/>
+
+     <var name="sw14aer" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol ? in the RRTMG sw radiation code"/>
+
+     <var name="sw15aer" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol ? in the RRTMG sw radiation code"/>
+
+     <var name="sw16aer" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol ? in the RRTMG sw radiation code"/>
+
+     <var name="sw17aer" type="real" dimensions="nswBands nVertLevels nCells Time" units="?"
+	  description="aerosol ? in the RRTMG sw radiation code"/>
 
  </var_struct>
 

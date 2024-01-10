@@ -524,16 +524,19 @@
 			<var name="ol4"/>
 			<var name="h_oml_initial"/>
 #ifdef ATM_CHEMISTRY
-			<var name="erod_gocart"/>
-			<var name="clayfrac_gocart"/>
-			<var name="sandfrac_gocart"/>
+			<var name="erod"/>
+			<var name="clayfrac"/>
+			<var name="sandfrac"/>
 			<var name="bc1_em_anthro"/>
 			<var name="co_em_anthro"/>
 			<var name="oc1_em_anthro"/>
 			<var name="nh3_em_anthro"/>
 			<var name="so2_em_anthro"/>
+			<var name="background_dms"/>
+			<var name="background_h2o2"/>
+			<var name="background_oh"/>
+			<var name="background_no3"/>
 			<var_array name="chems"/>
-			<var_array name="chems_gocart"/>
 			<var_array name="tracers"/>
 #endif
 		</stream>
@@ -990,33 +993,25 @@
 			<var name="hu_oml"/>
 			<var name="hv_oml"/>
 #ifdef ATM_CHEMISTRY
-			<var name="erod_gocart"/>
-			<var name="clayfrac_gocart"/>
-			<var name="sandfrac_gocart"/>
+			<var name="erod"/>
+			<var name="clayfrac"/>
+			<var name="sandfrac"/>
 			<var name="bc1_em_anthro"/>
 			<var name="co_em_anthro"/>
 			<var name="oc1_em_anthro"/>
 			<var name="nh3_em_anthro"/>
 			<var name="so2_em_anthro"/>
-			<var name="nwfa2d_oc"/>
-			<var name="nwfa2d_so4"/>
-			<var name="nwfa2d_seas"/>
-			<var name="nifa2d_dust"/>
-			<var_array name="chems_gocart"/>
+			<var name="background_dms"/>
+			<var name="background_h2o2"/>
+			<var name="background_oh"/>
+			<var name="background_no3"/>
 			<var_array name="chems"/>
 			<var_array name="bl_chems"/>
 			<var_array name="cu_chems"/>
+			<var_array name="gc_chems"/>
 			<var_array name="tracers"/>
 			<var_array name="bl_tracers"/>
 			<var_array name="cu_tracers"/>
-			<var name="nifa_evap"/>
-			<var name="nifa_scav"/>
-			<var name="nwfa_evap"/>
-			<var name="nwfa_scav"/>
-			<var name="nifa_evapt"/>
-			<var name="nifa_scavt"/>
-			<var name="nwfa_evapt"/>
-			<var name="nwfa_scavt"/>
 #endif
 		</stream>
 
