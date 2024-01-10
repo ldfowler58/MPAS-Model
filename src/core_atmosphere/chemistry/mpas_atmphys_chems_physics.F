@@ -21,16 +21,6 @@
     real(kind=RKIND),dimension(:,:,:,:),pointer:: rchemsblten_p => null()
     real(kind=RKIND),dimension(:,:,:,:),pointer:: rchemscuten_p => null()
 
-    real(kind=RKIND),dimension(:,:),pointer  :: nifa_evapt_p => null()
-    real(kind=RKIND),dimension(:,:),pointer  :: nifa_scavt_p => null()
-    real(kind=RKIND),dimension(:,:),pointer  :: nwfa_evapt_p => null()
-    real(kind=RKIND),dimension(:,:),pointer  :: nwfa_scavt_p => null()
-
-    real(kind=RKIND),dimension(:,:,:),pointer:: nifa_evap_p  => null()
-    real(kind=RKIND),dimension(:,:,:),pointer:: nifa_scav_p  => null()
-    real(kind=RKIND),dimension(:,:,:),pointer:: nwfa_evap_p  => null()
-    real(kind=RKIND),dimension(:,:,:),pointer:: nwfa_scav_p  => null()
-
     contains
        procedure:: allocate_mem       => mpas_chems_allocate
        procedure:: deallocate_mem     => mpas_chems_deallocate
@@ -82,17 +72,6 @@
  if(.not.associated(this%rchemscuten_p)) allocate(this%rchemscuten_p(ims:ime,kms:kme,jms:jme,this%nchems)  )
  if(.not.associated(this%depvels_p)    ) allocate(this%depvels_p(ims:ime,this%kdepvel,jms:jme,this%ndepvel))
 
-!--- Thompson aerosol-aware cloud microphysics scheme:
- if(.not.associated(this%nifa_evapt_p)) allocate(this%nifa_evapt_p(ims:ime,jms:jme))
- if(.not.associated(this%nifa_scavt_p)) allocate(this%nifa_scavt_p(ims:ime,jms:jme))
- if(.not.associated(this%nwfa_evapt_p)) allocate(this%nwfa_evapt_p(ims:ime,jms:jme))
- if(.not.associated(this%nwfa_scavt_p)) allocate(this%nwfa_scavt_p(ims:ime,jms:jme))
-
- if(.not.associated(this%nifa_evap_p) ) allocate(this%nifa_evap_p(ims:ime,kms:kme,jms:jme))
- if(.not.associated(this%nifa_scav_p) ) allocate(this%nifa_scav_p(ims:ime,kms:kme,jms:jme))
- if(.not.associated(this%nwfa_evap_p) ) allocate(this%nwfa_evap_p(ims:ime,kms:kme,jms:jme))
- if(.not.associated(this%nwfa_scav_p) ) allocate(this%nwfa_scav_p(ims:ime,kms:kme,jms:jme))
-
  call mpas_log_write('--- end subroutine mpas_chems_allocate:')
 
  end subroutine mpas_chems_allocate
@@ -110,16 +89,6 @@
  if(associated(this%rchemsblten_p)) deallocate(this%rchemsblten_p)
  if(associated(this%rchemscuten_p)) deallocate(this%rchemscuten_p)
  if(associated(this%depvels_p)    ) deallocate(this%depvels_p    )
-
- if(associated(this%nifa_evapt_p)) deallocate(this%nifa_evapt_p)
- if(associated(this%nifa_scavt_p)) deallocate(this%nifa_scavt_p)
- if(associated(this%nwfa_evapt_p)) deallocate(this%nwfa_evapt_p)
- if(associated(this%nwfa_scavt_p)) deallocate(this%nwfa_scavt_p)
-
- if(associated(this%nifa_evap_p) ) deallocate(this%nifa_evap_p )
- if(associated(this%nifa_scav_p) ) deallocate(this%nifa_scav_p )
- if(associated(this%nwfa_evap_p) ) deallocate(this%nwfa_evap_p )
- if(associated(this%nwfa_scav_p) ) deallocate(this%nwfa_scav_p )
 
  call mpas_log_write('--- end subroutine mpas_chems_deallocate:')
  call mpas_log_write(' ')
@@ -148,9 +117,6 @@
  real(kind=RKIND),dimension(:,:,:,:),pointer:: chems_p
  real(kind=RKIND),dimension(:,:,:,:),pointer:: depvels_p
  real(kind=RKIND),dimension(:,:,:,:),pointer:: rchemsblten_p,rchemscuten_p
-
- real(kind=RKIND),dimension(:,:),pointer  :: nifa_evapt_p,nifa_scavt_p,nwfa_evapt_p,nwfa_scavt_p
- real(kind=RKIND),dimension(:,:,:),pointer:: nifa_evap_p,nifa_scav_p,nwfa_evap_p,nwfa_scav_p
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -189,40 +155,13 @@
     enddo
  enddo
 
-!initialize diagnostics of activation and wet scavenging of the Thompson aerosol-aware cloud microphysics:
- nifa_evapt_p => this%nifa_evapt_p
- nifa_scavt_p => this%nifa_scavt_p
- nwfa_evapt_p => this%nwfa_evapt_p
- nwfa_scavt_p => this%nwfa_scavt_p
- nifa_evap_p  => this%nifa_evap_p
- nifa_scav_p  => this%nifa_scav_p
- nwfa_evap_p  => this%nwfa_evap_p
- nwfa_scav_p  => this%nwfa_scav_p
-
- do j = jts,jte
-    do i = its,ite
-       nifa_evapt_p(i,j) = 0._RKIND
-       nifa_scavt_p(i,j) = 0._RKIND
-       nwfa_evapt_p(i,j) = 0._RKIND
-       nwfa_scavt_p(i,j) = 0._RKIND
-    enddo
-    do k = kts,kte
-       do i = its,ite
-          nifa_evap_p(i,k,j) = 0._RKIND
-          nifa_scav_p(i,k,j) = 0._RKIND
-          nwfa_evap_p(i,k,j) = 0._RKIND
-          nwfa_scav_p(i,k,j) = 0._RKIND
-       enddo
-    enddo
- enddo
-
  call mpas_log_write('--- end subroutine mpas_chems_to_physics:')
 !call mpas_log_write(' ')
 
  end subroutine mpas_chems_to_physics
 
 !=================================================================================================================
- subroutine mpas_chems_from_physics(this,tend_chems,diag_chems)
+ subroutine mpas_chems_from_physics(this,tend_chems)
 !=================================================================================================================
 
 !input arguments:
@@ -230,7 +169,6 @@
 
 !output arguments:
  type(mpas_pool_type),intent(inout):: tend_chems
- type(mpas_pool_type),intent(inout):: diag_chems
 
 !local variables and arrays:
  integer:: i,k,j,n
@@ -238,15 +176,10 @@
 !local pointers associated to this:
  integer:: nchems
  real(kind=RKIND),dimension(:,:,:,:),pointer:: rchemsblten_p,rchemscuten_p
- real(kind=RKIND),dimension(:,:),pointer    :: nifa_evapt_p,nifa_scavt_p,nwfa_evapt_p,nwfa_scavt_p
- real(kind=RKIND),dimension(:,:,:),pointer  :: nifa_evap_p,nifa_scav_p,nwfa_evap_p,nwfa_scav_p
 
  integer,pointer:: num_bl_chems
  integer,pointer:: num_cu_chems
  real(kind=RKIND),dimension(:,:,:),pointer:: bl_chems,cu_chems
-
- real(kind=RKIND),dimension(:),pointer  :: nifa_evapt,nifa_scavt,nwfa_evapt,nwfa_scavt
- real(kind=RKIND),dimension(:,:),pointer:: nifa_evap,nifa_scav,nwfa_evap,nwfa_scav
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -260,27 +193,9 @@
  call mpas_pool_get_array(tend_chems,'bl_chems',bl_chems)
  call mpas_pool_get_array(tend_chems,'cu_chems',cu_chems)
 
- call mpas_pool_get_array(diag_chems,'nifa_evapt',nifa_evapt)
- call mpas_pool_get_array(diag_chems,'nifa_scavt',nifa_scavt)
- call mpas_pool_get_array(diag_chems,'nwfa_evapt',nwfa_evapt)
- call mpas_pool_get_array(diag_chems,'nwfa_scavt',nwfa_scavt)
- call mpas_pool_get_array(diag_chems,'nifa_evap' ,nifa_evap )
- call mpas_pool_get_array(diag_chems,'nifa_scav' ,nifa_scav )
- call mpas_pool_get_array(diag_chems,'nwfa_evap' ,nwfa_evap )
- call mpas_pool_get_array(diag_chems,'nwfa_scav' ,nwfa_scav )
-
  nchems = this%nchems
  rchemsblten_p => this%rchemsblten_p
  rchemscuten_p => this%rchemscuten_p
-
- nifa_evapt_p => this%nifa_evapt_p
- nifa_scavt_p => this%nifa_scavt_p
- nwfa_evapt_p => this%nwfa_evapt_p
- nwfa_scavt_p => this%nwfa_scavt_p
- nifa_evap_p  => this%nifa_evap_p
- nifa_scav_p  => this%nifa_scav_p
- nwfa_evap_p  => this%nwfa_evap_p
- nwfa_scav_p  => this%nwfa_scav_p
 
  call mpas_log_write('--- nchems       = $i',intArgs=(/nchems/))
  do n = 1,num_bl_chems
@@ -290,23 +205,6 @@
              bl_chems(n,k,i) = rchemsblten_p(i,k,j,n)
              cu_chems(n,k,i) = rchemscuten_p(i,k,j,n)
           enddo
-       enddo
-    enddo
- enddo
-
- do j = jts,jte
-    do i = its,ite
-       nifa_evapt(i) = nifa_evapt_p(i,j)
-       nifa_scavt(i) = nifa_scavt_p(i,j)
-       nwfa_evapt(i) = nwfa_evapt_p(i,j)
-       nwfa_scavt(i) = nwfa_scavt_p(i,j)
-    enddo
-    do k = kts,kte
-       do i = its,ite
-          nifa_evap(k,i) = nifa_evap_p(i,k,j)
-          nifa_scav(k,i) = nifa_scav_p(i,k,j)
-          nwfa_evap(k,i) = nwfa_evap_p(i,k,j)
-          nwfa_scav(k,i) = nwfa_scav_p(i,k,j)
        enddo
     enddo
  enddo
