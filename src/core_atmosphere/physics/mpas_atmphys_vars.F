@@ -108,7 +108,7 @@
 !   Thompson cloud microphysics scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2017-04-19.
 ! * added the local variables cosa_p and sina_p needed in call to subroutine gwdo after updating module_bl_gwdo.F
-!   to that of WRF version 4.0.2
+!   to that of WRF version 4.0.2.
 !   Laura D. Fowler (laura@ucar.edu) / 2019-01-30.
 ! * reverted the option seaice_albedo_opt = 2 to seaic_albedo_opt = 0 since MPAS does not currently support the
 !   input of "observed" 2D seaice albedos. In conjunction with this update, we also change the initialization of
@@ -122,6 +122,8 @@
 ! * added the local variables swddir,swddni,and swddif which are output to subroutine rrtmg_swrad and now input
 !   to the updated module_sf_noahdrv.F.
 !   Laura D. Fowler (laura@ucar.edu) / 2023-04-21.
+! * added local variables to update the surface layer scheme and PBL scheme to WRFv4.5.
+!   Laura D. Fowler (laura@ucar.edu) / 2023-11-05.
 
 
 !=================================================================================================================
@@ -191,12 +193,16 @@
     qr_p,             &!rain mixing ratio                                                   [kg/kg]
     qi_p,             &!cloud ice mixing ratio                                              [kg/kg]
     qs_p,             &!snow mixing ratio                                                   [kg/kg]
-    qg_p               !graupel mixing ratio                                                [kg/kg]
+    qg_p,             &!graupel mixing ratio                                                [kg/kg]
+    qoz_p              !ozone mixing ratio                                                  [kg/kg]
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
-    nc_p,             &!
-    ni_p,             &!
-    nr_p               !
+    nc_p,             &!cloud water droplet number concentration                             [#/kg]
+    ni_p,             &!cloud ice crystal number concentration                               [#/kg]
+    nr_p,             &!rain drop number concentration                                       [#/kg]
+    nifa_p,           &!number of water-friendly Thompson aerosol number concentration       [#/kg]
+    nwfa_p,           &!number of ice-friendly Thompson aerosol number concentration         [#/kg]
+    nbca_p             !black carbon number concentration                                    [#/kg]
 
 !... arrays located at w (vertical velocity) points, or at interface between layers:
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
@@ -235,20 +241,27 @@
 
 !=================================================================================================================
 
+!--- list of logical parameters used in the WRF model activated as functions of the physics parameterizations. In
+!    MPAS, since we do not have as many physics options as in WRF, we set these parameters to true for simplicity.
  logical,parameter:: &
-    warm_rain=.false.  !warm-phase cloud microphysics only (used in WRF).
+    warm_rain = .false.  !warm-phase cloud microphysics only (used in WRF).
 
- logical,parameter:: &
-    f_qv = .true.,    &!
-    f_qc = .true.,    &!
-    f_qr = .true.,    &!
-    f_qi = .true.,    &!
-    f_qs = .true.,    &!
-    f_qg = .true.      !
+ logical:: &
+    f_qv,             &!parameter set to true to include the water vapor mixing ratio.
+    f_qc,             &!parameter set to true to include the cloud water mixing ratio.
+    f_qr,             &!parameter set to true to include the rain mixing ratio.
+    f_qi,             &!parameter set to true to include the cloud ice mixing ratio.
+    f_qs,             &!parameter set to true to include the snow minxg ratio.
+    f_qg,             &!parameter set to true to include the graupel mixing ratio.
+    f_qoz              !parameter set to true to include the ozone mixing ratio.
 
- logical,parameter:: &
-    f_qnc = .true.,   &!
-    f_qni = .true.     !
+ logical:: &
+    f_nc,             &!parameter set to true to include the cloud water number concentration.
+    f_ni,             &!parameter set to true to include the cloud ice number concentration.
+    f_nr,             &!parameter set to true to include the rain number concentration.
+    f_nifa,           &!parameter set to true to include the number concentration of hygroscopic aerosols.
+    f_nwfa,           &!parameter set to true to include the number concentration of hydrophobic aerosols.
+    f_nbca             !parameter set to true to include the number concentration of black carbon.
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     f_ice,            &!fraction of cloud ice (used in WRF only).
@@ -384,12 +397,13 @@
     exch_p             !exchange coefficient                                                                   [-]
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
-    rublten_p,        &!
-    rvblten_p,        &!
-    rthblten_p,       &!
-    rqvblten_p,       &!
-    rqcblten_p,       &!
-    rqiblten_p         !
+    rublten_p,        &!tendency of zonal wind due to PBL processes.
+    rvblten_p,        &!tendency of meridional wind due to PBL processes.
+    rthblten_p,       &!tendency of potential temperature due to PBL processes.
+    rqvblten_p,       &!tendency of water vapor mixing ratio due to PBL processes.
+    rqcblten_p,       &!tendency of cloud water mixing ratio due to PBL processes.
+    rqiblten_p,       &!tendency of cloud ice mixing ratio due to PBL processes.
+    rqozblten_p        !tendency of ozone mixing ratio due to PBL processes.
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     kzh_p,            &!
@@ -398,14 +412,14 @@
 
 !... MYNN PBL scheme (module_bl_mynn.F):
  integer,parameter:: spp_pbl       = 0          !generate array with random perturbations (0=off,1=on).
- integer,parameter:: grav_settling = 0
+ integer,parameter:: icloud_bl     = 0          !no coupling of subgrid-scale clouds with radiation.
 
- logical,parameter:: bl_mynn_tkeadvect = .false.!
- integer,parameter:: bl_mynn_tkebudget = 0      !
- integer,parameter:: bl_mynn_cloudpdf  = 0      !
+ integer,dimension(:,:),allocatable:: &
+    ktopbl_shalc_p,   &!cloud-top level for PBL shallow convection.
+    nupdraft_p         !number of updrafts per grid cell when using the edmf option (bl_mynn_edmf=1).
 
  real(kind=RKIND),dimension(:,:),allocatable:: &
-    vdfg_p             !
+    maxmfbl_p          !maximum mass flux for PBL shallow convection.
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     dqke_p,           &!
@@ -418,7 +432,26 @@
     tkepbl_p           !
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
-    rniblten_p         !
+    edmfa_p,          &!
+    edmfw_p,          &!
+    edmfqt_p,         &!
+    edmfthl_p,        &!
+    edmfent_p,        &!
+    edmfqc_p,         &!
+    subthl_p,         &!
+    subqv_p,          &!
+    detthl_p,         &!
+    detqv_p,          &!
+    qcbl_p,           &!
+    qibl_p,           &!
+    cldfrabl_p         !
+
+ real(kind=RKIND),dimension(:,:,:),allocatable:: &
+    rncblten_p,       &!tendency of cloud water number concentration due to PBL processes.
+    rniblten_p,       &!tendency of cloud ice number concentration due to PBL processes.
+    rnifablten_p,     &!tendency of water-friendly Thompson aerosols due to PBL processes.
+    rnwfablten_p,     &!tendency of ice-friendly Thompson aerosols due to PBL processes.
+    rnbcablten_p       !tendency of black carbon aerosols due to PBL processes.
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     pattern_spp_pbl    !stochastic forcing for the MYMM PBL and surface layer schemes.
@@ -529,6 +562,7 @@
     qsq_p,            &!liquid water variance                                                          [(kg/kg)^2]
     tsq_p,            &!liquid water potential temperature variance                                          [K^2]
     sh3d_p,           &!stability function for heat                                                            [-]
+    sm3d_p,           &!stability function for moisture                                                        [-]
     elpbl_p            !length scale from PBL                                                                  [m]
 
 !=================================================================================================================
