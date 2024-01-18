@@ -112,6 +112,7 @@ mpas_atmphys_driver_lsm.o: \
 	mpas_atmphys_constants.o \
 	mpas_atmphys_landuse.o \
 	mpas_atmphys_lsm_noahinit.o \
+	mpas_atmphys_lsm_noahmpinit.o \
 	mpas_atmphys_vars.o
 
 mpas_atmphys_driver_lsm_noahmp.o: \
