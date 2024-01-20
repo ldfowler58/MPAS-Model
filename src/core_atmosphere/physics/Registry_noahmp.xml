@@ -44,7 +44,7 @@
 
  <nml_record name="physics_lsm_noahmp" in_defaults="true">
 
-      <nml_option name="config_noahmp_iopt_dveg" type="integer" default_value="6"
+      <nml_option name="config_noahmp_iopt_dveg" type="integer" default_value="4"
            units="-"
            description="option for dynamic vegetation"
            possible_values="1 to 6"/>
