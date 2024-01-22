@@ -2123,6 +2123,7 @@
                      units="-"
                      description="closure option for shallow convection in Grell-Freitas convection scheme"
                      possible_values="8"/>
+
                 <nml_option name="config_mynn_tkeadvect" type="logical" default_value="false" in_defaults="false"
                      units="-"
                      description="= true:do MYNN TKE advection"
