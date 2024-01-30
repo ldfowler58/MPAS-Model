@@ -1,17 +1,19 @@
-!=================================================================================================================
-!reference: WRF-v4.1.4
-!Laura D. Fowler (laura@ucar.edu) / 2020-01-10.
-
 MODULE module_sf_bep
+
+!reference: WRF-v4.5.1
+!Laura D. Fowler (laura@ucar.edu)/2023-04-21.
 #if defined(mpas)
 use mpas_atmphys_utilities, only: physics_error_fatal
-#define FATAL_ERROR(M) call physics_error_fatal( M )
+#define FATAL_ERROR(M) call physics_error_fatal(M)
+#define WRITE_MESSAGE(M) call physics_message(M)
 #else
 use module_wrf_error
-#define FATAL_ERROR(M) call wrf_error_fatal( M )
-#endif
+#define FATAL_ERROR(M) call wrf_error_fatal(M)
+#define WRITE_MESSAGE(M) call wrf_message(M)
 !USE module_model_constants
+#endif
  USE module_sf_urban
+ USE module_bep_bem_helper, ONLY: nurbm
 
 ! SGClarke 09/11/2008
 ! Access urban_param.tbl values through calling urban_param_init in module_physics_init
@@ -20,9 +22,8 @@ use module_wrf_error
 ! -----------------------------------------------------------------------
 !  Dimension for the array used in the BEP module
 ! -----------------------------------------------------------------------
-
-      integer nurbm           ! Maximum number of urban classes    
-      parameter (nurbm=3)
+      integer nurbmax         ! Maximum number of urban classes    
+      parameter (nurbmax=11)
 
       integer ndm             ! Maximum number of street directions 
       parameter (ndm=2)
@@ -63,14 +64,14 @@ use module_wrf_error
 
    CONTAINS
  
-      subroutine BEP(FRC_URB2D,UTYPE_URB2D,itimestep,dz8w,dt,u_phy,v_phy,     &
+      subroutine BEP(FRC_URB2D,UTYPE_URB2D,itimestep,dz8w,dt,u_phy,v_phy,      &
                       th_phy,rho,p_phy,swdown,glw,                    &
                       gmt,julday,xlong,xlat,                          &
                       declin_urb,cosz_urb2d,omg_urb2d,                &
-                      num_urban_ndm,urban_map_zrd,urban_map_zwd,urban_map_gd, &
-                      urban_map_zd,urban_map_zdf,urban_map_bd,urban_map_wd,   &
-                      urban_map_gbd,urban_map_fbd,                            &
-                      num_urban_hi,                                           &
+                      num_urban_ndm,  urban_map_zrd,  urban_map_zwd, urban_map_gd, &
+                       urban_map_zd,  urban_map_zdf,   urban_map_bd, urban_map_wd, &
+                      urban_map_gbd,  urban_map_fbd,                               &
+                       num_urban_hi,                                               &
                       trb_urb4d,tw1_urb4d,tw2_urb4d,tgb_urb4d,        &
                       sfw1_urb3d,sfw2_urb3d,sfr_urb3d,sfg_urb3d,      &
                       lp_urb2d,hi_urb2d,lb_urb2d,hgt_urb2d,           &
@@ -180,19 +181,19 @@ use module_wrf_error
       real hb_u(nz_um)                        ! Bulding's heights
       real ss_urb(nz_um)  ! Probability that a building has an height equal to z
       real pb_urb(nz_um)  ! Probability that a building has an height greater or equal to z
-      integer nz_urb(nurbm)                   ! Number of layer in the urban grid
-      integer nzurban(nurbm)                  
+      integer nz_urb(nurbmax)                 ! Number of layer in the urban grid
+      integer nzurban(nurbmax)                
 
 !    Building parameters      
-      real alag_u(nurbm)                      ! Ground thermal diffusivity [m^2 s^-1]
-      real alaw_u(nurbm)                      ! Wall thermal diffusivity [m^2 s^-1]
-      real alar_u(nurbm)                      ! Roof thermal diffusivity [m^2 s^-1]
-      real csg_u(nurbm)                       ! Specific heat of the ground material [J m^3 K^-1]
-      real csw_u(nurbm)                       ! Specific heat of the wall material [J m^3 K^-1]
-      real csr_u(nurbm)                       ! Specific heat of the roof material [J m^3 K^-1]
-      real twini_u(nurbm)                     ! Initial temperature inside the building's wall [K]
-      real trini_u(nurbm)                     ! Initial temperature inside the building's roof [K]
-      real tgini_u(nurbm)                     ! Initial road temperature
+      real alag_u(nurbmax)                    ! Ground thermal diffusivity [m^2 s^-1]
+      real alaw_u(nurbmax)                    ! Wall thermal diffusivity [m^2 s^-1]
+      real alar_u(nurbmax)                    ! Roof thermal diffusivity [m^2 s^-1]
+      real csg_u(nurbmax)                     ! Specific heat of the ground material [J m^3 K^-1]
+      real csw_u(nurbmax)                     ! Specific heat of the wall material [J m^3 K^-1]
+      real csr_u(nurbmax)                     ! Specific heat of the roof material [J m^3 K^-1]
+      real twini_u(nurbmax)                   ! Initial temperature inside the building's wall [K]
+      real trini_u(nurbmax)                   ! Initial temperature inside the building's roof [K]
+      real tgini_u(nurbmax)                   ! Initial road temperature
 !
 !   Building materials
 !
@@ -206,39 +207,39 @@ use module_wrf_error
 ! for twini_u, and trini_u the initial value at the deepest level is kept constant during the simulation
 !
 !    Radiation parameters
-      real albg_u(nurbm)                      ! Albedo of the ground
-      real albw_u(nurbm)                      ! Albedo of the wall
-      real albr_u(nurbm)                      ! Albedo of the roof
-      real emg_u(nurbm)                       ! Emissivity of ground
-      real emw_u(nurbm)                       ! Emissivity of wall
-      real emr_u(nurbm)                       ! Emissivity of roof
+      real albg_u(nurbmax)                    ! Albedo of the ground
+      real albw_u(nurbmax)                    ! Albedo of the wall
+      real albr_u(nurbmax)                    ! Albedo of the roof
+      real emg_u(nurbmax)                     ! Emissivity of ground
+      real emw_u(nurbmax)                     ! Emissivity of wall
+      real emr_u(nurbmax)                     ! Emissivity of roof
 
 !   fww_u,fwg_u,fgw_u,fsw_u,fsg_u are the view factors used to compute the long wave
 !   and the short wave radation. 
-      real fww_u(nz_um,nz_um,ndm,nurbm)         !  from wall to wall
-      real fwg_u(nz_um,ndm,nurbm)               !  from wall to ground
-      real fgw_u(nz_um,ndm,nurbm)               !  from ground to wall
-      real fsw_u(nz_um,ndm,nurbm)               !  from sky to wall
-      real fws_u(nz_um,ndm,nurbm)               !  from sky to wall
-      real fsg_u(ndm,nurbm)                     !  from sky to ground
+      real fww_u(nz_um,nz_um,ndm,nurbmax)       !  from wall to wall
+      real fwg_u(nz_um,ndm,nurbmax)             !  from wall to ground
+      real fgw_u(nz_um,ndm,nurbmax)             !  from ground to wall
+      real fsw_u(nz_um,ndm,nurbmax)             !  from sky to wall
+      real fws_u(nz_um,ndm,nurbmax)             !  from sky to wall
+      real fsg_u(ndm,nurbmax)                   !  from sky to ground
 
 !    Roughness parameters
-      real z0g_u(nurbm)         ! The ground's roughness length
-      real z0r_u(nurbm)         ! The roof's roughness length
+      real z0g_u(nurbmax)       ! The ground's roughness length
+      real z0r_u(nurbmax)       ! The roof's roughness length
 
 !    Roughness parameters
       real z0(ndm,nz_um)           ! Roughness lengths "profiles"
 
 !    Street parameters
-      integer nd_u(nurbm)       ! Number of street direction for each urban class 
-      real strd_u(ndm,nurbm)    ! Street length (fix to greater value to the horizontal length of the cells)
-      real drst_u(ndm,nurbm)    ! Street direction
-      real ws_u(ndm,nurbm)      ! Street width
-      real bs_u(ndm,nurbm)      ! Building width
-      real h_b(nz_um,nurbm)     ! Bulding's heights
-      real d_b(nz_um,nurbm)     ! Probability that a building has an height h_b
-      real ss_u(nz_um,nurbm)  ! Probability that a building has an height equal to z
-      real pb_u(nz_um,nurbm)  ! Probability that a building has an height greater or equal to z
+      integer nd_u(nurbmax)     ! Number of street direction for each urban class 
+      real strd_u(ndm,nurbmax)  ! Street length (fix to greater value to the horizontal length of the cells)
+      real drst_u(ndm,nurbmax)  ! Street direction
+      real ws_u(ndm,nurbmax)    ! Street width
+      real bs_u(ndm,nurbmax)    ! Building width
+      real h_b(nz_um,nurbmax)   ! Bulding's heights
+      real d_b(nz_um,nurbmax)   ! Probability that a building has an height h_b
+      real ss_u(nz_um,nurbmax)  ! Probability that a building has an height equal to z
+      real pb_u(nz_um,nurbmax)  ! Probability that a building has an height greater or equal to z
 !
 !    Street parameters
 !
@@ -251,7 +252,7 @@ use module_wrf_error
 
 !    Grid parameters
 
-      integer nz_u(nurbm)       ! Number of layer in the urban grid
+      integer nz_u(nurbmax)     ! Number of layer in the urban grid
       
       real z_u(nz_um)         ! Height of the urban grid levels
 
@@ -3509,32 +3510,32 @@ END MODULE module_sf_bep
          INTEGER :: bep_val_nurbm
          bep_val_nurbm = nurbm
       END FUNCTION bep_nurbm
-
+      
       FUNCTION bep_ndm () RESULT (bep_val_ndm)
          USE module_sf_bep
          IMPLICIT NONE
          INTEGER :: bep_val_ndm
          bep_val_ndm = ndm
       END FUNCTION bep_ndm
-
+      
       FUNCTION bep_nz_um () RESULT (bep_val_nz_um)
          USE module_sf_bep
          IMPLICIT NONE
          INTEGER :: bep_val_nz_um
          bep_val_nz_um = nz_um
       END FUNCTION bep_nz_um
-
+      
       FUNCTION bep_ng_u () RESULT (bep_val_ng_u)
          USE module_sf_bep
          IMPLICIT NONE
          INTEGER :: bep_val_ng_u
          bep_val_ng_u = ng_u
       END FUNCTION bep_ng_u
-
+      
       FUNCTION bep_nwr_u () RESULT (bep_val_nwr_u)
          USE module_sf_bep
          IMPLICIT NONE
          INTEGER :: bep_val_nwr_u
          bep_val_nwr_u = nwr_u
       END FUNCTION bep_nwr_u
-
+      

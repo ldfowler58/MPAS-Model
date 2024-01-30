@@ -7,6 +7,7 @@ dummy:
 
 OBJS = \
 	libmassv.o                       \
+	module_bep_bem_helper.o          \
 	module_bl_gwdo.o                 \
 	module_bl_mynn.o                 \
 	module_bl_ysu.o                  \
@@ -47,6 +48,7 @@ OBJS = \
 	module_sf_noah_seaice_drv.o      \
 	module_sf_oml.o                  \
 	module_sf_sfclay.o               \
+	module_sf_sfclayrev.o            \
 	module_sf_urban.o
 
 physics_wrf: $(OBJS)
@@ -92,9 +94,11 @@ module_ra_rrtmg_sw.o: \
 	module_ra_rrtmg_vinterp.o
 
 module_sf_bep.o: \
+	module_bep_bem_helper.o \
 	module_sf_urban.o
 
 module_sf_bep_bem.o: \
+	module_bep_bem_helper.o \
 	module_sf_bem.o \
 	module_sf_urban.o
 
@@ -128,7 +132,7 @@ clean:
 .F.o:
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../physics_mmm -I../../../framework -I../../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../physics_mmm -I../../../framework -I../../../external/esmf_time_f90
 endif

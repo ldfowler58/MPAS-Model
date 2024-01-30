@@ -65,7 +65,7 @@
 ! * for the mynn parameterization, change the definition of dx_p to match that used in other physics
 !   parameterizations.
 !   Laura D. Fowler (laura@ucar.edu) / 2016-10-18.
-! * updated the call to subroutine ysu in comjunction with updating module_bl_ysu.F from WRF version 3.6.1 to
+! * updated the call to subroutine ysu in conjunction with updating module_bl_ysu.F from WRF version 3.6.1 to
 !   WRF version 3.8.1
 !   Laura D. Fowler (laura@ucar.edu) / 2016-10-27.
 ! * since we removed the local variable pbl_scheme from mpas_atmphys_vars.F, now defines pbl_scheme as a pointer
@@ -83,6 +83,10 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2019-03-12.
 ! * modified module to update the PBL mynn scheme to that from version 4.1.1.
 !   Laura D. Fowler (laura@ucar.edu) / 2019-07-01.
+! * updated the call to subroutine ysu after updating the YSU PBL scheme to that in WRF 4.4.1. added the flags
+!   errmsg and errflg in the call to subroutine ysu for compliance with the CCPP framework. also removed local
+!   variable regime_p which is no longer needed in the call to subroutine ysu.
+!   Laura D. Fowler (laura@ucar.edu) / 2023-05-15.
 
 
  contains
@@ -140,7 +144,6 @@
        if(.not.allocated(ctopo2_p)) allocate(ctopo2_p(ims:ime,jms:jme)      )
        if(.not.allocated(psih_p)  ) allocate(psih_p(ims:ime,jms:jme)        )
        if(.not.allocated(psim_p)  ) allocate(psim_p(ims:ime,jms:jme)        )
-       if(.not.allocated(regime_p)) allocate(regime_p(ims:ime,jms:jme)      )
        if(.not.allocated(u10_p)   ) allocate(u10_p(ims:ime,jms:jme)         )
        if(.not.allocated(v10_p)   ) allocate(v10_p(ims:ime,jms:jme)         )
 
@@ -241,15 +244,16 @@
 
     case("bl_ysu")
        !from surface-layer model:
-       if(allocated(br_p)      ) deallocate(br_p      )
-       if(allocated(ctopo_p)   ) deallocate(ctopo_p   )
-       if(allocated(ctopo2_p)  ) deallocate(ctopo2_p  )
-       if(allocated(psih_p)    ) deallocate(psih_p    )
-       if(allocated(psim_p)    ) deallocate(psim_p    )
-       if(allocated(regime_p)  ) deallocate(regime_p  )
-       if(allocated(u10_p)     ) deallocate(u10_p     )
-       if(allocated(v10_p)     ) deallocate(v10_p     )
-       if(allocated(exch_p)    ) deallocate(exch_p    )
+       if(allocated(br_p)    ) deallocate(br_p    )
+       if(allocated(ctopo_p) ) deallocate(ctopo_p )
+       if(allocated(ctopo2_p)) deallocate(ctopo2_p)
+       if(allocated(psih_p)  ) deallocate(psih_p  )
+       if(allocated(psim_p)  ) deallocate(psim_p  )
+       if(allocated(u10_p)   ) deallocate(u10_p   )
+       if(allocated(v10_p)   ) deallocate(v10_p   )
+       if(allocated(exch_p)  ) deallocate(exch_p  )
+       !from radiation schemes:
+       if(allocated(rthraten_p)) deallocate(rthraten_p)
 
     case("bl_mynn")
        if(allocated(nupdraft_p)    ) deallocate(nupdraft_p    )
@@ -325,7 +329,7 @@
 
 !local pointers for YSU scheme:
  logical,pointer:: config_ysu_pblmix
- real(kind=RKIND),dimension(:),pointer:: br,fh,fm,regime,u10,v10
+ real(kind=RKIND),dimension(:),pointer:: br,fh,fm,u10,v10
  real(kind=RKIND),dimension(:,:),pointer:: rthratenlw,rthratensw
 
 !local pointers for MYNN scheme:
@@ -386,7 +390,6 @@
        call mpas_pool_get_array(diag_physics,'br'    ,br    )
        call mpas_pool_get_array(diag_physics,'fm'    ,fm    )
        call mpas_pool_get_array(diag_physics,'fh'    ,fh    )
-       call mpas_pool_get_array(diag_physics,'regime',regime)
        call mpas_pool_get_array(diag_physics,'u10'   ,u10   )
        call mpas_pool_get_array(diag_physics,'v10'   ,v10   )
 
@@ -399,7 +402,6 @@
           br_p(i,j)     = br(i)
           psim_p(i,j)   = fm(i)
           psih_p(i,j)   = fh(i)
-          regime_p(i,j) = regime(i)
           u10_p(i,j)    = u10(i)
           v10_p(i,j)    = v10(i)
           !initialization for YSU PBL scheme:
@@ -719,12 +721,20 @@
  integer:: initflag
  integer:: i,k,j,ic,it
 
+!CCPP-compliant flags:
+ character(len=StrKIND):: errmsg
+ integer:: errflg
+
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write('')
 !call mpas_log_write('--- enter subroutine driver_pbl:')
 
- call mpas_pool_get_config(configs,'config_do_restart'   ,config_do_restart)
- call mpas_pool_get_config(configs,'config_pbl_scheme'   ,pbl_scheme       )
+!initialization of CCPP-compliant flags:
+ errmsg = ' '
+ errflg = 0
+
+ call mpas_pool_get_config(configs,'config_do_restart',config_do_restart)
+ call mpas_pool_get_config(configs,'config_pbl_scheme',pbl_scheme       )
 
 !copy MPAS arrays to local arrays:
  call pbl_from_MPAS(configs,mesh,sfc_input,diag_physics,tend_physics,its,ite)
@@ -738,11 +748,11 @@
        call mpas_timer_start('bl_ysu')
        call ysu ( &
                  p3d      = pres_hyd_p , p3di     = pres2_hyd_p , psfc     = psfc_p     , &
-                 th3d     = th_p       , t3d      = t_p         , dz8w     = dz_p       , &
-                 pi3d     = pi_p       , u3d      = u_p         , v3d      = v_p        , &
-                 qv3d     = qv_p       , qc3d     = qc_p        , qi3d     = qi_p       , &
-                 rublten  = rublten_p  , rvblten  = rvblten_p   , rthblten = rthblten_p , &
-                 rqvblten = rqvblten_p , rqcblten = rqcblten_p  , rqiblten = rqiblten_p , & 
+                 t3d      = t_p        , dz8w     = dz_p        , pi3d     = pi_p       , &
+                 u3d      = u_p        , v3d      = v_p         , qv3d     = qv_p       , &
+                 qc3d     = qc_p       , qi3d     = qi_p        , rublten  = rublten_p  , &
+                 rvblten  = rvblten_p  , rthblten = rthblten_p  , rqvblten = rqvblten_p , &
+                 rqcblten = rqcblten_p , rqiblten = rqiblten_p  , flag_qc  = f_qc       , &
                  flag_qi  = f_qi       , cp       = cp          , g        = gravity    , &
                  rovcp    = rcp        , rd       = R_d         , rovg     = rdg        , & 
                  ep1      = ep_1       , ep2      = ep_2        , karman   = karman     , &
@@ -754,8 +764,9 @@
                  exch_m   = kzm_p      , wstar    = wstar_p     , delta    = delta_p    , &
                  uoce     = uoce_p     , voce     = voce_p      , rthraten = rthraten_p , &
                  u10      = u10_p      , v10      = v10_p       , ctopo    = ctopo_p    , &
-                 ctopo2   = ctopo2_p   , regime   = regime_p    ,                         &
+                 ctopo2   = ctopo2_p   , flag_bep = flag_bep    , idiff    = idiff      , &
                  ysu_topdown_pblmix = ysu_pblmix ,                                        &
+                 errmsg   = errmsg     , errflg   = errflg      ,                         &
                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde  , &
                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme  , &
                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte    &

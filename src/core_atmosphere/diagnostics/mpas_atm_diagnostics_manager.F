@@ -32,13 +32,14 @@ module mpas_atm_diagnostics_manager
 
         use mpas_atm_diagnostics_utils, only : mpas_atm_diag_utils_init
         use mpas_derived_types, only : MPAS_streamManager_type, MPAS_pool_type, MPAS_clock_type, dm_info
-        use diagnostic_template, only : diagnostic_template_setup
-        use isobaric_diagnostics, only : isobaric_diagnostics_setup
-        use convective_diagnostics, only : convective_diagnostics_setup
-        use pv_diagnostics, only : pv_diagnostics_setup
+        use mpas_diagnostic_template, only : diagnostic_template_setup
+        use mpas_isobaric_diagnostics, only : isobaric_diagnostics_setup
+        use mpas_cloud_diagnostics, only : cloud_diagnostics_setup
+        use mpas_convective_diagnostics, only : convective_diagnostics_setup
+        use mpas_pv_diagnostics, only : pv_diagnostics_setup
+        use mpas_soundings, only : soundings_setup
         use module_reflectivity_diagnostics, only : reflectivity_diagnostics_setup
         use mpas_atmphys_compute_diagnostics, only : atmphys_compute_diagnostics_setup
-        use soundings, only : soundings_setup
 
         implicit none
 
@@ -56,6 +57,7 @@ module mpas_atm_diagnostics_manager
 
         call diagnostic_template_setup(configs, structs, clock)
         call isobaric_diagnostics_setup(structs, clock)
+        call cloud_diagnostics_setup(structs, clock)
         call convective_diagnostics_setup(structs, clock)
         call pv_diagnostics_setup(structs, clock)
         call reflectivity_diagnostics_setup(configs, structs, clock)
@@ -77,8 +79,8 @@ module mpas_atm_diagnostics_manager
     !-----------------------------------------------------------------------
     subroutine mpas_atm_diag_update()
 
-        use diagnostic_template, only : diagnostic_template_update
-        use convective_diagnostics, only : convective_diagnostics_update
+        use mpas_diagnostic_template, only : diagnostic_template_update
+        use mpas_convective_diagnostics, only : convective_diagnostics_update
 
         implicit none
 
@@ -101,19 +103,21 @@ module mpas_atm_diagnostics_manager
     !-----------------------------------------------------------------------
     subroutine mpas_atm_diag_compute()
 
-        use diagnostic_template, only : diagnostic_template_compute
-        use isobaric_diagnostics, only : isobaric_diagnostics_compute
-        use convective_diagnostics, only : convective_diagnostics_compute
-        use pv_diagnostics, only : pv_diagnostics_compute
+        use mpas_diagnostic_template, only : diagnostic_template_compute
+        use mpas_isobaric_diagnostics, only : isobaric_diagnostics_compute
+        use mpas_cloud_diagnostics, only : cloud_diagnostics_compute
+        use mpas_convective_diagnostics, only : convective_diagnostics_compute
+        use mpas_pv_diagnostics, only : pv_diagnostics_compute
+        use mpas_soundings, only : soundings_compute
         use module_reflectivity_diagnostics, only : reflectivity_diagnostics_compute
         use mpas_atmphys_compute_diagnostics, only: atmphys_compute_diagnostics
-        use soundings, only : soundings_compute
 
         implicit none
 
 
         call diagnostic_template_compute()
         call isobaric_diagnostics_compute()
+        call cloud_diagnostics_compute()
         call convective_diagnostics_compute()
         call pv_diagnostics_compute()
         call reflectivity_diagnostics_compute()
@@ -135,8 +139,8 @@ module mpas_atm_diagnostics_manager
     !-----------------------------------------------------------------------
     subroutine mpas_atm_diag_reset()
 
-        use diagnostic_template, only : diagnostic_template_reset
-        use convective_diagnostics, only : convective_diagnostics_reset
+        use mpas_diagnostic_template, only : diagnostic_template_reset
+        use mpas_convective_diagnostics, only : convective_diagnostics_reset
 
         implicit none
 
@@ -160,8 +164,8 @@ module mpas_atm_diagnostics_manager
     subroutine mpas_atm_diag_cleanup()
 
         use mpas_atm_diagnostics_utils, only : mpas_atm_diag_utils_finalize
-        use diagnostic_template, only : diagnostic_template_cleanup
-        use soundings, only : soundings_cleanup
+        use mpas_diagnostic_template, only : diagnostic_template_cleanup
+        use mpas_soundings, only : soundings_cleanup
 
         implicit none
 

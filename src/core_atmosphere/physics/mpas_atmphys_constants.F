@@ -30,8 +30,6 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2015-01-12.
 ! * added the variable rvord needed in the MYNN planetary boundary layer scheme from WRF 3.8.
 !   Laura D. Fowler (laura@ucar.edu) / 2016-04-14. 
-! * removed prandtl since it is not needed in module_cu_ntiedtke.F.
-!   Laura D. Fowler (laura@ucar.edu) / 2020-01-10.
 
  
 !=================================================================================================================
@@ -76,6 +74,14 @@
  real(kind=RKIND),parameter:: cice    = 2106.
  real(kind=RKIND),parameter:: epsilon = 1.e-15
  real(kind=RKIND),parameter:: psat    = 610.78
+
+ real(kind=RKIND),parameter:: re_qc_bg = 2.49e-6        ! effective radius of cloud water for background (m)
+ real(kind=RKIND),parameter:: re_qi_bg = 4.99e-6        ! effective radius of cloud ice for background (m)
+ real(kind=RKIND),parameter:: re_qs_bg = 9.99e-6        ! effective radius of snow for background (m)
+
+ real(kind=RKIND),parameter:: re_qc_max = 50.e-6        ! maximum effective radius of cloud water (m)
+ real(kind=RKIND),parameter:: re_qi_max = 125.e-6       ! maximum effective radius of cloud ice (m)
+ real(kind=RKIND),parameter:: re_qs_max = 999.e-6       ! maximum radius of snow (m)
 
 !constants specific to long- and short-wave radiation codes:
 !real(kind=RKIND),parameter:: solcon_0 = 1365.          !solar constant                                     [W/m2]

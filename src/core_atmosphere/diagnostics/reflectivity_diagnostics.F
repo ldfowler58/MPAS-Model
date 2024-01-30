@@ -23,7 +23,7 @@
 !from physics and physics_wrf directories:
  use mpas_atmphys_constants,only: R_v,R_d,t00
  use mpas_atmphys_utilities,only: physics_error_fatal
- use module_mp_wsm6,only: refl10cm_wsm6
+ use mp_wsm6,only: refl10cm_wsm6
  use module_mp_thompson,only: calc_refl10cm
 
  implicit none
@@ -199,7 +199,7 @@
              zp(k) = zgrid(k,iCell)-zgrid(1,iCell)+0.5*dz ! height AGL
           enddo
 
-          call refl10cm_wsm6(qv1d,qr1d,qs1d,qg1d,t1d,p1d,dBZ1d,kts,kte,iCell,j)
+          call refl10cm_wsm6(qv1d,qr1d,qs1d,qg1d,t1d,p1d,dBZ1d,kts,kte)
 
           kp = 1
           do k = kts,kte

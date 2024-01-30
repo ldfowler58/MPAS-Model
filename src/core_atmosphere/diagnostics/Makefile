@@ -5,24 +5,27 @@
 #
 DIAGNOSTIC_MODULES = \
 	mpas_atm_diagnostic_template.o \
-	isobaric_diagnostics.o \
-	convective_diagnostics.o \
-	pv_diagnostics.o \
+	mpas_isobaric_diagnostics.o \
+	mpas_cloud_diagnostics.o \
+	mpas_convective_diagnostics.o \
+	mpas_pv_diagnostics.o \
+	mpas_soundings.o \
 	lightning_flash_diagnostics.o \
-	reflectivity_diagnostics.o \
-	soundings.o \
+	reflectivity_diagnostics.o
 
-isobaric_diagnostics.o: mpas_atm_diagnostics_utils.o
+mpas_isobaric_diagnostics.o: mpas_atm_diagnostics_utils.o
 
-convective_diagnostics.o: mpas_atm_diagnostics_utils.o
+mpas_cloud_diagnostics.o: mpas_atm_diagnostics_utils.o
+
+mpas_convective_diagnostics.o: mpas_atm_diagnostics_utils.o
+
+mpas_pv_diagnostics.o: mpas_atm_diagnostics_utils.o
+
+mpas_soundings.o:
 
 lightning_flash_diagnostics.o: mpas_atm_diagnostics_utils.o
 
 reflectivity_diagnostics.o: mpas_atm_diagnostics_utils.o
-
-pv_diagnostics.o: mpas_atm_diagnostics_utils.o
-
-soundings.o:
 
 
 ################### Generally no need to modify below here ###################
@@ -44,7 +47,7 @@ clean:
 	$(RM) $@ $*.mod
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(PHYSICS) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../../framework -I../../operators -I../dynamics -I../physics -I../physics/physics_wrf -I../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../../framework -I../../operators -I../dynamics -I../physics -I../physics/physics_mmm -I../physics/physics_wrf -I../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I../../framework -I../../operators -I../dynamics -I../physics -I../physics/physics_wrf -I../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I../../framework -I../../operators -I../dynamics -I../physics -I../physics/physics_mmm -I../physics/physics_wrf -I../../external/esmf_time_f90
 endif

@@ -100,14 +100,15 @@ module init_atm_core_interface
    !>  not allocated until after this routine has been called.
    !
    !-----------------------------------------------------------------------
-   function init_atm_setup_packages(configs, packages, iocontext) result(ierr)
+   function init_atm_setup_packages(configs, streamInfo, packages, iocontext) result(ierr)
 
-      use mpas_derived_types, only : mpas_pool_type, mpas_io_context_type
+      use mpas_derived_types, only : mpas_pool_type, mpas_io_context_type, MPAS_streamInfo_type
       use mpas_pool_routines, only : mpas_pool_get_config, mpas_pool_get_package
 
       implicit none
 
       type (mpas_pool_type), intent(inout) :: configs
+      type (MPAS_streamInfo_type), intent(inout) :: streamInfo
       type (mpas_pool_type), intent(inout) :: packages
       type (mpas_io_context_type), intent(inout) :: iocontext
       integer :: ierr
@@ -115,10 +116,12 @@ module init_atm_core_interface
       logical, pointer :: initial_conds, sfc_update, lbcs
       logical, pointer :: gwd_stage_in, gwd_stage_out, vertical_stage_in, vertical_stage_out, met_stage_in, met_stage_out
       logical, pointer :: config_native_gwd_static, config_static_interp, config_vertical_grid, config_met_interp
+      logical, pointer :: first_guess_field
       integer, pointer :: config_init_case
 #ifdef ATM_CHEMISTRY
       logical, pointer :: config_chems_static
 #endif
+
 
       ierr = 0
 
@@ -236,6 +239,14 @@ module init_atm_core_interface
 
          initial_conds = .false.   ! Also, turn off the initial_conds package to avoid writing the IC "output" stream
 
+      else if (config_init_case == 13) then
+         gwd_stage_in = .false.
+         gwd_stage_out = .false.
+         vertical_stage_in = .false.
+         vertical_stage_out = .true.
+         met_stage_in = .false.
+         met_stage_out = .false.
+
       else
          gwd_stage_in = .false.
          gwd_stage_out = .false.
@@ -243,6 +254,18 @@ module init_atm_core_interface
          vertical_stage_out = .false.
          met_stage_in = .false.
          met_stage_out = .true.
+      end if
+
+      !
+      ! Package for 3-d first-guess atmospheric and land-surface fields is only active if
+      ! we are interpolating real-data ICs or LBCs
+      !
+      nullify(first_guess_field)
+      call mpas_pool_get_package(packages, 'first_guess_fieldActive', first_guess_field)
+
+      first_guess_field = .false.
+      if ((config_init_case == 7 .and. config_met_interp) .or. config_init_case == 9) then
+         first_guess_field = .true.
       end if
 
    end function init_atm_setup_packages
@@ -315,6 +338,9 @@ module init_atm_core_interface
 
       use mpas_derived_types, only : mpas_log_type, domain_type
       use mpas_log, only : mpas_log_init, mpas_log_open
+#ifdef MPAS_OPENMP
+      use mpas_threading, only : mpas_threading_get_num_threads
+#endif
 
       implicit none
 
@@ -341,13 +367,55 @@ module init_atm_core_interface
       iErr = ior(iErr, local_err)
 
       call mpas_log_write('')
-#ifdef SINGLE_PRECISION
-      call mpas_log_write('Using default single-precision reals')
+      call mpas_log_write('MPAS Init-Atmosphere Version '//trim(domain % core % modelVersion))
+      call mpas_log_write('')
+      call mpas_log_write('')
+      call mpas_log_write('Output from ''git describe --dirty'': '//trim(domain % core % git_version))
+      call mpas_log_write('')
+      call mpas_log_write('Compile-time options:')
+      call mpas_log_write('  Build target: '//trim(domain % core % build_target))
+      call mpas_log_write('  OpenMP support: ' // &
+#ifdef MPAS_OPENMP
+                          'yes')
 #else
-      call mpas_log_write('Using default double-precision reals')
+                          'no')
+#endif
+      call mpas_log_write('  OpenACC support: ' // &
+#ifdef MPAS_OPENACC
+                          'yes')
+#else
+                          'no')
+#endif
+      call mpas_log_write('  Default real precision: ' // &
+#ifdef SINGLE_PRECISION
+                          'single')
+#else
+                          'double')
+#endif
+      call mpas_log_write('  Compiler flags: ' // &
+#ifdef MPAS_DEBUG
+                          'debug')
+#else
+                          'optimize')
+#endif
+      call mpas_log_write('  I/O layer: ' // &
+#ifdef MPAS_PIO_SUPPORT
+#ifdef USE_PIO2
+                          'PIO 2.x')
+#else
+                          'PIO 1.x')
+#endif
+#else
+                          'SMIOL')
 #endif
       call mpas_log_write('')
 
+      call mpas_log_write('Run-time settings:')
+      call mpas_log_write('  MPI task count: $i', intArgs=[domain % dminfo % nprocs])
+#ifdef MPAS_OPENMP
+      call mpas_log_write('  OpenMP max threads: $i', intArgs=[mpas_threading_get_max_threads()])
+#endif
+      call mpas_log_write('')
 
    end function init_atm_setup_log!}}}
 
@@ -366,15 +434,16 @@ module init_atm_core_interface
    !>  are available.
    !
    !-----------------------------------------------------------------------
-   function init_atm_get_mesh_stream(configs, stream) result(ierr)
+   function init_atm_get_mesh_stream(configs, streamInfo, stream) result(ierr)
 
       use mpas_kind_types, only : StrKIND
-      use mpas_derived_types, only : mpas_pool_type
+      use mpas_derived_types, only : mpas_pool_type, MPAS_streamInfo_type
       use mpas_pool_routines, only : mpas_pool_get_config
 
       implicit none
 
       type (mpas_pool_type), intent(inout) :: configs
+      type (MPAS_streamInfo_type), intent(inout) :: streamInfo
       character(len=StrKIND), intent(out) :: stream
       integer :: ierr
 

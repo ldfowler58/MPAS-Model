@@ -44,13 +44,29 @@
 !   in the GF convection scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2019-05-09.
 
+!
+! Abstract interface for routine used to communicate halos of fields
+! in a named group
+!
+ abstract interface
+    subroutine halo_exchange_routine(domain, halo_group, ierr)
+
+       use mpas_derived_types, only : domain_type
+
+       type (domain_type), intent(inout) :: domain
+       character(len=*), intent(in) :: halo_group
+       integer, intent(out), optional :: ierr
+
+    end subroutine halo_exchange_routine
+ end interface
+
 
  contains
 
  
 !=================================================================================================================
  subroutine physics_get_tend(block,mesh,state,diag,tend,tend_physics,configs,rk_step,dynamics_substep, &
-                             tend_ru_physics,tend_rtheta_physics,tend_rho_physics)
+                             tend_ru_physics,tend_rtheta_physics,tend_rho_physics,exchange_halo_group)
 !=================================================================================================================
    
 
@@ -61,6 +77,7 @@
  type(mpas_pool_type),intent(in):: configs
  integer,intent(in):: rk_step
  integer,intent(in):: dynamics_substep
+ procedure(halo_exchange_routine):: exchange_halo_group
 
 !inout variables:
  type(mpas_pool_type),intent(inout):: diag
@@ -93,7 +110,6 @@
                                            rucuten,rvcuten
  real(kind=RKIND),dimension(:,:),pointer:: rnccuten,rnicuten,rnifacuten,rnwfacuten
  real(kind=RKIND),dimension(:,:),pointer:: rthratenlw,rthratensw                                    
- real(kind=RKIND),dimension(:,:),pointer:: rthdynten
  
  real(kind=RKIND),dimension(:,:),pointer:: tend_u_phys !nick
  real(kind=RKIND),dimension(:,:,:),pointer:: tend_scalars
@@ -157,8 +173,6 @@
  call mpas_pool_get_array(tend_physics,'rnwfacuten',rnwfacuten)
  call mpas_pool_get_array(tend_physics,'rucuten_Edge',rucuten_Edge)
 
- call mpas_pool_get_array(tend_physics,'rthdynten',rthdynten)
-
  call mpas_pool_get_array(tend_physics,'rthratenlw',rthratenlw)
  call mpas_pool_get_array(tend_physics,'rthratensw',rthratensw)
 
@@ -202,8 +216,6 @@
  if(.not. associated(rnifablten)) allocate(rnifablten(0,0))
  if(.not. associated(rnwfablten)) allocate(rnwfablten(0,0))
 
- if(.not. associated(rthdynten)) allocate(rthdynten(0,0))
-
  call physics_get_tend_work( &
               block,mesh,nCells,nEdges,nCellsSolve,nEdgesSolve,rk_step,dynamics_substep, &
               pbl_scheme,convection_scheme,radt_lw_scheme,radt_sw_scheme,                &
@@ -215,7 +227,8 @@
               rucuten,rvcuten,rthcuten,rqvcuten,rqccuten,rqrcuten,rqicuten,rqscuten,     &
               rnccuten,rnicuten,rnifacuten,rnwfacuten,                                   &
               rthratenlw,rthratensw,rublten_Edge,rucuten_Edge,                           &
-              tend_th,tend_rtheta_physics,tend_scalars,tend_ru_physics,tend_u_phys)
+              tend_th,tend_rtheta_physics,tend_scalars,tend_ru_physics,tend_u_phys,      &
+              exchange_halo_group)
 
 !clean up any pointers that were allocated with zero size before the call to physics_get_tend_work:
  if(size(rucuten) == 0 ) deallocate(rucuten )
@@ -242,8 +255,6 @@
  if(size(rnifablten) == 0) deallocate(rnifablten)
  if(size(rnwfablten) == 0) deallocate(rnwfablten)
 
- if(size(rthdynten) == 0) deallocate(rthdynten)
-
  deallocate(tend_th)
 
  end subroutine physics_get_tend
@@ -260,10 +271,13 @@
                     rucuten,rvcuten,rthcuten,rqvcuten,rqccuten,rqrcuten,rqicuten,rqscuten,       &
                     rnccuten,rnicuten,rnifacuten,rnwfacuten,                                     &
                     rthratenlw,rthratensw,rublten_Edge,rucuten_Edge,                             &
-                    tend_th,tend_theta,tend_scalars,tend_u,tend_u_phys)
+                    tend_th,tend_theta,tend_scalars,tend_u,tend_u_phys,                          &
+                    exchange_halo_group)
 !=================================================================================================================
 
 !input arguments:
+ procedure(halo_exchange_routine):: exchange_halo_group
+
  type(block_type),intent(in)    :: block
  type(mpas_pool_type),intent(in):: mesh
 
@@ -329,6 +343,7 @@
 !add coupled tendencies due to PBL processes:
  if(pbl_scheme .ne. 'off') then
     if(rk_step == 1 .and. dynamics_substep == 1) then
+       call exchange_halo_group(block%domain,'physics:blten')
        call tend_toEdges(block,mesh,rublten,rvblten,rublten_Edge)
 
        tend_u_phys(1:nVertLevels,1:nEdges) = rublten_Edge(1:nVertLevels,1:nEdges)
@@ -388,6 +403,7 @@
     
        case('cu_tiedtke','cu_ntiedtke','cu_grell_freitas','cu_grell_freitas_wrf390')
           if(rk_step == 1 .and. dynamics_substep == 1) then
+             call exchange_halo_group(block%domain,'physics:cuten')
              call tend_toEdges(block,mesh,rucuten,rvcuten,rucuten_Edge)
                  
              tend_u_phys(1:nVertLevels,1:nEdges) = tend_u_phys(1:nVertLevels,1:nEdges) &
@@ -465,15 +481,12 @@
  real(kind=RKIND),intent(out),dimension(:,:):: U_tend
 
 !local variables:
- type (field2DReal),pointer :: tempField
- type (field2DReal),target :: tempFieldTarget
  integer:: iCell,iEdge,k,j
  integer:: cell1, cell2
  integer,pointer:: nCells,nCellsSolve,nEdges
  integer,dimension(:,:),pointer:: cellsOnEdge
 
- real(kind=RKIND),dimension(:,:),pointer:: Ux_tend_halo,Uy_tend_halo
- real(kind=RKIND),dimension(:,:),pointer:: east, north, edgeNormalVectors
+ real(kind=RKIND),dimension(:,:),pointer :: east,north,edgeNormalVectors
 
  
 !-----------------------------------------------------------------------------------------------------------------
@@ -488,42 +501,22 @@
 
  call mpas_pool_get_array(mesh,'cellsOnEdge',cellsOnEdge)
 
- Ux_tend_halo => Ux_tend
- Uy_tend_halo => Uy_tend
-
- tempField => tempFieldTarget 
- tempField % block => block
- tempField % dimSizes(1) = nVertLevels
- tempField % dimSizes(2) = nCellsSolve
- tempField % sendList => block % parinfo % cellsToSend
- tempField % recvList => block % parinfo % cellsToRecv
- tempField % copyList => block % parinfo % cellsToCopy
- tempField % prev => null()
- tempField % next => null()
- tempField % isActive = .true.
-
- tempField % array => Ux_tend_halo
- call mpas_dmpar_exch_halo_field(tempField)
- 
- tempField % array => Uy_tend_halo
- call mpas_dmpar_exch_halo_field(tempField)
-
  do iEdge = 1, nEdges
     cell1 = cellsOnEdge(1,iEdge)
     cell2 = cellsOnEdge(2,iEdge)
                            
-    U_tend(:,iEdge) =  Ux_tend_halo(:,cell1) * 0.5 * (edgeNormalVectors(1,iEdge) * east(1,cell1)   &
-                                                   +  edgeNormalVectors(2,iEdge) * east(2,cell1)   &
-                                                   +  edgeNormalVectors(3,iEdge) * east(3,cell1))  &
-                     + Uy_tend_halo(:,cell1) * 0.5 * (edgeNormalVectors(1,iEdge) * north(1,cell1)  &
-                                                   +  edgeNormalVectors(2,iEdge) * north(2,cell1)  &
-                                                   +  edgeNormalVectors(3,iEdge) * north(3,cell1)) &
-                     + Ux_tend_halo(:,cell2) * 0.5 * (edgeNormalVectors(1,iEdge) * east(1,cell2)   &
-                                                   +  edgeNormalVectors(2,iEdge) * east(2,cell2)   &
-                                                   +  edgeNormalVectors(3,iEdge) * east(3,cell2))  &
-                     + Uy_tend_halo(:,cell2) * 0.5 * (edgeNormalVectors(1,iEdge) * north(1,cell2)  &
-                                                   +  edgeNormalVectors(2,iEdge) * north(2,cell2)  &
-                                                   +  edgeNormalVectors(3,iEdge) * north(3,cell2))
+    U_tend(:,iEdge) =  Ux_tend(:,cell1) * 0.5 * (edgeNormalVectors(1,iEdge) * east(1,cell1)   &
+                                              +  edgeNormalVectors(2,iEdge) * east(2,cell1)   &
+                                              +  edgeNormalVectors(3,iEdge) * east(3,cell1))  &
+                     + Uy_tend(:,cell1) * 0.5 * (edgeNormalVectors(1,iEdge) * north(1,cell1)  &
+                                              +  edgeNormalVectors(2,iEdge) * north(2,cell1)  &
+                                              +  edgeNormalVectors(3,iEdge) * north(3,cell1)) &
+                     + Ux_tend(:,cell2) * 0.5 * (edgeNormalVectors(1,iEdge) * east(1,cell2)   &
+                                              +  edgeNormalVectors(2,iEdge) * east(2,cell2)   &
+                                              +  edgeNormalVectors(3,iEdge) * east(3,cell2))  &
+                     + Uy_tend(:,cell2) * 0.5 * (edgeNormalVectors(1,iEdge) * north(1,cell2)  &
+                                              +  edgeNormalVectors(2,iEdge) * north(2,cell2)  &
+                                              +  edgeNormalVectors(3,iEdge) * north(3,cell2))
  end do
  
  end subroutine tend_toEdges

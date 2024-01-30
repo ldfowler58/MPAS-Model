@@ -70,14 +70,13 @@ include 'mpif.h'
    public :: mpas_dmpar_bcast_ints
    public :: mpas_dmpar_bcast_real
    public :: mpas_dmpar_bcast_reals
-   public :: mpas_dmpar_bcast_real4
-   public :: mpas_dmpar_bcast_real4s
    public :: mpas_dmpar_bcast_double
    public :: mpas_dmpar_bcast_doubles
    public :: mpas_dmpar_bcast_logical
    public :: mpas_dmpar_bcast_char
    public :: mpas_dmpar_bcast_chars
    public :: mpas_dmpar_sum_int
+   public :: mpas_dmpar_sum_int8
    public :: mpas_dmpar_sum_real
    public :: mpas_dmpar_min_int
    public :: mpas_dmpar_min_real
@@ -513,83 +512,6 @@ include 'mpif.h'
    end subroutine mpas_dmpar_bcast_reals!}}}
 
 !-----------------------------------------------------------------------
-!  routine mpas_dmpar_bcast_real4
-!
-!> \brief MPAS dmpar broadcast 4-byte real routine.
-!> \author Michael Duda
-!> \date   26 February 2018
-!> \details
-!>  This routine broadcasts a 4-byte real to all processors in the communicator.
-!>  An optional argument specifies the source node; else broadcast from IO_NODE.
-!
-!-----------------------------------------------------------------------
-   subroutine mpas_dmpar_bcast_real4(dminfo, r, proc)!{{{
-
-      implicit none
-
-      type (dm_info), intent(in) :: dminfo !< Input: Domain information
-      real (kind=R4KIND), intent(inout) :: r !< Input/Output: Real to be broadcast
-      integer, intent(in), optional :: proc  !< optional argument indicating which processor to broadcast from
-
-#ifdef _MPI
-      integer :: mpi_ierr, source
-      integer :: threadNum
-
-      threadNum = mpas_threading_get_thread_num()
-
-      if ( threadNum == 0 ) then
-         if (present(proc)) then
-            source = proc
-         else
-            source = IO_NODE
-         endif
-
-         call MPI_Bcast(r, 1, MPI_REAL4, source, dminfo % comm, mpi_ierr)
-      end if
-#endif
-
-   end subroutine mpas_dmpar_bcast_real4!}}}
-
-!-----------------------------------------------------------------------
-!  routine mpas_dmpar_bcast_real4s
-!
-!> \brief MPAS dmpar broadcast 4-byte reals routine.
-!> \author Michael Duda
-!> \date   26 February 2018
-!> \details
-!>  This routine broadcasts an array of 4-byte reals to all processors in the communicator.
-!>  An optional argument specifies the source node; else broadcast from IO_NODE.
-!
-!-----------------------------------------------------------------------
-   subroutine mpas_dmpar_bcast_real4s(dminfo, n, rarray, proc)!{{{
-
-      implicit none
-
-      type (dm_info), intent(in) :: dminfo !< Input: Domain information
-      integer, intent(in) :: n !< Input: Length of array
-      real (kind=R4KIND), dimension(n), intent(inout) :: rarray !< Input/Output: Array of reals to be broadcast
-      integer, intent(in), optional :: proc  !< optional argument indicating which processor to broadcast from
-
-#ifdef _MPI
-      integer :: mpi_ierr, source
-      integer :: threadNum
-
-      threadNum = mpas_threading_get_thread_num()
-
-      if ( threadNum == 0 ) then
-         if (present(proc)) then
-            source = proc
-         else
-            source = IO_NODE
-         endif
-
-         call MPI_Bcast(rarray, n, MPI_REAL4, source, dminfo % comm, mpi_ierr)
-      end if
-#endif
-
-   end subroutine mpas_dmpar_bcast_real4s!}}}
-
-!-----------------------------------------------------------------------
 !  routine mpas_dmpar_bcast_double
 !
 !> \brief MPAS dmpar broadcast double routine.
@@ -828,6 +750,39 @@ include 'mpif.h'
       end if
 
    end subroutine mpas_dmpar_sum_int!}}}
+
+!-----------------------------------------------------------------------
+!  routine mpas_dmpar_sum_int8
+!
+!> \brief MPAS dmpar sum 8 byte integer routine.
+!> \author Matthew Dimond
+!> \date   11/07/2023
+!> \details
+!>  This routine sums (Allreduce) int(8) values across all processors in a communicator.
+!
+!-----------------------------------------------------------------------
+   subroutine mpas_dmpar_sum_int8(dminfo, i, isum)!{{{
+
+      implicit none
+
+      type (dm_info), intent(in) :: dminfo !< Input: Domain information
+      integer(kind=I8KIND), intent(in) :: i !< Input: Integer value input
+      integer(kind=I8KIND), intent(out) :: isum !< Output: Integer sum for output
+
+      integer :: mpi_ierr
+      integer :: threadNum
+
+      threadNum = mpas_threading_get_thread_num()
+
+      if ( threadNum == 0 ) then
+#ifdef _MPI
+         call MPI_Allreduce(i, isum, 1, MPI_INTEGER8, MPI_SUM, dminfo % comm, mpi_ierr)
+#else
+         isum = i
+#endif
+      end if
+
+   end subroutine mpas_dmpar_sum_int8!}}}
 
 !-----------------------------------------------------------------------
 !  routine mpas_dmpar_sum_real
@@ -8542,7 +8497,12 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
       commListPtr => exchangeGroup % sendList
       if (.not. associated(commListPtr)) return
       commListSize = commListPtr % commListSize
+#ifdef CPRPGI
+      ! workaround for PGI compiler (CPR): ICE on pointers in private clause of omp-do workshare
+      !$omp do private(listPosition, bufferOffset, nAdded, iExch, iBuffer)
+#else
       !$omp do private(commListPtr, listPosition, bufferOffset, nAdded, fieldCursor, exchListPtr, iExch, iBuffer) 
+#endif
       do listItem = 1, commListSize
         commListPtr => exchangeGroup % sendList
         do listPosition = 2, listItem
@@ -8607,7 +8567,11 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
       commListPtr => exchangeGroup % sendList
       if (.not. associated(commListPtr)) return
       commListSize = commListPtr % commListSize
+#ifdef CPRPGI
+      !$omp do private(listPosition, bufferOffset, nAdded, iExch, iBuffer)
+#else
       !$omp do private(commListPtr, listPosition, bufferOffset, nAdded, fieldCursor, exchListPtr, iExch, j, iBuffer) 
+#endif
       do listItem = 1, commListSize
         commListPtr => exchangeGroup % sendList
         do listPosition = 2, listItem
@@ -8675,7 +8639,11 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
       commListPtr => exchangeGroup % sendList
       if (.not. associated(commListPtr)) return
       commListSize = commListPtr % commListSize
+#ifdef CPRPGI
+      !$omp do private(listPosition, bufferOffset, nAdded, iExch, iBuffer)
+#else
       !$omp do private(commListPtr, listPosition, bufferOffset, nAdded, fieldCursor, exchListPtr, iExch, j, k, iBuffer) 
+#endif
       do listItem = 1, commListSize
         commListPtr => exchangeGroup % sendList
         do listPosition = 2, listItem
@@ -8745,7 +8713,11 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
       commListPtr => exchangeGroup % sendList
       if (.not. associated(commListPtr)) return
       commListSize = commListPtr % commListSize
+#ifdef CPRPGI
+      !$omp do private(listPosition, bufferOffset, nAdded, iExch, iBuffer)
+#else
       !$omp do private(commListPtr, listPosition, bufferOffset, nAdded, fieldCursor, exchListPtr, iExch, iBuffer) 
+#endif
       do listItem = 1, commListSize
         commListPtr => exchangeGroup % sendList
         do listPosition = 2, listItem
@@ -8810,7 +8782,11 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
       commListPtr => exchangeGroup % sendList
       if (.not. associated(commListPtr)) return
       commListSize = commListPtr % commListSize
+#ifdef CPRPGI
+      !$omp do private(listPosition, bufferOffset, nAdded, iExch, iBuffer)
+#else
       !$omp do private(commListPtr, listPosition, bufferOffset, nAdded, fieldCursor, exchListPtr, iExch, j, iBuffer) 
+#endif
       do listItem = 1, commListSize
         commListPtr => exchangeGroup % sendList
         do listPosition = 2, listItem
@@ -8877,7 +8853,11 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
       commListPtr => exchangeGroup % sendList
       if (.not. associated(commListPtr)) return
       commListSize = commListPtr % commListSize
+#ifdef CPRPGI
+      !$omp do private(listPosition, bufferOffset, nAdded, iExch, iBuffer)
+#else
       !$omp do private(commListPtr, listPosition, bufferOffset, nAdded, fieldCursor, exchListPtr, iExch, j, k, iBuffer) 
+#endif
       do listItem = 1, commListSize
         commListPtr => exchangeGroup % sendList
         do listPosition = 2, listItem
@@ -8947,7 +8927,11 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
       commListPtr => exchangeGroup % sendList
       if (.not. associated(commListPtr)) return
       commListSize = commListPtr % commListSize
+#ifdef CPRPGI
+      !$omp do private(listPosition, bufferOffset, nAdded, iExch, iBuffer)
+#else
       !$omp do private(commListPtr, listPosition, bufferOffset, nAdded, fieldCursor, exchListPtr, iExch, j, k, l, iBuffer) 
+#endif
       do listItem = 1, commListSize
         commListPtr => exchangeGroup % sendList
         do listPosition = 2, listItem
@@ -9020,7 +9004,11 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
       commListPtr => exchangeGroup % sendList
       if (.not. associated(commListPtr)) return
       commListSize = commListPtr % commListSize
+#ifdef CPRPGI
+      !$omp do private(listPosition, bufferOffset, nAdded, iExch, iBuffer)
+#else
       !$omp do private(commListPtr, listPosition, bufferOffset, nAdded, fieldCursor, exchListPtr, iExch, j, k, l, m, iBuffer) 
+#endif
       do listItem = 1, commListSize
         commListPtr => exchangeGroup % sendList
         do listPosition = 2, listItem

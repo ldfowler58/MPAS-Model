@@ -42,9 +42,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2014-05-15.
 ! * now use isice and iswater initialized in the init file instead of initialized in mpas_atmphys_landuse.F.
 !   Laura D. Fowler (laura@ucar.edu) / 2017-01-13.
-! * corrected the initialization of the soil temperature tslb over ocean points for exact restartibility, and
+! * corrected the initialization of the soil temperature tslb over ocean points for exact restartability, and
 !   for consistency with module_sf_noahdrv.F when itimestep = 1.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-08-29. 
+!   Laura D. Fowler (laura@ucar.edu) / 2017-08-29.
 
 
  contains
@@ -272,7 +272,7 @@
        tsk(iCell)    = sst(iCell)
        do iSoil = 1, nSoilLevels
           tslb(iSoil,iCell) = 273.16
-       enddo
+       enddo 
     endif
  enddo
 !call mpas_log_write('')

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<registry model="mpas" core="atmosphere" core_abbrev="atm" version="7.3">
+<registry model="mpas" core="atmosphere" core_abbrev="atm" version="8.0.1">
 
 <!-- **************************************************************************************** -->
 <!-- ************************************** Dimensions ************************************** -->
@@ -34,6 +34,8 @@
                      description="The number of atmospheric layers"/>
                 <dim name="nVertLevelsP1"      definition="nVertLevels+1"
                      description="The number of atmospheric levels, always one more than the number of layers"/>
+
+#ifdef DO_PHYSICS
                 <dim name="nMonths"            definition="namelist:months"
                      description="The number of months in a year"/>
                 <dim name="nSoilLevels"        definition="namelist:num_soil_layers"
@@ -46,6 +48,7 @@
                      description="Two more than the number of atmospheric layers"/>
                 <dim name="nClosures"          definition="16"
                      description="Number of closures in the Grell-Freitas convection scheme"/>
+#endif
         </dims>
 
 
@@ -104,32 +107,32 @@
                      description="When config_split_dynamics_transport = T, the number of RK steps per transport step"
                      possible_values="Positive integer values"/>
 
-                <nml_option name="config_h_mom_eddy_visc2" type="real" default_value="0.0"
+                <nml_option name="config_h_mom_eddy_visc2" type="real" default_value="0.0" in_defaults="false"
                      units="m^2 s^{-1}"
                      description="$\nabla^2$ eddy viscosity for horizontal diffusion of momentum"
                      possible_values="Positive real values"/>
 
-                <nml_option name="config_h_mom_eddy_visc4" type="real" default_value="0.0"
+                <nml_option name="config_h_mom_eddy_visc4" type="real" default_value="0.0" in_defaults="false"
                      units="m^4 s^{-1}"
                      description="$\nabla^4$ eddy hyper-viscosity for horizontal diffusion of momentum"
                      possible_values="Positive real values"/>
 
-                <nml_option name="config_v_mom_eddy_visc2" type="real" default_value="0.0"
+                <nml_option name="config_v_mom_eddy_visc2" type="real" default_value="0.0" in_defaults="false"
                      units="m^2 s^{-1}"
                      description="$\nabla^2$ eddy viscosity for vertical diffusion of momentum"
                      possible_values="Positive real values"/>
 
-                <nml_option name="config_h_theta_eddy_visc2" type="real" default_value="0.0"
+                <nml_option name="config_h_theta_eddy_visc2" type="real" default_value="0.0" in_defaults="false"
                      units="m^2 s^{-1}"
                      description="$\nabla^2$ eddy viscosity for horizontal diffusion of theta"
                      possible_values="Positive real values"/>
 
-                <nml_option name="config_h_theta_eddy_visc4" type="real" default_value="0.0"
+                <nml_option name="config_h_theta_eddy_visc4" type="real" default_value="0.0" in_defaults="false"
                      units="m^4 s^{-1}"
                      description="$\nabla^4$ eddy hyper-viscosity for horizontal diffusion of theta"
                      possible_values="Positive real values"/>
 
-                <nml_option name="config_v_theta_eddy_visc2" type="real" default_value="0.0"
+                <nml_option name="config_v_theta_eddy_visc2" type="real" default_value="0.0" in_defaults="false"
                      units="m^2 s^{-1}"
                      description="$\nabla^2$ eddy viscosity for vertical diffusion of theta"
                      possible_values="Positive real values"/>
@@ -139,10 +142,10 @@
                      description="Formulation of horizontal mixing"
                      possible_values="`2d_fixed' or `2d_smagorinsky'"/>
 
-                <nml_option name="config_len_disp" type="real" default_value="120000.0"
+                <nml_option name="config_len_disp" type="real" default_value="0.0" in_defaults="false"
                      units="m"
                      description="Horizontal length scale, used by the Smagorinsky formulation of horizontal diffusion and by 3-d divergence damping"
-                     possible_values="Positive real values"/>
+                     possible_values="Positive real values. A zero value implies that the length scale is prescribed by the nominalMinDc value in the input file."/>
 
                 <nml_option name="config_visc4_2dsmag" type="real" default_value="0.05"
                      units="-"
@@ -154,37 +157,37 @@
                      description="Scaling factor for the divergent component of $\nabla^4 u$ calculation"
                      possible_values="Positive real values"/>
 
-                <nml_option name="config_w_adv_order" type="integer" default_value="3"
+                <nml_option name="config_w_adv_order" type="integer" default_value="3" in_defaults="false"
                      units="-"
                      description="Horizontal advection order for w"
                      possible_values="2, 3, or 4"/>
 
-                <nml_option name="config_theta_adv_order" type="integer" default_value="3"
+                <nml_option name="config_theta_adv_order" type="integer" default_value="3" in_defaults="false"
                      units="-"
                      description="Horizontal advection order for theta"
                      possible_values="2, 3, or 4"/>
 
-                <nml_option name="config_scalar_adv_order" type="integer" default_value="3"
+                <nml_option name="config_scalar_adv_order" type="integer" default_value="3" in_defaults="false"
                      units="-"
                      description="Horizontal advection order for scalars"
                      possible_values="2, 3, or 4"/>
 
-                <nml_option name="config_u_vadv_order" type="integer" default_value="3"
+                <nml_option name="config_u_vadv_order" type="integer" default_value="3" in_defaults="false"
                      units="-"
                      description="Vertical advection order for normal velocities (u)"
                      possible_values="2, 3, or 4"/>
 
-                <nml_option name="config_w_vadv_order" type="integer" default_value="3"
+                <nml_option name="config_w_vadv_order" type="integer" default_value="3" in_defaults="false"
                      units="-"
                      description="Vertical advection order for w"
                      possible_values="2, 3, or 4"/>
 
-                <nml_option name="config_theta_vadv_order" type="integer" default_value="3"
+                <nml_option name="config_theta_vadv_order" type="integer" default_value="3" in_defaults="false"
                      units="-"
                      description="Vertical advection order for theta"
                      possible_values="2, 3, or 4"/>
 
-                <nml_option name="config_scalar_vadv_order" type="integer" default_value="3"
+                <nml_option name="config_scalar_vadv_order" type="integer" default_value="3" in_defaults="false"
                      units="-"
                      description="Vertical advection order for scalars"
                      possible_values="2, 3, or 4"/>
@@ -194,7 +197,7 @@
                      description="Whether to advect scalar fields"
                      possible_values=".true. or .false."/>
 
-                <nml_option name="config_positive_definite" type="logical" default_value="false"
+                <nml_option name="config_positive_definite" type="logical" default_value="false" in_defaults="false"
                      units="-"
                      description="Whether to enable positive-definite advection of scalars"
                      possible_values=".true. or .false."/>
@@ -243,6 +246,11 @@
                      units="-"
                      description="Number of halo layers for fields"
                      possible_values="Integer values, typically 2 or 3; DO NOT CHANGE"/>
+
+                <nml_option name="config_relax_zone_divdamp_coef" type="real" default_value="6.0" in_defaults="false"
+                     units="-"
+                     description="Coefficient for the divergent component of the Laplacian filter of momentum in the relaxation zone"
+                     possible_values="Positive real values"/>
         </nml_record>
 
         <nml_record name="damping" in_defaults="true">
@@ -261,6 +269,11 @@
                      description="Coefficient for scaling the 2nd-order horizontal mixing in the mpas_cam absorbing layer"
                      possible_values="0 $\leq$ config_mpas_cam_coef $\leq$ 1, standard value is 0.2"/>
 
+                <nml_option name="config_number_cam_damping_levels" type="integer" default_value="4" in_defaults="false"
+                     units="-"
+                     description="Number of layers in which to apply cam 2nd-order horizontal filter top of model; viscosity linearly ramps to zero by layer number from the top"
+                     possible_values="Positive integer values"/>
+
                 <nml_option name="config_rayleigh_damp_u" type="logical" default_value="false" in_defaults="false"
                      units="-"
                      description="Whether to apply Rayleigh damping on horizontal velocity in the top-most model levels. The number of levels is specified by the config_number_rayleigh_damp_u_levels option, and the damping timescale is specified by the config_rayleigh_damp_u_timescale_days option."
@@ -273,7 +286,7 @@
 
                 <nml_option name="config_number_rayleigh_damp_u_levels" type="integer" default_value="6" in_defaults="false"
                      units="-"
-                     description="Number layers in which to apply Rayleigh damping on horizontal velocity at top of model; damping linearly ramps to zero by layer number from the top"
+                     description="Number of layers in which to apply Rayleigh damping on horizontal velocity at top of model; damping linearly ramps to zero by layer number from the top"
                      possible_values="Positive integer values"/>
         </nml_record>
 
@@ -370,6 +383,13 @@
                      possible_values=".true. or .false."/>
         </nml_record>
 
+        <nml_record name="development" in_defaults="false">
+                <nml_option name="config_halo_exch_method" type="character" default_value="mpas_halo"
+                     units="-"
+                     description="Method to use for exchanging halos"
+                     possible_values="`mpas_dmpar', `mpas_halo'"/>
+        </nml_record>
+
 <!-- **************************************************************************************** -->
 <!-- **************************************  Packages  ************************************** -->
 <!-- **************************************************************************************** -->
@@ -442,6 +462,7 @@
 			<var name="fEdge"/>
 			<var name="fVertex"/>
 			<var name="meshDensity"/>
+			<var name="nominalMinDc"/>
 			<var name="bdyMaskCell"/>
 			<var name="bdyMaskEdge"/>
 			<var name="bdyMaskVertex"/>
@@ -466,21 +487,25 @@
 			<var name="deriv_two"/>
 			<var name="defc_a"/>
 			<var name="defc_b"/>
+#ifdef MPAS_CAM_DYCORE
+			<var name="cell_gradient_coef_x"/>
+			<var name="cell_gradient_coef_y"/>
+#endif
 			<var name="coeffs_reconstruct"/>
-			<var name="p_fg"/>
 			<var_array name="scalars"/>
 			<var name="initial_time"/>
 			<var name="xtime"/>
+			<var name="Time"/>
 			<var name="u"/>
 			<var name="w"/>
 			<var name="rho"/>
 			<var name="theta"/>
 			<var name="relhum"/>
-			<var name="exner_base"/>
-			<var name="pressure_base"/>
 			<var name="rho_base"/>
 			<var name="theta_base"/>
 			<var name="surface_pressure"/>
+
+#ifdef DO_PHYSICS
 			<var name="isltyp"/>
 			<var name="ivgtyp"/>
 			<var name="mminlu"/>
@@ -523,6 +548,9 @@
 			<var name="ol3"/>
 			<var name="ol4"/>
 			<var name="h_oml_initial"/>
+			<var name="p_fg"/>
+			<var name="exner_base"/>
+			<var name="pressure_base"/>
 #ifdef ATM_CHEMISTRY
 			<var name="erod"/>
 			<var name="clayfrac"/>
@@ -538,6 +566,7 @@
 			<var name="background_no3"/>
 			<var_array name="chems"/>
 			<var_array name="tracers"/>
+#endif
 #endif
 		</stream>
 
@@ -589,10 +618,7 @@
 			<var name="fEdge"/>
 			<var name="fVertex"/>
 			<var name="meshDensity"/>
-			<var name="meshScalingDel2"/>
-			<var name="meshScalingDel4"/>
-			<var name="meshScalingRegionalCell"/>
-			<var name="meshScalingRegionalEdge"/>
+			<var name="nominalMinDc"/>
 			<var name="bdyMaskCell"/>
 			<var name="bdyMaskEdge"/>
 			<var name="bdyMaskVertex"/>
@@ -617,29 +643,15 @@
 			<var name="deriv_two"/>
 			<var name="defc_a"/>
 			<var name="defc_b"/>
+#ifdef MPAS_CAM_DYCORE
+			<var name="cell_gradient_coef_x"/>
+			<var name="cell_gradient_coef_y"/>
+#endif
 			<var name="coeffs_reconstruct"/>
-			<var name="east"/>
-			<var name="north"/>
-			<var name="p_fg"/>
 			<var_array name="scalars"/>
-			<var name="rainprod" packages="mp_thompson_in"/>
-			<var name="evapprod" packages="mp_thompson_in"/>
-			<var name="re_cloud" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="re_ice" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="re_snow" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="rre_cloud" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="rre_ice" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="rre_snow" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="vqr" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="vqi" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="vqs" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="vqg" packages="mp_thompson_in;mp_wsm6_in"/>
-			<var name="nt_c" packages="mp_thompson_in"/>
-			<var name="mu_c" packages="mp_thompson_in"/>
-			<var name="nwfa2d" packages="mp_thompson_in"/>
-			<var name="nifa2d" packages="mp_thompson_in"/>
 			<var name="initial_time"/>
 			<var name="xtime"/>
+			<var name="Time"/>
 			<var name="u"/>
 			<var name="w"/>
 			<var name="rho_zz"/>
@@ -648,8 +660,6 @@
 			<var name="rho"/>
 			<var name="theta"/>
 			<var name="relhum"/>
-			<var name="uReconstructZonal"/>
-			<var name="uReconstructMeridional"/>
 			<var name="circulation"/>
 			<var name="exner"/>
 			<var name="exner_base"/>
@@ -664,6 +674,24 @@
 			<var name="rtheta_p"/>
 			<var name="rho_p"/>
 			<var name="surface_pressure"/>
+
+#ifdef DO_PHYSICS
+			<var name="rainprod" packages="mp_thompson_in"/>
+			<var name="evapprod" packages="mp_thompson_in"/>
+			<var name="re_cloud" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="re_ice" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="re_snow" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="rre_cloud" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="rre_ice" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="rre_snow" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="vqr" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="vqi" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="vqs" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="vqg" packages="mp_thompson_in;mp_wsm6_in"/>
+			<var name="nwfa2d" packages="mp_thompson_in"/>
+			<var name="nifa2d" packages="mp_thompson_in"/>
+			<var name="nt_c" packages="mp_thompson_in"/>
+			<var name="mu_c" packages="mp_thompson_in"/>
                         <var name="tend_sfc_pressure"/>
 			<var name="rt_diabatic_tend"/>
 			<var name="nsteps_accum"/>
@@ -840,7 +868,6 @@
 			<var name="noahres"/>
 			<var name="potevp"/>
 			<var name="sfc_albedo"/>
-			<var name="sfc_albedo_seaice"/>
 			<var name="sfc_emiss"/>
 			<var name="sfc_emibck"/>
 			<var name="sfcrunoff"/>
@@ -945,8 +972,6 @@
 			<var name="rnwfablten"/>
 			<var name="rthratensw"/>
 			<var name="rthratenlw"/>
-			<var name="pin"/>
-			<var name="ozmixm"/>
 			<var name="isltyp"/>
 			<var name="ivgtyp"/>
 			<var name="mminlu"/>
@@ -992,6 +1017,7 @@
 			<var name="h_oml_initial"/>
 			<var name="hu_oml"/>
 			<var name="hv_oml"/>
+                        <var name="p_fg"/>
 #ifdef ATM_CHEMISTRY
 			<var name="erod"/>
 			<var name="clayfrac"/>
@@ -1012,6 +1038,7 @@
 			<var_array name="tracers"/>
 			<var_array name="bl_tracers"/>
 			<var_array name="cu_tracers"/>
+#endif
 #endif
 		</stream>
 
@@ -1063,6 +1090,7 @@
 			<var name="zz"/>
 			<var name="initial_time"/>
 			<var name="xtime"/>
+			<var name="Time"/>
 			<var name="u"/>
 			<var name="w"/>
 			<var name="pressure"/>
@@ -1083,6 +1111,8 @@
 			<var name="v_pv"/>
 			<var name="theta_pv"/>
 			<var name="vort_pv"/>
+			<var name="iLev_DT"/>
+#ifdef DO_PHYSICS
 			<var name="depv_dt_lw"/>
 			<var name="depv_dt_sw"/>
 			<var name="depv_dt_bl"/>
@@ -1094,7 +1124,6 @@
 			<var name="depv_dt_fric"/>
 			<var name="depv_dt_diab_pv"/>
 			<var name="depv_dt_fric_pv"/>
-			<var name="iLev_DT"/>
                         <!-- End Ertel PV diagnostics defined in diagnostics/Registry_pv.xml -->
 
 			<var name="i_rainnc"/>
@@ -1135,6 +1164,7 @@
 			<var name="sh2o"/>
 			<var name="smois"/>
 			<var name="tslb"/>
+#endif
 		</stream>
 
 		<stream name="diagnostics" 
@@ -1145,63 +1175,68 @@
 
 			<var name="initial_time"/>
 			<var name="xtime"/>
-			<var name="olrtoa"/>
-			<var name="rainc"/>
-			<var name="rainnc"/>
-			<var name="refl10cm_max"/>
-			<var name="refl10cm_1km"/>
-			<var name="refl10cm_1km_max"/>
-			<var name="precipw"/>
-			<var name="u10"/>
-			<var name="v10"/>
-			<var name="q2"/>
-			<var name="t2m"/>
-			<var name="th2m"/>
+			<var name="Time"/>
 
                         <!-- Begin isobaric diagnostics defined in diagnostics/Registry_isobaric.xml -->
 			<var name="mslp"/>
+			<var name="relhum_50hPa"/>
+			<var name="relhum_100hPa"/>
 			<var name="relhum_200hPa"/>
 			<var name="relhum_250hPa"/>
 			<var name="relhum_500hPa"/>
 			<var name="relhum_700hPa"/>
 			<var name="relhum_850hPa"/>
 			<var name="relhum_925hPa"/>
+			<var name="dewpoint_50hPa"/>
+			<var name="dewpoint_100hPa"/>
 			<var name="dewpoint_200hPa"/>
 			<var name="dewpoint_250hPa"/>
 			<var name="dewpoint_500hPa"/>
 			<var name="dewpoint_700hPa"/>
 			<var name="dewpoint_850hPa"/>
 			<var name="dewpoint_925hPa"/>
+			<var name="temperature_50hPa"/>
+			<var name="temperature_100hPa"/>
 			<var name="temperature_200hPa"/>
 			<var name="temperature_250hPa"/>
 			<var name="temperature_500hPa"/>
 			<var name="temperature_700hPa"/>
 			<var name="temperature_850hPa"/>
 			<var name="temperature_925hPa"/>
+			<var name="height_50hPa"/>
+			<var name="height_100hPa"/>
 			<var name="height_200hPa"/>
 			<var name="height_250hPa"/>
 			<var name="height_500hPa"/>
 			<var name="height_700hPa"/>
 			<var name="height_850hPa"/>
 			<var name="height_925hPa"/>
+			<var name="uzonal_50hPa"/>
+			<var name="uzonal_100hPa"/>
 			<var name="uzonal_200hPa"/>
 			<var name="uzonal_250hPa"/>
 			<var name="uzonal_500hPa"/>
 			<var name="uzonal_700hPa"/>
 			<var name="uzonal_850hPa"/>
 			<var name="uzonal_925hPa"/>
+			<var name="umeridional_50hPa"/>
+			<var name="umeridional_100hPa"/>
 			<var name="umeridional_200hPa"/>
 			<var name="umeridional_250hPa"/>
 			<var name="umeridional_500hPa"/>
 			<var name="umeridional_700hPa"/>
 			<var name="umeridional_850hPa"/>
 			<var name="umeridional_925hPa"/>
+			<var name="w_50hPa"/>
+			<var name="w_100hPa"/>
 			<var name="w_200hPa"/>
 			<var name="w_250hPa"/>
 			<var name="w_500hPa"/>
 			<var name="w_700hPa"/>
 			<var name="w_850hPa"/>
 			<var name="w_925hPa"/>
+			<var name="vorticity_50hPa"/>
+			<var name="vorticity_100hPa"/>
 			<var name="vorticity_200hPa"/>
 			<var name="vorticity_250hPa"/>
 			<var name="vorticity_500hPa"/>
@@ -1214,6 +1249,21 @@
 			<var name="z_iso_levels"/>
 			<var name="meanT_500_300"/>
                         <!-- End isobaric diagnostics defined in diagnostics/Registry_isobaric.xml -->
+
+#ifdef DO_PHYSICS
+			<var name="olrtoa"/>
+			<var name="rainc"/>
+			<var name="rainnc"/>
+			<var name="refl10cm_max"/>
+			<var name="refl10cm_1km"/>
+			<var name="refl10cm_1km_max"/>
+			<var name="precipw"/>
+			<var name="u10"/>
+			<var name="v10"/>
+			<var name="q2"/>
+			<var name="t2m"/>
+			<var name="th2m"/>
+#endif
 
                         <!-- Begin convective diagnostics defined in diagnostics/Registry_convective.xml -->
                         <var name="cape"/>
@@ -1235,6 +1285,7 @@
 			<var name="wind_speed_level1_max"/>
                         <!-- End convective diagnostics defined in diagnostics/Registry_convective.xml -->
 
+#ifdef DO_PHYSICS
 			<var name="t_oml"/>
 			<var name="t_oml_initial"/>
 			<var name="t_oml_200m_initial"/>
@@ -1242,6 +1293,7 @@
 			<var name="h_oml_initial"/>
 			<var name="hu_oml"/>
 			<var name="hv_oml"/>
+#endif
 		</stream>
 
 		<stream name="surface" 
@@ -1251,8 +1303,10 @@
                         filename_interval="none"
                         runtime_format="separate_file">
 
+#ifdef DO_PHYSICS
 			<var name="sst"/>
 			<var name="xice"/>
+#endif
 		</stream>
 
 	        <stream name="iau" 
@@ -1271,7 +1325,7 @@
                         type="input"
                         filename_template="lbc.$Y-$M-$D_$h.$m.$s.nc"
                         filename_interval="input_interval"
-                        input_interval="3:00:00"
+                        input_interval="3:00:00" 
                         runtime_format="single_file"
                         immutable="true"
                         packages="limited_area">
@@ -1428,6 +1482,9 @@
                 <var name="meshDensity" type="real" dimensions="nCells" units="unitless"
                      description="Mesh density function (used when generating the mesh) evaluated at a cell"/>
 
+                <var name="nominalMinDc" type="real" dimensions="" units="m"
+                     description="Nominal minimum dcEdge value where meshDensity == 1.0"/>
+
                 <var name="meshScalingDel2" type="real" dimensions="nEdges" units="unitless"
                      description="Scaling coefficient for $\nabla^2$ eddy viscosity"/>
 
@@ -1536,6 +1593,14 @@
                 <var name="defc_b" type="real" dimensions="maxEdges nCells" units="unitless"
                      description="Coefficients for computing the diagonal components of the horizontal deformation"/>
 
+#ifdef MPAS_CAM_DYCORE
+                <var name="cell_gradient_coef_x" type="real" dimensions="maxEdges nCells" units="m^-1"
+                     description="Coefficients for computing the x (zonal) derivative of a cell-centered variable"/>
+
+                <var name="cell_gradient_coef_y" type="real" dimensions="maxEdges nCells" units="m^-1"
+                     description="Coefficients for computing the y (meridional) derivative of a cell-centered variable"/>
+#endif
+
                 <!-- Arrays required for reconstruction of velocity field -->
                 <var name="coeffs_reconstruct" type="real" dimensions="R3 maxEdges nCells" units="unitless"
                      description="Coefficients to reconstruct velocity vectors at cell centers"/>
@@ -1583,6 +1648,9 @@
                 <var name="xtime" type="text" dimensions="Time" units="YYYY-MM-DD_hh:mm:ss"
                      description="Model valid time"/>
 
+                <var name="Time" type="real" dimensions="Time" units="seconds since YYYY-MM-DD hh:mm:ss"
+                    description="CF-compliant valid time" standard_name="time"/>
+
                 <!-- Prognostic variables: read from input, saved in restart, and written to output -->
                 <var name="u" type="real" dimensions="nVertLevels nEdges Time" units="m s^{-1}"
                      description="Horizontal normal velocity at edges"/>
@@ -1596,41 +1664,97 @@
                 <var name="theta_m" type="real" dimensions="nVertLevels nCells Time" units="K"
                      description="Moist potential temperature: theta*(1+q_v*R_v/R_d)"/>
 
+                <!-- When MPAS-A is used as a dycore in CAM, scalars are allocated at runtime via -->
+                <!-- a call to the atm_allocate_scalars routine from setup_block. The specific    --> 
+                <!-- constituent at each position in the scalars array is later set by code in    -->
+                <!-- the CAM-MPAS interface layer.                                                -->
+#ifndef MPAS_CAM_DYCORE
                 <var_array name="scalars" type="real" dimensions="nVertLevels nCells Time">
                         <var name="qv" array_group="moist" units="kg kg^{-1}"
                              description="Water vapor mixing ratio"/>
 
                         <var name="qc" array_group="moist" units="kg kg^{-1}"
-                             description="Cloud water mixing ratio"/>
+                             description="Cloud water mixing ratio"
+                             packages="bl_mynn_in;bl_ysu_in;cu_tiedtke_in;mp_kessler_in;mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="qr" array_group="moist" units="kg kg^{-1}"
-                             description="Rain water mixing ratio"/>
+                             description="Rain water mixing ratio"
+                             packages="mp_kessler_in;mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="qi" array_group="moist" units="kg kg^{-1}"
-                             description="Ice mixing ratio"/>
+                             description="Ice mixing ratio"
+                             packages="bl_mynn_in;bl_ysu_in;cu_tiedtke_in;mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="qs" array_group="moist" units="kg kg^{-1}"
-                             description="Snow mixing ratio"/>
+                             description="Snow mixing ratio"
+                             packages="mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="qg" array_group="moist" units="kg kg^{-1}"
-                             description="Graupel mixing ratio"/>
-
-                        <var name="nc" array_group="number" units="nb kg^{-1}"
-                             description="Cloud water number concentration"/>
+                             description="Graupel mixing ratio"
+                             packages="mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="ni" array_group="number" units="nb kg^{-1}"
-                             description="Cloud ice number concentration"/>
+                             description="Cloud ice number concentration"
+                             packages="bl_mynn_in;mp_thompson_in"/>
 
                         <var name="nr" array_group="number" units="nb kg^{-1}"
-                             description="Rain number concentration"/>
+                             description="Rain number concentration"
+                             packages="mp_thompson_in"/>
+
+                        <var name="nc" array_group="number" units="nb kg^{-1}"
+                             description="Cloud water number concentration"
+                             packages="bl_mynn_in;mp_thompson_in"/>
 
                         <var name="nifa" array_group="aerosols" units="nb kg^{-1}"
-                             description="ice-friendly aerosol number concentration"/>
+                             description="ice-friendly aerosol number concentration"
+                             packages="bl_mynn_in;mp_thompson_in"/>
 
                         <var name="nwfa" array_group="aerosols" units="nb kg^{-1}"
-                             description="water-friendly aerosol number concentration"/>
+                             description="water-friendly aerosol number concentration"
+                             packages="bl_mynn_in;mp_thompson_in"/>
                 </var_array>
+#endif
 
+#ifdef DO_PHYSICS
+                <var_array name="aerosols" type="real" dimensions="nAerLevels nCells Time">
+                        <var name="sul"     array_group="aer_cam" units="kg m^{-3}"
+                             description="Sulfate soluble (SUL) aerosol concentration"/>
+
+                        <var name="sslt"    array_group="aer_cam" units="kg m^{-3}"
+                             description="Sea-salt (SSLT) aerosol concentration"/>
+
+                        <var name="dust1"   array_group="aer_cam" units="kg m^{-3}"
+                             description="Dust type 1 (DUST1) aerosol concentration"/>
+
+                        <var name="dust2"   array_group="aer_cam" units="kg m^{-3}"
+                             description="Dust type 2 (DUST2) aerosol concentration"/>
+
+                        <var name="dust3"   array_group="aer_cam" units="kg m^{-3}"
+                             description="Dust type 3 (DUST3) aerosol concentration"/>
+
+                        <var name="dust4"   array_group="aer_cam" units="kg m^{-3}"
+                             description="Dust type 4 (DUST4) aerosol concentration"/>
+
+                        <var name="ocpho"   array_group="aer_cam" units="kg m^{-3}"
+                             description="Hydrophobic organic carbon (OCPHO) aerosol concentration"/>
+
+                        <var name="bcpho"   array_group="aer_cam" units="kg m^{-3}"
+                             description="Hydrophobic black carbon (BCPHO) aerosol concentration"/>
+
+                        <var name="ocphi"   array_group="aer_cam" units="kg m^{-3}"
+                             description="Hydrophilic organic carbon (OCPHI) aerosol concentration"/>
+
+                        <var name="bcphi"   array_group="aer_cam" units="kg m^{-3}"
+                             description="Hydrophilic black carbon (BCPHI) aerosol concentration"/>
+
+                        <var name="bg"      array_group="aer_cam" units="kg m^{-3}"
+                             description="Background (BG) aerosol concentration"/>
+
+                        <var name="volc"    array_group="aer_cam" units="kg m^{-3}"
+                             description="Volcanic (VOLC) aerosol concentration"/>
+
+                </var_array>
+#endif
         </var_struct>
 
         <var_struct name="diag" time_levs="1">
@@ -1695,8 +1819,8 @@
                 <var name="vorticity" type="real" dimensions="nVertLevels nVertices Time" units="s^{-1}"
                      description="Relative vorticity at vertices"/>
 
-                <var name="pv_edge" type="real" dimensions="nVertLevels nEdges Time" units="s^{-1} kg^{-1} m^3"
-                     description="absolute vorticity/rho_zz averaged to the cell edge from the vertices"/>
+                <var name="pv_edge" type="real" dimensions="nVertLevels nEdges Time" units="s^{-1}"
+                     description="absolute vertical vorticity averaged to the cell edge from the vertices"/>
 
                 <var name="rho_edge" type="real" dimensions="nVertLevels nEdges Time" units="kg m^{-3}"
                      description="rho_zz averaged from cell centers to the cell edge"/>
@@ -1704,11 +1828,14 @@
                 <var name="ke" type="real" dimensions="nVertLevels nCells Time" units="m^2 s^{-2}"
                      description="Kinetic energy at a cell center"/>
 
-                <var name="pv_vertex" type="real" dimensions="nVertLevels nVertices Time" units="s^{-1} kg^{-1} m^3"
-                     description="absolute vorticity/rho_zz at a vertex"/>
+                <var name="pv_vertex" type="real" dimensions="nVertLevels nVertices Time" units="s^{-1}"
+                     description="absolute vertical vorticity at a vertex"/>
 
-                <var name="pv_cell" type="real" dimensions="nVertLevels nCells Time" units="s^{-1} kg^{-1} m^3"
-                     description="absolute vorticity/rho_zz averaged to the cell center from the vertices"/>
+                <var name="pv_cell" type="real" dimensions="nVertLevels nCells Time" units="s^{-1}"
+                     description="absolute vertical vorticity averaged to the cell center from the vertices"/>
+
+                <var name="dtheta_dt_mp" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+                     description="Potential temperature heating rate from microphysics"/>
 
                 <!-- reconstructed horizontal velocity vectors at cell centers -->
                 <var name="uReconstructX" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
@@ -1828,9 +1955,6 @@
                 <var name="kdiff" type="real" dimensions="nVertLevels nCells Time" units="m^2 s^{-1}"
                      description="Smagorinsky horizontal eddy viscosity"/>
 
-                <var name="tend_rtheta_adv" type="real" dimensions="nVertLevels nCells Time" units="kg K m^{-3} s^{-1}"
-                     description="flux divergence for rho*theta_m/zz, used in the Tiedtke convective parameterization"/>
-
                 <var name="surface_pressure" type="real" dimensions="nCells Time" units="Pa"
                      description="Diagnosed surface pressure"/>
 
@@ -1852,8 +1976,8 @@
                 <var name="tend_theta" name_in_code="theta_m" type="real" dimensions="nVertLevels nCells Time" units="kg K m^{-3} s^{-1}"
                      description="tendency of coupled potential temperature rho*theta_m/zz from dynamics and physics, updated each RK step"/>
 
-                <var name="rt_diabatic_tend" type="real" dimensions="nVertLevels nCells Time" units="kg K s^{-1}"
-                     description="Tendency of coupled potential temperature from physics"/>
+                <var name="rt_diabatic_tend" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+                     description="Tendency of modified potential temperature due to cloud microphysics"/>
 
                 <var name="euler_tend_u" name_in_code="u_euler" type="real" dimensions="nVertLevels nEdges Time" units="m s^{-2}"
                      description="Tendency of u from dynamics"/>
@@ -1873,41 +1997,57 @@
                 <var name="tend_sfc_pressure" type="real" dimensions="nCells Time" units="Pa s^{-1}"
                      description="Tendency of surface pressure"/>
 
+                <!-- When MPAS-A is used as a dycore in CAM, scalars are allocated at runtime via -->
+                <!-- a call to the atm_allocate_scalars routine from setup_block. The specific    --> 
+                <!-- constituent at each position in the scalars array is later set by code in    -->
+                <!-- the CAM-MPAS interface layer.                                                -->
+#ifndef MPAS_CAM_DYCORE
                 <!-- scalar tendencies -->
                 <var_array name="scalars_tend" type="real" dimensions="nVertLevels nCells Time">
                         <var name="tend_qv" name_in_code="qv" array_group="moist" units="kg m^{-3} s^{-1}"
                              description="Tendency of water vapor mass per unit volume divided by d(zeta)/dz"/>
 
                         <var name="tend_qc" name_in_code="qc" array_group="moist" units="kg m^{-3} s^{-1}"
-                             description="Tendency of cloud water mass per unit volume divided by d(zeta)/dz"/>
+                             description="Tendency of cloud water mass per unit volume divided by d(zeta)/dz"
+                             packages="bl_mynn_in;bl_ysu_in;cu_tiedtke_in;mp_kessler_in;mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="tend_qr" name_in_code="qr" array_group="moist" units="kg m^{-3} s^{-1}"
-                             description="Tendency of rain water mass per unit volume divided by d(zeta)/dz"/>
+                             description="Tendency of rain water mass per unit volume divided by d(zeta)/dz"
+                             packages="mp_kessler_in;mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="tend_qi" name_in_code="qi" array_group="moist" units="kg m^{-3} s^{-1}"
-                             description="Tendency of ice mass per unit volume divided by d(zeta)/dz"/>
+                             description="Tendency of ice mass per unit volume divided by d(zeta)/dz"
+                             packages="bl_mynn_in;bl_ysu_in;cu_tiedtke_in;mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="tend_qs" name_in_code="qs" array_group="moist" units="kg m^{-3} s^{-1}"
-                             description="Tendency of snow mass per unit volume divided by d(zeta)/dz"/>
+                             description="Tendency of snow mass per unit volume divided by d(zeta)/dz"
+                             packages="mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="tend_qg" name_in_code="qg" array_group="moist" units="kg m^{-3} s^{-1}"
-                             description="Tendency of graupel mass per unit volume divided by d(zeta)/dz"/>
-
-                        <var name="tend_nc" name_in_code="nc" array_group="number" units="nb m^{-3} s^{-1}"
-                             description="Tendency of cloud water number concentration multiplied by dry air density divided by d(zeta)/dz"/>
+                             description="Tendency of graupel mass per unit volume divided by d(zeta)/dz"
+                             packages="mp_thompson_in;mp_wsm6_in"/>
 
                         <var name="tend_ni" name_in_code="ni" array_group="number" units="nb m^{-3} s^{-1}"
-                             description="Tendency of cloud ice number concentration multiplied by dry air density divided by d(zeta)/dz"/>
+                             description="Tendency of cloud ice number concentration multiplied by dry air density divided by d(zeta)/dz"
+                             packages="bl_mynn_in;mp_thompson_in"/>
 
-                        <var name="tend_nr" name_in_code="nr" array_group="number" units="nb m^{-3} s^{-1}"
-                             description="Tendency of rain number concentration multiplied by dry air density divided by d(zeta)/dz"/>
+                        <var name="tend_nr" name_in_code="nr" array_group="number" units="nb m^{-3} s^{-1}" 
+                             description="Tendency of rain number concentration multiplied by dry air density divided by d(zeta)/dz"
+                             packages="mp_thompson_in"/>
+
+                        <var name="tend_nc" name_in_code="nc" array_group="number" units="nb m^{-3} s^{-1}"
+                             description="Tendency of cloud water number concentration multiplied by dry air density divided by d(zeta)/dz"
+                             packages="bl_mynn_in;mp_thompson_in"/>
 
                         <var name="tend_nifa" name_in_code="nifa" array_group="aerosols" units="nb m^{-3} s^{-1}"
-                             description="Tendency of ice-friendly aerosol number concentration multiplied by dry air density divided by d(zeta)/dz"/>
+                             description="Tendency of ice-friendly aerosol number concentration multiplied by dry air density divided by d(zeta)/dz"
+                             packages="bl_mynn_in;mp_thompson_in"/>
 
                         <var name="tend_nwfa" name_in_code="nwfa" array_group="aerosols" units="nb m^{-3} s^{-1}"
-                             description="Tendency of water-friendly aerosol number concentration multiplied by dry air density divided by d(zeta)/dz"/>
+                             description="Tendency of water-friendly aerosol number concentration multiplied by dry air density divided by d(zeta)/dz"
+                             packages="bl_mynn_in;mp_thompson_in"/>
                 </var_array>
+#endif
         </var_struct>
 
         <!-- ===================================================================================== -->
@@ -1967,6 +2107,12 @@
                 </var_array>
         </var_struct>
 
+        <var_struct name="halo_scratch" time_levs="1">
+                <var name="scale" type="real" dimensions="nVertLevels TWO nCells" units="-"
+                     description="Scaling coefficients for monotonic-limited horizontal fluxes"
+                     persistence="scratch" />
+        </var_struct>
+
 
 <!-- ================================================================================================== -->
 <!--  DECLARATIONS OF ALL PHYSICS VARIABLES (will need to be moved to a Physics Registry shared by the  -->
@@ -1974,6 +2120,7 @@
 <!-- ================================================================================================== -->
 
 
+#ifdef DO_PHYSICS
         <nml_record name="physics" in_defaults="true">
                 <!-- NAMELIST VARIABLES ADDED FOR INITIALIZATION OF SURFACE CHARACTERISTICS: -->
                 <nml_option name="input_soil_data" type="character" default_value="STAS" in_defaults="false"
@@ -1996,11 +2143,21 @@
                      description="number of months per year"
                      possible_values="Positive integer values. DO NOT CHANGE."/>
 
-                <!-- ... DIMENSION NEEDED FOR CLIMATOLOGICAL OZONE MIXING RATIO IN THE RRTMG LONGWAVE AND SHORTWAVE -->
-                <!-- ... RADIATION PARAMETERIZATIONS.                                                               -->
+                <!-- ... DIMENSION NEEDED FOR OZONE AND AEROSOLS CONCENTRATIONS IN THE CAM LONGWAVE AND SHORTWAVE -->
+                <!-- ... RADIATION PARAMETERIZATIONS.                                                             -->
                 <nml_option name="noznlev" type="integer" default_value="59" in_defaults="false"
                      units="-"
                      description="number of prescribed pressure levels for input climatological ozone volume mixing ratios"
+                     possible_values="Positive integers"/>
+
+                <nml_option name="naerlev" type="integer" default_value="29" in_defaults="false"
+                     units="-"
+                     description="number of prescribed pressure levels for input climatological aerosol mixing ratio"
+                     possible_values="Positive integers"/>
+
+                <nml_option name="camdim1" type="integer" default_value="4" in_defaults="false"
+                     units="-"
+                     description="dimension of CAM radiation absorption save array"
                      possible_values="Positive integers"/>
 
                 <!-- NAMELIST VARIABLES ADDED FOR PHYSICS CONFIGURATION: -->
@@ -2075,6 +2232,11 @@
                      description="time interval between calls to parameterization of planetary boundary layer"
                      possible_values="`DD_HH:MM:SS' or `none'"/>
 
+                <nml_option name="config_camrad_abs_update" type="character" default_value="06:00:00" in_defaults="false"
+                     units="-"
+                     description="time interval between updates of absorption/emission coefficients in CAM radiation"
+                     possible_values="`DD_HH:MM:SS' or `none'"/>
+
                 <nml_option name="config_greeness_update" type="character" default_value="24:00:00" in_defaults="false"
                      units="-"
                      description="time interval between updates of greeness fraction"
@@ -2123,12 +2285,12 @@
                 <nml_option name="config_radt_lw_scheme" type="character" default_value="suite" in_defaults="false"
                      units="-"
                      description="configuration for long-wave radiation schemes"
-                     possible_values="`suite',`rrtmg_lw',`off'"/>
+                     possible_values="`suite',`rrtmg_lw',`cam_lw',`off'"/>
 
                 <nml_option name="config_radt_sw_scheme" type="character" default_value="suite" in_defaults="false"
                      units="-"
                      description="configuration for short-wave radiation schemes"
-                     possible_values="`suite',`rrtmg_sw',`off'"/>
+                     possible_values="`suite',`rrtmg_sw',`cam_sw',`off'"/>
 
                 <nml_option name="config_sfclayer_scheme" type="character" default_value="suite" in_defaults="false"
                      units="-"
@@ -2958,6 +3120,15 @@
                 <var name="acswuptc" type="real" dimensions="nCells Time" units="W m^{-2}"
                      description="accumulated clear-sky upward top-of-atmosphere shortwave radiation flux"/>
 
+                <var name="swddir" type="real" dimensions="nCells Time" units="W m^{-2}"
+                     description="shortwave surface downward direct irradiance"/>
+
+                <var name="swddni" type="real" dimensions="nCells Time" units="W m^{-2}"
+                     description="shortwave surface downward direct normal irradiance"/>
+
+                <var name="swddif" type="real" dimensions="nCells Time" units="W m^{-2}"
+                     description="shortwave surface downward diffuse irradiance"/>
+
                 <var name="gsw" type="real" dimensions="nCells Time" units="W m^{-2}"
                      description="net surface shortwave radiation flux"/>
 
@@ -3077,6 +3248,27 @@
 
 
                 <!-- ================================================================================================== -->
+                <!-- ... ADDITIONAL "RADIATION" ARRAYS NEEDED ONLY IN THE "CAM" LW AND SW RADIATION CODES:              -->
+                <!-- ================================================================================================== -->
+
+                <var name="m_hybi" type="real" dimensions="nAerLevels nCells" units="unitless"
+                     description="Matched hybi (needs to be re-checked)"/>
+
+                <var name="m_ps" type="real" dimensions="nCells Time" units="Pa"
+                     description="Surface pressure from match on MPAS grid"/>
+
+                <!-- INFRARED ABSORPTION: -->
+                <var name="absnxt" type="real" dimensions="nVertLevels cam_dim1 nCells Time" units="-"
+                     description="Total nearest layer absorptivity"/>
+
+                <var name="abstot" type="real" dimensions="nVertLevelsP1 nVertLevelsP1 nCells Time" units="-"
+                     description="Total absorptivity"/>
+
+                <var name="emstot" type="real" dimensions="nVertLevelsP1 nCells Time" units="-"
+                     description="Total emissivity"/>
+
+
+                <!-- ================================================================================================== -->
                 <!-- ... ADDITIONAL OZONE ARRAYS NEEDED ONLY IN THE LW AND SW RADIATION CODES:                          -->
                 <!-- ================================================================================================== -->
 
@@ -3134,9 +3326,6 @@
 
                 <var name="sfc_albedo" type="real" dimensions="nCells Time" units="unitless"
                      description="surface albedo"/>
-
-                <var name="sfc_albedo_seaice" type="real" dimensions="nCells Time" units="unitless"
-                     description="surface albedo over seaice"/>
 
                 <var name="sfc_emiss" type="real" dimensions="nCells Time" units="unitless"
                      description="surface emissivity"/>
@@ -3212,6 +3401,7 @@
                      description="ocean mixed layer integrated v (meridional velocity)"/>
 
         </var_struct>
+#endif
 
         <var_struct name="tend_physics" time_levs="1">
 
@@ -3227,6 +3417,9 @@
                      description="Total dry air tendency from physics"
                      persistence="scratch" />
 
+                <var name="rthdynten" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+                     description="tendency of temperature due to horizontal and vertical advections"/>
+
                 <!-- Scratch variables used when propagating cell-centered winds to edges -->
                 <var name="tend_uzonal" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1} s^{-1}"
                      description="Total cell-centered zonal wind tendency from physics"
@@ -3236,6 +3429,7 @@
                      description="Total cell-centered meridional wind tendency from physics"
                      persistence="scratch" />
  
+#ifdef DO_PHYSICS
                 <!-- ================================================================================================== -->
                 <!-- TENDENCIES FROM PARAMETERIZATION OF CLOUD MICROPHYSICS:                                            -->
                 <!-- ================================================================================================== -->
@@ -3321,10 +3515,6 @@
                 <!-- TIEDTKE AND GRELL -->
                 <var name="rqvdynten" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
                      description="tendency of water vapor due to horizontal and vertical advections"
-                     packages="cu_grell_freitas_in;cu_tiedtke_in"/>
-
-                <var name="rthdynten" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
-                     description="tendency of temperature due to horizontal and vertical advections"
                      packages="cu_grell_freitas_in;cu_tiedtke_in"/>
 
                 <var name="rucuten" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1} s^{-1}"
@@ -3523,11 +3713,13 @@
 
                 <var name="rthratenlw" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
                      description="tendency of potential temperature due to long wave radiation"/>
+#endif
         </var_struct>
 
 
+#ifdef DO_PHYSICS
         <var_struct name="atm_input" time_levs="1">
-                <!-- Monthly mean ozone climatology used in the RRTMG radiation codes -->
+                <!-- Monthly mean ozone climatology used in the CAM and RRTMG radiation codes -->
                 <var name="pin" type="real"  dimensions="nOznLevels" units="Pa"
                      description="fixed pressure levels at which climatological ozone is defined"/>
 
@@ -3664,6 +3856,7 @@
                 <var name="ol4" type="real" dimensions="nCells" units="unitless"
                      description="effective orographic length for north-westerly flow"/>
         </var_struct>
+#endif
 
         <var_struct name="tend_iau" time_levs="1" packages="iau">
 			

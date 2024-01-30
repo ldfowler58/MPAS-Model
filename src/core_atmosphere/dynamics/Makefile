@@ -1,15 +1,14 @@
 .SUFFIXES: .F .o
 
-OBJS_init = \
-	mpas_atm_boundaries.o
-
-OBJS = mpas_atm_time_integration.o
-
-core_dynamics_init: $(OBJS_init)
+OBJS = mpas_atm_time_integration.o \
+       mpas_atm_boundaries.o
 
 all: $(OBJS)
 
 mpas_atm_time_integration.o: mpas_atm_boundaries.o mpas_atm_iau.o
+
+mpas_atm_boundaries.o:
+
 
 clean:
 	$(RM) *.o *.mod *.f90
@@ -21,7 +20,7 @@ clean:
 	$(RM) $@ $*.mod
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(PHYSICS) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../../framework -I../../operators -I../chemistry -I../physics -I../physics/physics_wrf -I../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../../framework -I../../operators -I../chemistry -I../physics -I../physics/physics_wrf -I../physics/physics_mmm -I../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../../framework -I../../operators -I../chemistry -I../physics -I../physics/physics_wrf -I../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../../framework -I../../operators -I../chemistry -I../physics -I../physics/physics_wrf -I../physics/physics_mmm -I../../external/esmf_time_f90
 endif
