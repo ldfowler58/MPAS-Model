@@ -1,6 +1,7 @@
 !=================================================================================================================
  module module_bl_gwdo
- use mpas_kind_types,only: kind_phys => RKIND
+ use ccpp_kind_types,only: kind_phys
+
  use bl_gwdo,only: bl_gwdo_run
 
 

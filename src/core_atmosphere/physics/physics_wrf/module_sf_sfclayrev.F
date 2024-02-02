@@ -1,6 +1,7 @@
 !=================================================================================================================
  module module_sf_sfclayrev
- use mpas_kind_types,only: kind_phys => RKIND
+ use ccpp_kind_types,only: kind_phys
+
  use sf_sfclayrev,only: sf_sfclayrev_run
 
 

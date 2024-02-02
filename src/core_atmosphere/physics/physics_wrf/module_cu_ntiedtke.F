@@ -1,6 +1,6 @@
 !=================================================================================================================
  module module_cu_ntiedtke
- use mpas_kind_types,only: kind_phys => RKIND,StrKIND
+ use ccpp_kind_types,only: kind_phys
 
  use cu_ntiedtke,only: cu_ntiedtke_run, &
                        cu_ntiedtke_init

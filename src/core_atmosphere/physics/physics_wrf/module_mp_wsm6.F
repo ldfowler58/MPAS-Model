@@ -1,5 +1,6 @@
  module module_mp_wsm6
- use mpas_kind_types,only: RKIND
+ use ccpp_kind_types,only: kind_phys
+
  use mp_wsm6,only: mp_wsm6_run
  use mp_wsm6_effectrad,only: mp_wsm6_effectRad_run
 
@@ -41,30 +42,30 @@
  integer,intent(in):: has_reqc,has_reqi,has_reqs
  integer,intent(in),optional:: do_radar_ref
 
- real(kind=RKIND),intent(in):: &
+ real(kind=kind_phys),intent(in):: &
     delt,g,rd,rv,t0c,den0,cpd,cpv,ep1,ep2,qmin,xls,xlv0,xlf0, &
     cliq,cice,psat,denr
 
- real(kind=RKIND),intent(in):: &
+ real(kind=kind_phys),intent(in):: &
     re_qc_bg,re_qi_bg,re_qs_bg,re_qc_max,re_qi_max,re_qs_max
 
- real(kind=RKIND),intent(in),dimension(ims:ime,kms:kme,jms:jme ):: &
+ real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme ):: &
     den, &
     pii, &
     p,   &
     delz
 
 !inout arguments:
- real(kind=RKIND),intent(inout),dimension(ims:ime,jms:jme):: &
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,jms:jme):: &
     rain,rainncv,sr
 
- real(kind=RKIND),intent(inout),dimension(ims:ime,jms:jme),optional:: &
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,jms:jme),optional:: &
     snow,snowncv
 
- real(kind=RKIND),intent(inout),dimension(ims:ime,jms:jme),optional:: &
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,jms:jme),optional:: &
     graupel,graupelncv
 
- real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme):: &
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme):: &
     th, &
     q,  &
     qc, &
@@ -73,17 +74,17 @@
     qs, &
     qg
 
- real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme):: &
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme):: &
     re_cloud, &
     re_ice,   &
     re_snow
 
- real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: &
     refl_10cm
 
 #if(WRF_CHEM == 1) 
  logical,intent(in):: wetscav_on
- real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme ):: &
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme ):: &
     rainprod,evapprod
 #endif
 
@@ -95,15 +96,19 @@
  logical:: do_microp_re
  integer:: i,j,k
 
- real(kind=RKIND),dimension(kts:kte):: qv1d,t1d,p1d,qr1d,qs1d,qg1d,dBZ
- real(kind=RKIND),dimension(kts:kte):: den1d,qc1d,qi1d,re_qc,re_qi,re_qs
+ real(kind=kind_phys),dimension(kts:kte):: qv1d,t1d,p1d,qr1d,qs1d,qg1d,dBZ
+ real(kind=kind_phys),dimension(kts:kte):: den1d,qc1d,qi1d,re_qc,re_qi,re_qs
 
- real(kind=RKIND),dimension(its:ite):: rainncv_hv,rain_hv,sr_hv
- real(kind=RKIND),dimension(its:ite):: snowncv_hv,snow_hv
- real(kind=RKIND),dimension(its:ite):: graupelncv_hv,graupel_hv
- real(kind=RKIND),dimension(its:ite,kts:kte):: t_hv,den_hv,p_hv,delz_hv
- real(kind=RKIND),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qi_hv,qr_hv,qs_hv,qg_hv
- real(kind=RKIND),dimension(its:ite,kts:kte):: re_qc_hv,re_qi_hv,re_qs_hv
+ real(kind=kind_phys),dimension(its:ite):: rainncv_hv,rain_hv,sr_hv
+ real(kind=kind_phys),dimension(its:ite):: snowncv_hv,snow_hv
+ real(kind=kind_phys),dimension(its:ite):: graupelncv_hv,graupel_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: t_hv,den_hv,p_hv,delz_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qi_hv,qr_hv,qs_hv,qg_hv
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: re_qc_hv,re_qi_hv,re_qs_hv
+
+#if(WRF_CHEM == 1)
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: rainprod_hv,evapprod_hv
+#endif
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -151,7 +156,7 @@
                  snowncv=snowncv_hv,graupel=graupel_hv,graupelncv=graupelncv_hv,  &
                  its=its,ite=ite,kts=kts,kte=kte,errmsg=errmsg,errflg=errflg      &
 #if(WRF_CHEM == 1)
-                 ,rainprod2d=rainprod_hv,evapprod2d=evapprodhv                    &
+                 ,rainprod2d=rainprod_hv,evapprod2d=evapprod_hv                   &
 #endif
                     )
 
