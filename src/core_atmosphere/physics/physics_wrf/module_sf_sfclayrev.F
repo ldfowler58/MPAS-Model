@@ -27,7 +27,7 @@
                       ims,ime,jms,jme,kms,kme,                      &
                       its,ite,jts,jte,kts,kte,                      &
                       ustm,ck,cka,cd,cda,isftcflx,iz0tlnd,          &
-                      shalwater_z0,water_depth,                     &
+                      lakemask,shalwater_z0,water_depth,            &
                       scm_force_flux,errmsg,errflg)
 !=================================================================================================================
                                                                
@@ -53,6 +53,7 @@
     psfc,       &
     tsk,        &
     xland,      &
+    lakemask,   &
     water_depth
 
  real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
@@ -119,7 +120,7 @@
  real(kind=kind_phys),dimension(its:ite):: dz1d,u1d,v1d,qv1d,p1d,t1d
 
  real(kind=kind_phys),dimension(its:ite):: &
-    dx_hv,mavail_hv,pblh_hv,psfc_hv,tsk_hv,xland_hv,water_depth_hv
+    dx_hv,mavail_hv,pblh_hv,psfc_hv,tsk_hv,xland_hv,lakemask_hv,water_depth_hv
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
     dz_hv,u_hv,v_hv,qv_hv,p_hv,t_hv
 
@@ -154,6 +155,7 @@
        psfc_hv(i)        = psfc(i,j)
        tsk_hv(i)         = tsk(i,j)
        xland_hv(i)       = xland(i,j)
+       lakemask_hv(i)    = lakemask(i,j)
        water_depth_hv(i) = water_depth(i,j)
 
        do k = kts,kte
@@ -212,7 +214,8 @@
                           flqc=flqc_hv,qgh=qgh_hv,qsfc=qsfc_hv,lh=lh_hv,                           &
                           gz1oz0=gz1oz0_hv,wspd=wspd_hv,br=br_hv,isfflx=l_isfflx,dx=dx_hv,         &
                           svp1=svp1,svp2=svp2,svp3=svp3,svpt0=svpt0,ep1=ep1,ep2=ep2,karman=karman, &
-                          p1000mb=p1000mb,shalwater_z0=l_shalwater_z0,water_depth=water_depth_hv,  &
+                          p1000mb=p1000mb,lakemask=lakemask_hv,shalwater_z0=l_shalwater_z0,        &
+                          water_depth=water_depth_hv,  &
                           its=its,ite=ite,errmsg=errmsg,errflg=errflg                              &
 #if ( ( EM_CORE == 1 ) || ( defined(mpas) ) )
                           ,isftcflx=isftcflx,iz0tlnd=iz0tlnd,scm_force_flux=l_scm_force_flux,      &
