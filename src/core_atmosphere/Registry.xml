@@ -44,6 +44,10 @@
                      description="The number of days affecting the deep soil temperature"/>
                 <dim name="nOznLevels"         definition="namelist:noznlev"
                      description="The number of prescribed pressure levels for input climatological ozone volume mixing ratios"/>
+                <dim name="nAerLevels"         definition="namelist:naerlev"
+                     description="number of prescribed pressure levels for input climatological aerosol mixing ratio"/>
+                <dim name="cam_dim1"           definition="namelist:camdim1"
+                     description="dimension of CAM radiation absorption save array"/>
                 <dim name="nVertLevelsP2"      definition="nVertLevels+2"
                      description="Two more than the number of atmospheric layers"/>
                 <dim name="nClosures"          definition="16"
@@ -1705,11 +1709,11 @@
                              description="Cloud water number concentration"
                              packages="bl_mynn_in;mp_thompson_in"/>
 
-                        <var name="nifa" array_group="aerosols" units="nb kg^{-1}"
+                        <var name="nifa" array_group="number" units="nb kg^{-1}"
                              description="ice-friendly aerosol number concentration"
                              packages="bl_mynn_in;mp_thompson_in"/>
 
-                        <var name="nwfa" array_group="aerosols" units="nb kg^{-1}"
+                        <var name="nwfa" array_group="number" units="nb kg^{-1}"
                              description="water-friendly aerosol number concentration"
                              packages="bl_mynn_in;mp_thompson_in"/>
                 </var_array>
