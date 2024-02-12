@@ -1,5 +1,6 @@
 !=================================================================================================================
  module mpas_chemistry_gocart_driver_sulfates
+ use mpas_kind_types
 
  use mpas_chemistry_gocart_interface
 

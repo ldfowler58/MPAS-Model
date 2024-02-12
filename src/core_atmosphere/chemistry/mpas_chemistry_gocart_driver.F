@@ -13,7 +13,7 @@
  use mpas_chemistry_gocart_driver_dust
  use mpas_chemistry_gocart_driver_opt
  use mpas_chemistry_gocart_driver_seasalt
- use mpas_chemistry_gocart_driver_sulfates
+!use mpas_chemistry_gocart_driver_sulfates
 
 
  implicit none
