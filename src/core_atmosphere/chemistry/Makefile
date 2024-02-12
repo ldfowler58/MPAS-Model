@@ -11,7 +11,6 @@ dummy:
 
 OBJS = \
 	module_mynn_get_pblh.o \
-	mpas_atmphys_advection.o \
 	mpas_atmphys_chems.o \
 	mpas_atmphys_chems_physics.o \
 	mpas_atmphys_tracers.o \
@@ -23,7 +22,6 @@ OBJS = \
 	mpas_chemistry_gocart_driver_dust.o \
 	mpas_chemistry_gocart_driver_opt.o \
 	mpas_chemistry_gocart_driver_seasalt.o \
-	mpas_chemistry_gocart_driver_sulfates.o \
 	mpas_chemistry_gocart_driver.o \
 	mpas_chemistry_gocart_interface.o
 
@@ -59,9 +57,6 @@ mpas_chemistry_gocart_driver_dust.o: \
 mpas_chemistry_gocart_driver_seasalt.o: \
 	mpas_chemistry_gocart_interface.o
 
-mpas_chemistry_gocart_driver_sulfates.o: \
-	mpas_chemistry_gocart_interface.o
-
 mpas_chemistry_gocart_driver.o: \
 	mpas_chemistry_gocart_driver_aerosols.o \
 	mpas_chemistry_gocart_driver_chem.o \
@@ -70,7 +65,6 @@ mpas_chemistry_gocart_driver.o: \
 	mpas_chemistry_gocart_driver_dust.o \
 	mpas_chemistry_gocart_driver_opt.o \
 	mpas_chemistry_gocart_driver_seasalt.o \
-	mpas_chemistry_gocart_driver_sulfates.o \
 	mpas_chemistry_gocart_interface.o
 
 
