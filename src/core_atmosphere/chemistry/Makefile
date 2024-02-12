@@ -4,7 +4,7 @@ ifeq ($(CORE),atmosphere)
 COREDEF = -Dmpas
 endif
 
-all: dummy core_chemistry_wrf core_chemistry
+all: dummy core_chemistry_wrf core_chemistry_gocart2G core_chemistry
 
 dummy:
 	echo "****** compiling chemistry ******"
@@ -27,6 +27,9 @@ OBJS = \
 
 core_chemistry_wrf:
 	(cd chemistry_wrf; $(MAKE) all COREDEF="$(COREDEF)")
+
+core_chemistry_gocart2G:
+	(cd chemistry_gocart2G; $(MAKE) all COREDEF="$(COREDEF)")
 
 core_chemistry: core_chemistry_wrf
 	($(MAKE) chem_interface COREDEF="$(COREDEF)")
@@ -71,6 +74,7 @@ mpas_chemistry_gocart_driver.o: \
 clean:
 	$(RM) *.o *.mod *.f90 libchem.a
 	( cd chemistry_wrf; $(MAKE) clean )
+	( cd chemistry_gocart2G; $(MAKE) clean )
 	@# Certain systems with intel compilers generate *.i files
 	@# This removes them during the clean process
 	$(RM) *.i
