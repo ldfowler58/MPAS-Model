@@ -18,7 +18,7 @@
  use mpas_atmphys_driver_radiation_lw, only: init_radiation_lw
  use mpas_atmphys_driver_radiation_sw, only: init_radiation_sw
  use mpas_atmphys_driver_sfclayer
- use mpas_atmphys_vars,only: f_qv,f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nr,f_nifa,f_nwfa,f_nbca
+ use mpas_atmphys_vars,only: f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nifa,f_nwfa,f_nbca
 
  use mpas_atmphys_landuse
  use mpas_atmphys_o3climatology
@@ -66,9 +66,8 @@
 ! * removed the calculation of the variable dcEdge_m which is no longer needed in the different physics
 !   parameterizations.
 !   Laura D. Fowler (laura@ucar.edu) / 2016-10-18.
-! * added the subroutine init_physics_flags to initialize all the f_* flags for cloud water species. add the flag
-!   to initialize the ozone mixing ratio.
-!   Laura D. Fowler (laura@ucar.edu) / 2021-03-09.
+! * added the subroutine init_physics_flags to initialize f_qc,f_qr,f_qi,f_qs,f_qg,f_nc,and f_ni.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-02-14.
 
 
  contains
@@ -104,9 +103,9 @@
                    config_o3climatology
 
  character(len=StrKIND),pointer::            &
+                   config_convection_scheme, &
                    config_lsm_scheme,        &
                    config_microp_scheme,     &
-                   config_convection_scheme, &
                    config_pbl_scheme,        &
                    config_sfclayer_scheme,   &
                    config_radt_lw_scheme,    &
@@ -149,9 +148,9 @@
 
  call mpas_pool_get_config(configs,'config_do_restart'       ,config_do_restart       )
  call mpas_pool_get_config(configs,'config_o3climatology'    ,config_o3climatology    )
+ call mpas_pool_get_config(configs,'config_convection_scheme',config_convection_scheme)
  call mpas_pool_get_config(configs,'config_lsm_scheme'       ,config_lsm_scheme       )
  call mpas_pool_get_config(configs,'config_microp_scheme'    ,config_microp_scheme    )
- call mpas_pool_get_config(configs,'config_convection_scheme',config_convection_scheme)
  call mpas_pool_get_config(configs,'config_pbl_scheme'       ,config_pbl_scheme       )
  call mpas_pool_get_config(configs,'config_sfclayer_scheme'  ,config_sfclayer_scheme  )
  call mpas_pool_get_config(configs,'config_radt_lw_scheme'   ,config_radt_lw_scheme   )
@@ -227,7 +226,7 @@
 
 !initialization of logical flags for cloud mixing ratios and number concentrations, and aerosols
 !number concentrations from the Thompson cloud microphysics:
- call init_physics_flags(state,f_qv,f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nr,f_nifa,f_nwfa,f_nbca)
+ call init_physics_flags(state,f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nifa,f_nwfa,f_nbca)
 
 !initialization of counters i_rainc and i_rainnc. i_rainc and i_rainnc track the number of
 !times the accumulated convective (rainc) and grid-scale (rainnc) rain exceed the prescribed
@@ -416,38 +415,29 @@
  end subroutine physics_init
 
 !=================================================================================================================
- subroutine init_physics_flags(state,f_qv,f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nr,f_nifa,f_nwfa,f_nbca)
+ subroutine init_physics_flags(state,f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nifa,f_nwfa,f_nbca)
 !=================================================================================================================
 
 !input arguments:
  type(mpas_pool_type),intent(in):: state
 
 !output arguments:
- logical,intent(out):: f_qv,f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nr,f_nifa,f_nwfa,f_nbca
+ logical,intent(out):: f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz
+ logical,intent(out):: f_nc,f_ni,f_nifa,f_nwfa,f_nbca
 
 !local pointers:
- integer,pointer:: index_qv,index_qc,index_qr,index_qi,index_qs,index_qg
- integer,pointer:: index_ni,index_nr
+ integer,pointer:: index_qc,index_qr,index_qi,index_qs,index_qg
+ integer,pointer:: index_ni
 
 !-----------------------------------------------------------------------------------------------------------------
 
-!at present, ozone is not a prognostic variable. therefore, we set f_qoz to false:
- f_qoz = .false.
-
-!at present, black carbon is not a prognostic variable. therefore, we set f_nbca to false:
- f_nbca = .false.
-
-!by default, the logical that initializes the water vapor mixing ratio should always be equal to true as every
-!physics parameterization needs to know the water vapor:
- f_qv = .true.
-
 !initializes the logicals assigned to mixing ratios:
- f_qc = .false.
- f_qr = .false.
- f_qi = .false.
- f_qs = .false.
- f_qg = .false.
- call mpas_pool_get_dimension(state,'index_qv',index_qv)
+ f_qc  = .false.
+ f_qr  = .false.
+ f_qi  = .false.
+ f_qs  = .false.
+ f_qg  = .false.
+ f_qoz = .false. !qoz is not defined in Registry.xml and f_qoz is initialized to false.
  call mpas_pool_get_dimension(state,'index_qc',index_qc)
  call mpas_pool_get_dimension(state,'index_qr',index_qr)
  call mpas_pool_get_dimension(state,'index_qi',index_qi)
@@ -460,17 +450,16 @@
  if(index_qs .gt. -1) f_qs = .true.
  if(index_qg .gt. -1) f_qg = .true.
 
-!initializes the logicals assigned to mixing ratios:
- f_nc   = .false.
+!initializes the logical assigned to number concentrations:
+ f_nc   = .false. !nc is not defined in Registry.xml - therefore f_nc is initialized to false.
  f_ni   = .false.
- f_nr   = .false.
- f_nifa = .false.
- f_nwfa = .false.
+ f_nifa = .false. !nifa is not defined in Registry.xml - therefore f_nc is initialized to false.
+ f_nwfa = .false. !nwfa is not defined in Registry.xml - therefore f_nc is initialized to false.
+ f_nbca = .false. !nbca is not defined in Registry.xml - therefore f_nc is initialized to false.
 
  call mpas_pool_get_dimension(state,'index_ni',index_ni)
- call mpas_pool_get_dimension(state,'index_nr',index_nr)
- if(index_ni .gt. -1  ) f_ni   = .true.
- if(index_nr .gt. -1  ) f_nr   = .true.
+
+ if(index_ni .gt. -1) f_ni = .true.
 
  end subroutine init_physics_flags
 

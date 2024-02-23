@@ -57,13 +57,14 @@
  end subroutine bl_mynn_post_finalize
 
 !=================================================================================================================
- subroutine bl_mynn_post_run(its,ite,kte,f_qc,f_qi,delt,qv,qc,qi,dqv,dqc,dqi,errmsg,errflg)
+ subroutine bl_mynn_post_run(its,ite,kte,f_qc,f_qi,f_qs,delt,qv,qc,qi,qs,dqv,dqc,dqi,dqs,errmsg,errflg)
 !=================================================================================================================
 
 !--- input arguments:
  logical,intent(in):: &
     f_qc, &! if true,the physics package includes the cloud liquid water mixing ratio.
-    f_qi   ! if true,the physics package includes the cloud ice mixing ratio.
+    f_qi, &! if true,the physics package includes the cloud ice mixing ratio.
+    f_qs   ! if true,the physics package includes the snow mixing ratio.
 
  integer,intent(in):: its,ite
  integer,intent(in):: kte
@@ -74,14 +75,16 @@
  real(kind=kind_phys),intent(in),dimension(its:ite,1:kte):: &
     qv,   &!
     qc,   &!
-    qi     !
+    qi,   &!
+    qs     !
 
 
 !--- inout arguments:
  real(kind=kind_phys),intent(inout),dimension(its:ite,1:kte):: &
     dqv,  &!
     dqc,  &!
-    dqi    !
+    dqi,  &!
+    dqs    !
 
 
 !--- output arguments:
@@ -92,7 +95,7 @@
 !--- local variables:
  integer:: i,k,kts
  real(kind=kind_phys):: rq,sq,tem
- real(kind=kind_phys),dimension(its:ite,1:kte):: sqv,sqc,sqi
+ real(kind=kind_phys),dimension(its:ite,1:kte):: sqv,sqc,sqi,sqs
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -127,6 +130,17 @@
           sqi(i,k) = sq + dqi(i,k)*delt
           rq = sqi(i,k)*(1.+sqv(i,k))
           dqi(i,k) = (rq - qi(i,k))/delt
+       enddo
+    enddo
+ endif
+
+ if(f_qs) then
+    do i = its,ite
+       do k = kts,kte
+          sq = qs(i,k)/(1.+qv(i,k))
+          sqs(i,k) = sq + dqs(i,k)*delt
+          rq = sqs(i,k)*(1.+sqv(i,k))
+          dqs(i,k) = (rq - qs(i,k))/delt
        enddo
     enddo
  endif

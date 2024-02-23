@@ -122,8 +122,16 @@
 ! * added the local variables swddir,swddni,and swddif which are output to subroutine rrtmg_swrad and now input
 !   to the updated module_sf_noahdrv.F.
 !   Laura D. Fowler (laura@ucar.edu) / 2023-04-21.
-! * added local variables to update the surface layer scheme and PBL scheme to WRFv4.5.
-!   Laura D. Fowler (laura@ucar.edu) / 2023-11-05.
+! * removed the variable f_qv which is not used in any of the ./physics_wrf modules.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-02-13.
+! * removed the definition of f_qc,f_qr,f_qi,f_qs,f_qg,f_nc,and f_ni as parameters. these variables are now
+!   initialized in mpas_atmphys_init.F (see subroutine init_physics_flags). also renamed f_qnc to f_nc, and f_qni
+!   to f_ni.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-02-14.
+! * added the variable spp_pbl needed in the updated version of the MYNN surface layer scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-02-14.
+! * added and modified variables needed to run the MYNN PBL scheme using the sourcecode from WRF version 4.6.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-02-18.
 
 
 !=================================================================================================================
@@ -193,16 +201,11 @@
     qr_p,             &!rain mixing ratio                                                   [kg/kg]
     qi_p,             &!cloud ice mixing ratio                                              [kg/kg]
     qs_p,             &!snow mixing ratio                                                   [kg/kg]
-    qg_p,             &!graupel mixing ratio                                                [kg/kg]
-    qoz_p              !ozone mixing ratio                                                  [kg/kg]
+    qg_p               !graupel mixing ratio                                                [kg/kg]
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
-    nc_p,             &!cloud water droplet number concentration                             [#/kg]
     ni_p,             &!cloud ice crystal number concentration                               [#/kg]
-    nr_p,             &!rain drop number concentration                                       [#/kg]
-    nifa_p,           &!number of water-friendly Thompson aerosol number concentration       [#/kg]
-    nwfa_p,           &!number of ice-friendly Thompson aerosol number concentration         [#/kg]
-    nbca_p             !black carbon number concentration                                    [#/kg]
+    nr_p               !rain drop number concentration                                       [#/kg]
 
 !... arrays located at w (vertical velocity) points, or at interface between layers:
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
@@ -235,19 +238,12 @@
 !          that the ice phase is included (except for the Kessler scheme which includes water
 !          clouds only.
 
-!    f_qv,f_qc,f_qr,f_qi,f_qs,f_qg: These logicals were initially defined in WRF to determine
-!          which kind of hydrometeors are present. Here, we assume that all six water species
-!          are present, even if their mixing ratios and number concentrations are zero.
-
 !=================================================================================================================
 
-!--- list of logical parameters used in the WRF model activated as functions of the physics parameterizations. In
-!    MPAS, since we do not have as many physics options as in WRF, we set these parameters to true for simplicity.
  logical,parameter:: &
-    warm_rain = .false.  !warm-phase cloud microphysics only (used in WRF).
+    warm_rain = .false.!warm-phase cloud microphysics only (used in WRF).
 
  logical:: &
-    f_qv,             &!parameter set to true to include the water vapor mixing ratio.
     f_qc,             &!parameter set to true to include the cloud water mixing ratio.
     f_qr,             &!parameter set to true to include the rain mixing ratio.
     f_qi,             &!parameter set to true to include the cloud ice mixing ratio.
@@ -258,7 +254,6 @@
  logical:: &
     f_nc,             &!parameter set to true to include the cloud water number concentration.
     f_ni,             &!parameter set to true to include the cloud ice number concentration.
-    f_nr,             &!parameter set to true to include the rain number concentration.
     f_nifa,           &!parameter set to true to include the number concentration of hygroscopic aerosols.
     f_nwfa,           &!parameter set to true to include the number concentration of hydrophobic aerosols.
     f_nbca             !parameter set to true to include the number concentration of black carbon.
@@ -402,8 +397,7 @@
     rthblten_p,       &!tendency of potential temperature due to PBL processes.
     rqvblten_p,       &!tendency of water vapor mixing ratio due to PBL processes.
     rqcblten_p,       &!tendency of cloud water mixing ratio due to PBL processes.
-    rqiblten_p,       &!tendency of cloud ice mixing ratio due to PBL processes.
-    rqozblten_p        !tendency of ozone mixing ratio due to PBL processes.
+    rqiblten_p         !tendency of cloud ice mixing ratio due to PBL processes.
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     kzh_p,            &!
@@ -411,15 +405,16 @@
     kzq_p              !
 
 !... MYNN PBL scheme (module_bl_mynn.F):
- integer,parameter:: spp_pbl       = 0          !generate array with random perturbations (0=off,1=on).
- integer,parameter:: icloud_bl     = 0          !no coupling of subgrid-scale clouds with radiation.
+ integer,parameter:: spp_pbl   = 0          !generate array with random perturbations (0=off,1=on).
+ integer,parameter:: icloud_bl = 0          !no coupling of subgrid-scale clouds with radiation.
 
  integer,dimension(:,:),allocatable:: &
-    ktopbl_shalc_p,   &!cloud-top level for PBL shallow convection.
-    nupdraft_p         !number of updrafts per grid cell when using the edmf option (bl_mynn_edmf=1).
+    kbl_plume_p        !level of highest penetrating plume.
 
  real(kind=RKIND),dimension(:,:),allocatable:: &
-    maxmfbl_p          !maximum mass flux for PBL shallow convection.
+    maxwidthbl_p,     &!max plume width                                                                        [m]
+    maxmfbl_p,        &!maximum mass flux for PBL shallow convection.
+    zbl_plume_p        !height of highest penetrating plume                                                    [m]
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     dqke_p,           &!
@@ -447,11 +442,8 @@
     cldfrabl_p         !
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
-    rncblten_p,       &!tendency of cloud water number concentration due to PBL processes.
-    rniblten_p,       &!tendency of cloud ice number concentration due to PBL processes.
-    rnifablten_p,     &!tendency of water-friendly Thompson aerosols due to PBL processes.
-    rnwfablten_p,     &!tendency of ice-friendly Thompson aerosols due to PBL processes.
-    rnbcablten_p       !tendency of black carbon aerosols due to PBL processes.
+    rqsblten_p,       &!tendency of snow mixing ratio due to PBL processes.
+    rniblten_p         !tendency of cloud ice number concentration due to PBL processes.
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     pattern_spp_pbl    !stochastic forcing for the MYMM PBL and surface layer schemes.

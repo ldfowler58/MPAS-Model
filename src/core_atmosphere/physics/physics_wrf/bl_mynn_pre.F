@@ -60,13 +60,14 @@
 !>\section arg_table_bl_mynn_pre_run
 !!\html\include bl_mynn_pre_run.html
 !!
- subroutine bl_mynn_pre_run(its,ite,kte,f_qc,f_qi,qv,qc,qi,sqv,sqc,sqi,errmsg,errflg)
+ subroutine bl_mynn_pre_run(its,ite,kte,f_qc,f_qi,f_qs,qv,qc,qi,qs,sqv,sqc,sqi,sqs,errmsg,errflg)
 !=================================================================================================================
 
 !--- input arguments:
  logical,intent(in):: &
     f_qc,      &! if true,the physics package includes the cloud liquid water mixing ratio.
-    f_qi        ! if true,the physics package includes the cloud ice mixing ratio.
+    f_qi,      &! if true,the physics package includes the cloud ice mixing ratio.
+    f_qs        ! if true,the physics package includes the snow mixing ratio.
 
  integer,intent(in):: its,ite
  integer,intent(in):: kte
@@ -74,7 +75,8 @@
  real(kind=kind_phys),intent(in),dimension(its:ite,1:kte):: &
     qv,        &!
     qc,        &!
-    qi          !
+    qi,        &!
+    qs          !
 
 
 !--- output arguments:
@@ -87,7 +89,8 @@
  real(kind=kind_phys),intent(out),dimension(its:ite,1:kte):: &
     sqv,       &!
     sqc,       &!
-    sqi         !
+    sqi ,      &!
+    sqs         !
 
 
 !--- local variables:
@@ -111,7 +114,7 @@
     enddo
  enddo
 
-!--- conversion from cloud liquid water and cloud ice mixing ratio to specific contents:
+!--- conversion from cloud liquid water,cloud ice,and snow mixing ratios to specific contents:
  if(f_qc) then
     do k = kts,kte
        do i = its,ite
@@ -123,6 +126,13 @@
     do k = kts,kte
        do i = its,ite
           sqi(i,k) = qi(i,k)/(1.+qv(i,k))
+       enddo
+    enddo
+ endif
+ if(f_qs) then
+    do k = kts,kte
+       do i = its,ite
+          sqs(i,k) = qs(i,k)/(1.+qs(i,k))
        enddo
     enddo
  endif

@@ -14,7 +14,6 @@
  use mpas_atmphys_constants
  use mpas_atmphys_vars
 
-!wrf physics:
  use module_sf_mynn,only: sfclay_mynn
  use module_sf_sfclay
  use module_sf_sfclayrev,only: sfclayrev
@@ -87,6 +86,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2023-05-15.
 ! * added the option sf_monin_obukhov_rev to run the revised surface layer scheme with the YSU PBL scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2023-05-15.
+! * updated the MYNN surface layer scheme to the sourcecode available from WRF version 4.6.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-02-14.
 
 
  contains
@@ -379,7 +380,6 @@
 
 !local pointers specific to mynn:
  real(kind=RKIND),dimension(:),pointer:: ch,qcg,snowh
- real(kind=RKIND),dimension(:,:),pointer:: cov,el_pbl,qsq,sh3d,tsq
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -546,10 +546,6 @@
              fh_sea(i,j) = fh(i)
              fm_sea(i,j) = fm(i)
           endif
-
-          waterdepth_p(i,j) = 0._RKIND
-          lakedepth_p(i,j)  = 0._RKIND
-          lakemask_p(i,j)   = 0._RKIND
        enddo
        enddo
 
@@ -571,15 +567,10 @@
 
     case("sf_mynn")
        !input variables:
-       call mpas_pool_get_array(diag_physics,'qcg'   ,qcg   )
-       call mpas_pool_get_array(sfc_input   ,'snowh' ,snowh )
-       call mpas_pool_get_array(diag_physics,'cov'   ,cov   )
-       call mpas_pool_get_array(diag_physics,'el_pbl',el_pbl)
-       call mpas_pool_get_array(diag_physics,'qsq'   ,qsq   )
-       call mpas_pool_get_array(diag_physics,'sh3d'  ,sh3d  )
-       call mpas_pool_get_array(diag_physics,'tsq'   ,tsq   )
+       call mpas_pool_get_array(diag_physics,'qcg'  ,qcg  )
+       call mpas_pool_get_array(sfc_input   ,'snowh',snowh)
        !inout variables:
-       call mpas_pool_get_array(diag_physics,'ch',ch        )
+       call mpas_pool_get_array(diag_physics,'ch',ch)
 
        do j = jts,jte
        do i = its,ite
@@ -631,7 +622,6 @@
 
 !local pointers specific to mynn:
  real(kind=RKIND),dimension(:),pointer:: ch,qcg
- real(kind=RKIND),dimension(:,:),pointer:: cov,el_pbl,qsq,sh3d,tsq
 
 !-----------------------------------------------------------------------------------------------------------------
 

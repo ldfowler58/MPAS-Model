@@ -6,6 +6,7 @@
  use sf_mynn,only    : sf_mynn_run
  use sf_mynn_pre,only: sf_mynn_pre_run
 
+
  implicit none
  private
  public:: sfclay_mynn
@@ -121,118 +122,97 @@
 !-- kte         end index for k in tile
 !=================================================================================================================
 
-! scalars
-!===================================
+!--- input arguments:
  integer,intent(in):: ids,ide,jds,jde,kds,kde, &
                       ims,ime,jms,jme,kms,kme, &
                       its,ite,jts,jte,kts,kte
  integer,intent(in):: itimestep
+ integer,intent(in):: isfflx
+ integer,intent(in),optional:: isftcflx, iz0tlnd
+ integer,intent(in),optional:: spp_pbl
 
  real(kind=RKIND),intent(in):: svp1,svp2,svp3,svpt0
  real(kind=RKIND),intent(in):: ep1,ep2,karman
  real(kind=RKIND),intent(in):: cp,g,rovcp,r,xlv
 
-!namelist options:
- integer,intent(in):: isfflx
- integer,intent(in),optional:: isftcflx, iz0tlnd
- integer,intent(in),optional:: spp_pbl
-!
+ real(kind=RKIND),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
+    dz8w,  &
+    qv3d,  &
+    p3d,   &
+    t3d,   &
+    qc3d,  &
+    u3d,   &
+    v3d,   &
+    rho3d, &
+    th3d,  &
+    pi3d
+
+ real(kind=RKIND),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+    pattern_spp_pbl
+
+ real(kind=RKIND),intent(in),dimension(ims:ime,jms:jme):: &
+    mavail, &
+    pblh,   &
+    xland,  &
+    tsk,    &
+    qcg,    &
+    psfcpa, &
+    snowh,  &
+    dx
+
+!--- output arguments:
  character(len=StrKIND),intent(out):: errmsg
  integer,intent(out):: errflg
 
-!===================================
-! 3d variables
-!===================================
- real(kind=RKIND),intent(in),dimension(ims:ime,kms:kme,jms:jme):: &
-                                                            dz8w, &
-                                                            qv3d, &
-                                                             p3d, &
-                                                             t3d, &
-                                                            qc3d, &
-                                                             u3d, &
-                                                             v3d, &
-                                                           rho3d, &
-                                                            th3d, &
-                                                            pi3d
-
- real(kind=RKIND),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
-                                                 pattern_spp_pbl
-
-!===================================
-! 2d variables
-!===================================
- real(kind=RKIND),intent(in),dimension(ims:ime,jms:jme):: &
-                                                          mavail, &
-                                                            pblh, &
-                                                           xland, &
-                                                             tsk, &
-                                                             qcg, &
-                                                          psfcpa, &
-                                                           snowh, &
-                                                              dx
-
  real(kind=RKIND),intent(out),dimension(ims:ime,jms:jme):: &
-                                                             u10, &
-                                                             v10, &
-                                                             th2, &
-                                                              t2, &
-                                                              q2
+    u10, &
+    v10, &
+    th2, &
+    t2,  &
+    q2
 
  real(kind=RKIND),intent(out),dimension(ims:ime,jms:jme),optional:: &
-                                                              ck, &
-                                                             cka, &
-                                                              cd, &
-                                                             cda, &
-                                                            ustm
+    ck,  &
+    cka, &
+    cd,  &
+    cda, &
+    ustm
 
+!--- inout arguments:
  real(kind=RKIND),intent(inout),dimension(ims:ime,jms:jme):: &
-                                                          regime, &
-                                                             hfx, &
-                                                             qfx, &
-                                                              lh, &
-                                                             mol, &
-                                                            rmol, &
-                                                            qsfc, &
-                                                             qgh, &
-                                                             znt, &
-                                                             zol, &
-                                                             ust, &
-                                                             cpm, &
-                                                            chs2, &
-                                                            cqs2, &
-                                                             chs, &
-                                                              ch, &
-                                                            flhc, &
-                                                            flqc, &
-                                                          gz1oz0, &
-                                                            wspd, &
-                                                              br, &
-                                                            psim, &
-                                                            psih
+    regime, &
+    hfx,    &
+    qfx,    &
+    lh,     &
+    mol,    &
+    rmol,   &
+    qsfc,   &
+    qgh,    &
+    znt,    &
+    zol,    &
+    ust,    &
+    cpm,    &
+    chs2,   &
+    cqs2,   &
+    chs,    &
+    ch,     &
+    flhc,   &
+    flqc,   &
+    gz1oz0, &
+    wspd,   &
+    br,     &
+    psim,   &
+    psih
 
-!===================================
-! 1d local arrays
-!===================================
- integer:: i,j,k,itf,jtf,ktf
+!--- local variables and arrays:
+ integer:: i,j,k
 
  real(kind=RKIND),dimension(its:ite)::  &
-                                                             u1d, &
-                                                             v1d, &
-                                                            u1d2, &
-                                                            v1d2, &
-                                                            qv1d, &
-                                                             p1d, &
-                                                        t1d,qc1d, &
-                                                           rho1d, &
-                                                          dz8w1d, &
-                                                          dz2w1d
+    u1d,v1d,u1d2,v1d2,qv1d,p1d,t1d,qc1d,rho1d,dz8w1d,dz2w1d
 
- real(kind=RKIND),dimension(its:ite):: &                                                        
-                                                        rstoch1d
+ real(kind=RKIND),dimension(its:ite):: rstoch1d
 
- real(kind=RKIND),dimension(ims:ime,jms:jme):: &
-                                                           qstar, &
-                                                           wstar
+ real(kind=RKIND),dimension(ims:ime,jms:jme):: qstar,wstar
 
 !intermediate variables and arrays to accomodate the CCPP-compliant sourcecode:
  logical:: f_spp
@@ -248,174 +228,165 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 
-      itf=min0(ite,ide-1)
-      jtf=min0(jte,jde-1)
-      ktf=min0(kte,kde-1)
+ f_spp = .false.
+ if(spp_pbl==1 .and. present(pattern_spp_pbl)) f_spp = .true.
 
-      f_spp = .false.
-      if(spp_pbl==1 .and. present(pattern_spp_pbl)) f_spp = .true.
+ errmsg = ' '
+ errflg = 0
 
-      errmsg = ' '
-      errflg = 0
+ do j = jts,jte
 
-      do j=jts,jte
+    !initialization of arrays ust,mol,qsfc,and qstar that are initialized if itimestep equals 1:
+    do i = its,ite
+       ust_hv(i)   = ust(i,j)
+       mol_hv(i)   = mol(i,j)
+       qsfc_hv(i)  = qsfc(i,j)
+       qstar_hv(i) = qstar(i,j)
+    enddo
 
-        !ccpp-physics: initialization of arrays ust,mol,qsfc,and qstar that are initialized if
-        !itimestep equals 1:
-        do i = its,ite
-           ust_hv(i)   = ust(i,j)
-           mol_hv(i)   = mol(i,j)
-           qsfc_hv(i)  = qsfc(i,j)
-           qstar_hv(i) = qstar(i,j)
+    call sf_mynn_pre_run(its,ite,kte,itimestep,dz8w,u3d,v3d,p3d,t3d,rho3d,qv3d,qc3d,f_spp, &
+              pattern_spp_pbl,ust_hv,mol_hv,qsfc_hv,qstar_hv,dz8w1d,u1d,v1d,p1d,t1d,rho1d, &
+              qv1d,qc1d,rstoch1d,dz2w1d,u1d2,v1d2,errmsg,errflg)
+
+    !input arguments:
+    do i = its,ite
+       mavail_hv(i) = mavail(i,j)
+       pblh_hv(i)   = pblh(i,j)
+       xland_hv(i)  = xland(i,j)
+       tsk_hv(i)    = tsk(i,j)
+       psfcpa_hv(i) = psfcpa(i,j)
+       qcg_hv(i)    = qcg(i,j)
+       snowh_hv(i)  = snowh(i,j)
+       dx_hv(i)     = dx(i,j)
+    enddo
+
+    !inout arguments:
+    do i = its,ite
+       regime_hv(i) = regime(i,j)
+       hfx_hv(i)    = hfx(i,j)
+       qfx_hv(i)    = qfx(i,j)
+       lh_hv(i)     = lh(i,j)
+       rmol_hv(i)   = rmol(i,j)
+       qgh_hv(i)    = qgh(i,j)
+       znt_hv(i)    = znt(i,j)
+       zol_hv(i)    = zol(i,j)
+       cpm_hv(i)    = cpm(i,j)
+       chs2_hv(i)   = chs2(i,j)
+       cqs2_hv(i)   = cqs2(i,j)
+       chs_hv(i)    = chs(i,j)
+       ch_hv(i)     = ch(i,j)
+       flhc_hv(i)   = flhc(i,j)
+       flqc_hv(i)   = flqc(i,j)
+       gz1oz0_hv(i) = gz1oz0(i,j)
+       wspd_hv(i)   = wspd(i,j)
+       br_hv(i)     = br(i,j)
+       psim_hv(i)   = psim(i,j)
+       psih_hv(i)   = psih(i,j)
+    enddo
+
+    !output arguments:
+    do i = its,ite
+       u10_hv(i)    = 0.
+       v10_hv(i)    = 0.
+       th2_hv(i)    = 0.
+       t2_hv(i)     = 0.
+       q2_hv(i)     = 0.
+       wstar_hv(i)  = 0.
+    enddo
+
+    !optional output arguments:
+    if(present(ck) .and. present(cka) .and. present(cd) .and. present(cda)) then
+       do i = its,ite
+          ck_hv(i)  = 0.
+          cka_hv(i) = 0.
+          cd_hv(i)  = 0.
+          cda_hv(i) = 0.
         enddo
+    endif
+    if(present(ustm)) then
+       do i = its,ite
+          ustm_hv(i) = ustm(i,j)
+       enddo
+    endif
 
-        call sf_mynn_pre_run(its,ite,kte,itimestep,dz8w,u3d,v3d,p3d,t3d,rho3d,qv3d,qc3d,f_spp, &
-                  pattern_spp_pbl,ust_hv,mol_hv,qsfc_hv,qstar_hv,dz8w1d,u1d,v1d,p1d,t1d,rho1d, &
-                  qv1d,qc1d,rstoch1d,dz2w1d,u1d2,v1d2,errmsg,errflg)
+    call sf_mynn_run( &
+                 u1d      = u1d       , v1d      = v1d       , t1d     = t1d      , qv1d      = qv1d      , &
+                 p1d      = p1d       , dz8w1d   = dz8w1d    , rho1d   = rho1d    , u1d2      = u1d2      , &
+                 v1d2     = v1d2      , dz2w1d   = dz2w1d    , cp      = cp       , g         = g         , &
+                 rovcp    = rovcp     , r        = r         , xlv     = xlv      , psfcpa    = psfcpa_hv , &
+                 chs      = chs_hv    , chs2     = chs2_hv   , cqs2    = cqs2_hv  , cpm       = cpm_hv    , &
+                 pblh     = pblh_hv   , rmol     = rmol_hv   , znt     = znt_hv   , ust       = ust_hv    , &
+                 mavail   = mavail_hv , zol      = zol_hv    , mol     = mol_hv   , regime    = regime_hv , &
+                 psim     = psim_hv   , psih     = psih_hv   , xland   = xland_hv , hfx       = hfx_hv    , &
+                 qfx      = qfx_hv    , tsk      = tsk_hv    , u10     = u10_hv   , v10       = v10_hv    , &
+                 th2      = th2_hv    , t2       = t2_hv     , q2      = q2_hv    , flhc      = flhc_hv   , &
+                 flqc     = flqc_hv   , snowh    = snowh_hv  , qgh     = qgh_hv   , qsfc      = qsfc_hv   , &
+                 lh       = lh_hv     , gz1oz0   = gz1oz0_hv , wspd    = wspd_hv  , br        = br_hv     , &
+                 isfflx   = isfflx    , dx       = dx_hv     , svp1    = svp1     , svp2      = svp2      , &
+                 svp3     = svp3      , svpt0    = svpt0     , ep1     = ep1      , ep2       = ep2       , &
+                 karman   = karman    , ch       = ch_hv     , qcg     = qcg_hv   , itimestep = itimestep , &
+                 wstar    = wstar_hv  , qstar    = qstar_hv  , ustm    = ustm_hv  , ck        = ck_hv     , &
+                 cka      = cka_hv    , cd       = cd_hv     , cda     = cda_hv   , spp_pbl   = f_spp     , &
+                 rstoch1d = rstoch1d  , isftcflx = isftcflx  , iz0tlnd = iz0tlnd                          , &
+                 its      = its       , ite      = ite       , errmsg  = errmsg   , errflg    = errflg      &
+                    )
 
-        !ccpp-physics:
-        !input arguments:
-        do i = its,ite
-           mavail_hv(i) = mavail(i,j)
-           pblh_hv(i)   = pblh(i,j)
-           xland_hv(i)  = xland(i,j)
-           tsk_hv(i)    = tsk(i,j)
-           psfcpa_hv(i) = psfcpa(i,j)
-           qcg_hv(i)    = qcg(i,j)
-           snowh_hv(i)  = snowh(i,j)
-           dx_hv(i)     = dx(i,j)
-        enddo
+    !inout arguments:
+    do i = its,ite
+       regime(i,j) = regime_hv(i)
+       hfx(i,j)    = hfx_hv(i)
+       qfx(i,j)    = qfx_hv(i)
+       lh(i,j)     = lh_hv(i)
+       mol(i,j)    = mol_hv(i)
+       rmol(i,j)   = rmol_hv(i)
+       qgh(i,j)    = qgh_hv(i)
+       qsfc(i,j)   = qsfc_hv(i)
+       znt(i,j)    = znt_hv(i)
+       zol(i,j)    = zol_hv(i)
+       ust(i,j)    = ust_hv(i)
+       cpm(i,j)    = cpm_hv(i)
+       chs2(i,j)   = chs2_hv(i)
+       cqs2(i,j)   = cqs2_hv(i)
+       chs(i,j)    = chs_hv(i)
+       ch(i,j)     = ch_hv(i)
+       flhc(i,j)   = flhc_hv(i)
+       flqc(i,j)   = flqc_hv(i)
+       gz1oz0(i,j) = gz1oz0_hv(i)
+       wspd(i,j)   = wspd_hv(i)
+       br(i,j)     = br_hv(i)
+       psim(i,j)   = psim_hv(i)
+       psih(i,j)   = psih_hv(i)
+    enddo
 
-        !inout arguments:
-        do i = its,ite
-           regime_hv(i) = regime(i,j)
-           hfx_hv(i)    = hfx(i,j)
-           qfx_hv(i)    = qfx(i,j)
-           lh_hv(i)     = lh(i,j)
-           rmol_hv(i)   = rmol(i,j)
-           qgh_hv(i)    = qgh(i,j)
-           znt_hv(i)    = znt(i,j)
-           zol_hv(i)    = zol(i,j)
-           cpm_hv(i)    = cpm(i,j)
-           chs2_hv(i)   = chs2(i,j)
-           cqs2_hv(i)   = cqs2(i,j)
-           chs_hv(i)    = chs(i,j)
-           ch_hv(i)     = ch(i,j)
-           flhc_hv(i)   = flhc(i,j)
-           flqc_hv(i)   = flqc(i,j)
-           gz1oz0_hv(i) = gz1oz0(i,j)
-           wspd_hv(i)   = wspd(i,j)
-           br_hv(i)     = br(i,j)
-           psim_hv(i)   = psim(i,j)
-           psih_hv(i)   = psih(i,j)
-        enddo
+    !output arguments:
+    do i = its,ite
+       u10(i,j)   = u10_hv(i)
+       v10(i,j)   = v10_hv(i)
+       th2(i,j)   = th2_hv(i)
+       t2(i,j)    = t2_hv(i)
+       q2(i,j)    = q2_hv(i)
+       wstar(i,j) = wstar_hv(i)
+       qstar(i,j) = qstar_hv(i)
+    enddo
 
-        !output arguments:
-        do i = its,ite
-           u10_hv(i)    = 0.
-           v10_hv(i)    = 0.
-           th2_hv(i)    = 0.
-           t2_hv(i)     = 0.
-           q2_hv(i)     = 0.
-           wstar_hv(i)  = 0.
-        enddo
+    !optional output arguments:
+    if(present(ck) .and. present(cka) .and. present(cd) .and. present(cda)) then
+       do i = its,ite
+          ck(i,j)  = ck_hv(i)
+          cka(i,j) = cka_hv(i)
+          cd(i,j)  = cd_hv(i)
+          cda(i,j) = cda_hv(i)
+       enddo
+    endif
+    if(present(ustm)) then
+       do i = its,ite
+          ustm(i,j) = ustm_hv(i)
+       enddo
+    endif
 
-        !optional output arguments:
-        if(present(ck) .and. present(cka) .and. present(cd) .and. present(cda)) then
-           do i = its,ite
-              ck_hv(i)  = 0.
-              cka_hv(i) = 0.
-              cd_hv(i)  = 0.
-              cda_hv(i) = 0.
-           enddo
-        endif
-        if(present(ustm)) then
-           do i = its,ite
-              ustm_hv(i) = ustm(i,j)
-           enddo
-        endif
-        !ccpp-physics end.
+ enddo
 
-        call sf_mynn_run( &
-                     u1d      = u1d       , v1d      = v1d       , t1d     = t1d      , qv1d      = qv1d      , &
-                     p1d      = p1d       , dz8w1d   = dz8w1d    , rho1d   = rho1d    , u1d2      = u1d2      , &
-                     v1d2     = v1d2      , dz2w1d   = dz2w1d    , cp      = cp       , g         = g         , &
-                     rovcp    = rovcp     , r        = r         , xlv     = xlv      , psfcpa    = psfcpa_hv , &
-                     chs      = chs_hv    , chs2     = chs2_hv   , cqs2    = cqs2_hv  , cpm       = cpm_hv    , &
-                     pblh     = pblh_hv   , rmol     = rmol_hv   , znt     = znt_hv   , ust       = ust_hv    , &
-                     mavail   = mavail_hv , zol      = zol_hv    , mol     = mol_hv   , regime    = regime_hv , &
-                     psim     = psim_hv   , psih     = psih_hv   , xland   = xland_hv , hfx       = hfx_hv    , &
-                     qfx      = qfx_hv    , tsk      = tsk_hv    , u10     = u10_hv   , v10       = v10_hv    , &
-                     th2      = th2_hv    , t2       = t2_hv     , q2      = q2_hv    , flhc      = flhc_hv   , &
-                     flqc     = flqc_hv   , snowh    = snowh_hv  , qgh     = qgh_hv   , qsfc      = qsfc_hv   , &
-                     lh       = lh_hv     , gz1oz0   = gz1oz0_hv , wspd    = wspd_hv  , br        = br_hv     , &
-                     isfflx   = isfflx    , dx       = dx_hv     , svp1    = svp1     , svp2      = svp2      , &
-                     svp3     = svp3      , svpt0    = svpt0     , ep1     = ep1      , ep2       = ep2       , &
-                     karman   = karman    , ch       = ch_hv     , qcg     = qcg_hv   , itimestep = itimestep , &
-                     wstar    = wstar_hv  , qstar    = qstar_hv  , ustm    = ustm_hv  , ck        = ck_hv     , &
-                     cka      = cka_hv    , cd       = cd_hv     , cda     = cda_hv   , spp_pbl   = f_spp     , &
-                     rstoch1d = rstoch1d  , isftcflx = isftcflx  , iz0tlnd = iz0tlnd                          , &
-                     its      = its       , ite      = ite       , errmsg  = errmsg   , errflg    = errflg      &
-                        )
-
-        !ccpp-physics:
-        !inout arguments:
-        do i = its,ite
-           regime(i,j) = regime_hv(i)
-           hfx(i,j)    = hfx_hv(i)
-           qfx(i,j)    = qfx_hv(i)
-           lh(i,j)     = lh_hv(i)
-           mol(i,j)    = mol_hv(i)
-           rmol(i,j)   = rmol_hv(i)
-           qgh(i,j)    = qgh_hv(i)
-           qsfc(i,j)   = qsfc_hv(i)
-           znt(i,j)    = znt_hv(i)
-           zol(i,j)    = zol_hv(i)
-           ust(i,j)    = ust_hv(i)
-           cpm(i,j)    = cpm_hv(i)
-           chs2(i,j)   = chs2_hv(i)
-           cqs2(i,j)   = cqs2_hv(i)
-           chs(i,j)    = chs_hv(i)
-           ch(i,j)     = ch_hv(i)
-           flhc(i,j)   = flhc_hv(i)
-           flqc(i,j)   = flqc_hv(i)
-           gz1oz0(i,j) = gz1oz0_hv(i)
-           wspd(i,j)   = wspd_hv(i)
-           br(i,j)     = br_hv(i)
-           psim(i,j)   = psim_hv(i)
-           psih(i,j)   = psih_hv(i)
-        enddo
-
-        !output arguments:
-        do i = its,ite
-           u10(i,j)   = u10_hv(i)
-           v10(i,j)   = v10_hv(i)
-           th2(i,j)   = th2_hv(i)
-           t2(i,j)    = t2_hv(i)
-           q2(i,j)    = q2_hv(i)
-           wstar(i,j) = wstar_hv(i)
-           qstar(i,j) = qstar_hv(i)
-        enddo
-
-        !optional output arguments:
-        if(present(ck) .and. present(cka) .and. present(cd) .and. present(cda)) then
-           do i = its,ite
-              ck(i,j)  = ck_hv(i)
-              cka(i,j) = cka_hv(i)
-              cd(i,j)  = cd_hv(i)
-              cda(i,j) = cda_hv(i)
-           enddo
-        endif
-        if(present(ustm)) then
-           do i = its,ite
-              ustm(i,j) = ustm_hv(i)
-           enddo
-        endif
-        !ccpp-physics end.
-
-      enddo
-
-    end subroutine sfclay_mynn
+ end subroutine sfclay_mynn
 
 !=================================================================================================================
  end module module_sf_mynn

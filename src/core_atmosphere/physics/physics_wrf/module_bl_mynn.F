@@ -17,33 +17,43 @@
 
 !=================================================================================================================
  subroutine mynn_bl_driver &
-                 (ids        , ide          , jds         , jde          , kds           , kde        , &
-                  ims        , ime          , jms         , jme          , kms           , kme        , &
-                  its        , ite          , jts         , jte          , kts           , kte        , &
-                  f_qc       , f_qi         , f_qoz       , f_nc         , f_ni          , f_nifa     , &
-                  f_nwfa     , f_nbca       , initflag    , do_restart   , do_DAcycling  , icloud_bl  , &
-                  delt       , dx           , xland       , ps           , ts            , qsfc       , &
-                  ust        , ch           , hfx         , qfx          , rmol          , wspd       , &
-                  znt        , uoce         , voce        , dz           , u             , v          , &
-                  w          , th           , tt          , p            , exner         , rho        , &
-                  qv         , qc           , qi          , nc           , ni            , nifa       , &
-                  nwfa       ,  nbca        , qoz         , rthraten     , pblh          , kpbl       , &
-                  cldfra_bl  , qc_bl        , qi_bl       , nupdraft     , ktop_plume    , maxmf      , &
-                  qke        , qke_adv      , tsq         , qsq          , cov           , el_pbl     , &
-                  rublten    , rvblten      , rthblten    , rqvblten     , rqcblten      , rqiblten   , &
-                  rncblten   , rniblten     , rnifablten  , rnwfablten   , rnbcablten    , rqozblten  , &
-                  edmf_a     , edmf_w       , edmf_qt     , edmf_thl     , edmf_ent      , edmf_qc    , &
-                  sub_thl    , sub_sqv      , det_thl     , det_sqv      , exch_h        , exch_m     , &
-                  dqke       , qwt          , qshear      , qbuoy        , qdiss         , sh3d       , &
-                  sm3d       , spp_pbl      , pattern_spp ,                                             &
-                  bl_mynn_tkeadvect , bl_mynn_tkebudget , bl_mynn_cloudpdf   , bl_mynn_mixlength      , &
-                  bl_mynn_closure   , bl_mynn_stfunc    , bl_mynn_topdown    , bl_mynn_scaleaware     , &
-                  bl_mynn_dheat_opt , bl_mynn_edmf      , bl_mynn_edmf_dd    , bl_mynn_edmf_mom       , &
-                  bl_mynn_edmf_tke  , bl_mynn_output    , bl_mynn_mixscalars , bl_mynn_cloudmix       , &
-                  bl_mynn_mixqt     , errmsg            , errflg                                        &
+                 (ids               , ide               , jds                , jde                , &
+                  kds               , kde               , ims                , ime                , &
+                  jms               , jme               , kms                , kme                , &
+                  its               , ite               , jts                , jte                , &
+                  kts               , kte               , f_qc               , f_qi               , &
+                  f_qs              , f_qoz             , f_nc               , f_ni               , &
+                  f_nifa            , f_nwfa            , f_nbca             , initflag           , &
+                  do_restart        , do_DAcycling      , icloud_bl          , delt               , &
+                  dx                , xland             , ps                 , ts                 , &
+                  qsfc              , ust               , ch                 , hfx                , &
+                  qfx               , rmol              , wspd               , znt                , &
+                  uoce              , voce              , dz                 , u                  , &
+                  v                 , w                 , th                 , tt                 , &
+                  p                 , exner             , rho                , qv                 , &
+                  qc                , qi                , qs                 , nc                 , &
+                  ni                , nifa              , nwfa               ,  nbca              , &
+                  qoz               , rthraten          , pblh               , kpbl               , &
+                  cldfra_bl         , qc_bl             , qi_bl              , maxwidth           , &
+                  maxmf             , ktop_plume        , ztop_plume         , qke                , &
+                  qke_adv           , tsq               , qsq                , cov                , &
+                  el_pbl            , rublten           , rvblten            , rthblten           , &
+                  rqvblten          , rqcblten          , rqiblten           , rqsblten           , &
+                  rncblten          , rniblten          , rnifablten         , rnwfablten         , &
+                  rnbcablten        , rqozblten         , edmf_a             , edmf_w             , &
+                  edmf_qt           , edmf_thl          , edmf_ent           , edmf_qc            , &
+                  sub_thl           , sub_sqv           , det_thl            , det_sqv            , &
+                  exch_h            , exch_m            , dqke               , qwt                , &
+                  qshear            , qbuoy             , qdiss              , sh3d               , &
+                  sm3d              , spp_pbl           , pattern_spp        ,                      &
+                  bl_mynn_tkeadvect , bl_mynn_tkebudget , bl_mynn_cloudpdf   , bl_mynn_mixlength  , &
+                  bl_mynn_closure   , bl_mynn_stfunc    , bl_mynn_topdown    , bl_mynn_scaleaware , &
+                  bl_mynn_dheat_opt , bl_mynn_edmf      , bl_mynn_edmf_dd    , bl_mynn_edmf_mom   , &
+                  bl_mynn_edmf_tke  , bl_mynn_output    , bl_mynn_mixscalars , bl_mynn_cloudmix   , &
+                  bl_mynn_mixqt     , errmsg            , errflg                                    &
 #if(WRF_CHEM == 1)
-                 ,mix_chem   , nchem        , kdvel       , ndvel        , chem3         , vd3d       , &
-                  frp_mean   , emis_ant_no                                                              &
+                 ,mix_chem   , nchem        , kdvel       , ndvel        , chem3         , vd3d   , &
+                  frp_mean   , emis_ant_no                                                          &
 #endif
                )
 
@@ -53,6 +63,7 @@
  logical,intent(in):: &
     f_qc,               &! if true,the physics package includes the cloud liquid water mixing ratio.
     f_qi,               &! if true,the physics package includes the cloud ice mixing ratio.
+    f_qs,               &! if true,the physics package includes the snow mixing ratio.
     f_qoz,              &! if true,the physics package includes the ozone mixing ratio.
     f_nc,               &! if true,the physics package includes the cloud liquid water number concentration.
     f_ni,               &! if true,the physics package includes the cloud ice number concentration.
@@ -132,6 +143,7 @@
  real(kind=kind_phys),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: &
     qc,      &!
     qi,      &!
+    qs,      &!
     qoz,     &!
     nc,      &!
     ni,      &!
@@ -146,7 +158,6 @@
 !--- inout arguments:
  integer,intent(inout),dimension(ims:ime,jms:jme):: &
     kpbl,        &!
-    nupdraft,    &!
     ktop_plume    !
 
  real(kind=kind_phys),intent(inout),dimension(ims:ime,jms:jme):: &
@@ -171,9 +182,12 @@
     rublten,     &!
     rvblten,     &!
     rthblten,    &!
-    rqvblten,    &!
+    rqvblten      !
+
+ real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: &
     rqcblten,    &!
     rqiblten,    &!
+    rqsblten,    &!
     rqozblten,   &!
     rncblten,    &!
     rniblten,    &!
@@ -202,7 +216,9 @@
     errflg        ! output error flag (-).
 
  real(kind=kind_phys),intent(out),dimension(ims:ime,jms:jme):: &
-    maxmf
+    maxwidth,    &!
+    maxmf,       &!
+    ztop_plume
 
  real(kind=kind_phys),intent(out),dimension(ims:ime,kms:kme,jms:jme):: &
     exch_h,      &!
@@ -235,7 +251,7 @@
 
  integer:: dheat_opt
  integer,dimension(its:ite):: &
-    kpbl_hv,nupdraft_hv,ktopplume_hv
+    kpbl_hv,ktopplume_hv
 
  real(kind=kind_phys):: denom,scaleaware
 
@@ -250,7 +266,7 @@
     w_hv
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
-    qc_hv,qi_hv,nc_hv,ni_hv,nifa_hv,nwfa_hv,nbca_hv,qoz_hv
+    qc_hv,qi_hv,qs_hv,nc_hv,ni_hv,nifa_hv,nwfa_hv,nbca_hv,qoz_hv
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
     pattern_spp_hv
@@ -262,7 +278,7 @@
     cldfrabl_hv,qcbl_hv,qibl_hv,elpbl_hv,qke_hv,qkeadv_hv,cov_hv,qsq_hv,tsq_hv,sh3d_hv,sm3d_hv
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
-    rublten_hv,rvblten_hv,rthblten_hv,rqvblten_hv,rqcblten_hv,rqiblten_hv, &
+    rublten_hv,rvblten_hv,rthblten_hv,rqvblten_hv,rqcblten_hv,rqiblten_hv,rqsblten_hv, &
     rncblten_hv,rniblten_hv,rnifablten_hv,rnwfablten_hv,rnbcablten_hv,rqozblten_hv
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
@@ -270,13 +286,13 @@
     subthl_hv,subsqv_hv,detthl_hv,detsqv_hv
 
  real(kind=kind_phys),dimension(its:ite):: &
-    maxmf_hv
+    maxwidth_hv,maxmf_hv,ztopplume_hv
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
     exchh_hv,exchm_hv,dqke_hv,qwt_hv,qshear_hv,qbuoy_hv,qdiss_hv
 
  real(kind=kind_phys),dimension(its:ite,kts:kte):: &
-    sqv_hv,sqc_hv,sqi_hv
+    sqv_hv,sqc_hv,sqi_hv,sqs_hv
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -333,6 +349,7 @@
        do i = its,ite
           qc_hv(i,k)   = 0._kind_phys
           qi_hv(i,k)   = 0._kind_phys
+          qs_hv(i,k)   = 0._kind_phys
           qoz_hv(i,k)  = 0._kind_phys
           nc_hv(i,k)   = 0._kind_phys
           ni_hv(i,k)   = 0._kind_phys
@@ -352,6 +369,13 @@
        do k = kts,kte
           do i = its,ite
              qi_hv(i,k) = qi(i,k,j)
+          enddo
+       enddo
+    endif
+    if(f_qs .and. present(qs)) then
+       do k = kts,kte
+          do i = its,ite
+             qs_hv(i,k) = qs(i,k,j)
           enddo
        enddo
     endif
@@ -399,7 +423,8 @@
     endif
 
     !--- conversion from mixing ratios to specific contents:
-    call bl_mynn_pre_run(its,ite,kte,f_qc,f_qi,qv_hv,qc_hv,qi_hv,sqv_hv,sqc_hv,sqi_hv,errmsg,errflg)
+    call bl_mynn_pre_run(its,ite,kte,f_qc,f_qi,f_qs,qv_hv,qc_hv,qi_hv,qs_hv,sqv_hv,sqc_hv, &
+                         sqi_hv,sqs_hv,errmsg,errflg)
 
     !--- initialization of the stochastic forcing in the PBL:
     if(spp_pbl > 0 .and. present(pattern_spp)) then
@@ -420,7 +445,6 @@
     do i = its,ite
        pblh_hv(i) = pblh(i,j)
        kpbl_hv(i) = kpbl(i,j)
-       nupdraft_hv(i)  = nupdraft(i,j)
        ktopplume_hv(i) = ktop_plume(i,j)
     enddo
 
@@ -463,45 +487,59 @@
     enddo
 #endif
 
+    do k = kts,kte
+       do i = its,ite
+          rqcblten_hv(i,k)   = 0._kind_phys
+          rqiblten_hv(i,k)   = 0._kind_phys
+          rqsblten_hv(i,k)   = 0._kind_phys
+          rqozblten_hv(i,k)  = 0._kind_phys
+          rncblten_hv(i,k)   = 0._kind_phys
+          rniblten_hv(i,k)   = 0._kind_phys
+          rnifablten_hv(i,k) = 0._kind_phys
+          rnwfablten_hv(i,k) = 0._kind_phys
+          rnbcablten_hv(i,k) = 0._kind_phys
+       enddo
+    enddo
 
     call bl_mynn_run ( &
-            initflag    = initflag      , restart         = do_restart     , cycling     = do_DAcycling   , &
-            delt        = delt          , dz              = dz_hv          , dx          = dx_hv          , &
-            znt         = znt_hv        , u               = u_hv           , v           = v_hv           , &
-            w           = w_hv          , th              = th_hv          , sqv         = sqv_hv         , &
-            sqc         = sqc_hv        , sqi             = sqi_hv         , qnc         = nc_hv          , &
-            qni         = ni_hv         , qnwfa           = nwfa_hv        , qnifa       = nifa_hv        , &
-            qnbca       = nbca_hv       , qozone          = qoz_hv         , p           = p_hv           , &
-            exner       = exner_hv      , rho             = rho_hv         , tt          = tt_hv          , &
-            xland       = xland_hv      , ts              = ts_hv          , qsfc        = qsfc_hv        , &
-            ps          = ps_hv         , ust             = ust_hv         , ch          = ch_hv          , &
-            hfx         = hfx_hv        , qfx             = qfx_hv         , rmol        = rmol_hv        , &
-            wspd        = wspd_hv       , uoce            = uoce_hv        , voce        = voce_hv        , &
-            qke         = qke_hv        , qke_adv         = qkeadv_hv      , tsq         = tsq_hv         , &
-            qsq         = qsq_hv        , cov             = cov_hv         , rthraten    = rthraten_hv    , &
-            rublten     = rublten_hv    , rvblten         = rvblten_hv     , rthblten    = rthblten_hv    , &
-            rqvblten    = rqvblten_hv   , rqcblten        = rqcblten_hv    , rqiblten    = rqiblten_hv    , &
-            rqncblten   = rncblten_hv   , rqniblten       = rniblten_hv    , rqnwfablten = rnwfablten_hv  , &
-            rqnifablten = rnifablten_hv , rqnbcablten     = rnbcablten_hv  , rqozblten   = rqozblten_hv   , &
-            exch_h      = exchh_hv      , exch_m          = exchm_hv       , pblh        = pblh_hv        , &
-            kpbl        = kpbl_hv       , el_pbl          = elpbl_hv       , dqke        = dqke_hv        , &
-            qwt         = qwt_hv        , qshear          = qshear_hv      , qbuoy       = qbuoy_hv       , &
-            qdiss       = qdiss_hv      , sh              = sh3d_hv        , sm          = sm3d_hv        , &
-            qc_bl       = qcbl_hv       , qi_bl           = qibl_hv        , cldfra_bl   = cldfrabl_hv    , &
-            icloud_bl   = icloud_bl     , edmf_a          = edmfa_hv       , edmf_w      = edmfw_hv       , &
-            edmf_qt     = edmfqt_hv     , edmf_thl        = edmfthl_hv     , edmf_ent    = edmfent_hv     , &
-            edmf_qc     = edmfqc_hv     , sub_thl         = subthl_hv      , sub_sqv     = subsqv_hv      , &
-            det_thl     = detthl_hv     , det_sqv         = detsqv_hv      , nupdraft    = nupdraft_hv    , &
-            maxmf       = maxmf_hv      , ktop_plume      = ktopplume_hv   , spp_pbl     = spp_pbl        , &
-            flag_qc     = f_qc          , flag_qi         = f_qi           , flag_qnc    = f_nc           , &
-            flag_qni    = f_ni          , flag_qnwfa      = f_nwfa         , flag_qnifa  = f_nifa         , &
-            flag_qnbca  = f_nbca        , pattern_spp_pbl = pattern_spp_hv , scaleaware  = scaleaware     , &
-            dheat_opt   = dheat_opt                                                                         &
+            initflag        = initflag       , restart     = do_restart     , cycling     = do_DAcycling  , &
+            delt            = delt           , dz          = dz_hv          , dx          = dx_hv         , &
+            znt             = znt_hv         , u           = u_hv           , v           = v_hv          , &
+            w               = w_hv           , th          = th_hv          , sqv         = sqv_hv        , &
+            sqc             = sqc_hv         , sqi         = sqi_hv         , sqs         = sqs_hv        , &
+            qnc             = nc_hv          , qni         = ni_hv          , qnwfa       = nwfa_hv       , &
+            qnifa           = nifa_hv        , qnbca       = nbca_hv        , qozone      = qoz_hv        , &
+            p               = p_hv           , exner       = exner_hv       , rho         = rho_hv        , &
+            tt              = tt_hv          , xland       = xland_hv       , ts          = ts_hv         , &
+            qsfc            = qsfc_hv        , ps          = ps_hv          , ust         = ust_hv        , &
+            ch              = ch_hv          , hfx         = hfx_hv         , qfx         = qfx_hv        , &
+            rmol            = rmol_hv        , wspd        = wspd_hv        , uoce        = uoce_hv       , &
+            voce            = voce_hv        , qke         = qke_hv         , qke_adv     = qkeadv_hv     , &
+            tsq             = tsq_hv         , qsq         = qsq_hv         , cov         = cov_hv        , &
+            rthraten        = rthraten_hv    , rublten     = rublten_hv     , rvblten     = rvblten_hv    , &
+            rthblten        = rthblten_hv    , rqvblten    = rqvblten_hv    , rqcblten    = rqcblten_hv   , &
+            rqiblten        = rqiblten_hv    , rqsblten    = rqsblten_hv    , rqncblten   = rncblten_hv   , &
+            rqniblten       = rniblten_hv    , rqnwfablten = rnwfablten_hv  , rqnifablten = rnifablten_hv , &
+            rqnbcablten     = rnbcablten_hv  , rqozblten   = rqozblten_hv   , exch_h      = exchh_hv      , &
+            exch_m          = exchm_hv       , pblh        = pblh_hv        , kpbl        = kpbl_hv       , &
+            el_pbl          = elpbl_hv       , dqke        = dqke_hv        , qwt         = qwt_hv        , &
+            qshear          = qshear_hv      , qbuoy       = qbuoy_hv       , qdiss       = qdiss_hv      , &
+            sh              = sh3d_hv        , sm          = sm3d_hv        , qc_bl       = qcbl_hv       , &
+            qi_bl           = qibl_hv        , cldfra_bl   = cldfrabl_hv    , icloud_bl   = icloud_bl     , &
+            edmf_a          = edmfa_hv       , edmf_w      = edmfw_hv       , edmf_qt     = edmfqt_hv     , &
+            edmf_thl        = edmfthl_hv     , edmf_ent    = edmfent_hv     , edmf_qc     = edmfqc_hv     , &
+            sub_thl         = subthl_hv      , sub_sqv     = subsqv_hv      , det_thl     = detthl_hv     , &
+            det_sqv         = detsqv_hv      , maxwidth    = maxwidth_hv    , maxmf       = maxmf_hv      , &
+            ktop_plume      = ktopplume_hv   , ztop_plume  = ztopplume_hv   , spp_pbl     = spp_pbl       , &
+            flag_qc         = f_qc           , flag_qi     = f_qi           , flag_qs     = f_qs          , &
+            flag_qoz        = f_qoz          , flag_qnc    = f_nc           , flag_qni    = f_ni          , &
+            flag_qnwfa      = f_nwfa         , flag_qnifa  = f_nifa         , flag_qnbca  = f_nbca        , &
+            pattern_spp_pbl = pattern_spp_hv , scaleaware  = scaleaware     , dheat_opt   = dheat_opt                                                                         &
 #if(WRF_CHEM == 1)
-           ,mix_chem    = mix_chem      , enh_mix         = enh_mix        , rrfs_sd     = rrfs_sd        , &
-            smoke_dbg   = smoke_dbg     , nchem           = nchem          , kdvel       = kdvel          , &
-            ndvel       = ndvel         , chem            = chem_hv        , emis_ant_no = emisant_no_hv  , &
-            frp         = frp_hv        , vdep            = vd_hv                                           &
+           ,mix_chem  = mix_chem  , enh_mix = enh_mix , rrfs_sd     = rrfs_sd        , &
+            smoke_dbg = smoke_dbg , nchem   = nchem   , kdvel       = kdvel          , &
+            ndvel     = ndvel     , chem    = chem_hv , emis_ant_no = emisant_no_hv  , &
+            frp       = frp_hv    , vdep    = vd_hv                                    &
 #endif
            ,bl_mynn_tkeadvect  = bl_mynn_tkeadvect  , &
             bl_mynn_tkebudget  = bl_mynn_tkebudget  , &
@@ -522,14 +560,13 @@
 
 
     !--- conversion of tendencies in terms of specific contents to in terms of mixing ratios:
-    call  bl_mynn_post_run(its,ite,kte,f_qc,f_qi,delt,qv_hv,qc_hv,qi_hv,rqvblten_hv,rqcblten_hv, &
-                           rqiblten_hv,errmsg,errflg)
+    call  bl_mynn_post_run(its,ite,kte,f_qc,f_qi,f_qs,delt,qv_hv,qc_hv,qi_hv,qs_hv,rqvblten_hv,rqcblten_hv, &
+                           rqiblten_hv,rqsblten_hv,errmsg,errflg)
 
     !--- inout arguments:
     do i = its,ite
        pblh(i,j)  = pblh_hv(i)
        kpbl(i,j)  = kpbl_hv(i)
-       nupdraft(i,j)   = nupdraft_hv(i)
        ktop_plume(i,j) = ktopplume_hv(i)
     enddo
     do k = kts,kte
@@ -562,56 +599,63 @@
           rqvblten(i,k,j)   = rqvblten_hv(i,k) 
        enddo
     enddo
-    if(f_qc) then
+    if(f_qc .and. present(rqcblten)) then
        do k = kts,kte
           do i = its,ite
-             rqcblten(i,k,j)   = rqcblten_hv(i,k) 
+             rqcblten(i,k,j) = rqcblten_hv(i,k) 
           enddo
        enddo
     endif
-    if(f_qi) then
+    if(f_qi .and. present(rqiblten)) then
        do k = kts,kte
           do i = its,ite
-             rqiblten(i,k,j)   = rqiblten_hv(i,k) 
+             rqiblten(i,k,j) = rqiblten_hv(i,k) 
           enddo
        enddo
     endif
-    if(f_qoz) then
+    if(f_qs .and. present(rqsblten)) then
        do k = kts,kte
           do i = its,ite
-             rqozblten(i,k,j)  = rqozblten_hv(i,k) 
+             rqsblten(i,k,j) = rqsblten_hv(i,k)
           enddo
        enddo
     endif
-    if(f_nc) then
+    if(f_qoz .and. present(rqozblten)) then
        do k = kts,kte
           do i = its,ite
-             rncblten(i,k,j)   = rncblten_hv(i,k) 
+             rqozblten(i,k,j) = rqozblten_hv(i,k) 
           enddo
        enddo
     endif
-    if(f_ni) then
+    if(f_nc .and. present(rncblten)) then
        do k = kts,kte
           do i = its,ite
-             rniblten(i,k,j)   = rniblten_hv(i,k) 
+             rncblten(i,k,j) = rncblten_hv(i,k) 
           enddo
        enddo
     endif
-    if(f_nifa) then
+    if(f_ni .and. present(rniblten)) then
+       do k = kts,kte
+          do i = its,ite
+             rniblten(i,k,j) = rniblten_hv(i,k) 
+          enddo
+       enddo
+    endif
+    if(f_nifa .and. present(rnifablten)) then
        do k = kts,kte
           do i = its,ite
              rnifablten(i,k,j) = rnifablten_hv(i,k) 
           enddo
        enddo
     endif
-    if(f_nwfa) then
+    if(f_nwfa .and. present(rnwfablten)) then
        do k = kts,kte
           do i = its,ite
              rnwfablten(i,k,j) = rnwfablten_hv(i,k) 
           enddo
        enddo
     endif
-    if(f_nbca) then
+    if(f_nbca .and. present(rnbcablten)) then
        do k = kts,kte
           do i = its,ite
              rnbcablten(i,k,j) = rnbcablten_hv(i,k) 
@@ -636,7 +680,9 @@
 
     !--- output arguments:
     do i = its,ite
-       maxmf(i,j) = maxmf_hv(i)
+       maxwidth(i,j)   = maxwidth_hv(i)
+       maxmf(i,j)      = maxmf_hv(i)
+       ztop_plume(i,j) = ztopplume_hv(i)
     enddo
 
     do k = kts,kte
