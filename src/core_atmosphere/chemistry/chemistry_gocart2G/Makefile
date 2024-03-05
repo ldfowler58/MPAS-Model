@@ -13,6 +13,11 @@ OBJS = \
 	NI2G_instance_NI.o \
 	SS2G_instance_SS.o \
 	SU2G_instance_SU.o \
+	CA2G_StateSpecs.o \
+	DU2G_StateSpecs.o \
+	NI2G_StateSpecs.o \
+	SS2G_StateSpecs.o \
+	SU2G_StateSpecs.o \
 	GOCART2G_MieMod.o \
 	GOCART2G_Process.o
 
