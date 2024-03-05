@@ -6,6 +6,13 @@ dummy:
 	echo "****** compiling chemistry_gocart2G ******"
 
 OBJS = \
+	CA2G_instance_CA_bc.o \
+	CA2G_instance_CA_br.o \
+	CA2G_instance_CA_oc.o \
+	DU2G_instance_DU.o \
+	NI2G_instance_NI.o \
+	SS2G_instance_SS.o \
+	SU2G_instance_SU.o \
 	GOCART2G_MieMod.o \
 	GOCART2G_Process.o
 
