@@ -368,6 +368,10 @@ module atm_core
       use mpas_atmphys_control
       use mpas_atmphys_init
       use mpas_atmphys_manager
+
+#ifdef ATM_CHEMISTRY
+      use mpas_chemistry_gocart2G_init
+#endif
 #endif
 
       implicit none
@@ -551,6 +555,10 @@ module atm_core
          call physics_init(dminfo, clock, block % configs, mesh, diag, tend, state, 1, diag_physics, &
                            atm_input, sfc_input)
       endif
+
+#ifdef ATM_CHEMISTRY
+      call init_chemistry_gocart2G(dminfo,mesh)
+#endif
 #endif
    
       call atm_compute_mesh_scaling(mesh, block % configs)
@@ -954,13 +962,15 @@ module atm_core
       use mpas_kind_types
       use atm_time_integration
 #ifdef DO_PHYSICS
-#ifdef ATM_CHEMISTRY
-      use mpas_chemistry_gocart_driver
-#endif
       use mpas_atmphys_control
       use mpas_atmphys_driver
       use mpas_atmphys_manager
       use mpas_atmphys_update
+
+#ifdef ATM_CHEMISTRY
+      use mpas_chemistry_manager
+      use mpas_chemistry_gocart2G_driver
+#endif
 #endif
       use mpas_atm_halos, only: exchange_halo_group
    
@@ -989,13 +999,13 @@ module atm_core
 
 #ifdef DO_PHYSICS
 #ifdef ATM_CHEMISTRY
-      !call driver for gocart chemistry:
-      call chemistry_driver(domain)
+      call chemistry_timetracker(clock)
+      call gocart2G_driver(domain,itimestep,xtime_s)
 #endif
       !proceed with physics if moist_physics is set to true:
       if(moist_physics) then
          call physics_timetracker(domain,dt,clock,itimestep,xtime_s)
-         call physics_driver(domain,itimestep,xtime_s)
+!        call physics_driver(domain,itimestep,xtime_s)
       endif
 #endif
 
