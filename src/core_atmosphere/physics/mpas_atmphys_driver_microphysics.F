@@ -157,6 +157,12 @@
        if(.not.allocated(reice_p)   ) allocate(reice_p(ims:ime,kms:kme,jms:jme)  )
        if(.not.allocated(resnow_p)  ) allocate(resnow_p(ims:ime,kms:kme,jms:jme) )
 
+       !precipitation flux:
+       if(.not.allocated(rainprod_p) ) allocate(rainprod_p(ims:ime,kms:kme,jms:jme) )
+       if(.not.allocated(evapprod_p) ) allocate(evapprod_p(ims:ime,kms:kme,jms:jme) )
+       if(.not.allocated(prcpfluxl_p)) allocate(prcpfluxl_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(prcpfluxi_p)) allocate(prcpfluxi_p(ims:ime,kms:kme,jms:jme))
+
     microp2_select: select case(microp_scheme)
 
        case("mp_thompson","mp_thompson_aerosols")
@@ -170,9 +176,6 @@
           if(.not.allocated(nr_p)  ) allocate(nr_p(ims:ime,kms:kme,jms:jme)  )
           if(.not.allocated(nifa_p)) allocate(nifa_p(ims:ime,kms:kme,jms:jme))
           if(.not.allocated(nwfa_p)) allocate(nwfa_p(ims:ime,kms:kme,jms:jme))
-
-          if(.not.allocated(rainprod_p)) allocate(rainprod_p(ims:ime,kms:kme,jms:jme))
-          if(.not.allocated(evapprod_p)) allocate(evapprod_p(ims:ime,kms:kme,jms:jme))
 
           !mass-weigthed mean velocities:
           if(.not.allocated(vqr_p)) allocate(vqr_p(ims:ime,kms:kme,jms:jme))
@@ -242,6 +245,12 @@
        if(allocated(reice_p)   ) deallocate(reice_p   )
        if(allocated(resnow_p)  ) deallocate(resnow_p  )
 
+       !precipitation flux:
+       if(allocated(rainprod_p) ) deallocate(rainprod_p )
+       if(allocated(evapprod_p) ) deallocate(evapprod_p )
+       if(allocated(prcpfluxl_p)) deallocate(prcpfluxl_p)
+       if(allocated(prcpfluxi_p)) deallocate(prcpfluxi_p)
+
     microp2_select: select case(microp_scheme)
 
        case("mp_thompson","mp_thompson_aerosols")
@@ -255,9 +264,6 @@
           if(allocated(nr_p)    ) deallocate(nr_p    )
           if(allocated(nifa_p)  ) deallocate(nifa_p  )
           if(allocated(nwfa_p)  ) deallocate(nwfa_p  )
-
-          if(allocated(rainprod_p)) deallocate(rainprod_p)
-          if(allocated(evapprod_p)) deallocate(evapprod_p)
 
           !mass-weigthed mean velocities:
           if(allocated(vqr_p)) deallocate(vqr_p)
@@ -454,26 +460,27 @@
     case ("mp_wsm6")
        call mpas_timer_start('mp_wsm6')
        call wsm6( &
-                  th        = th_p        , q          = qv_p         , qc        = qc_p      , &
-                  qr        = qr_p        , qi         = qi_p         , qs        = qs_p      , &
-                  qg        = qg_p        , den        = rho_p        , pii       = pi_p      , &
-                  p         = pres_p      , delz       = dz_p         , delt      = dt_microp , &
-                  g         = gravity     , cpd        = cp           , cpv       = cpv       , &
-                  rd        = R_d         , rv         = R_v          , t0c       = svpt0     , &
-                  ep1       = ep_1        , ep2        = ep_2         , qmin      = epsilon   , &
-                  xls       = xls         , xlv0       = xlv          , xlf0      = xlf       , &
-                  den0      = rho_a       , denr       = rho_w        , cliq      = cliq      , &
-                  cice      = cice        , psat       = psat         , rain      = rainnc_p  , &
-                  rainncv   = rainncv_p   , snow       = snownc_p     , snowncv   = snowncv_p , &
-                  graupel   = graupelnc_p , graupelncv = graupelncv_p , sr        = sr_p      , &
-                  re_cloud  = recloud_p   , re_ice     = reice_p      , re_snow   = resnow_p  , &
-                  has_reqc  = has_reqc    , has_reqi   = has_reqi     , has_reqs  = has_reqs  , &
-                  re_qc_bg  = re_qc_bg    , re_qi_bg   = re_qi_bg     , re_qs_bg  = re_qs_bg  , &
-                  re_qc_max = re_qc_max   , re_qi_max  = re_qi_max    , re_qs_max = re_qs_max , &
-                  errmsg    = errmsg      , errflg     = errflg                               , &
-                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde       , &
-                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme       , &
-                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte         &
+                  th        = th_p        , q          = qv_p         , qc        = qc_p        , &
+                  qr        = qr_p        , qi         = qi_p         , qs        = qs_p        , &
+                  qg        = qg_p        , den        = rho_p        , pii       = pi_p        , &
+                  p         = pres_p      , delz       = dz_p         , delt      = dt_microp   , &
+                  g         = gravity     , cpd        = cp           , cpv       = cpv         , &
+                  rd        = R_d         , rv         = R_v          , t0c       = svpt0       , &
+                  ep1       = ep_1        , ep2        = ep_2         , qmin      = epsilon     , &
+                  xls       = xls         , xlv0       = xlv          , xlf0      = xlf         , &
+                  den0      = rho_a       , denr       = rho_w        , cliq      = cliq        , &
+                  cice      = cice        , psat       = psat         , rain      = rainnc_p    , &
+                  rainncv   = rainncv_p   , snow       = snownc_p     , snowncv   = snowncv_p   , &
+                  graupel   = graupelnc_p , graupelncv = graupelncv_p , sr        = sr_p        , &
+                  rainprod  = rainprod_p  , evapprod   = evapprod_p   , prcpfluxl = prcpfluxl_p , &
+                  prcpfluxi = prcpfluxi_p , re_cloud   = recloud_p    , re_ice    = reice_p     , &
+                  re_snow   = resnow_p    , has_reqc   = has_reqc     , has_reqi  = has_reqi    , &
+                  has_reqs  = has_reqs    , re_qc_bg   = re_qc_bg     , re_qi_bg  = re_qi_bg    , &
+                  re_qs_bg  = re_qs_bg    , re_qc_max  = re_qc_max    , re_qi_max = re_qi_max   , &
+                  re_qs_max = re_qs_max   , errmsg     = errmsg       , errflg    = errflg      , &
+                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde         , &
+                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme         , &
+                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte           &
                )
        call mpas_timer_stop('mp_wsm6')
 

@@ -23,13 +23,11 @@
                  has_reqc,has_reqi,has_reqs,re_qc_bg,re_qi_bg,    &
                  re_qs_bg,re_qc_max,re_qi_max,re_qs_max,          &
                  re_cloud,re_ice,re_snow,                         &
+                 evapprod,rainprod,prcpfluxl,prcpfluxi,           &
                  ids,ide,jds,jde,kds,kde,                         &
                  ims,ime,jms,jme,kms,kme,                         &
                  its,ite,jts,jte,kts,kte,                         &
                  errmsg,errflg                                    &
-#if(WRF_CHEM == 1)
-                 ,wetscav_on,evapprod,rainprod                    &
-#endif
                 )
 !=================================================================================================================
 
@@ -83,11 +81,8 @@
  real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: &
     refl_10cm
 
-#if(WRF_CHEM == 1) 
- logical,intent(in):: wetscav_on
- real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme ):: &
-    rainprod,evapprod
-#endif
+ real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: &
+    rainprod,evapprod,prcpfluxl,prcpfluxi
 
 !output arguments:
  character(len=*),intent(out):: errmsg
@@ -106,6 +101,7 @@
  real(kind=RKIND),dimension(its:ite,kts:kte):: t_hv,den_hv,p_hv,delz_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qi_hv,qr_hv,qs_hv,qg_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: re_qc_hv,re_qi_hv,re_qs_hv
+ real(kind=RKIND),dimension(its:ite,kts:kte):: rainprod_hv,evapprod_hv
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -152,9 +148,6 @@
                  rain=rain_hv,rainncv=rainncv_hv,sr=sr_hv,snow=snow_hv,           &
                  snowncv=snowncv_hv,graupel=graupel_hv,graupelncv=graupelncv_hv,  &
                  its=its,ite=ite,kts=kts,kte=kte,errmsg=errmsg,errflg=errflg      &
-#if(WRF_CHEM == 1)
-                 ,rainprod2d=rainprod_hv,evapprod2d=evapprodhv                    &
-#endif
                     )
 
     do i = its,ite
@@ -186,24 +179,14 @@
           graupelncv(i,j) = graupelncv_hv(i)
        enddo
     endif
-
-#if(WRF_CHEM == 1)
-    if(wetscav_on) then
+    if(present(rainprod) .and. present(evapprod)) then
        do k = kts,kte
           do i = its, ite
              rainprod(i,k,j) = rainprod_hv(i,k)
              evapprod(i,k,j) = evapprod_hv(i,k)
           enddo
-        enddo
-     else
-       do k = kts,kte
-          do i = its, ite
-             rainprod(i,k,j) = 0.
-             evapprod(i,k,j) = 0.
-          enddo
-        enddo
-     endif
-#endif
+       enddo
+    endif
 
 !--- call to computation of effective radii for cloud water, cloud ice, and snow:
      do_microp_re = .false.

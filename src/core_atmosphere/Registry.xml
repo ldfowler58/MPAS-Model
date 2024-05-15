@@ -680,8 +680,10 @@
 			<var name="surface_pressure"/>
 
 #ifdef DO_PHYSICS
-			<var name="rainprod" packages="mp_thompson_in"/>
-			<var name="evapprod" packages="mp_thompson_in"/>
+			<var name="rainprod"/>
+			<var name="evapprod"/>
+			<var name="prcpfluxl"/>
+			<var name="prcpfluxi"/>
 			<var name="re_cloud" packages="mp_thompson_in;mp_wsm6_in"/>
 			<var name="re_ice" packages="mp_thompson_in;mp_wsm6_in"/>
 			<var name="re_snow" packages="mp_thompson_in;mp_wsm6_in"/>
@@ -2484,11 +2486,19 @@
 
                 <var name="rainprod" type="real" dimensions="nVertLevels nCells Time" units="s^{-1}"
                      description="rain production rate"
-                     packages="mp_thompson_in"/>
+                     packages="mp_thompson_in;mp_wsm6_in"/>
 
                 <var name="evapprod" type="real" dimensions="nVertLevels nCells Time" units="s^{-1}"
                      description="rain evaporation rate"
-                     packages="mp_thompson_in"/>
+                     packages="mp_thompson_in;mp_wsm6_in"/>
+
+                <var name="prcpfluxl" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+                     description="grid-scale precipitation flux in the liquid phase"
+                     packages="mp_thompson_in;mp_wsm6_in"/>
+
+                <var name="prcpfluxi" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+                     description="grid-scale precipitation flux in the ice phase"
+                     packages="mp_thompson_in;mp_wsm6_in"/>
 
                 <var name="vqr" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
                      description="mass-weighted mean velocity for rain"

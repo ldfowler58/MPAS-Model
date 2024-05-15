@@ -344,6 +344,8 @@
     nwfa_p,           &!
     rainprod_p,       &!
     evapprod_p,       &!
+    prcpfluxl_p,      &!
+    prcpfluxi_p,      &!
     recloud_p,        &!
     reice_p,          &!
     resnow_p,         &!
