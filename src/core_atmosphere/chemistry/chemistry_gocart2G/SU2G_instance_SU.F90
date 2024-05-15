@@ -21,7 +21,7 @@
  integer,parameter:: nbins = 4
 
 !heights [m] of LTO, CDS and CRS aviation emissions layers:
- real(kind=RKIND),dimension(nbins),parameter:: aviation_vertical_layers = (/0.0,100.0,9.0e3,10.0e3/)
+ real(kind=RKIND),dimension(4),parameter:: aviation_vertical_layers = (/0.0,100.0,9.0e3,10.0e3/)
 
 !fraction of anthropogenic emissions that are SO4:
  real(kind=RKIND),parameter:: so4_anthropogenic_fraction = 0.03
@@ -30,7 +30,7 @@
  real(kind=RKIND),parameter:: aircraft_fuel_emission_factor = 1.0000
 
 !scavenging efficiency per bin [km-1] (NOT USED UNLESS RAS IS CALLED):
- real(kind=RKIND),dimension(nbins),parameter:: fscav = (/0.0,0.0,0.4,0.4/)
+ real(kind=RKIND),dimension(nbins),parameter:: fscav = (/0.0,0.0,0.4,0.0/)
 
 !dry particle radius [um], used for settling:
  real(kind=RKIND),dimension(nbins),parameter:: particle_radius_microns =  (/0.0,0.0,0.35,0.0/)
