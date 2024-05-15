@@ -175,6 +175,23 @@ module mpas_atm_halos
          call mpas_dmpar_exch_group_add_field(domain, 'physics:cuten', 'rvcuten', timeLevel=1, haloLayers=(/1,2/))
 #endif
 
+#ifdef ATM_CHEMISTRY
+         !
+         ! Set up halo exchange groups used by chemistry
+         !
+         call mpas_dmpar_exch_group_create(domain, 'dynamics:chems')
+         call mpas_dmpar_exch_group_add_field(domain, 'dynamics:chems', 'chems', timeLevel=2, haloLayers=(/1,2/))
+
+         call mpas_dmpar_exch_group_create(domain, 'dynamics:chems_old')
+         call mpas_dmpar_exch_group_add_field(domain, 'dynamics:chems_old', 'chems', timeLevel=1, haloLayers=(/1,2/))
+
+         call mpas_dmpar_exch_group_create(domain, 'dynamics:tracers')
+         call mpas_dmpar_exch_group_add_field(domain, 'dynamics:tracers', 'tracers', timeLevel=2, haloLayers=(/1,2/))
+
+         call mpas_dmpar_exch_group_create(domain, 'dynamics:tracers_old')
+         call mpas_dmpar_exch_group_add_field(domain, 'dynamics:tracers_old', 'tracers', timeLevel=1, haloLayers=(/1,2/))
+#endif
+
          !
          ! Set routine to exchange a halo group
          !
