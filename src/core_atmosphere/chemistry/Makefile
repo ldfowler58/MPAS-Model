@@ -23,7 +23,13 @@ OBJS = \
 	mpas_chemistry_gocart_driver_opt.o \
 	mpas_chemistry_gocart_driver_seasalt.o \
 	mpas_chemistry_gocart_driver.o \
-	mpas_chemistry_gocart_interface.o
+	mpas_chemistry_manager.o \
+	mpas_chemistry_gocart_interface.o \
+	mpas_chemistry_gocart2G_driver.o \
+	mpas_chemistry_gocart2G_init.o \
+	mpas_chemistry_gocart2G_interface.o \
+	mpas_chemistry_gocart2G_vars.o
+
 
 core_chemistry_wrf:
 	(cd chemistry_wrf; $(MAKE) all COREDEF="$(COREDEF)")
@@ -70,6 +76,14 @@ mpas_chemistry_gocart_driver.o: \
 	mpas_chemistry_gocart_driver_seasalt.o \
 	mpas_chemistry_gocart_interface.o
 
+mpas_chemistry_gocart2G_driver.o:\
+	mpas_chemistry_gocart2G_interface.o \
+	mpas_chemistry_gocart2G_vars.o
+
+mpas_chemistry_gocart2G_init.o:\
+	mpas_chemistry_gocart2G_interface.o \
+	mpas_chemistry_gocart2G_vars.o
+
 
 clean:
 	$(RM) *.o *.mod *.f90 libchem.a
@@ -83,7 +97,7 @@ clean:
 	$(RM) $@ $*.mod
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(PHYSICS) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I. -I./chemistry_wrf -I.. -I../dynamics -I../physics -I../../framework -I../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I. -I./chemistry_wrf -I./chemistry_gocart2G -I.. -I../dynamics -I../physics -I../../framework -I../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I. -I ./chemistry_wrf -I.. -I../dynamics -I../physics -I../../framework -I../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I. -I./chemistry_wrf -I./chemistry_gocart2G -I.. -I../dynamics -I../physics -I../../framework -I../../external/esmf_time_f90
 endif
