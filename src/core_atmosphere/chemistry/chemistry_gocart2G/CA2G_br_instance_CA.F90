@@ -1,5 +1,5 @@
 !=================================================================================================================
- module CA2G_instance_CA_br
+ module CA2G_br_instance_CA
  use mpas_kind_types,only: RKIND,StrKIND
 
  public
@@ -54,5 +54,5 @@
 !character(kind=StrKIND),parameter:: point_emissions_srcfilen = /dev/null
 
 !=================================================================================================================
- end module CA2G_instance_CA_br
+ end module CA2G_br_instance_CA
 !=================================================================================================================
