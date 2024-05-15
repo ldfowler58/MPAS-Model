@@ -17,8 +17,10 @@
 
 ! !USES:
 !  Only instrinsic fortran types and functions are allowed.
-   use GOCART2G_MieMod
+   use GOCART2G_MieMod_smiol
    use, intrinsic :: iso_fortran_env, only: IOSTAT_END
+
+   use mpas_log
 
    implicit none
    private
@@ -1265,7 +1267,7 @@ CONTAINS
 
    subroutine Chem_Settling ( km, klid, bin, flag, cdt, grav, &
                               radiusInp, rhopInp, int_qa, tmpu, &
-                              rhoa, rh, hghte, delp, fluxout,  &
+                              rhoa, rh, hghte, ple, delz, delp, fluxout,  &
                               vsettleOut, correctionMaring, rc)
 
 ! !USES:
@@ -1286,6 +1288,8 @@ CONTAINS
    real, pointer, dimension(:,:,:), intent(in)  :: rhoa   ! air density [kg/m^3]
    real, pointer, dimension(:,:,:), intent(in)  :: rh     ! relative humidity [1]
    real, pointer, dimension(:,:,:), intent(in)  :: hghte  ! geopotential height [m]
+   real, pointer, dimension(:,:,:), intent(in)  :: ple    ! pressure [Pa]
+   real, pointer, dimension(:,:,:), intent(in)  :: delz   ! geometric layer thickness [Pa]
    real, pointer, dimension(:,:,:), intent(in)  :: delp   ! pressure level thickness [Pa]
 
 ! !OUTPUT PARAMETERS:
@@ -1293,6 +1297,7 @@ CONTAINS
    real, pointer, dimension(:,:,:), intent(inout)  :: fluxout ! Mass lost by settling
                                                   ! to surface, kg/m2/s
    integer, optional, intent(out)             :: rc         ! Error return code:
+!  integer                                    :: rc         ! Error return code:
                                                   !  0 - all is well
                                                   !  1 -
 !  Optionally output the settling velocity calculated
@@ -1345,6 +1350,8 @@ CONTAINS
 
 !EOP
 !-------------------------------------------------------------------------
+   call mpas_log_write(' ')
+   call mpas_log_write('--- enter subroutine Chem_Settling: km = $i',intArgs=(/km/))
 
 !  Get dimensions
 !  ---------------
@@ -1365,13 +1372,26 @@ CONTAINS
 !  Handle the fact that hghte may be in the range [1,km+1] or [0,km]
 !  -----------------------------------------------------------------
    dk = lbound(hghte,3) - 1  ! This is either 0 or 1
+!  call mpas_log_write('--- dk    = $i',intArgs=(/dk/))
 
 !  Layer thickness from hydrostatic equation
-   k = km
-   dz(:,:,k) = hghte(:,:,k+dk)-hsurf(:,:)
-   do k = km-1, 1, -1
-    dz(:,:,k) = hghte(:,:,k+dk) - hghte(:,:,k+dk+1)
-   enddo
+!  k = km
+!  dz(:,:,k) = hghte(:,:,k+dk)-hsurf(:,:)
+!  do k = km-1, 1, -1
+!   dz(:,:,k) = hghte(:,:,k+dk) - hghte(:,:,k+dk+1)
+!  enddo
+
+!  do j = j1,j2
+!     do i = i1,i2
+!        do k = 1,km
+!           call mpas_log_write('$i $i $r $r $r $r',intArgs=(/i,k/),realArgs=(/hghte(i,j,k),ple(i,j,k), &
+!                               delz(i,j,k),delp(i,j,k)/))
+!        enddo
+!        k = km+1
+!        call mpas_log_write('$i $i $r $r',intArgs=(/i,k/),realArgs=(/hghte(i,j,k),ple(i,j,k)/))
+!        call mpas_log_write(' ')
+!     enddo
+!  enddo
 
 !  If radius le 0 then get out
    if(radiusInp .le. 0.) then
@@ -1390,8 +1410,19 @@ CONTAINS
 
 !   Particle swelling
     call ParticleSwelling(i1, i2, j1, j2, km, rh, radiusInp, rhopInp, radius, rhop, flag)
+    do j = j1,j2
+       do i = i1,3
+          do k = 1,km
+             call mpas_log_write('$i $i $r $r $r $r',intArgs=(/i,k/),realArgs=(/radius(i,j,k),rhop(i,j,k), &
+                                 rhoa(i,j,k),tmpu(i,j,k)/))
+          enddo
+          call mpas_log_write(' ')
+       enddo
+    enddo
 
 !   Settling velocity of the wet particle
+    call mpas_log_write(' ')
+    call mpas_log_write('--- begin Chem_CalcVsettle:')
     do k = klid, km
        do j = j1, j2
           do i = i1, i2
@@ -1400,6 +1431,8 @@ CONTAINS
           end do
        end do
     end do
+    call mpas_log_write('--- end Chem_CalcVsettle:')
+    call mpas_log_write(' ')
 
     if(present(correctionMaring)) then
        if (correctionMaring) then
@@ -1412,7 +1445,8 @@ CONTAINS
     endif
 
 !   Time integration
-    call SettlingSolver(i1, i2, j1, j2, km, cdt, delp, dz, vsettle, qa)
+!   call SettlingSolver(i1, i2, j1, j2, km, cdt, delp, dz, vsettle, qa)
+    call SettlingSolver(i1, i2, j1, j2, km, cdt, delp, delz, vsettle, qa)
 
 !   Find the column dry mass after sedimentation and thus the loss flux
     do k = klid, km
@@ -1426,10 +1460,29 @@ CONTAINS
     if( associated(fluxout) ) then
        fluxout(:,:,bin) = (cmass_before - cmass_after)/cdt
     endif
+    do j = j1,j2
+       do i = i1,5
+          call mpas_log_write('$i $r $r $r',intArgs=(/i/),realArgs=(/real(cmass_before(i,j)), &
+                              real(cmass_after(i,j)),fluxout(i,j,bin)/))
+       enddo
+    enddo
+    call mpas_log_write(' ')
+    do j = j1,j2
+       do i = i1,3
+          do k = 1,km
+             call mpas_log_write('$i $i $r $r $r',intArgs=(/i,k/),realArgs=(/qa(i,j,k),int_qa(i,j,k), &
+                                 qa(i,j,k)-int_qa(i,j,k)/))
+          enddo
+          call mpas_log_write(' ')
+       enddo
+    enddo
+
 
     int_qa = qa
 
    __RETURN__(__SUCCESS__)
+
+   call mpas_log_write('--- end subroutine Chem_Settling')
 
    end subroutine Chem_Settling
 
