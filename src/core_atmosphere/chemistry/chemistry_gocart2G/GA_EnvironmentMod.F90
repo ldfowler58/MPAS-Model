@@ -1,15 +1,16 @@
 !=================================================================================================================
  module GA_EnvironmentMod
  use mpas_kind_types,only: RKIND
+ use mpas_log
 
- use GOCART2G_MieMod
+ use GOCART2G_MieMod_smiol
 
  implicit none
  private
  public :: GA_Environment
 
 
- type :: GA_Environment
+ type:: GA_Environment
     type(GOCART2G_Mie):: rad_Mie,diag_Mie
 
 !   logical:: scav_byColdCloud                                      ! new flag example
@@ -43,7 +44,7 @@
                              rhFlag,pressure_lid_in_hPa)
 !=================================================================================================================
 
-!--- inut arguments:
+!--- input arguments:
  integer,intent(in):: nbins
 
  real(kind=RKIND),intent(in):: pressure_lid_in_hPa
@@ -66,6 +67,8 @@
  integer:: n_wavelengths_vertint
 
 !-----------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine load_from_config:')
 
  self%nbins = nbins
 
@@ -104,6 +107,9 @@
 !                             label='wavelengths_for_profile_aop_in_nm:', __RC__)
 !call ESMF_ConfigGetAttribute(universal_cfg,self%wavelengths_vertint, &
 !                             label='wavelengths_for_vertically_integrated_aop_in_nm:', __RC__)
+
+ call mpas_log_write('--- end subroutine load_from_config:')
+!call mpas_log_write(' ')
 
  end subroutine load_from_config
 
