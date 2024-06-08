@@ -9843,10 +9843,10 @@ use module_ra_rrtmg_vinterp,only: vinterp_ozn
 !>   * added the optional arguments, tauaer3d, ssaaer3d, and asyaer3d to include the optical depth, single
 !>     scattering albedo, and asymmetry factor of aerosols. to date, the only kind of aerosols included in MPAS
 !>     are the "water-friendly" and "ice-friendly" aerosols used in the Thompson cloud microphysics scheme.
-!>     Laura D. Fowler (laura@ucar.edu) / 2018-04-05.
+!>     Laura D. Fowler (laura@ucar.edu) / 2024-05-16.
 !>   * added the option aer_opt in the argument list. revised the initialization of arrays tauaer,ssaaer, and
 !>     asmaer to include the optical properties of aerosols.
-!>     Laura D. Fowler (laura@ucar.edu) / 2019-01-23.
+!>     Laura D. Fowler (laura@ucar.edu) / 2024-05-16.
 !MPAS specfic end.
 
 #else

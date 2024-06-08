@@ -261,7 +261,6 @@
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     nc_p,             &!cloud water droplet number concentration                             [#/kg]
     ni_p,             &!cloud ice crystal number concentration                               [#/kg]
-    ni_p,             &!cloud ice crystal number concentration                               [#/kg]
     nr_p               !rain drop number concentration                                       [#/kg]
 
 !... arrays located at w (vertical velocity) points, or at interface between layers:
@@ -282,8 +281,13 @@
     znu_hyd_p          !(pres_hyd_p / P0) needed in the Tiedtke convection scheme              [Pa]
 
 !=================================================================================================================
-!... variables related to ozone climatlogy:
+!... variables related to ozone climatology:
 !=================================================================================================================
+
+ integer:: num_oznlevels
+
+ real(kind=RKIND),dimension(:),allocatable:: &
+    pin_p              !pressure levels for ozone concentration                                [Pa]
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     o3clim_p           !climatological ozone volume mixing ratio                         [???]
@@ -462,8 +466,6 @@
     weights_clos_p     !
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
-    rqvdynten_p,      &!
-    rthdynten_p,      &!
     qccu_p,           &!
     qicu_p,           &!
     qccu_shalc_p,     &!
@@ -490,6 +492,16 @@
     rqicuten_shalc_p, &!
     rqrcuten_shalc_p, &!
     rqscuten_shalc_p   !
+
+ real(kind=RKIND),dimension(:,:,:),allocatable:: &
+    rthraten_p         !
+
+!... grell and tiedkte specific arrays:
+ real(kind=RKIND),dimension(:,:,:),allocatable:: &
+    rqvdynten_p,      &!
+    rqvdynblten_p,    &!
+    rthdynten_p,      &!
+    rthdynblten_p      !
 
 !... ntiedtke specific arrays:
  real(kind=RKIND),dimension(:,:,:),allocatable:: &

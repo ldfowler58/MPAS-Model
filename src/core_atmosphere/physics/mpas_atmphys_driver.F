@@ -327,18 +327,18 @@
     if(config_pbl_scheme .ne. 'off' .and. config_sfclayer_scheme .ne. 'off') then
        call allocate_pbl(block%configs)
 !$OMP PARALLEL DO
-#ifdef ATM_CHEMISTRY
-       do thread=1,nThreads
-          call driver_pbl(itimestep,block%configs,mesh,sfc_input,diag_physics,tend_physics,   &
-                          cellSolveThreadStart(thread),cellSolveThreadEnd(thread),mpas_chems, &
-                          mpas_tracers)
-       end do
-#else
+!#ifdef ATM_CHEMISTRY
+!      do thread=1,nThreads
+!         call driver_pbl(itimestep,block%configs,mesh,sfc_input,diag_physics,tend_physics,   &
+!                         cellSolveThreadStart(thread),cellSolveThreadEnd(thread),mpas_chems, &
+!                         mpas_tracers)
+!      end do
+!#else
        do thread=1,nThreads
           call driver_pbl(itimestep,block%configs,mesh,sfc_input,diag_physics,tend_physics, &
                           cellSolveThreadStart(thread),cellSolveThreadEnd(thread))
        end do
-#endif
+!#endif
 !$OMP END PARALLEL DO
        call deallocate_pbl(block%configs)
 

@@ -95,7 +95,7 @@ mpas_geotile_manager.o: mpas_parse_geoindex.o
 mpas_init_atm_chems.o: \
 	mpas_init_atm_hinterp.o \
 	mpas_init_atm_llxy.o \
-	mpas_init_amt_read_met.o
+	mpas_init_atm_read_met.o
 
 mpas_init_atm_chems_static.o: \
 	mpas_init_atm_hinterp.o \

@@ -698,10 +698,6 @@
              nwfa_p(i,k,j) = nwfa(k,i)
              rainprod_p(i,k,j) = rainprod(k,i)
              evapprod_p(i,k,j) = evapprod(k,i)
-             vqr_p(i,k,j) = 0._RKIND
-             vqi_p(i,k,j) = 0._RKIND
-             vqs_p(i,k,j) = 0._RKIND
-             vqg_p(i,k,j) = 0._RKIND
           enddo
           enddo
           enddo
@@ -748,15 +744,14 @@
  end subroutine microphysics_from_MPAS
 
 !=================================================================================================================
- subroutine microphysics_to_MPAS(configs,mesh,state,time_lev,diag,diag_physics,tend_physics,tend, &
-                                 itimestep,its,ite)
+ subroutine microphysics_to_MPAS(configs,mesh,state,time_lev,diag,diag_physics,tend_physics,tend,its,ite)
 !=================================================================================================================
 
 !input variables:
  type(mpas_pool_type),intent(in):: configs
  type(mpas_pool_type),intent(in):: mesh
 
- integer,intent(in):: itimestep,time_lev
+ integer,intent(in):: time_lev
  integer,intent(in):: its,ite
 
 !output variables:
@@ -782,7 +777,6 @@
  real(kind=RKIND),dimension(:,:),pointer  :: re_cloud,re_ice,re_snow
  real(kind=RKIND),dimension(:,:),pointer  :: rthmpten,rqvmpten,rqcmpten,rqrmpten,rqimpten,rqsmpten,rqgmpten
  real(kind=RKIND),dimension(:,:),pointer  :: rncmpten,rnimpten,rnrmpten,rnifampten,rnwfampten
- real(kind=RKIND),dimension(:,:),pointer  :: vqr,vqi,vqs,vqg
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars
 
 !local variables:
@@ -931,11 +925,6 @@
           call mpas_pool_get_array(diag_physics,'rainprod',rainprod)
           call mpas_pool_get_array(diag_physics,'evapprod',evapprod)
 
-          call mpas_pool_get_array(diag_physics,'vqr',vqr)
-          call mpas_pool_get_array(diag_physics,'vqi',vqi)
-          call mpas_pool_get_array(diag_physics,'vqs',vqs)
-          call mpas_pool_get_array(diag_physics,'vqg',vqg)
-
           nc => scalars(index_nc,:,:)
           ni => scalars(index_ni,:,:)
           nr => scalars(index_nr,:,:)
@@ -952,10 +941,6 @@
              nwfa(k,i) = nwfa_p(i,k,j)
              rainprod(k,i) = rainprod_p(i,k,j)
              evapprod(k,i) = evapprod_p(i,k,j)
-             vqr(k,i) = vqr_p(i,k,j)
-             vqi(k,i) = vqi_p(i,k,j)
-             vqs(k,i) = vqs_p(i,k,j)
-             vqg(k,i) = vqg_p(i,k,j)
           enddo
           enddo
           enddo

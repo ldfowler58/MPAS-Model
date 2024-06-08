@@ -4,7 +4,7 @@
 !the optical properties (aerosol optical depth,asymmetry factor,and single-scattering albedo) of "water-friendly"
 !and "ice-friendly" aerosols from the Thompson cloud microphysics scheme. calc_aerosol_rrtmg_sw was copied from
 !from WRF-4.0.2 (see module_radiation_driver.F).
-!Laura D. Fowler (laura@ucar.edu) / 2019-01-013.
+!Laura D. Fowler (laura@ucar.edu) / 2024-05-16.
 
  module module_ra_rrtmg_sw_aerosols
  use mpas_log
@@ -84,12 +84,13 @@ subroutine calc_aerosol_rrtmg_sw(ht,dz8w,p,t3d,qv3d,aer_type,                   
     data (upper_wvl(i),i=1,N_BANDS) /3.846,3.077,2.500,2.150,1.942,1.626,1.299,1.2420,0.7782,0.6250,0.4415,0.3448,0.2632,12.195/
 
     ! I/O variables
+    integer, intent(in) :: ims,ime,jms,jme,kms,kme, &
+                           its,ite,jts,jte,kts,kte
+
     real, dimension(ims:ime, kms:kme, jms:jme), intent(in) :: p,     & ! pressure (Pa)
                                                               t3d,   & ! temperature (K)
                                                               dz8w,  & ! dz between full levels (m)
                                                               qv3d     ! water vapor mixing ratio (kg/kg)
-    integer, intent(in) :: ims,ime,jms,jme,kms,kme, &
-                           its,ite,jts,jte,kts,kte
 !-- MPAS modifications: aer_type is a function of the land-sea mask, and set to 1 over land (or rural classification in WRF),
 !   and set to 0 over oceans (or maritime classification in WRF):
 !   integer, intent(in) :: aer_type

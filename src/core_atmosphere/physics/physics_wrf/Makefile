@@ -49,7 +49,10 @@ OBJS = \
 	module_sf_oml.o                  \
 	module_sf_sfclay.o               \
 	module_sf_sfclayrev.o            \
-	module_sf_urban.o
+	module_sf_urban.o                \
+	bl_mynn_post.o                   \
+	bl_mynn_pre.o                    \
+	sf_mynn_pre.o
 
 physics_wrf: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)

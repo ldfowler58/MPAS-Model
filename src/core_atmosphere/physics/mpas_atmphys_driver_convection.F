@@ -98,7 +98,7 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2016-10-18.
 ! * since we removed the local variable convection_scheme from mpas_atmphys_vars.F, now defines convection_scheme
 !   as a pointer to config_convection_scheme.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-02-16.
+!   Laura D. Fowler (laura@ucar.edu) / 2917-02-16.
 ! * renamed the variables xmb_total_p and xmb_shallow_p to xmb_deepc_p and xmb_shalc_p, respectively. Added the
 !   variable xmb_midlc_p as the cloud base mass flux for mid-level convection.
 !   Laura D. Fowler (laura@ucar.edu) / 2017-04-24.
@@ -142,9 +142,6 @@
 ! * added the pre-processing option ATM_CHEMISTRY to include the convective transport of passive tracers, and
 !   "ice-friendly" and "water-friendly" Thompson aerosols.
 !   Laura D. Fowler (laura@ucar.edu) / 2020-11-14.
-! * removed f_qv,f_qr,and f_qs in the calls to cu_tiedtke and cu_ntiedtke. removed f_qv and f_qc in the call to
-!   kf_eta_cps.
-!   Laura D. Fowler (laura@ucar.edu) / 2024-02-13.
 
 
  contains
@@ -371,11 +368,11 @@
              if(.not.allocated(rqvdynten_p)  ) allocate(rqvdynten_p(ims:ime,kms:kme,jms:jme)  )
              if(.not.allocated(rqvdynblten_p)) allocate(rqvdynblten_p(ims:ime,kms:kme,jms:jme))
 
-             do i = its,ite 
-             do k = kts,kte 
-             do j = jts,jte 
-                rqvdynten_p(i,k,j)   = 0._RKIND 
-                rqvdynblten_p(i,k,j) = 0._RKIND 
+             do i = its,ite
+             do k = kts,kte
+             do j = jts,jte
+                rqvdynten_p(i,k,j)   = 0._RKIND
+                rqvdynblten_p(i,k,j) = 0._RKIND
              enddo
              enddo
              enddo
@@ -549,22 +546,25 @@
        end select cu_kf_select
 
     case ("cu_tiedtke","cu_ntiedtke")
-       if(allocated(hfx_p)  ) deallocate(hfx_p  )
-       if(allocated(qfx_p)  ) deallocate(qfx_p  )
-       if(allocated(xland_p)) deallocate(xland_p)
-       if(allocated(rqvdynten_p)) deallocate(rqvdynten_p)
-       if(allocated(rqvblten_p) ) deallocate(rqvblten_p )
-       if(allocated(rucuten_p)  ) deallocate(rucuten_p  )
-       if(allocated(rvcuten_p)  ) deallocate(rvcuten_p  )
+       if(allocated(hfx_p)        ) deallocate(hfx_p        )
+       if(allocated(qfx_p)        ) deallocate(qfx_p        )
+       if(allocated(xland_p)      ) deallocate(xland_p      )
+       if(allocated(rucuten_p)    ) deallocate(rucuten_p    )
+       if(allocated(rvcuten_p)    ) deallocate(rvcuten_p    )
 
        cu_tiedtke_select: select case(convection_scheme)
+
+          case ("cu_tiedtke")
+             if(allocated(rqvdynten_p)  ) deallocate(rqvdynten_p  )
+             if(allocated(rqvdynblten_p)) deallocate(rqvdynblten_p)
+
           case ("cu_ntiedtke")
-             if(allocated(dx_p)) deallocate(dx_p)
-             if(allocated(rthdynten_p)) deallocate(rthdynten_p)
-             if(allocated(rthblten_p) ) deallocate(rthblten_p )
-             if(allocated(rqvften_p)  ) deallocate(rqvften_p  )
-             if(allocated(rthften_p)  ) deallocate(rthften_p  )
+             if(allocated(dx_p)     ) deallocate(dx_p)
+             if(allocated(rqvften_p)) deallocate(rqvften_p)
+             if(allocated(rthften_p)) deallocate(rthften_p)
+
           case default
+
        end select cu_tiedtke_select
 
     case default
@@ -601,6 +601,7 @@
  call mpas_pool_get_config(configs,'config_convection_scheme',convection_scheme)
 
  convection_select: select case(convection_scheme)
+
     case ("cu_kain_fritsch")
        call mpas_pool_get_array(diag_physics,'nca',nca)
        if(.not. config_do_restart) then
@@ -930,7 +931,6 @@
              stepcu       = n_cu            , cu_act_flag     = cu_act_flag     ,    &
              warm_rain    = warm_rain       , cutop           = cutop_p         ,    &
              cubot        = cubot_p         , qv              = qv_p            ,    &
-             f_qv         = f_qv            , f_qc            = f_qc            ,    &
              f_qr         = f_qr            , f_qi            = f_qi            ,    &
              f_qs         = f_qs            , kf_edrates      = kf_edrates      ,    &
              timec_kf     = timec_p         , qc_kf           = qccu_p          ,    &
@@ -975,7 +975,6 @@
              stepcu          = n_cu            , cu_act_flag     = cu_act_flag     , &
              warm_rain       = warm_rain       , cutop           = cutop_p         , &
              cubot           = cubot_p         , qv              = qv_p            , &
-             f_qv            = f_qv            , f_qc            = f_qc            , &
              f_qr            = f_qr            , f_qi            = f_qi            , &
              f_qs            = f_qs            , kf_edrates      = kf_edrates      , &
              w_up            = w_deepc_p       , timec_kf        = timec_p         , &
@@ -1714,37 +1713,44 @@
        enddo
 
        cu_tiedtke_select: select case(convection_scheme)
+
+          case ("cu_tiedtke")
+             do j = jts,jte
+             do k = kts,kte
+             do i = its,ite
+                rqvdynblten_p(i,k,j) = rqvblten(k,i) 
+                rqvdynten_p(i,k,j)   = rqvdynten(k,i)
+             enddo
+             enddo
+             enddo
+ 
           case("cu_ntiedtke")
              call mpas_pool_get_config(configs,'config_len_disp',len_disp)
              call mpas_pool_get_array(mesh,'meshDensity',meshDensity)
 
-             nullify(rthdynten)
-             nullify(rthblten)
-             nullify(rthratenlw)
-             nullify(rthratensw)
+             call mpas_pool_get_array(tend_physics,'rqvdynten' ,rqvdynten )
+             call mpas_pool_get_array(tend_physics,'rqvblten'  ,rqvblten  )
              call mpas_pool_get_array(tend_physics,'rthdynten' ,rthdynten )
              call mpas_pool_get_array(tend_physics,'rthblten'  ,rthblten  )
              call mpas_pool_get_array(tend_physics,'rthratenlw',rthratenlw)
              call mpas_pool_get_array(tend_physics,'rthratensw',rthratensw)
              
              do j = jts,jte
-                do i = its,ite
-                   dx_p(i,j) = len_disp / meshDensity(i)**0.25
-                enddo
-                do k = kts,kte
-                do i = its,ite
-                   rthften_p(i,k,j) = 0._RKIND
-                   rqvften_p(i,k,j) = rqvdynten_p(i,k,j) + rqvblten_p(i,k,j)
-
-                   if(associated(rthdynten)) rthften_p(i,k,j) = rthdynten(k,i)
-                   if(associated(rthblten))  rthften_p(i,k,j) = rthften_p(i,k,j) + rthblten(k,i)
-                   if(associated(rthratenlw) .and. associated(rthratensw)) &
-                      rthften_p(i,k,j) = rthften_p(i,k,j) + rthratenlw(k,i) + rthratensw(k,i)
-                   rthften_p(i,k,j) = rthften_p(i,k,j)*pi_p(i,k,j) 
-                enddo
-                enddo
+             do i = its,ite
+                dx_p(i,j) = len_disp / meshDensity(i)**0.25
              enddo
+
+             do k = kts,kte
+             do i = its,ite
+                rqvften_p(i,k,j) = rqvdynten(k,i) + rqvblten(k,i)
+                rthften_p(i,k,j) = (rthdynten(k,i) + rthblten(k,i) &
+                                 + rthratenlw(k,i) + rthratensw(k,i)) * pi_p(i,k,j) 
+             enddo
+             enddo
+             enddo
+
           case default
+
        end select cu_tiedtke_select
 
     case default

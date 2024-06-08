@@ -83,7 +83,7 @@ CONTAINS
              ,STEPCU,CU_ACT_FLAG,warm_rain,CUTOP,CUBOT       &
              ,QV                                             &
             ! optionals
-             ,F_QV    ,F_QC    ,F_QR    ,F_QI    ,F_QS       &
+             ,F_QR    ,F_QI    ,F_QS                         &
              ,RTHCUTEN,RQVCUTEN,RQCCUTEN,RQRCUTEN            &
              ,RQICUTEN,RQSCUTEN                              &
 !ckay
@@ -180,9 +180,7 @@ CONTAINS
 ! use or not.
 !
    LOGICAL, OPTIONAL ::                                      &
-                                                   F_QV      &
-                                                  ,F_QC      &
-                                                  ,F_QR      &
+                                                   F_QR      &
                                                   ,F_QI      &
                                                   ,F_QS
 

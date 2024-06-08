@@ -72,24 +72,6 @@
 ! * modified logic in subroutine physics_tables_init so that the Thompson microphysics tables are read in each
 !   MPI task.
 !   Laura D. Fowler (laura@ucar.edu) / 2016-12-30.
-! * added the options sf_mynn_wrf390 and bl_mynn_wrf390 for the MYNN parameterization from WRF version 3.9.0.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-02-08.
-! * now defines the variable bl_mynn_cloudpdf in Registry.xml so that it can be assigned different values
-!   depending on the version of the PBL scheme.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-03-09.
-! * added the convection_permitting_wrf390 suite which is as the original convection_permitting suite, except
-!   that it contains the surface layer and PBL schemes from WRF version 3.9.0.
-! * added the option cu_grell_freitas_wrf390 for the Grell-Freitas parameterization of convection from
-!   WRF version 3.9.0.
-!   Laura D. Fowler (laura@ucar.edu) / 2017-03-09.
-! * removed the options sf_mynn_wrf390 and bl_mynn_wrf390. The options sf_mynn and bl_mynn now point to the
-!   surface and PBL schemes from WRF version 3.9.0 instead of version 3.6.1.
-!   Laura D. Fowler (laura@ucar.edu) / 2018-01-24.
-! * removed the suite convection_permitting_wrf390. The suite convection_permitting now points to the surface
-!   layer scheme and PBL scheme from WRF version 3.9.0 instead of version 3.6.1
-!   Laura D. Fowler (laura@ucar.edu) / 2018-01-24.
-! * removed the options cam_lw and cam_sw.
-!   Laura D. Fowler (laura@ucar.edu) / 2018-02-01.
 ! * added the option mp_thompson_aerosols.
 !   Laura D. Fowler (laura@ucar.edu) / 2018-01-31.
 ! * added the option cu_kain_fritsch_sca to run the Kain-Fritsch scale-aware parameterization of convection.
@@ -122,8 +104,6 @@
                                   config_radt_sw_scheme,    &
                                   config_sfclayer_scheme
 
- integer,pointer:: config_mynn_cloudpdf
-
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write('')
 !call mpas_log_write('--- enter subroutine physics_namelist_check:')
@@ -138,8 +118,6 @@
  call mpas_pool_get_config(configs,'config_radt_lw_scheme'   ,config_radt_lw_scheme   )
  call mpas_pool_get_config(configs,'config_radt_sw_scheme'   ,config_radt_sw_scheme   )
  call mpas_pool_get_config(configs,'config_sfclayer_scheme'  ,config_sfclayer_scheme  )
-
- call mpas_pool_get_config(configs,'config_mynn_cloudpdf',config_mynn_cloudpdf)
 
  call mpas_log_write('')
  call mpas_log_write('----- Setting up physics suite '''//trim(config_physics_suite)//''' -----')
@@ -170,8 +148,6 @@
     if (trim(config_radt_cld_scheme)   == 'suite') config_radt_cld_scheme   = 'cld_fraction'
     if (trim(config_sfclayer_scheme)   == 'suite') config_sfclayer_scheme   = 'sf_mynn'
     if (trim(config_lsm_scheme)        == 'suite') config_lsm_scheme        = 'sf_noah'
-
-    if (config_mynn_cloudpdf == -1) config_mynn_cloudpdf = 2
 
  else if (trim(config_physics_suite) == 'none') then
 
@@ -229,10 +205,6 @@
     write(mpas_err_message,'(A,A10)') 'illegal value for pbl_scheme: ', &
           trim(config_pbl_scheme)
     call physics_error_fatal(mpas_err_message)
-
-    !ensure that config_mynn_cloudpdf is correctly defined as a function of
-    !the MYNN version of the PBL scheme:
-    if(config_pbl_scheme .eq. 'bl_mynn') config_mynn_cloudpdf = 2
 
  endif
 
@@ -301,11 +273,8 @@
           trim(config_sfclayer_scheme)
     call physics_error_fatal(mpas_err_message)
  else
-    !ensure that config_sfclayer_scheme is properly chosen and that config_mynn_cloudpdf is
-    !correctly defined as a function of the PBL scheme:
     if(config_pbl_scheme == 'bl_mynn') then
        config_sfclayer_scheme = 'sf_mynn'
-       config_mynn_cloudpdf   = 2
     elseif(config_pbl_scheme == 'bl_ysu') then
        if(config_sfclayer_scheme /= 'sf_monin_obukhov' .and. &
           config_sfclayer_scheme /= 'sf_monin_obukhov_rev') then
@@ -314,7 +283,6 @@
           call physics_error_fatal(mpas_err_message)
        endif
     endif
-
  endif
 
 !land-surface scheme: note that config_sfclayer_scheme must be defined for the land-surface
