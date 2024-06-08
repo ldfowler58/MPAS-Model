@@ -86,7 +86,7 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2017-02-10.
 ! * since we removed the local variable radt_lw_scheme from mpas_atmphys_vars.F, now defines radt_lw_scheme
 !   as a pointer to config_radt_lw_scheme.
-!   Laura D. Fowler (laura@ucar.edu) / 2917-02-16.
+!   Laura D. Fowler (laura@ucar.edu) / 2017-02-16.
 
 
  contains

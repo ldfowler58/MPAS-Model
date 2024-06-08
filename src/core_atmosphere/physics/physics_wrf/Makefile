@@ -56,7 +56,8 @@ physics_wrf: $(OBJS)
 
 # DEPENDENCIES:
 module_bl_mynn.o: \
-	module_cam_error_function.o
+	bl_mynn_post.o \
+	bl_mynn_pre.o
 
 module_cam_support.o: \
 	module_cam_shr_kind_mod.o
@@ -103,8 +104,7 @@ module_sf_bep_bem.o: \
 	module_sf_urban.o
 
 module_sf_mynn.o: \
-	module_bl_mynn.o \
-	module_sf_sfclay.o
+	sf_mynn_pre.o
 
 module_sf_noahdrv.o: \
 	module_sf_bem.o \

@@ -7,6 +7,7 @@
 !
 !=================================================================================================================
  module mpas_atmphys_todynamics
+ use mpas_kind_types
  use mpas_pool_routines
  use mpas_dmpar
  use mpas_atm_dimensions
@@ -68,7 +69,6 @@
  subroutine physics_get_tend(block,mesh,state,diag,tend,tend_physics,configs,rk_step,dynamics_substep, &
                              tend_ru_physics,tend_rtheta_physics,tend_rho_physics,exchange_halo_group)
 !=================================================================================================================
-   
 
 !input variables:
  type(block_type),intent(in),target:: block
@@ -93,7 +93,7 @@
                                   radt_sw_scheme
 
  integer:: i,iCell,k,n
- integer,pointer:: index_qv,index_qc,index_qr,index_qi,index_qs,index_qg
+ integer,pointer:: index_qv,index_qc,index_qr,index_qi,index_qs
  integer,pointer:: index_nc,index_ni,index_nifa,index_nwfa
  integer,pointer:: nCells,nCellsSolve,nEdges,nEdgesSolve
 
@@ -103,7 +103,7 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars
 
  real(kind=RKIND),dimension(:,:),pointer:: rthblten,rqvblten,rqcblten, &
-                                           rqiblten,rublten ,rvblten
+                                           rqiblten,rqsblten,rublten,rvblten
  real(kind=RKIND),dimension(:,:),pointer:: rncblten,rniblten,rnifablten,rnwfablten
  real(kind=RKIND),dimension(:,:),pointer:: rthcuten,rqvcuten,rqccuten, &
                                            rqrcuten,rqicuten,rqscuten, &
@@ -125,15 +125,15 @@
  call mpas_pool_get_dimension(mesh,'nCellsSolve',nCellsSolve)
  call mpas_pool_get_dimension(mesh,'nEdgesSolve',nEdgesSolve)
 
- call mpas_pool_get_config(configs,'config_pbl_scheme'       ,pbl_scheme       )
  call mpas_pool_get_config(configs,'config_convection_scheme',convection_scheme)
+ call mpas_pool_get_config(configs,'config_pbl_scheme'       ,pbl_scheme       )
  call mpas_pool_get_config(configs,'config_radt_lw_scheme'   ,radt_lw_scheme   )
  call mpas_pool_get_config(configs,'config_radt_sw_scheme'   ,radt_sw_scheme   )
 
- call mpas_pool_get_array(state,'theta_m' ,theta_m, 1)
- call mpas_pool_get_array(state,'scalars' ,scalars, 1)
- call mpas_pool_get_array(state,'rho_zz'  ,mass,2    )
- call mpas_pool_get_array(diag ,'rho_edge',mass_edge )
+ call mpas_pool_get_array(state,'theta_m' ,theta_m,1)
+ call mpas_pool_get_array(state,'scalars' ,scalars,1)
+ call mpas_pool_get_array(state,'rho_zz'  ,mass,2   )
+ call mpas_pool_get_array(diag ,'rho_edge',mass_edge)
  call mpas_pool_get_array(diag ,'tend_u_phys',tend_u_phys)
 
  call mpas_pool_get_dimension(state,'index_qv',index_qv)
@@ -141,26 +141,26 @@
  call mpas_pool_get_dimension(state,'index_qr',index_qr)
  call mpas_pool_get_dimension(state,'index_qi',index_qi)
  call mpas_pool_get_dimension(state,'index_qs',index_qs)
- call mpas_pool_get_dimension(state,'index_qg',index_qg)
  call mpas_pool_get_dimension(state,'index_nc',index_nc)
  call mpas_pool_get_dimension(state,'index_ni',index_ni)
  call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
  call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
 
- call mpas_pool_get_array(tend_physics,'rublten' ,rublten)
- call mpas_pool_get_array(tend_physics,'rvblten' ,rvblten)
+ call mpas_pool_get_array(tend_physics,'rublten',rublten)
+ call mpas_pool_get_array(tend_physics,'rvblten',rvblten)
  call mpas_pool_get_array(tend_physics,'rthblten',rthblten)
  call mpas_pool_get_array(tend_physics,'rqvblten',rqvblten)
  call mpas_pool_get_array(tend_physics,'rqcblten',rqcblten)
  call mpas_pool_get_array(tend_physics,'rqiblten',rqiblten)
+ call mpas_pool_get_array(tend_physics,'rqsblten',rqsblten)
  call mpas_pool_get_array(tend_physics,'rncblten',rncblten)
  call mpas_pool_get_array(tend_physics,'rniblten',rniblten)
  call mpas_pool_get_array(tend_physics,'rnifablten',rnifablten)
  call mpas_pool_get_array(tend_physics,'rnwfablten',rnwfablten)
  call mpas_pool_get_array(tend_physics,'rublten_Edge',rublten_Edge)
 
- call mpas_pool_get_array(tend_physics,'rucuten' ,rucuten)
- call mpas_pool_get_array(tend_physics,'rvcuten' ,rvcuten)
+ call mpas_pool_get_array(tend_physics,'rucuten',rucuten)
+ call mpas_pool_get_array(tend_physics,'rvcuten',rvcuten)
  call mpas_pool_get_array(tend_physics,'rthcuten',rthcuten)
  call mpas_pool_get_array(tend_physics,'rqvcuten',rqvcuten)
  call mpas_pool_get_array(tend_physics,'rqccuten',rqccuten)
@@ -211,6 +211,7 @@
  if(.not. associated(rqvblten)) allocate(rqvblten(0,0))
  if(.not. associated(rqcblten)) allocate(rqcblten(0,0))
  if(.not. associated(rqiblten)) allocate(rqiblten(0,0))
+ if(.not. associated(rqsblten)) allocate(rqsblten(0,0))
  if(.not. associated(rncblten)) allocate(rncblten(0,0))
  if(.not. associated(rniblten)) allocate(rniblten(0,0))
  if(.not. associated(rnifablten)) allocate(rnifablten(0,0))
@@ -222,7 +223,7 @@
               index_qv,index_qc,index_qr,index_qi,index_qs,                              &
               index_nc,index_ni,index_nifa,index_nwfa,                                   &
               mass,mass_edge,theta_m,scalars,                                            &
-              rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,                       &
+              rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,rqsblten,              &
               rncblten,rniblten,rnifablten,rnwfablten,                                   &
               rucuten,rvcuten,rthcuten,rqvcuten,rqccuten,rqrcuten,rqicuten,rqscuten,     &
               rnccuten,rnicuten,rnifacuten,rnwfacuten,                                   &
@@ -250,6 +251,7 @@
  if(size(rqvblten) == 0) deallocate(rqvblten)
  if(size(rqcblten) == 0) deallocate(rqcblten)
  if(size(rqiblten) == 0) deallocate(rqiblten)
+ if(size(rqsblten) == 0) deallocate(rqsblten)
  if(size(rncblten) == 0) deallocate(rncblten)
  if(size(rniblten) == 0) deallocate(rniblten)
  if(size(rnifablten) == 0) deallocate(rnifablten)
@@ -261,17 +263,17 @@
 
 !=================================================================================================================
  subroutine physics_get_tend_work( &
-                    block,mesh,nCells,nEdges,nCellsSolve,nEdgesSolve,rk_step,dynamics_substep,   &
-                    pbl_scheme,convection_scheme,radt_lw_scheme,radt_sw_scheme,                  &
-                    index_qv,index_qc,index_qr,index_qi,index_qs,                                &
-                    index_nc,index_ni,index_nifa,index_nwfa,                                     &
-                    mass,mass_edge,theta_m,scalars,                                              &
-                    rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,                         &
-                    rncblten,rniblten,rnifablten,rnwfablten,                                     &
-                    rucuten,rvcuten,rthcuten,rqvcuten,rqccuten,rqrcuten,rqicuten,rqscuten,       &
-                    rnccuten,rnicuten,rnifacuten,rnwfacuten,                                     &
-                    rthratenlw,rthratensw,rublten_Edge,rucuten_Edge,                             &
-                    tend_th,tend_theta,tend_scalars,tend_u,tend_u_phys,                          &
+                    block,mesh,nCells,nEdges,nCellsSolve,nEdgesSolve,rk_step,dynamics_substep, &
+                    pbl_scheme,convection_scheme,radt_lw_scheme,radt_sw_scheme,                &
+                    index_qv,index_qc,index_qr,index_qi,index_qs,                              &
+                    index_nc,index_ni,index_nifa,index_nwfa,                                   &
+                    mass,mass_edge,theta_m,scalars,                                            &
+                    rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,rqsblten,              &
+                    rncblten,rniblten,rnifablten,rnwfablten,                                   &
+                    rucuten,rvcuten,rthcuten,rqvcuten,rqccuten,rqrcuten,rqicuten,rqscuten,     &
+                    rnccuten,rnicuten,rnifacuten,rnwfacuten,                                   &
+                    rthratenlw,rthratensw,rublten_Edge,rucuten_Edge,                           &
+                    tend_th,tend_theta,tend_scalars,tend_u,tend_u_phys,                        &
                     exchange_halo_group)
 !=================================================================================================================
 
@@ -281,8 +283,8 @@
  type(block_type),intent(in)    :: block
  type(mpas_pool_type),intent(in):: mesh
 
- character(len=StrKIND),intent(in):: pbl_scheme
  character(len=StrKIND),intent(in):: convection_scheme
+ character(len=StrKIND),intent(in):: pbl_scheme
  character(len=StrKIND),intent(in):: radt_lw_scheme
  character(len=StrKIND),intent(in):: radt_sw_scheme
 
@@ -302,6 +304,7 @@
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rqvblten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rqcblten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rqiblten
+ real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rqsblten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rncblten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rniblten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rnifablten
@@ -332,9 +335,9 @@
  real(kind=RKIND),intent(inout),dimension(nVertLevels,nCells+1):: tend_th
  real(kind=RKIND),intent(inout),dimension(nVertLevels,nCells+1):: tend_theta
 
- real(kind=RKIND),dimension(num_scalars,nVertLevels,nCells+1), intent(inout) :: tend_scalars
+ real(kind=RKIND),intent(inout),dimension(num_scalars,nVertLevels,nCells+1):: tend_scalars
 
-!local variables and arrays:
+!local variables:
  integer:: i,k
  real(kind=RKIND):: coeff
 
@@ -364,13 +367,13 @@
     enddo
     enddo
 
-    pbl_select: select case (trim(pbl_scheme))
+    pbl_select: select case(trim(pbl_scheme))
        case('bl_mynn')
-
           do i = 1, nCellsSolve
           do k = 1, nVertLevels
-             tend_scalars(index_nc,k,i)   = tend_scalars(index_nc,k,i) + rncblten(k,i)*mass(k,i)
-             tend_scalars(index_ni,k,i)   = tend_scalars(index_ni,k,i) + rniblten(k,i)*mass(k,i)
+             tend_scalars(index_qs,k,i) = tend_scalars(index_qs,k,i) + rqsblten(k,i)*mass(k,i)
+             tend_scalars(index_nc,k,i) = tend_scalars(index_nc,k,i) + rncblten(k,i)*mass(k,i)
+             tend_scalars(index_ni,k,i) = tend_scalars(index_ni,k,i) + rniblten(k,i)*mass(k,i)
              tend_scalars(index_nifa,k,i) = tend_scalars(index_nifa,k,i) + rnifablten(k,i)*mass(k,i)
              tend_scalars(index_nwfa,k,i) = tend_scalars(index_nwfa,k,i) + rnwfablten(k,i)*mass(k,i)
           enddo
@@ -392,7 +395,7 @@
     enddo
     enddo
 
-    cu_select: select case(convection_scheme)
+    cu_select: select case(trim(convection_scheme))
        case('cu_kain_fritsch','cu_kain_fritsch_sca')
           do i = 1, nCellsSolve
           do k = 1, nVertLevels
@@ -400,18 +403,17 @@
              tend_scalars(index_qs,k,i) = tend_scalars(index_qs,k,i) + rqscuten(k,i)*mass(k,i)
           enddo
           enddo
-    
+
        case('cu_tiedtke','cu_ntiedtke','cu_grell_freitas','cu_grell_freitas_wrf390')
           if(rk_step == 1 .and. dynamics_substep == 1) then
              call exchange_halo_group(block%domain,'physics:cuten')
              call tend_toEdges(block,mesh,rucuten,rvcuten,rucuten_Edge)
-                 
+
              tend_u_phys(1:nVertLevels,1:nEdges) = tend_u_phys(1:nVertLevels,1:nEdges) &
                                                  + rucuten_Edge(1:nVertLevels,1:nEdges)
-          end if
-
+          endif
           do i = 1, nEdgesSolve
-          do k  = 1, nVertLevels
+          do k = 1, nVertLevels
              tend_u(k,i)=tend_u(k,i)+rucuten_Edge(k,i)*mass_edge(k,i)
           enddo
           enddo
@@ -443,6 +445,7 @@
     enddo
     enddo
  endif
+
 
 !add coupled tendencies due to shortwave radiation:
  if(radt_sw_scheme .ne. 'off') then
@@ -486,8 +489,7 @@
  integer,pointer:: nCells,nCellsSolve,nEdges
  integer,dimension(:,:),pointer:: cellsOnEdge
 
- real(kind=RKIND),dimension(:,:),pointer :: east,north,edgeNormalVectors
-
+ real(kind=RKIND),dimension(:,:),pointer:: east,north,edgeNormalVectors
  
 !-----------------------------------------------------------------------------------------------------------------
 

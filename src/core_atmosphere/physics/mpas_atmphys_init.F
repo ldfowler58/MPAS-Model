@@ -11,12 +11,14 @@
  use mpas_pool_routines
  use mpas_timekeeping
 
- use mpas_atmphys_driver_convection, only: init_convection
+ use mpas_atmphys_driver_convection,only: init_convection
  use mpas_atmphys_driver_lsm,only: init_lsm
- use mpas_atmphys_driver_microphysics
- use mpas_atmphys_driver_radiation_lw, only: init_radiation_lw
- use mpas_atmphys_driver_radiation_sw, only: init_radiation_sw
- use mpas_atmphys_driver_sfclayer
+ use mpas_atmphys_driver_microphysics,only: init_microphysics
+ use mpas_atmphys_driver_pbl,only: init_pbl
+ use mpas_atmphys_driver_radiation_lw,only: init_radiation_lw
+ use mpas_atmphys_driver_radiation_sw,only: init_radiation_sw
+ use mpas_atmphys_driver_sfclayer,only: init_sfclayer
+ use mpas_atmphys_vars,only: f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nifa,f_nwfa,f_nbca
 
  use mpas_atmphys_landuse
  use mpas_atmphys_o3climatology
@@ -68,6 +70,8 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2018-02-01.
 ! * restored the initialization of aerosols for the Thompson cloud microphysics scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2018--02-05.
+! * added the subroutine init_physics_flags to initialize f_qc,f_qr,f_qi,f_qs,f_qg,f_nc,and f_ni.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-02-14.
 
 
  contains
@@ -100,9 +104,10 @@
                    config_oml1d
 
  character(len=StrKIND),pointer::            &
+                   config_convection_scheme, &
                    config_lsm_scheme,        &
                    config_microp_scheme,     &
-                   config_convection_scheme, &
+                   config_pbl_scheme,        &
                    config_sfclayer_scheme,   &
                    config_radt_lw_scheme,    &
                    config_radt_sw_scheme
@@ -115,16 +120,16 @@
                                 i_aclwupb,i_aclwupbc,i_aclwupt,i_aclwuptc
  integer,dimension(:,:),pointer:: i_raincd_closures
 
- real(kind=RKIND),dimension(:),pointer:: acswdnb,acswdnbc,acswdnt,acswdntc,  &
-                                         acswupb,acswupbc,acswupt,acswuptc,  &
-                                         aclwdnb,aclwdnbc,aclwdnt,aclwdntc,  &
+ real(kind=RKIND),dimension(:),pointer:: acswdnb,acswdnbc,acswdnt,acswdntc, &
+                                         acswupb,acswupbc,acswupt,acswuptc, &
+                                         aclwdnb,aclwdnbc,aclwdnt,aclwdntc, &
                                          aclwupb,aclwupbc,aclwupt,aclwuptc
  real(kind=RKIND),dimension(:),pointer:: nsteps_accum,ndays_accum,tday_accum, &
                                          tyear_accum,tyear_mean
  real(kind=RKIND),dimension(:),pointer:: sst,sstsk,tmn,xice,xicem
  real(kind=RKIND),dimension(:,:),pointer:: tlag
 
- real(kind=RKIND),pointer :: config_oml_hml0
+ real(kind=RKIND),pointer:: config_oml_hml0
  real(kind=RKIND),dimension(:),pointer:: t_oml,t_oml_initial,t_oml_200m_initial
  real(kind=RKIND),dimension(:),pointer:: h_oml,h_oml_initial,hu_oml,hv_oml
 
@@ -141,9 +146,10 @@
 
  call mpas_pool_get_config(configs,'config_do_restart'       ,config_do_restart       )
  call mpas_pool_get_config(configs,'config_o3climatology'    ,config_o3climatology    )
+ call mpas_pool_get_config(configs,'config_convection_scheme',config_convection_scheme)
  call mpas_pool_get_config(configs,'config_lsm_scheme'       ,config_lsm_scheme       )
  call mpas_pool_get_config(configs,'config_microp_scheme'    ,config_microp_scheme    )
- call mpas_pool_get_config(configs,'config_convection_scheme',config_convection_scheme)
+ call mpas_pool_get_config(configs,'config_pbl_scheme'       ,config_pbl_scheme       )
  call mpas_pool_get_config(configs,'config_sfclayer_scheme'  ,config_sfclayer_scheme  )
  call mpas_pool_get_config(configs,'config_radt_lw_scheme'   ,config_radt_lw_scheme   )
  call mpas_pool_get_config(configs,'config_radt_sw_scheme'   ,config_radt_sw_scheme   )
@@ -214,6 +220,10 @@
 !initialization of east-north directions to convert u-tendencies from cell centers to cell
 !edges:
  call init_dirs_forphys(mesh)
+
+!initialization of logical flags for cloud mixing ratios and number concentrations, and aerosols
+!number concentrations from the Thompson cloud microphysics:
+ call init_physics_flags(state,f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nifa,f_nwfa,f_nbca)
 
 !initialization of counters i_rainc and i_rainnc. i_rainc and i_rainnc track the number of
 !times the accumulated convective (rainc) and grid-scale (rainnc) rain exceed the prescribed
@@ -307,6 +317,7 @@
 !initialized the 1D ocean mixed-layer model (code from wrf module_sf_oml):
  if(config_oml1d) then
     if(.not. config_do_restart) then
+       call mpas_log_write('--- initialization of 1D ocean mixed layer model ')
        do iCell = 1, nCellsSolve
           t_oml(iCell) = sst(iCell)
           t_oml_initial(iCell) = sst(iCell)
@@ -319,24 +330,24 @@
              hv_oml(iCell) = 0.
              t_oml_200m_initial(iCell) = sst(iCell) - 5.
           enddo
-      elseif (config_oml_hml0 .eq. 0) then
-      !initializing with climatological mixed layer depth only
-         do iCell = 1, nCellsSolve
-            h_oml(iCell) = h_oml_initial(iCell)
-            hu_oml(iCell) = 0.
-            hv_oml(iCell) = 0.
-            t_oml_200m_initial(iCell) = sst(iCell) - 5.
-         enddo
-      else
-         do iCell = 1, nCellsSolve
-            h_oml(iCell) = h_oml_initial(iCell)
-            !WRF COMMENT:
-            !fill in near coast area with SST: 200 K was set as missing value in ocean pre-processing code
-            if((t_oml_200m_initial(iCell) > 200.) .and. (t_oml_200m_initial(iCell) <= 200.))  &
-               t_oml_200m_initial(iCell) = sst(iCell)
-         enddo
-      endif
-   endif
+       elseif(config_oml_hml0 .eq. 0) then
+! initializing with climatological mixed layer depth only:
+          do iCell = 1, nCellsSolve
+             h_oml(iCell) = h_oml_initial(iCell)
+             hu_oml(iCell) = 0.
+             hv_oml(iCell) = 0.
+             t_oml_200m_initial(iCell) = sst(iCell) - 5.
+          enddo
+       else
+          do iCell = 1, nCellsSolve
+             h_oml(iCell) = h_oml_initial(iCell)
+             ! WRF COMMENT:
+             ! fill in near coast area with SST: 200 K was set as missing value in ocean pre-processing code
+             if( (t_oml_200m_initial(iCell) > 200.) .and. (t_oml_200m_initial(iCell) <= 200.) )  &
+                  t_oml_200m_initial(iCell) = sst(iCell)
+          enddo
+       endif
+    endif
  endif
 
 !initialization of temperatures needed for updating the deep soil temperature:
@@ -368,6 +379,9 @@
  if(config_microp_scheme .ne. 'off') &
     call init_microphysics(dminfo,configs,mesh,state,time_lev,sfc_input,diag_physics)
 
+!initialization of PBL processes:
+ if(config_pbl_scheme .ne. 'off') call init_pbl(configs)
+
 !initialization of surface layer processes:
  if(config_sfclayer_scheme .ne. 'off') call init_sfclayer(configs)
 
@@ -393,6 +407,60 @@
 ! call mpas_log_write('')
 
  end subroutine physics_init
+
+!=================================================================================================================
+ subroutine init_physics_flags(state,f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz,f_nc,f_ni,f_nifa,f_nwfa,f_nbca)
+!=================================================================================================================
+
+!input arguments:
+ type(mpas_pool_type),intent(in):: state
+
+!output arguments:
+ logical,intent(out):: f_qc,f_qr,f_qi,f_qs,f_qg,f_qoz
+ logical,intent(out):: f_nc,f_ni,f_nifa,f_nwfa,f_nbca
+
+!local pointers:
+ integer,pointer:: index_qc,index_qr,index_qi,index_qs,index_qg
+ integer,pointer:: index_nc,index_ni,index_nifa,index_nwfa
+
+!-----------------------------------------------------------------------------------------------------------------
+
+!initializes the logicals assigned to mixing ratios:
+ f_qc  = .false.
+ f_qr  = .false.
+ f_qi  = .false.
+ f_qs  = .false.
+ f_qg  = .false.
+ f_qoz = .false. !qoz is not defined in Registry.xml and f_qoz is initialized to false.
+ call mpas_pool_get_dimension(state,'index_qc',index_qc)
+ call mpas_pool_get_dimension(state,'index_qr',index_qr)
+ call mpas_pool_get_dimension(state,'index_qi',index_qi)
+ call mpas_pool_get_dimension(state,'index_qs',index_qs)
+ call mpas_pool_get_dimension(state,'index_qg',index_qg)
+
+ if(index_qc .gt. -1) f_qc = .true.
+ if(index_qr .gt. -1) f_qr = .true.
+ if(index_qi .gt. -1) f_qi = .true.
+ if(index_qs .gt. -1) f_qs = .true.
+ if(index_qg .gt. -1) f_qg = .true.
+
+!initializes the logical assigned to number concentrations:
+ f_nc   = .false.
+ f_ni   = .false.
+ f_nifa = .false.
+ f_nwfa = .false.
+ f_nbca = .false. !nbca is not defined in Registry.xml - therefore f_nc is initialized to false.
+ call mpas_pool_get_dimension(state,'index_nc'  ,index_nc  )
+ call mpas_pool_get_dimension(state,'index_ni'  ,index_ni  )
+ call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
+ call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
+
+ if(index_nc   .gt. -1) f_nc   = .true.
+ if(index_ni   .gt. -1) f_ni   = .true.
+ if(index_nifa .gt. -1) f_nifa = .true.
+ if(index_nwfa .gt. -1) f_nwfa = .true.
+
+ end subroutine init_physics_flags
 
 !=================================================================================================================
  subroutine init_dirs_forphys(mesh)

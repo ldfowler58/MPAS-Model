@@ -46,6 +46,24 @@ use mpas_atmphys_utilities, only: physics_message,physics_error_fatal
 
 CONTAINS
 
+#if defined(mpas)
+   SUBROUTINE KF_eta_CPS(                                            &
+              ids,ide, jds,jde, kds,kde                              &
+             ,ims,ime, jms,jme, kms,kme                              &
+             ,its,ite, jts,jte, kts,kte                              &
+             ,DT,KTAU,dxCell,areaCell,CUDT,CURR_SECS,ADAPT_STEP_FLAG &
+             ,rho,RAINCV,PRATEC,NCA                                  &
+             ,U,V,TH,T,W,dz8w,Pcps,pi                                &
+             ,W0AVG,XLV0,XLV1,XLS0,XLS1,CP,R,G,EP1                   &
+             ,EP2,SVP1,SVP2,SVP3,SVPT0                               &
+             ,STEPCU,CU_ACT_FLAG,warm_rain,CUTOP,CUBOT               &
+             ,QV                                                     &
+            ! optionals
+             ,F_QR    ,F_QI    ,F_QS                                 &
+             ,RTHCUTEN,RQVCUTEN,RQCCUTEN,RQRCUTEN                    &
+             ,RQICUTEN,RQSCUTEN                                      &
+                                                             )
+#else
    SUBROUTINE KF_eta_CPS(                                    &
               ids,ide, jds,jde, kds,kde                      &
              ,ims,ime, jms,jme, kms,kme                      &
@@ -58,7 +76,7 @@ CONTAINS
              ,STEPCU,CU_ACT_FLAG,warm_rain,CUTOP,CUBOT       &
              ,QV                                             &
             ! optionals
-             ,F_QV    ,F_QC    ,F_QR    ,F_QI    ,F_QS       &
+             ,F_QR    ,F_QI    ,F_QS                         &
              ,RTHCUTEN,RQVCUTEN,RQCCUTEN,RQRCUTEN            &
              ,RQICUTEN,RQSCUTEN                              &
 !ckay
@@ -150,9 +168,7 @@ CONTAINS
 ! use or not.
 !
    LOGICAL, OPTIONAL ::                                      &
-                                                   F_QV      &
-                                                  ,F_QC      &
-                                                  ,F_QR      &
+                                                   F_QR      &
                                                   ,F_QI      &
                                                   ,F_QS
 

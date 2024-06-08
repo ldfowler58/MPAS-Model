@@ -59,6 +59,9 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2018-03-22.
 ! * updated the call to subroutine cal_cldfra3, now that cal_cldfra3 has been updated to WRF-4.1
 !   Laura D. Fowler (laura@ucar.edu) / 2019-04-08.
+! * this is a bug fix. dx_p is converted from meters to kilometers prior to calling the thompson parameterization
+!   of the cloud fraction.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-03-23.
 
 
  contains
@@ -126,6 +129,8 @@
  do j = jts,jte
     do i = its,ite
        dx_p(i,j)    = len_disp / meshDensity(i)**0.25
+       !conversion of dx_p from meters to kilometers.
+       dx_p(i,j)    = dx_p(i,j)*0.001
        xland_p(i,j) = xland(i)
     enddo
 
@@ -158,7 +163,8 @@
  character(len=StrKIND),intent(in):: cld_scheme
  integer:: i,j,k
 
- real(kind=RKIND),dimension(:,:),pointer:: cldfrac,cldfrac_deepc,cldfrac_shalc
+ real(kind=RKIND),dimension(:,:),pointer:: cldfrac
+ real(kind=RKIND),dimension(:,:),pointer:: cldfrac_deepc,cldfrac_shalc
  real(kind=RKIND),dimension(:,:),pointer:: qc_cu,qi_cu
  real(kind=RKIND),dimension(:,:),allocatable:: cldfrac_cu
 
