@@ -140,6 +140,15 @@
 !   in the GF convection scheme; added variables pratecs_p,raincvs_p, and raincs_p to save diagnostics of the
 !   instantaneous and accumulated precipitation for shallow convection in the GF convection scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2024-07-10.
+! * renamed the variables xmb_total_p and xmb_shallow_p to xmb_deepc_p and xmb_shalc_p, respectively. added the
+!   variable xmb_midlc_p as the cloud base mass flux for mid-level convection in the GF convection scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-07-10.
+! * added variables zu_deepc_p and zd_deepc_p to save diagnostics of the updraft and downdraft normalized mass
+!   flux for deep convection in the GF convection scheme; added variables zu_midlc_p and zd_midlc_p to save
+!   diagnostics of the updraft and downdraft normalized mass flux for mid-level convection in the GF convection
+!   scheme; added variables zu_shalc_p and zd_shalc_p to save diagnostics of the updraft and downdraft normalized
+!   mass flux for shallow convection in the GF convection scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-07-10.
 
 
 !=================================================================================================================
@@ -363,13 +372,20 @@
     raincvd_p,        &!
     raincvm_p,        &!
     raincvs_p,        &!
-    xmb_total_p,      &!
-    xmb_shallow_p      !
+    xmb_deepc_p,      &!
+    xmb_midlc_p,      &!
+    xmb_shalc_p        !
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     rthdynten_p,      &!
     qccu_p,           &!
-    qicu_p             !
+    qicu_p,           &!
+    zu_deepc_p,       &!
+    zd_deepc_p,       &!
+    zu_midlc_p,       &!
+    zd_midlc_p,       &!
+    zu_shalc_p,       &!
+    zd_shalc_p         !
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     rthraten_p         !

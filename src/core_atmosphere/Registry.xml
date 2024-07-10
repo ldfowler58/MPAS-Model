@@ -782,8 +782,6 @@
 			<var name="kbcon_shallow"/>
 			<var name="ktop_shallow"/>
 			<var name="ktop_deep"/>
-			<var name="xmb_total"/>
-			<var name="xmb_shallow"/>
 			<var name="qc_cu"/>
 			<var name="qi_cu"/>
 			<var name="rthmpten"/>
@@ -2514,6 +2512,42 @@
                      description="time-step convective precipitation for shallow convection"
                      packages="cu_grell_freitas_in"/>
 
+                <var name="xmb_deepc" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+                     description="cloud-base mass flux for deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="xmb_midlc" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+                     description="cloud-base mass flux for mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="xmb_shalc" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+                     description="cloud base mass flux for shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="zu_deepc" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2}"
+                     description="upward mass flux for deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="zd_deepc" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2}"
+                     description="downward mass flux for deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="zu_midlc" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2}"
+                     description="upward mass flux for mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="zd_midlc" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2}"
+                     description="downward mass flux for mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="zu_shalc" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2}"
+                     description="upward mass flux for shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="zd_shalc" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2}"
+                     description="downward mass flux for shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
                 <var name="k22_shallow" type="integer" dimensions="nCells Time" units="unitless"
                      description="index of convection at k22 level in Grell-Freitas convection scheme"
                      packages="cu_grell_freitas_in"/>
@@ -2528,14 +2562,6 @@
 
                 <var name="ktop_deep" type="integer" dimensions="nCells Time" units="unitless"
                      description="index of highest level of deep convection in Grell-Freitas convection scheme"
-                     packages="cu_grell_freitas_in"/>
-
-                <var name="xmb_total" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-                     description="cloud-base mass flux"
-                     packages="cu_grell_freitas_in"/>
-
-                <var name="xmb_shallow" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-                     description="cloud base mass flux for shallow convection"
                      packages="cu_grell_freitas_in"/>
 
                 <var name="qc_cu" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
