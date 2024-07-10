@@ -2478,6 +2478,42 @@
 
 
                 <!-- ... GRELL-FREITAS ONLY: -->
+                <var name="cuprecd" type="real" dimensions="nCells Time" units="mm s^{-1}"
+                     description="convective precipitation rate for deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="cuprecm" type="real" dimensions="nCells Time" units="mm s^{-1}"
+                     description="convective precipitation rate for mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="cuprecs" type="real" dimensions="nCells Time" units="mm s^{-1}"
+                     description="convective precipitation rate for shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="raincd" type="real" dimensions="nCells Time" units="mm"
+                     description="accumulated convective precipitation for deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="raincm" type="real" dimensions="nCells Time" units="mm"
+                     description="accumulated convective precipitation for mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="raincs" type="real" dimensions="nCells Time" units="mm"
+                     description="accumulated convective precipitation for shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="raincvd" type="real" dimensions="nCells Time" units="mm"
+                     description="time-step convective precipitation for deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="raincvm" type="real" dimensions="nCells Time" units="mm"
+                     description="time-step convective precipitation for mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="raincvs" type="real" dimensions="nCells Time" units="mm"
+                     description="time-step convective precipitation for shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
                 <var name="k22_shallow" type="integer" dimensions="nCells Time" units="unitless"
                      description="index of convection at k22 level in Grell-Freitas convection scheme"
                      packages="cu_grell_freitas_in"/>

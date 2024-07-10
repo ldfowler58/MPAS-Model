@@ -94,6 +94,12 @@
 ! * removed f_qv,f_qr,and f_qs in the calls to cu_tiedtke and cu_ntiedtke. removed f_qv and f_qc in the call to
 !   kf_eta_cps.
 !   Laura D. Fowler (laura@ucar.edu) / 2024-02-13.
+! * added variables pratecd_p,raincvd_p,and raincd_p to save diagnostics of the instantaneous and accumulated
+!   precipitation for deep convection in the GF convection scheme; added variables pratecm_p,raincvm_p,and
+!   raincm_p to save diagnostics of the instantaneous and accumulated precipitation for mid-level convection
+!   in the GF convection scheme; added variables pratecs_p,raincvs_p, and raincs_p to save diagnostics of the
+!   instantaneous and accumulated precipitation for shallow convection in the GF convection scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-07-10.
 
 
  contains
@@ -168,6 +174,16 @@
        if(.not.allocated(rqvdynten_p)    ) allocate(rqvdynten_p(ims:ime,kms:kme,jms:jme))
        if(.not.allocated(rucuten_p)      ) allocate(rucuten_p(ims:ime,kms:kme,jms:jme)  )
        if(.not.allocated(rvcuten_p)      ) allocate(rvcuten_p(ims:ime,kms:kme,jms:jme)  )
+
+       if(.not.allocated(pratecd_p)      ) allocate(pratecd_p(ims:ime,jms:jme)          )
+       if(.not.allocated(pratecm_p)      ) allocate(pratecm_p(ims:ime,jms:jme)          )
+       if(.not.allocated(pratecs_p)      ) allocate(pratecs_p(ims:ime,jms:jme)          )
+       if(.not.allocated(raincd_p)       ) allocate(raincd_p(ims:ime,jms:jme)           )
+       if(.not.allocated(raincm_p)       ) allocate(raincm_p(ims:ime,jms:jme)           )
+       if(.not.allocated(raincs_p)       ) allocate(raincs_p(ims:ime,jms:jme)           )
+       if(.not.allocated(raincvd_p)      ) allocate(raincvd_p(ims:ime,jms:jme)          )
+       if(.not.allocated(raincvm_p)      ) allocate(raincvm_p(ims:ime,jms:jme)          )
+       if(.not.allocated(raincvs_p)      ) allocate(raincvs_p(ims:ime,jms:jme)          )
 
        if(.not.allocated(xmb_total_p)    ) allocate(xmb_total_p(ims:ime,jms:jme)        )
        if(.not.allocated(xmb_shallow_p)  ) allocate(xmb_shallow_p(ims:ime,jms:jme)      )
@@ -312,6 +328,16 @@
        if(allocated(rqvdynten_p)    ) deallocate(rqvdynten_p    )
        if(allocated(rucuten_p)      ) deallocate(rucuten_p      )
        if(allocated(rvcuten_p)      ) deallocate(rvcuten_p      )
+
+       if(allocated(pratecd_p)      ) deallocate(pratecd_p      )
+       if(allocated(pratecm_p)      ) deallocate(pratecm_p      )
+       if(allocated(pratecs_p)      ) deallocate(pratecs_p      )
+       if(allocated(raincd_p)       ) deallocate(raincd_p       )
+       if(allocated(raincm_p)       ) deallocate(raincm_p       )
+       if(allocated(raincs_p)       ) deallocate(raincs_p       )
+       if(allocated(raincvd_p)      ) deallocate(raincvd_p      )
+       if(allocated(raincvm_p)      ) deallocate(raincvm_p      )
+       if(allocated(raincvs_p)      ) deallocate(raincvs_p      )
 
        if(allocated(xmb_total_p)    ) deallocate(xmb_total_p    )
        if(allocated(xmb_shallow_p)  ) deallocate(xmb_shallow_p  )
@@ -884,6 +910,9 @@
  real(kind=RKIND),dimension(:,:),pointer:: rthcuten,rqvcuten,rqccuten,rqicuten,rqrcuten,rqscuten
  real(kind=RKIND),dimension(:,:),pointer:: rucuten,rvcuten
 
+!local pointers for the Grell-Freitas convection scheme:
+ real(kind=RKIND),dimension(:),pointer  :: cuprecd,cuprecm,cuprecs,raincvd,raincvm,raincvs
+
 !-----------------------------------------------------------------------------------------------------------------
 
  call mpas_pool_get_config(configs,'config_convection_scheme',convection_scheme)
@@ -916,6 +945,12 @@
        call mpas_pool_get_array(diag_physics,'cutop'        ,cutop        )
        call mpas_pool_get_array(diag_physics,'xmb_total'    ,xmb_total    )
        call mpas_pool_get_array(diag_physics,'xmb_shallow'  ,xmb_shallow  )
+       call mpas_pool_get_array(diag_physics,'cuprecd'      ,cuprecd      )
+       call mpas_pool_get_array(diag_physics,'cuprecm'      ,cuprecm      )
+       call mpas_pool_get_array(diag_physics,'cuprecs'      ,cuprecs      )
+       call mpas_pool_get_array(diag_physics,'raincvd'      ,raincvd      )
+       call mpas_pool_get_array(diag_physics,'raincvm'      ,raincvm      )
+       call mpas_pool_get_array(diag_physics,'raincvs'      ,raincvs      )
        call mpas_pool_get_array(diag_physics,'k22_shallow'  ,k22_shallow  )
        call mpas_pool_get_array(diag_physics,'kbcon_shallow',kbcon_shallow)
        call mpas_pool_get_array(diag_physics,'ktop_shallow' ,ktop_shallow )
@@ -932,6 +967,12 @@
           cutop(i)         = cutop_p(i,j)
           xmb_total(i)     = xmb_total_p(i,j)
           xmb_shallow(i)   = xmb_shallow_p(i,j)
+          cuprecd(i)       = pratecd_p(i,j)
+          cuprecm(i)       = pratecm_p(i,j)
+          cuprecs(i)       = pratecs_p(i,j)
+          raincvd(i)       = raincvd_p(i,j)
+          raincvm(i)       = raincvm_p(i,j)
+          raincvs(i)       = raincvs_p(i,j)
           k22_shallow(i)   = k22_shallow_p(i,j)
           kbcon_shallow(i) = kbcon_shallow_p(i,j)
           ktop_shallow(i)  = ktop_shallow_p(i,j)
@@ -1069,16 +1110,19 @@
  type(mpas_pool_type),intent(inout):: diag_physics
 
 !local pointers:
+ character(len=StrKIND),pointer:: cu_scheme
  integer,dimension(:),pointer:: i_rainc
 
  real(kind=RKIND),pointer:: bucket_rainc
  real(kind=RKIND),dimension(:),pointer:: cuprec,rainc
+ real(kind=RKIND),dimension(:),pointer:: cuprecd,cuprecm,cuprecs,raincd,raincm,raincs
 
 !local variables and arrays:
  integer:: i
 
 !-----------------------------------------------------------------------------------------------------------------
 
+ call mpas_pool_get_config(configs,'config_convection_scheme',cu_scheme)
  call mpas_pool_get_config(configs,'config_bucket_rainc',bucket_rainc)
 
  call mpas_pool_get_array(diag_physics,'i_rainc',i_rainc)
@@ -1095,6 +1139,26 @@
        rainc(i)   = rainc(i) - bucket_rainc
     endif
  enddo
+
+!update the accumulated precipitation from mid-level and shallow convection from the Grell-Freitas at the
+!end of each dynamic time-step:
+ cu_select: select case(cu_scheme)
+    case ("cu_grell_freitas")
+       call mpas_pool_get_array(diag_physics,'cuprecd',cuprecd)
+       call mpas_pool_get_array(diag_physics,'cuprecm',cuprecm)
+       call mpas_pool_get_array(diag_physics,'cuprecs',cuprecs)
+       call mpas_pool_get_array(diag_physics,'raincd' ,raincd)
+       call mpas_pool_get_array(diag_physics,'raincm' ,raincm)
+       call mpas_pool_get_array(diag_physics,'raincs' ,raincs)
+
+       do i = its, ite
+          raincd(i) = raincd(i) + cuprecd(i)*dt_dyn
+          raincm(i) = raincm(i) + cuprecm(i)*dt_dyn
+          raincs(i) = raincs(i) + cuprecs(i)*dt_dyn
+       enddo
+
+     case default
+ end select cu_select
 
  end subroutine update_convection_step2
 

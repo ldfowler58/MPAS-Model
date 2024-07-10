@@ -134,6 +134,12 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2024-02-14.
 ! * added and modified variables needed to run the MYNN PBL scheme using the sourcecode from WRF version 4.6.
 !   Laura D. Fowler (laura@ucar.edu) / 2024-02-18.
+! * added variables pratecd_p,raincvd_p,and raincd_p to save diagnostics of the instantaneous and accumulated
+!   precipitation for deep convection in the GF convection scheme; added variables pratecm_p,raincvm_p,and
+!   raincm_p to save diagnostics of the instantaneous and accumulated precipitation for mid-level convection
+!   in the GF convection scheme; added variables pratecs_p,raincvs_p, and raincs_p to save diagnostics of the
+!   instantaneous and accumulated precipitation for shallow convection in the GF convection scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-07-10.
 
 
 !=================================================================================================================
@@ -348,6 +354,15 @@
     ktop_deep_p        !
 
  real(kind=RKIND),dimension(:,:),allocatable:: &
+    pratecd_p,        &!
+    pratecm_p,        &!
+    pratecs_p,        &!
+    raincd_p,         &!
+    raincm_p,         &!
+    raincs_p,         &!
+    raincvd_p,        &!
+    raincvm_p,        &!
+    raincvs_p,        &!
     xmb_total_p,      &!
     xmb_shallow_p      !
 
