@@ -778,10 +778,6 @@
 			<var name="xicem"/>
 			<var name="z0"/>
 			<var name="zs"/>
-			<var name="k22_shallow"/>
-			<var name="kbcon_shallow"/>
-			<var name="ktop_shallow"/>
-			<var name="ktop_deep"/>
 			<var name="qc_cu"/>
 			<var name="qi_cu"/>
 			<var name="rthmpten"/>
@@ -2476,6 +2472,42 @@
 
 
                 <!-- ... GRELL-FREITAS ONLY: -->
+                <var name="k22_deepc" type="integer" dimensions="nCells Time" units="unitless"
+                     description="index level of highest moist static energy for deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="k22_midlc" type="integer" dimensions="nCells Time" units="unitless"
+                     description="index level of highest moist static energy for mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="k22_shalc" type="integer" dimensions="nCells Time" units="unitless"
+                     description="index level of highest moist static energy for shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="kbcon_deepc" type="integer" dimensions="nCells Time" units="unitless"
+                     description="index level of cloud base for deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="kbcon_midlc" type="integer" dimensions="nCells Time" units="unitless"
+                     description="index level of cloud base for mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="kbcon_shalc" type="integer" dimensions="nCells Time" units="unitless"
+                     description="index level of cloud base for shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="ktop_deepc" type="integer" dimensions="nCells Time" units="unitless"
+                     description="index level of cloud top for deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="ktop_midlc" type="integer" dimensions="nCells Time" units="unitless"
+                     description="index level of cloud top for mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="ktop_shalc" type="integer" dimensions="nCells Time" units="unitless"
+                     description="index level of cloud top for shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
                 <var name="cuprecd" type="real" dimensions="nCells Time" units="mm s^{-1}"
                      description="convective precipitation rate for deep convection"
                      packages="cu_grell_freitas_in"/>
@@ -2546,22 +2578,6 @@
 
                 <var name="zd_shalc" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2}"
                      description="downward mass flux for shallow convection"
-                     packages="cu_grell_freitas_in"/>
-
-                <var name="k22_shallow" type="integer" dimensions="nCells Time" units="unitless"
-                     description="index of convection at k22 level in Grell-Freitas convection scheme"
-                     packages="cu_grell_freitas_in"/>
-
-                <var name="kbcon_shallow" type="integer" dimensions="nCells Time" units="unitless"
-                     description="index of lowest level of shallow convection in Grell-Freitas convection scheme"
-                     packages="cu_grell_freitas_in"/>
-
-                <var name="ktop_shallow" type="integer" dimensions="nCells Time" units="unitless"
-                     description="index of highest level of shallow convection in Grell-Freitas convection scheme"
-                     packages="cu_grell_freitas_in"/>
-
-                <var name="ktop_deep" type="integer" dimensions="nCells Time" units="unitless"
-                     description="index of highest level of deep convection in Grell-Freitas convection scheme"
                      packages="cu_grell_freitas_in"/>
 
                 <var name="qc_cu" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"

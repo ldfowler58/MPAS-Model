@@ -353,14 +353,18 @@
     rvcuten_p          !
 
 !... grell-freitas specific parameters and arrays:
-    integer, parameter:: ishallow  = 1 !shallow convection used with grell scheme.
+ integer, parameter:: ishallow  = 1 !shallow convection used with grell scheme.
 
  integer,dimension(:,:),allocatable:: &
-    k22_shallow_p,    &!
-    kbcon_shallow_p,  &!
-    ktop_shallow_p,   &!
-    kbot_shallow_p,   &!
-    ktop_deep_p        !
+    k22_deepc_p,      &!
+    k22_midlc_p,      &!
+    k22_shalc_p,      &!
+    kbcon_deepc_p,    &!
+    kbcon_midlc_p,    &!
+    kbcon_shalc_p,    &!
+    ktop_deepc_p,     &!
+    ktop_midlc_p,     &!
+    ktop_shalc_p
 
  real(kind=RKIND),dimension(:,:),allocatable:: &
     pratecd_p,        &!
