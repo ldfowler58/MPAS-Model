@@ -3399,7 +3399,8 @@
                      description="tendency of snow mixing ratio due to cumulus convection"
                      packages="cu_kain_fritsch_in"/>
 
-                <!-- TIEDTKE AND GRELL -->
+
+                <!-- TIEDTKE AND GRELL_FREITAS -->
                 <var name="rqvdynten" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
                      description="tendency of water vapor due to horizontal and vertical advections"
                      packages="cu_grell_freitas_in;cu_ntiedtke_in"/>
@@ -3411,6 +3412,57 @@
                 <var name="rvcuten" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1} s^{-1}"
                      description="tendency of meridional wind due to cumulus convection"
                      packages="cu_grell_freitas_in;cu_ntiedtke_in"/>
+
+
+                <!-- GRELL_FREITAS ONLY -->
+                <var name="rthcuten_deepc" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+                     description="tendency of potential temperature due to deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rqvcuten_deepc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="tendency of water vapor mixing ratio due to deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rqccuten_deepc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="tendency of cloud water mixing ratio due to deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rqicuten_deepc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="tendency of cloud ice mixing ratio due to deep convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rthcuten_midlc" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+                     description="tendency of potential temperature due to mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rqvcuten_midlc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="tendency of water vapor mixing ratio due to mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rqccuten_midlc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="tendency of cloud water mixing ratio due to mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rqicuten_midlc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="tendency of cloud ice mixing ratio due to mid-level convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rthcuten_shalc" type="real" dimensions="nVertLevels nCells Time" units="K s^{-1}"
+                     description="tendency of potential temperature due to shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rqvcuten_shalc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="tendency of water vapor mixing ratio due to shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rqccuten_shalc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="tendency of cloud water mixing ratio due to shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
+                <var name="rqicuten_shalc" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1} s^{-1}"
+                     description="tendency of cloud ice mixing ratio due to shallow convection"
+                     packages="cu_grell_freitas_in"/>
+
 
 	        <!-- MGD should we add packages to the field below? -->
 	        <var name="rucuten_Edge" type="real"     dimensions="nVertLevels nEdges Time"/>

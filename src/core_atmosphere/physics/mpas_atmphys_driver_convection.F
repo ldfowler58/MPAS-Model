@@ -109,6 +109,14 @@
 !   scheme; added variables zu_shalc_p and zd_shalc_p to save diagnostics of the updraft and downdraft normalized
 !   mass flux for shallow convection in the GF convection scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2024-07-10.
+! * added variables related to k22_deepc, kbcon_deepc, and ktop_deepc for deep convection in the GF convection
+!   scheme; added variables k22_midlc, kbcon_midlc, and ktop_midlc for mid-level convection in the GF convection
+!   scheme; added variables k22_shalc, kbcon_shalc, and ktop_shalc for shallow convection in the GF convection
+!   scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-07-12.
+!   added tendencies for deep convection, mid-level convection, and shallow convection in the GF convection
+!   scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-07-12.
 
 
  contains
@@ -178,6 +186,19 @@
        if(.not.allocated(rqvdynten_p)    ) allocate(rqvdynten_p(ims:ime,kms:kme,jms:jme))
        if(.not.allocated(rucuten_p)      ) allocate(rucuten_p(ims:ime,kms:kme,jms:jme)  )
        if(.not.allocated(rvcuten_p)      ) allocate(rvcuten_p(ims:ime,kms:kme,jms:jme)  )
+
+       if(.not.allocated(rthcuten_deepc_p)) allocate(rthcuten_deepc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rqvcuten_deepc_p)) allocate(rqvcuten_deepc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rqccuten_deepc_p)) allocate(rqccuten_deepc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rqicuten_deepc_p)) allocate(rqicuten_deepc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rthcuten_midlc_p)) allocate(rthcuten_midlc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rqvcuten_midlc_p)) allocate(rqvcuten_midlc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rqccuten_midlc_p)) allocate(rqccuten_midlc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rqicuten_midlc_p)) allocate(rqicuten_midlc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rthcuten_shalc_p)) allocate(rthcuten_shalc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rqvcuten_shalc_p)) allocate(rqvcuten_shalc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rqccuten_shalc_p)) allocate(rqccuten_shalc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(rqicuten_shalc_p)) allocate(rqicuten_shalc_p(ims:ime,kms:kme,jms:jme))
 
        if(.not.allocated(k22_deepc_p)    ) allocate(k22_deepc_p(ims:ime,jms:jme)        )
        if(.not.allocated(k22_midlc_p)    ) allocate(k22_midlc_p(ims:ime,jms:jme)        )
@@ -344,6 +365,19 @@
        if(allocated(rqvdynten_p)    ) deallocate(rqvdynten_p    )
        if(allocated(rucuten_p)      ) deallocate(rucuten_p      )
        if(allocated(rvcuten_p)      ) deallocate(rvcuten_p      )
+
+       if(allocated(rthcuten_deepc_p)) deallocate(rthcuten_deepc_p)
+       if(allocated(rqvcuten_deepc_p)) deallocate(rqvcuten_deepc_p)
+       if(allocated(rqccuten_deepc_p)) deallocate(rqccuten_deepc_p)
+       if(allocated(rqicuten_deepc_p)) deallocate(rqicuten_deepc_p)
+       if(allocated(rthcuten_midlc_p)) deallocate(rthcuten_midlc_p)
+       if(allocated(rqvcuten_midlc_p)) deallocate(rqvcuten_midlc_p)
+       if(allocated(rqccuten_midlc_p)) deallocate(rqccuten_midlc_p)
+       if(allocated(rqicuten_midlc_p)) deallocate(rqicuten_midlc_p)
+       if(allocated(rthcuten_shalc_p)) deallocate(rthcuten_shalc_p)
+       if(allocated(rqvcuten_shalc_p)) deallocate(rqvcuten_shalc_p)
+       if(allocated(rqccuten_shalc_p)) deallocate(rqccuten_shalc_p)
+       if(allocated(rqicuten_shalc_p)) deallocate(rqicuten_shalc_p)
 
        if(allocated(k22_deepc_p)    ) deallocate(k22_deepc_p    )
        if(allocated(k22_midlc_p)    ) deallocate(k22_midlc_p    )
@@ -930,6 +964,9 @@
  real(kind=RKIND),dimension(:,:),pointer:: zu_deepc,zd_deepc,zu_midlc,zd_midlc,zu_shalc,zd_shalc
  real(kind=RKIND),dimension(:,:),pointer:: w0avg
  real(kind=RKIND),dimension(:,:),pointer:: rthcuten,rqvcuten,rqccuten,rqicuten,rqrcuten,rqscuten
+ real(kind=RKIND),dimension(:,:),pointer:: rthcuten_deepc,rqvcuten_deepc,rqccuten_deepc,rqicuten_deepc
+ real(kind=RKIND),dimension(:,:),pointer:: rthcuten_midlc,rqvcuten_midlc,rqccuten_midlc,rqicuten_midlc
+ real(kind=RKIND),dimension(:,:),pointer:: rthcuten_shalc,rqvcuten_shalc,rqccuten_shalc,rqicuten_shalc
  real(kind=RKIND),dimension(:,:),pointer:: rucuten,rvcuten
 
 !local pointers for the Grell-Freitas convection scheme:
@@ -995,6 +1032,19 @@
        call mpas_pool_get_array(tend_physics,'rucuten',rucuten)
        call mpas_pool_get_array(tend_physics,'rvcuten',rvcuten)
 
+       call mpas_pool_get_array(tend_physics,'rthcuten_deepc',rthcuten_deepc)
+       call mpas_pool_get_array(tend_physics,'rqvcuten_deepc',rqvcuten_deepc)
+       call mpas_pool_get_array(tend_physics,'rqccuten_deepc',rqccuten_deepc)
+       call mpas_pool_get_array(tend_physics,'rqicuten_deepc',rqicuten_deepc)
+       call mpas_pool_get_array(tend_physics,'rthcuten_midlc',rthcuten_midlc)
+       call mpas_pool_get_array(tend_physics,'rqvcuten_midlc',rqvcuten_midlc)
+       call mpas_pool_get_array(tend_physics,'rqccuten_midlc',rqccuten_midlc)
+       call mpas_pool_get_array(tend_physics,'rqicuten_midlc',rqicuten_midlc)
+       call mpas_pool_get_array(tend_physics,'rthcuten_shalc',rthcuten_shalc)
+       call mpas_pool_get_array(tend_physics,'rqvcuten_shalc',rqvcuten_shalc)
+       call mpas_pool_get_array(tend_physics,'rqccuten_shalc',rqccuten_shalc)
+       call mpas_pool_get_array(tend_physics,'rqicuten_shalc',rqicuten_shalc)
+
        do j = jts,jte
        do i = its,ite
           cubot(i)         = cubot_p(i,j)
@@ -1029,6 +1079,21 @@
              zd_shalc(k,i) = xmb_shalc_p(i,j)*zd_shalc_p(i,k,j)
              rucuten(k,i)  = rucuten_p(i,k,j)
              rvcuten(k,k)  = rvcuten_p(i,k,j)
+          enddo
+
+          do k = kts,kte
+             rthcuten_deepc(k,i) = rthcuten_deepc_p(i,k,j)
+             rqvcuten_deepc(k,i) = rqvcuten_deepc_p(i,k,j)
+             rqccuten_deepc(k,i) = rqccuten_deepc_p(i,k,j)
+             rqicuten_deepc(k,i) = rqicuten_deepc_p(i,k,j)
+             rthcuten_midlc(k,i) = rthcuten_midlc_p(i,k,j)
+             rqvcuten_midlc(k,i) = rqvcuten_midlc_p(i,k,j)
+             rqccuten_midlc(k,i) = rqccuten_midlc_p(i,k,j)
+             rqicuten_midlc(k,i) = rqicuten_midlc_p(i,k,j)
+             rthcuten_shalc(k,i) = rthcuten_shalc_p(i,k,j)
+             rqvcuten_shalc(k,i) = rqvcuten_shalc_p(i,k,j)
+             rqccuten_shalc(k,i) = rqccuten_shalc_p(i,k,j)
+             rqicuten_shalc(k,i) = rqicuten_shalc_p(i,k,j)
           enddo
        enddo
        enddo

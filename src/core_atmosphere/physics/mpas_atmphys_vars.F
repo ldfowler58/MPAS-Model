@@ -149,6 +149,14 @@
 !   scheme; added variables zu_shalc_p and zd_shalc_p to save diagnostics of the updraft and downdraft normalized
 !   mass flux for shallow convection in the GF convection scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2024-07-10.
+! * added variables related to k22_deepc, kbcon_deepc, and ktop_deepc for deep convection in the GF convection
+!   scheme; added variables k22_midlc, kbcon_midlc, and ktop_midlc for mid-level convection in the GF convection
+!   scheme; added variables k22_shalc, kbcon_shalc, and ktop_shalc for shallow convection in the GF convection
+!   scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-07-12.
+!   added tendencies for deep convection, mid-level convection, and shallow convection in the GF convection
+!   scheme.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-07-12.
 
 
 !=================================================================================================================
@@ -390,6 +398,22 @@
     zd_midlc_p,       &!
     zu_shalc_p,       &!
     zd_shalc_p         !
+
+ real(kind=RKIND),dimension(:,:,:),allocatable:: &
+    rthcuten_deepc_p, &!
+    rthcuten_midlc_p, &!
+    rthcuten_shalc_p, &!
+    rqvcuten_deepc_p, &!
+    rqvcuten_midlc_p, &!
+    rqvcuten_shalc_p, &!
+    rqccuten_deepc_p, &!
+    rqccuten_midlc_p, &!
+    rqccuten_shalc_p, &!
+    rqicuten_deepc_p, &!
+    rqicuten_midlc_p, &!
+    rqicuten_shalc_p, &!
+    rqrcuten_shalc_p, &!
+    rqscuten_shalc_p   !
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     rthraten_p         !
