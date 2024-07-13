@@ -520,7 +520,8 @@
 
 !local pointers:
  logical,pointer:: config_do_restart
- integer,pointer:: gfconv_closure_deep,gfconv_closure_shallow
+ logical,pointer:: gfconv_deepc,gfconv_midlc,gfconv_shalc
+ integer,pointer:: gfconv_closure_deepc,gfconv_closure_midlc,gfconv_closure_shalc
  character(len=StrKIND),pointer:: convection_scheme
  real(kind=RKIND),pointer:: len_disp
 
@@ -534,6 +535,7 @@
 !CCPP-compliant flags:
  character(len=StrKIND):: errmsg
  integer:: errflg
+ integer:: ishalc
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write('')
@@ -543,8 +545,6 @@
  errmsg = ' '
  errflg = 0
 
- call mpas_pool_get_config(configs,'config_gfconv_closure_deep',gfconv_closure_deep)
- call mpas_pool_get_config(configs,'config_gfconv_closure_shallow',gfconv_closure_shallow)
  call mpas_pool_get_config(configs,'config_len_disp'         ,len_disp         )
  call mpas_pool_get_config(configs,'config_do_restart'       ,config_do_restart)
  call mpas_pool_get_config(configs,'config_convection_scheme',convection_scheme)
@@ -573,6 +573,23 @@
  convection_select: select case(convection_scheme)
 
     case ("cu_grell_freitas")
+       call mpas_pool_get_config(configs,'config_gfconv_deepc',gfconv_deepc)
+       call mpas_pool_get_config(configs,'config_gfconv_midlc',gfconv_midlc)
+       call mpas_pool_get_config(configs,'config_gfconv_shalc',gfconv_shalc)
+       call mpas_pool_get_config(configs,'config_gfconv_closure_deepc',gfconv_closure_deepc)
+       call mpas_pool_get_config(configs,'config_gfconv_closure_midlc',gfconv_closure_midlc)
+       call mpas_pool_get_config(configs,'config_gfconv_closure_shalc',gfconv_closure_shalc)
+
+       call mpas_log_write('gfconv_deepc = $l',logicArgs=(/gfconv_deepc/))
+       call mpas_log_write('gfconv_midlc = $l',logicArgs=(/gfconv_midlc/))
+       call mpas_log_write('gfconv_shalc = $l',logicArgs=(/gfconv_shalc/))
+       call mpas_log_write('gfconv_closure_deepc = $i',intArgs=(/gfconv_closure_deepc/))
+       call mpas_log_write('gfconv_closure_midlc = $i',intArgs=(/gfconv_closure_midlc/))
+       call mpas_log_write('gfconv_closure_shalc = $i',intArgs=(/gfconv_closure_shalc/))
+
+       ishalc = 0
+       if(gfconv_shalc) ishalc = 1
+
        call mpas_timer_start('Grell-Freitas')
        call cu_grell_freitas( &
              itimestep       = itimestep              , dt            = dt_dyn          , &
@@ -597,9 +614,9 @@
              gdc             = qccu_p                 , gdc2          = qicu_p          , &
              rthcuten        = rthcuten_p             , rqvcuten      = rqvcuten_p      , & 
              rqccuten        = rqccuten_p             , rqicuten      = rqicuten_p      , &
-             ichoice_deep    = gfconv_closure_deep                                      , &
-             ichoice_shallow = gfconv_closure_shallow                                   , &
-             ishallow_g3     = ishallow                                                 , &
+             ichoice_deep    = gfconv_closure_deepc                                     , &
+             ichoice_shallow = gfconv_closure_shalc                                     , &
+             ishallow_g3     = ishalc                                                   , &
              ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde      , &
              ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme      , &
              its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte        &

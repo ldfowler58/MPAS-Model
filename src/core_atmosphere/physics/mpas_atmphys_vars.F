@@ -360,9 +360,6 @@
     rucuten_p,        &!
     rvcuten_p          !
 
-!... grell-freitas specific parameters and arrays:
- integer, parameter:: ishallow  = 1 !shallow convection used with grell scheme.
-
  integer,dimension(:,:),allocatable:: &
     k22_deepc_p,      &!
     k22_midlc_p,      &!
