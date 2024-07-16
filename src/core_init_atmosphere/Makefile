@@ -27,7 +27,6 @@ OBJS =  \
 	mpas_geotile_manager.o \
 	mpas_init_atm_chems.o \
 	mpas_init_atm_chems_static.o \
-	mpas_init_atm_gocart.o \
 	mpas_init_atm_tracers.o
 
 all: core_hyd
@@ -66,7 +65,6 @@ mpas_init_atm_cases.o: \
 	mpas_init_atm_vinterp.o \
 	mpas_init_atm_chems.o \
 	mpas_init_atm_chems_static.o \
-	mpas_init_atm_gocart.o \
 	mpas_init_atm_tracers.o \
 	mpas_atmphys_constants.o \
 	mpas_atmphys_functions.o \
@@ -110,14 +108,6 @@ mpas_init_atm_chems.o: \
 mpas_init_atm_chems_static.o: \
 	mpas_init_atm_hinterp.o \
 	mpas_init_atm_llxy.o
-
-mpas_init_atm_gocart.o: \
-	mpas_init_atm_read_met.o \
-	mpas_init_atm_hinterp.o \
-	mpas_init_atm_llxy.o \
-	mpas_init_atm_vinterp.o \
-	mpas_atmphys_date_time.o \
-	mpas_atmphys_utilities.o
 
 mpas_init_atm_static.o: \
 	mpas_atm_advection.o \
