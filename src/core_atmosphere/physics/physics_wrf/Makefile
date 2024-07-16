@@ -8,56 +8,56 @@ dummy:
 	echo "****** compiling physics_wrf ******"
 
 OBJS = \
-	libmassv.o                       \
-	module_bep_bem_helper.o          \
-	module_bl_gwdo.o                 \
-	module_bl_mynn.o                 \
-	module_bl_ysu.o                  \
-	module_cam_error_function.o      \
-	module_cam_shr_kind_mod.o        \
-	module_cam_support.o             \
-	module_cu_gf.mpas.o              \
-	module_cu_gf.mpas.wrf-3.9.0.o    \
-	module_cu_gf_ctrans.o            \
-	module_cu_gf_ctrans_thompson.o   \
-	module_cu_gf_deep.o              \
-	module_cu_gf_sh.o                \
-	module_cu_gf_shared.o            \
-	module_cu_kfeta.o                \
-	module_cu_mskf.o                 \
-	module_cu_ntiedtke.o             \
-	module_cu_tiedtke.o              \
-	module_mp_kessler.o              \
-	module_mp_radar.o                \
-	module_mp_thompson.o             \
-	module_mp_thompson_aerosols.o    \
-	module_mp_thompson_cldfra3.o     \
-	module_mp_wsm6.o                 \
-	module_ra_cam_support.o          \
-	module_ra_rrtmg_lw.o             \
-	module_ra_rrtmg_sw.o             \
-	module_ra_rrtmg_sw_aerosols.o    \
-	module_ra_rrtmg_vinterp.o        \
-	module_sf_bem.o                  \
-	module_sf_bep.o                  \
-	module_sf_bep_bem.o              \
-	module_sf_sfcdiags.o             \
-	module_sf_mynn.o                 \
-	module_sf_noahdrv.o              \
-	module_sf_noahlsm.o              \
+	libmassv.o                     \
+	module_bep_bem_helper.o        \
+	module_bl_gwdo.o               \
+	module_bl_mynn.o               \
+	module_bl_ysu.o                \
+	module_cam_error_function.o    \
+	module_cam_shr_kind_mod.o      \
+	module_cam_support.o           \
+	module_cu_gf.mpas.o            \
+	module_cu_tiedtke.o            \
+	module_cu_ntiedtke.o           \
+	module_cu_kfeta.o              \
+	module_mp_kessler.o            \
+	module_mp_thompson.o           \
+	module_mp_thompson_aerosols.o  \
+	module_mp_thompson_cldfra3.o   \
+	module_mp_wsm6.o               \
+	module_ra_cam_support.o        \
+	module_ra_rrtmg_lw.o           \
+	module_ra_rrtmg_sw.o           \
+	module_ra_rrtmg_sw_aerosols.o  \
+	module_ra_rrtmg_vinterp.o      \
+	module_sf_bem.o                \
+	module_sf_bep.o                \
+	module_sf_bep_bem.o            \
+	module_sf_sfcdiags.o           \
+	module_sf_mynn.o               \
+	module_sf_noahdrv.o            \
+	module_sf_noahlsm.o            \
 	module_sf_noahlsm_glacial_only.o \
-	module_sf_noah_seaice.o          \
-	module_sf_noah_seaice_drv.o      \
-	module_sf_oml.o                  \
-	module_sf_sfclay.o               \
-	module_sf_sfclayrev.o            \
-	module_sf_urban.o                \
-	bl_mynn_post.o                   \
-	bl_mynn_pre.o                    \
-	cu_ntiedtke_post.o               \
-	cu_ntiedtke_pre.o	         \
-	sf_mynn_pre.o                    \
-	sf_sfclayrev_pre.o
+	module_sf_noah_seaice.o        \
+	module_sf_noah_seaice_drv.o    \
+	module_sf_oml.o                \
+	module_sf_sfclay.o             \
+	module_sf_sfclayrev.o          \
+	module_sf_urban.o              \
+	bl_mynn_post.o                 \
+	bl_mynn_pre.o                  \
+	cu_ntiedtke_post.o             \
+	cu_ntiedtke_pre.o	       \
+	sf_mynn_pre.o                  \
+	sf_sfclayrev_pre.o             \
+	module_cu_gf.mpas.wrf-3.9.0.o  \
+	module_cu_gf_ctrans.o          \
+	module_cu_gf_ctrans_thompson.o \
+	module_cu_gf_deep.o            \
+	module_cu_gf_sh.o              \
+	module_cu_gf_shared.o          \
+	module_cu_mskf.o
+
 
 physics_wrf: $(OBJS)
 
@@ -94,12 +94,6 @@ module_cu_gf.mpas.wrf-3.9.0.o:  \
 module_cu_ntiedtke.o: \
 	cu_ntiedtke_post.o \
 	cu_ntiedtke_pre.o
-
-module_mp_thompson.o: \
-	module_mp_radar.o
-
-module_mp_wsm6.o: \
-	module_mp_radar.o
 
 module_ra_rrtmg_lw.o: \
 	module_ra_rrtmg_vinterp.o
