@@ -215,7 +215,7 @@
     call mpas_pool_get_dimension(block%dimensions,'cellSolveThreadEnd',cellSolveThreadEnd)
 
     !allocate arrays shared by all physics parameterizations:
-    call allocate_forall_physics
+    call allocate_forall_physics(block%configs)
 
     !physics prep step:
     time_lev = 1
@@ -408,7 +408,7 @@
     end if
 
     !deallocate arrays shared by all physics parameterizations:
-    call deallocate_forall_physics
+    call deallocate_forall_physics(block%configs)
 
 #ifdef ATM_CHEMISTRY
     call mpas_chems%chems_from_physics(tend_chems)

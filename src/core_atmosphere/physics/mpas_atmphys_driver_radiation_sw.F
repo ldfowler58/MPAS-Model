@@ -306,6 +306,8 @@
  real(kind=RKIND),dimension(:,:),pointer  :: zgrid
  real(kind=RKIND),dimension(:,:),pointer  :: cldfrac,o3clim
  real(kind=RKIND),dimension(:,:),pointer  :: re_cloud,re_ice,re_snow
+ real(kind=RKIND),dimension(:,:),pointer  :: taod5503d
+ real(kind=RKIND),dimension(:,:,:),pointer:: ozmixm
 
 !-----------------------------------------------------------------------------------------------------------------
 

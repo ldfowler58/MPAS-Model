@@ -87,8 +87,7 @@
 
  if(config_microp_scheme == 'mp_kessler') then
     mp_kessler_in = .true.
- elseif(config_microp_scheme == 'mp_thompson' .or. &
-        config_microp_scheme == 'mp_thompson_aerosols') then
+ elseif(config_microp_scheme == 'mp_thompson') then
     mp_thompson_in = .true.
  elseif(config_microp_scheme == 'mp_thompson_aerosols') then
     mp_thompson_aers_in = .true.
