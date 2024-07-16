@@ -23,6 +23,8 @@
  public:: physics_timetracker,physics_run_init
 
  integer, public:: year                 !Current year.
+ integer, public:: month                !Current month.
+ integer, public:: day                  !Current day of the month.
  integer, public:: julday               !Initial Julian day.
  real(kind=RKIND), public:: curr_julday !Current Julian day (= 0.0 at 0Z on January 1st).
  real(kind=RKIND), public:: gmt         !Greenwich mean time hour of model start (hr)
@@ -192,7 +194,7 @@
 !update the current julian day and current year:
 
  currTime = mpas_get_clock_time(clock,MPAS_NOW,ierr)
- call mpas_get_time(curr_time=currTime,dateTimeString=timeStamp,YYYY=yr,H=h,M=m, &
+ call mpas_get_time(curr_time=currTime,dateTimeString=timeStamp,YYYY=yr,MM=month,DD=day,H=h,M=m, &
                     S=s,S_n=s_n,S_d=s_d,DoY=DoY,ierr=ierr)
 
  utc_h = real(h) + real(m) / 60.0 + real(s + s_n / s_d) / 3600.0
@@ -207,7 +209,7 @@
 !call mpas_log_write('     UTC_H       = $r', realArgs=(/utc_h/))
 !call mpas_log_write('     CURR_JULDAY = $r', realArgs=(/curr_julday/))
 !call mpas_log_write('     LEAP_YEAR   = $l', logicArgs=(/LeapYear/))
-!call mpas_log_write('     TIME STAMP  ='//trim(timeStamp))
+!call mpas_log_write('     TIME STAMP  = '//trim(timeStamp))
 
  block => domain % blocklist
  do while(associated(block))
@@ -352,17 +354,17 @@
  type (MPAS_streamManager_type), intent(inout) :: stream_manager
 
 !local pointers:
- character(len=StrKIND),pointer:: config_convection_scheme,      &
-                                  config_lsm_scheme,             &
-                                  config_microp_scheme,          &
-                                  config_radt_lw_scheme,         &
+ character(len=StrKIND),pointer:: config_convection_scheme, &
+                                  config_lsm_scheme,        &
+                                  config_microp_scheme,     &
+                                  config_radt_lw_scheme,    &
                                   config_radt_sw_scheme
 
- character(len=StrKIND),pointer:: config_conv_interval,          &
-                                  config_pbl_interval,           &
-                                  config_radtlw_interval,        &
-                                  config_radtsw_interval,        &
-                                  config_bucket_update,          &
+ character(len=StrKIND),pointer:: config_conv_interval,     &
+                                  config_pbl_interval,      &
+                                  config_radtlw_interval,   &
+                                  config_radtsw_interval,   &
+                                  config_bucket_update,     &
                                   config_greeness_update
 
  logical,pointer:: config_sst_update
@@ -576,7 +578,7 @@
     end if
  endif
 
- call mpas_log_write('')
+ call mpas_log_write(' ')
  call mpas_log_write('DT_RADTLW = $r',realArgs=(/dt_radtlw/))
  call mpas_log_write('DT_RADTSW = $r',realArgs=(/dt_radtsw/))
  call mpas_log_write('DT_CU     = $r',realArgs=(/dt_cu/))
@@ -595,7 +597,7 @@
  jts=jms ; jte = jme
  kts=kms ; kte = kme-1
 
- call mpas_log_write('')
+ call mpas_log_write(' ')
  call mpas_log_write('IMS = $i   IME = $i',intArgs=(/ims,ime/))
  call mpas_log_write('JMS = $i   JME = $i',intArgs=(/jms,jme/))
  call mpas_log_write('KMS = $i   KME = $i',intArgs=(/kms,kme/))

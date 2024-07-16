@@ -14,10 +14,7 @@ OBJS =  \
 	mpas_init_atm_gwd.o \
 	mpas_init_atm_surface.o \
 	mpas_init_atm_vinterp.o \
-	mpas_init_atm_chems.o \
-	mpas_init_atm_chems_static.o \
-	mpas_init_atm_gocart.o \
-	mpas_init_atm_tracers.o \
+	mpas_init_atm_thompson_aerosols.o \
 	read_geogrid.o \
 	mpas_atmphys_constants.o \
 	mpas_atmphys_date_time.o \
@@ -27,7 +24,11 @@ OBJS =  \
 	mpas_stack.o \
 	mpas_kd_tree.o \
 	mpas_parse_geoindex.o \
-	mpas_geotile_manager.o
+	mpas_geotile_manager.o \
+	mpas_init_atm_chems.o \
+	mpas_init_atm_chems_static.o \
+	mpas_init_atm_gocart.o \
+	mpas_init_atm_tracers.o
 
 all: core_hyd
 
@@ -45,7 +46,7 @@ core_input_gen:
 gen_includes:
 	$(CPP) $(CPPFLAGS) $(CPPINCLUDES) Registry.xml > Registry_processed.xml
 	(if [ ! -d inc ]; then mkdir -p inc; fi) # To generate *.inc files
-	(cd inc; $(REG_PARSE) < ../Registry_processed.xml )
+	(cd inc; $(REG_PARSE) ../Registry_processed.xml $(CPPFLAGS) )
 
 post_build:
 	if [ ! -e $(ROOT_DIR)/default_inputs ]; then mkdir $(ROOT_DIR)/default_inputs; fi
@@ -61,6 +62,7 @@ mpas_init_atm_cases.o: \
 	mpas_init_atm_static.o \
 	mpas_init_atm_gwd.o \
 	mpas_init_atm_surface.o \
+	mpas_init_atm_thompson_aerosols.o \
 	mpas_init_atm_vinterp.o \
 	mpas_init_atm_chems.o \
 	mpas_init_atm_chems_static.o \
@@ -71,6 +73,14 @@ mpas_init_atm_cases.o: \
 	mpas_atmphys_initialize_real.o
 
 mpas_init_atm_hinterp.o: mpas_init_atm_queue.o mpas_init_atm_bitarray.o
+
+mpas_init_atm_thompson_aerosols.o: \
+	mpas_init_atm_read_met.o \
+	mpas_init_atm_hinterp.o \
+	mpas_init_atm_llxy.o \
+	mpas_init_atm_vinterp.o \
+	mpas_atmphys_date_time.o \
+	mpas_atmphys_utilities.o
 
 mpas_advection.o: 
 

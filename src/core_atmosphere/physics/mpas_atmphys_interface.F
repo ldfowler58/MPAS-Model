@@ -109,8 +109,19 @@
 
 
 !=================================================================================================================
- subroutine allocate_forall_physics
+ subroutine allocate_forall_physics(configs)
 !=================================================================================================================
+
+!input arguments:
+ type(mpas_pool_type),intent(in):: configs
+
+!local pointers:
+ character(len=StrKIND),pointer:: microp_scheme,pbl_scheme
+
+!-----------------------------------------------------------------------------------------------------------------
+
+ call mpas_pool_get_config(configs,'config_microp_scheme',microp_scheme)
+ call mpas_pool_get_config(configs,'config_pbl_scheme'   ,pbl_scheme   )
 
  if(.not.allocated(psfc_p) ) allocate(psfc_p(ims:ime,jms:jme)         )
  if(.not.allocated(ptop_p) ) allocate(ptop_p(ims:ime,jms:jme)         )
@@ -143,11 +154,21 @@
  if(.not.allocated(qs_p)   ) allocate(qs_p(ims:ime,kms:kme,jms:jme)   )
  if(.not.allocated(qg_p)   ) allocate(qg_p(ims:ime,kms:kme,jms:jme)   )
 
- if(.not.allocated(nc_p)   ) allocate(nc_p(ims:ime,kms:kme,jms:jme)   )
- if(.not.allocated(ni_p)   ) allocate(ni_p(ims:ime,kms:kme,jms:jme)   )
- if(.not.allocated(nr_p)   ) allocate(nr_p(ims:ime,kms:kme,jms:jme)   )
- if(.not.allocated(nifa_p) ) allocate(nifa_p(ims:ime,kms:kme,jms:jme) )
- if(.not.allocated(nwfa_p) ) allocate(nwfa_p(ims:ime,kms:kme,jms:jme) )
+ microp_select: select case(trim(microp_scheme))
+    case("mp_thompson_aerosols")
+       if(.not.allocated(nifa_p)) allocate(nifa_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(nwfa_p)) allocate(nwfa_p(ims:ime,kms:kme,jms:jme))
+
+    case default
+ end select microp_select
+
+ pbl_select: select case(trim(pbl_scheme))
+    case("bl_mynn")
+       if(.not.allocated(nc_p)) allocate(nc_p(ims:ime,kms:kme,jms:jme))
+       if(.not.allocated(ni_p)) allocate(ni_p(ims:ime,kms:kme,jms:jme))
+
+    case default
+ end select pbl_select
 
 !... arrays used for calculating the hydrostatic pressure and exner function:
  if(.not.allocated(psfc_hyd_p)  ) allocate(psfc_hyd_p(ims:ime,jms:jme)          )
@@ -161,45 +182,66 @@
  end subroutine allocate_forall_physics
 
 !=================================================================================================================
- subroutine deallocate_forall_physics
+ subroutine deallocate_forall_physics(configs)
 !=================================================================================================================
 
- if(allocated(psfc_p) ) deallocate(psfc_p )
- if(allocated(ptop_p) ) deallocate(ptop_p )
+!input arguments:
+ type(mpas_pool_type),intent(in):: configs
 
- if(allocated(u_p)    ) deallocate(u_p    )
- if(allocated(v_p)    ) deallocate(v_p    )
- if(allocated(fzm_p)  ) deallocate(fzm_p  )
- if(allocated(fzp_p)  ) deallocate(fzp_p  )
- if(allocated(zz_p)   ) deallocate(zz_p   )
- if(allocated(pres_p) ) deallocate(pres_p )
- if(allocated(pi_p)   ) deallocate(pi_p   )
- if(allocated(z_p)    ) deallocate(z_p    )
- if(allocated(zmid_p) ) deallocate(zmid_p )
- if(allocated(dz_p)   ) deallocate(dz_p   )
- if(allocated(t_p)    ) deallocate(t_p    )
- if(allocated(th_p)   ) deallocate(th_p   )
- if(allocated(al_p)   ) deallocate(al_p   )
- if(allocated(rho_p)  ) deallocate(rho_p  )
- if(allocated(rh_p)   ) deallocate(rh_p   )
- if(allocated(znu_p)  ) deallocate(znu_p  )
+!local pointers:
+ character(len=StrKIND),pointer:: microp_scheme,pbl_scheme
 
- if(allocated(w_p)    ) deallocate(w_p    )
- if(allocated(pres2_p)) deallocate(pres2_p)
- if(allocated(t2_p)   ) deallocate(t2_p   )
+!-----------------------------------------------------------------------------------------------------------------
 
- if(allocated(qv_p)   ) deallocate(qv_p   )
- if(allocated(qc_p)   ) deallocate(qc_p   )
- if(allocated(qr_p)   ) deallocate(qr_p   )
- if(allocated(qi_p)   ) deallocate(qi_p   )
- if(allocated(qs_p)   ) deallocate(qs_p   )
- if(allocated(qg_p)   ) deallocate(qg_p   )
+ call mpas_pool_get_config(configs,'config_microp_scheme',microp_scheme)
+ call mpas_pool_get_config(configs,'config_pbl_scheme'   ,pbl_scheme   )
 
- if(allocated(nc_p)   ) deallocate(nc_p   )
- if(allocated(ni_p)   ) deallocate(ni_p   )
- if(allocated(nr_p)   ) deallocate(nr_p   )
- if(allocated(nifa_p) ) deallocate(nifa_p )
- if(allocated(nwfa_p) ) deallocate(nwfa_p )
+ if(allocated(psfc_p)  ) deallocate(psfc_p  )
+ if(allocated(ptop_p)  ) deallocate(ptop_p  )
+
+ if(allocated(u_p)     ) deallocate(u_p     )
+ if(allocated(v_p)     ) deallocate(v_p     )
+ if(allocated(fzm_p)   ) deallocate(fzm_p   )
+ if(allocated(fzp_p)   ) deallocate(fzp_p   )
+ if(allocated(zz_p)    ) deallocate(zz_p    )
+ if(allocated(pres_p)  ) deallocate(pres_p  )
+ if(allocated(pi_p)    ) deallocate(pi_p    )
+ if(allocated(z_p)     ) deallocate(z_p     )
+ if(allocated(zmid_p)  ) deallocate(zmid_p  )
+ if(allocated(dz_p)    ) deallocate(dz_p    )
+ if(allocated(t_p)     ) deallocate(t_p     )
+ if(allocated(th_p)    ) deallocate(th_p    )
+ if(allocated(al_p)    ) deallocate(al_p    )
+ if(allocated(rho_p)   ) deallocate(rho_p   ) 
+ if(allocated(rh_p)    ) deallocate(rh_p    ) 
+ if(allocated(znu_p)   ) deallocate(znu_p   )
+
+ if(allocated(w_p)     ) deallocate(w_p     )
+ if(allocated(pres2_p) ) deallocate(pres2_p )
+ if(allocated(t2_p)    ) deallocate(t2_p    )
+
+ if(allocated(qv_p)    ) deallocate(qv_p    )
+ if(allocated(qc_p)    ) deallocate(qc_p    )
+ if(allocated(qr_p)    ) deallocate(qr_p    )
+ if(allocated(qi_p)    ) deallocate(qi_p    )
+ if(allocated(qs_p)    ) deallocate(qs_p    )
+ if(allocated(qg_p)    ) deallocate(qg_p    )
+
+ microp_select: select case(trim(microp_scheme))
+    case("mp_thompson_aerosols")
+       if(allocated(nifa_p)) deallocate(nifa_p)
+       if(allocated(nwfa_p)) deallocate(nwfa_p)
+
+    case default
+ end select microp_select
+
+ pbl_select: select case(trim(pbl_scheme))
+    case("bl_mynn")
+       if(allocated(nc_p)) deallocate(nc_p)
+       if(allocated(ni_p)) deallocate(ni_p)
+
+    case default
+ end select pbl_select
 
  if(allocated(psfc_hyd_p)  ) deallocate(psfc_hyd_p  )
  if(allocated(psfc_hydd_p) ) deallocate(psfc_hydd_p )
@@ -228,11 +270,10 @@
  type(mpas_pool_type),intent(inout):: diag_physics
 
 !local pointers:
- character(len=StrKIND),pointer:: bl_scheme, &
-                                  mp_scheme
+ character(len=StrKIND),pointer:: microp_scheme,pbl_scheme
 
  integer,pointer:: index_qv,index_qc,index_qr,index_qi,index_qs,index_qg
- integer,pointer:: index_nc,index_ni,index_nr,index_nifa,index_nwfa
+ integer,pointer:: index_nc,index_ni,index_nifa,index_nwfa
 
  real(kind=RKIND),dimension(:),pointer    :: latCell,lonCell
  real(kind=RKIND),dimension(:),pointer    :: fzm,fzp,rdzw
@@ -241,7 +282,7 @@
  real(kind=RKIND),dimension(:,:),pointer  :: zz,exner,pressure_b,rtheta_p,rtheta_b
  real(kind=RKIND),dimension(:,:),pointer  :: rho_zz,theta_m,pressure_p,u,v,w
  real(kind=RKIND),dimension(:,:),pointer  :: qv,qc,qr,qi,qs,qg
- real(kind=RKIND),dimension(:,:),pointer  :: nc,ni,nr,nifa,nwfa
+ real(kind=RKIND),dimension(:,:),pointer  :: nc,ni,nifa,nwfa
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars
 
 !local variables:
@@ -262,8 +303,8 @@
 !call mpas_log_write('kts=$i kte=$i',intArgs=(/kts,kte/))
 
 !initialization:
- call mpas_pool_get_config(configs,'config_pbl_scheme',bl_scheme)
- call mpas_pool_get_config(configs,'config_microp_scheme',mp_scheme)
+ call mpas_pool_get_config(configs,'config_microp_scheme',microp_scheme)
+ call mpas_pool_get_config(configs,'config_pbl_scheme'   ,pbl_scheme   )
 
  call mpas_pool_get_array(mesh,'latCell',latCell)
  call mpas_pool_get_array(mesh,'lonCell',lonCell)
@@ -335,68 +376,65 @@
  enddo
  enddo
 
- nullify(nc)
- nullify(ni)
- nullify(nr)
- nullify(nifa)
- nullify(nwfa)
- call mpas_pool_get_dimension(state,'index_nc',index_nc)
- call mpas_pool_get_dimension(state,'index_ni',index_ni)
- call mpas_pool_get_dimension(state,'index_nr',index_nr)
- call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
- call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
+ microp_select: select case(trim(microp_scheme))
+    case("mp_thompson_aerosols")
+       nullify(nifa)
+       nullify(nwfa)
+       call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
+       call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
+       nifa => scalars(index_nifa,:,:)
+       nwfa => scalars(index_nwfa,:,:)
+       do j = jts,jte
+          do k = kts,kte
+             do i = its,ite
+                nifa_p(i,k,j) = max(0.,nifa(k,i))
+                nwfa_p(i,k,j) = max(0.,nwfa(k,i))
+             enddo
+          enddo
+       enddo
 
- call mpas_log_write(' ')
- call mpas_log_write('--- MPAS_to_physics:')
- call mpas_log_write('--- index_nc   = $i',intArgs=(/index_nc/))
- call mpas_log_write('--- index_ni   = $i',intArgs=(/index_ni/))
- call mpas_log_write('--- index_nr   = $i',intArgs=(/index_nr/))
- call mpas_log_write('--- index_nifa = $i',intArgs=(/index_nifa/))
- call mpas_log_write('--- index_nwfa = $i',intArgs=(/index_nwfa/))
- call mpas_log_write(' ')
+    case default
+ end select microp_select
 
- if(index_nc .gt. -1 .and. index_ni .gt. -1 .and. index_nr .gt. -1 .and. &
-    index_nifa .gt. -1 .and. index_nwfa .gt. -1) then
-    nc   => scalars(index_nc,:,:)
-    ni   => scalars(index_ni,:,:)
-    nr   => scalars(index_nr,:,:)
-    nifa => scalars(index_nifa,:,:)
-    nwfa => scalars(index_nwfa,:,:)
+ pbl_select: select case(trim(pbl_scheme))
+    case("bl_mynn")
+       do j = jts,jte
+          do k = kts,kte
+             do i = its,ite
+                nc_p(i,k,j)   = 0._RKIND
+                ni_p(i,k,j)   = 0._RKIND
+             enddo
+          enddo
+       enddo
+       !initializes ni_p when running the options "mp_thompson" or "mp_thompson_aerosols":
+       if(f_ni) then
+          nullify(ni)
+          call mpas_pool_get_dimension(state,'index_ni',index_ni)
+          ni => scalars(index_ni,:,:)
+          do j = jts,jte
+             do k = kts,kte
+                do i = its,ite
+                   ni_p(i,k,j) = max(0.,ni(k,i))
+                enddo
+             enddo
+          enddo
+       endif
+       !initializes nc_p, nifa_p, and nwfa_p when running the option "mp_thompson_aerosols":
+       if(f_nc) then
+          nullify(nc)
+          call mpas_pool_get_dimension(state,'index_nc',index_nc)
+          nc   => scalars(index_nc,:,:)
+          do j = jts,jte
+             do k = kts,kte
+                do i = its,ite
+                   nc_p(i,k,j)   = max(0.,nc(k,i)  )
+                enddo
+             enddo
+          enddo
+       endif
 
-    do j = jts,jte
-    do k = kts,kte
-    do i = its,ite
-       nc_p(i,k,j)   = max(0._RKIND,nc(k,i))
-       ni_p(i,k,j)   = max(0._RKIND,ni(k,i))
-       nr_p(i,k,j)   = max(0._RKIND,nr(k,i))
-       nifa_p(i,k,j) = max(0._RKIND,nifa(k,i))
-       nwfa_p(i,k,j) = max(0._RKIND,nwfa(k,i))
-    enddo
-    enddo
-    enddo
- else
-    do j = jts,jte
-    do k = kts,kte
-    do i = its,ite
-       nc_p(i,k,j)   = 0._RKIND
-       ni_p(i,k,j)   = 0._RKIND
-       nr_p(i,k,j)   = 0._RKIND
-       nifa_p(i,k,j) = 0._RKIND
-       nwfa_p(i,k,j) = 0._RKIND
-    enddo
-    enddo
-    enddo
- endif
-!do j = jts,jte
-!   do i = its,ite
-!      do k = kts,kte
-!         call mpas_log_write('$i $i $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/nc_p(i,k,j), &
-!                   ni_p(i,k,j),nr_p(i,k,j),nifa_p(i,k,j),nwfa_p(i,k,j)/))
-!      enddo
-!      call mpas_log_write(' ')
-!   enddo
-!enddo
-!stop
+    case default
+ end select pbl_select
 
 !calculation of the surface pressure using hydrostatic assumption down to the surface::
  do j = jts,jte
@@ -552,7 +590,7 @@
 !local pointers:
  character(len=StrKIND),pointer:: mp_scheme
  integer,pointer:: index_qv,index_qc,index_qr,index_qi,index_qs,index_qg
- integer,pointer:: index_nc,index_ni,index_nr,index_nwfa,index_nifa
+ integer,pointer:: index_nc,index_ni,index_nr,index_nifa,index_nwfa
  real(kind=RKIND),dimension(:),pointer    :: nifa2d,nwfa2d,nt_c,mu_c
  real(kind=RKIND),dimension(:,:),pointer  :: zgrid,w
  real(kind=RKIND),dimension(:,:),pointer  :: zz,exner,pressure_b
@@ -579,25 +617,6 @@
  call mpas_pool_get_array(diag,'pressure_base',pressure_b)
  call mpas_pool_get_array(diag,'pressure_p'   ,pressure_p)
 
- call mpas_pool_get_array(tend_physics,'rthmpten',rthmpten)
- call mpas_pool_get_array(tend_physics,'rqvmpten',rqvmpten)
- call mpas_pool_get_array(tend_physics,'rqcmpten',rqcmpten)
- call mpas_pool_get_array(tend_physics,'rqrmpten',rqrmpten)
- call mpas_pool_get_array(tend_physics,'rqimpten',rqimpten)
- call mpas_pool_get_array(tend_physics,'rqsmpten',rqsmpten)
- call mpas_pool_get_array(tend_physics,'rqgmpten',rqgmpten)
-
- nullify(rncmpten)
- nullify(rnimpten)
- nullify(rnrmpten)
- nullify(rnifampten)
- nullify(rnwfampten)
- call mpas_pool_get_array(tend_physics,'rncmpten',rncmpten)
- call mpas_pool_get_array(tend_physics,'rnimpten',rnimpten)
- call mpas_pool_get_array(tend_physics,'rnrmpten',rnrmpten)
- call mpas_pool_get_array(tend_physics,'rnifampten',rnifampten)
- call mpas_pool_get_array(tend_physics,'rnwfampten',rnwfampten)
-
  call mpas_pool_get_array(state,'rho_zz' ,rho_zz ,time_lev)
  call mpas_pool_get_array(state,'theta_m',theta_m,time_lev)
  call mpas_pool_get_array(state,'w'      ,w      ,time_lev)
@@ -605,7 +624,6 @@
  call mpas_pool_get_dimension(state,'index_qv',index_qv)
  call mpas_pool_get_dimension(state,'index_qc',index_qc)
  call mpas_pool_get_dimension(state,'index_qr',index_qr)
-
  call mpas_pool_get_array(state,'scalars',scalars,time_lev)
  qv => scalars(index_qv,:,:)
  qc => scalars(index_qc,:,:)
@@ -632,9 +650,9 @@
  enddo
  enddo
 
-!additional initialization as function of cloud microphysics scheme:
- mp_select: select case(mp_scheme)
-    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+!initialize cloud water species and aerosols as function of cloud microphysics scheme:
+ mp_select: select case(trim(mp_scheme))
+    case("mp_thompson","mp_thompson_aerosols","mp_wsm6")
        call mpas_pool_get_dimension(state,'index_qi',index_qi)
        call mpas_pool_get_dimension(state,'index_qs',index_qs)
        call mpas_pool_get_dimension(state,'index_qg',index_qg)
@@ -642,6 +660,8 @@
        qs => scalars(index_qs,:,:)
        qg => scalars(index_qg,:,:)
 
+       call mpas_pool_get_array(diag_physics,'rainprod',rainprod)
+       call mpas_pool_get_array(diag_physics,'evapprod',evapprod)
        call mpas_pool_get_array(diag_physics,'re_cloud',re_cloud)
        call mpas_pool_get_array(diag_physics,'re_ice'  ,re_ice  )
        call mpas_pool_get_array(diag_physics,'re_snow' ,re_snow )
@@ -652,65 +672,83 @@
           qi_p(i,k,j) = qi(k,i)
           qs_p(i,k,j) = qs(k,i)
           qg_p(i,k,j) = qg(k,i)
-          recloud_p(i,k,j) = re_cloud(k,i)
-          reice_p(i,k,j)   = re_ice(k,i)
-          resnow_p(i,k,j)  = re_snow(k,i)
+
+          rainprod_p(i,k,j) = rainprod(k,i)
+          evapprod_p(i,k,j) = evapprod(k,k)
+          recloud_p(i,k,j)  = re_cloud(k,i)
+          reice_p(i,k,j)    = re_ice(k,i)
+          resnow_p(i,k,j)   = re_snow(k,i)
        enddo
        enddo
        enddo
 
-    mp2_select: select case(mp_scheme)
-       case("mp_thompson","mp_thompson_aerosols")
-          call mpas_pool_get_dimension(state,'index_nc'  ,index_nc  )
-          call mpas_pool_get_dimension(state,'index_ni'  ,index_ni  )
-          call mpas_pool_get_dimension(state,'index_nr'  ,index_nr  )
-          call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
-          call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
+       mp2_select: select case(trim(mp_scheme))
+          case("mp_thompson","mp_thompson_aerosols")
+             call mpas_pool_get_dimension(state,'index_ni',index_ni)
+             call mpas_pool_get_dimension(state,'index_nr',index_nr)
+             ni   => scalars(index_ni,:,:)
+             nr   => scalars(index_nr,:,:)
 
-          call mpas_pool_get_array(diag_physics,'nifa2d'  ,nifa2d  )
-          call mpas_pool_get_array(diag_physics,'nwfa2d'  ,nwfa2d  )
-          call mpas_pool_get_array(diag_physics,'nt_c'    ,nt_c    )
-          call mpas_pool_get_array(diag_physics,'mu_c'    ,mu_c    )
-          call mpas_pool_get_array(diag_physics,'rainprod',rainprod)
-          call mpas_pool_get_array(diag_physics,'evapprod',evapprod)
+             call mpas_pool_get_array(diag_physics,'nt_c',nt_c)
+             call mpas_pool_get_array(diag_physics,'mu_c',mu_c)
+             do j = jts,jte
+             do i = its,ite
+                muc_p(i,j) = mu_c(i)
+                ntc_p(i,j) = nt_c(i)
+             enddo
+             do k = kts, kte
+             do i = its, ite
+                ni_p(i,k,j) = ni(k,i)
+                nr_p(i,k,j) = nr(k,i)
+             enddo
+             enddo
+             enddo
 
-          nc   => scalars(index_nc,:,:)
-          ni   => scalars(index_ni,:,:)
-          nr   => scalars(index_nr,:,:)
-          nifa => scalars(index_nifa,:,:)
-          nwfa => scalars(index_nwfa,:,:)
+          mp3_select: select case(trim(mp_scheme))
+             case("mp_thompson_aerosols")
+                call mpas_pool_get_dimension(state,'index_nc'  ,index_nc  )
+                call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
+                call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
+                nc   => scalars(index_nc,:,:)
+                nifa => scalars(index_nifa,:,:)
+                nwfa => scalars(index_nwfa,:,:)
 
-          do j = jts,jte
-          do i = its,ite
-             muc_p(i,j) = mu_c(i)
-             ntc_p(i,j) = nt_c(i)
-             nifa2d_p(i,j) = nifa2d(i)
-             nwfa2d_p(i,j) = nwfa2d(i)
-          enddo
-          enddo
-          do j = jts, jte
-          do k = kts, kte
-          do i = its, ite
-             nc_p(i,k,j)   = nc(k,i)
-             ni_p(i,k,j)   = ni(k,i)
-             nr_p(i,k,j)   = nr(k,i)
-             nifa_p(i,k,j) = nifa(k,i)
-             nwfa_p(i,k,j) = nwfa(k,i)
-             rainprod_p(i,k,j) = rainprod(k,i)
-             evapprod_p(i,k,j) = evapprod(k,i)
-          enddo
-          enddo
-          enddo
+                call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
+                call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
+                do j = jts,jte
+                do i = its,ite
+                   nifa2d_p(i,j) = nifa2d(i)
+                   nwfa2d_p(i,j) = nwfa2d(i)
+                enddo
+                do k = kts, kte
+                do i = its, ite
+                   nc_p(i,k,j) = nc(k,i)
+                   nifa_p(i,k,j) = nifa(k,i)
+                   nwfa_p(i,k,j) = nwfa(k,i)
+                enddo
+                enddo
+                enddo
 
-       case default
-    end select mp2_select
+             case default
+          end select mp3_select
+
+          case default
+       end select mp2_select
 
     case default
  end select mp_select
 
-!begin calculation of the cloud microphysics tendencies:
- mp_tend_select: select case(mp_scheme)
-    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+!begin calculation of cloud microphysics tendencies:
+ mp_tend_select: select case(trim(mp_scheme))
+    case("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+       call mpas_pool_get_array(tend_physics,'rthmpten',rthmpten)
+       call mpas_pool_get_array(tend_physics,'rqvmpten',rqvmpten)
+       call mpas_pool_get_array(tend_physics,'rqcmpten',rqcmpten)
+       call mpas_pool_get_array(tend_physics,'rqrmpten',rqrmpten)
+       call mpas_pool_get_array(tend_physics,'rqimpten',rqimpten)
+       call mpas_pool_get_array(tend_physics,'rqsmpten',rqsmpten)
+       call mpas_pool_get_array(tend_physics,'rqgmpten',rqgmpten)
+
        do k = kts,kte
        do i = its,ite
           rthmpten(k,i) = theta_m(k,i)/(1._RKIND+R_v/R_d*max(0._RKIND,qv(k,i)))
@@ -723,17 +761,34 @@
        enddo
        enddo
 
-       mp2_tend_select: select case(mp_scheme)
+       mp2_tend_select: select case(trim(mp_scheme))
           case("mp_thompson","mp_thompson_aerosols")
+             call mpas_pool_get_array(tend_physics,'rnimpten',rnimpten)
+             call mpas_pool_get_array(tend_physics,'rnrmpten',rnrmpten)
+
              do k = kts,kte
              do i = its,ite
-                rncmpten(k,i) = nc(k,i)
                 rnimpten(k,i) = ni(k,i)
                 rnrmpten(k,i) = nr(k,i)
-                rnifampten(k,i) = nifa(k,i)
-                rnwfampten(k,i) = nwfa(k,i)
              enddo
              enddo
+
+             mp3_tend_select: select case(trim(mp_scheme))
+                case("mp_thompson_aerosols")
+                   call mpas_pool_get_array(tend_physics,'rncmpten',rncmpten)
+                   call mpas_pool_get_array(tend_physics,'rnifampten',rnifampten)
+                   call mpas_pool_get_array(tend_physics,'rnwfampten',rnwfampten)
+
+                   do k = kts,kte
+                   do i = its,ite
+                      rncmpten(k,i) = nc(k,i)
+                      rnifampten(k,i) = nifa(k,i)
+                      rnwfampten(k,i) = nwfa(k,i)
+                   enddo
+                   enddo
+
+                case default
+             end select mp3_tend_select
 
           case default
        end select mp2_tend_select
@@ -754,18 +809,20 @@
  integer,intent(in):: time_lev
  integer,intent(in):: its,ite
 
-!output variables:
+!inout variables:
  type(mpas_pool_type),intent(inout):: state
  type(mpas_pool_type),intent(inout):: diag
  type(mpas_pool_type),intent(inout):: tend
  type(mpas_pool_type),intent(inout):: diag_physics
  type(mpas_pool_type),intent(inout):: tend_physics
 
+
 !local pointers:
  character(len=StrKIND),pointer:: mp_scheme
  integer,pointer:: index_qv,index_qc,index_qr,index_qi,index_qs,index_qg
  integer,pointer:: index_nc,index_ni,index_nr,index_nifa,index_nwfa
  real(kind=RKIND),dimension(:),pointer    :: surface_pressure,tend_sfc_pressure
+ real(kind=RKIND),dimension(:),pointer    :: nifa2d,nwfa2d
  real(kind=RKIND),dimension(:,:),pointer  :: zgrid
  real(kind=RKIND),dimension(:,:),pointer  :: zz,exner,exner_b,pressure_b,rtheta_p,rtheta_b
  real(kind=RKIND),dimension(:,:),pointer  :: rho_zz,theta_m,pressure_p
@@ -869,7 +926,7 @@
  enddo
  enddo
 
-!updates the surface pressure and calculates the surface pressure tendency:
+!update surface pressure and calculates the surface pressure tendency:
  do j = jts,jte
  do i = its,ite
     tem1 = zgrid(2,i)-zgrid(1,i)
@@ -887,9 +944,9 @@
  enddo
  enddo
 
-!variables specific to different cloud microphysics schemes:
- mp_select: select case(mp_scheme)
-    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+!update cloud water species and aerosols as functions of cloud microphysics schemes:
+ mp_select: select case(trim(mp_scheme))
+    case("mp_thompson","mp_thompson_aerosols","mp_wsm6")
        call mpas_pool_get_dimension(state,'index_qi',index_qi)
        call mpas_pool_get_dimension(state,'index_qs',index_qs)
        call mpas_pool_get_dimension(state,'index_qg',index_qg)
@@ -897,16 +954,21 @@
        qs => scalars(index_qs,:,:)
        qg => scalars(index_qg,:,:)
 
+       call mpas_pool_get_array(diag_physics,'rainprod',rainprod)
+       call mpas_pool_get_array(diag_physics,'evapprod',evapprod)
        call mpas_pool_get_array(diag_physics,'re_cloud',re_cloud)
        call mpas_pool_get_array(diag_physics,'re_ice'  ,re_ice  )
        call mpas_pool_get_array(diag_physics,'re_snow' ,re_snow )
 
-       do j = jts, jte
-       do k = kts, kte
-       do i = its, ite
+       do j = jts,jte
+       do k = kts,kte
+       do i = its,ite
           qi(k,i) = qi_p(i,k,j)
           qs(k,i) = qs_p(i,k,j)
           qg(k,i) = qg_p(i,k,j)
+
+          rainprod(k,i) = rainprod_p(i,k,j)
+          evapprod(k,i) = evapprod_p(i,k,j)
           re_cloud(k,i) = recloud_p(i,k,j)
           re_ice(k,i)   = reice_p(i,k,j)
           re_snow(k,i)  = resnow_p(i,k,j)
@@ -914,47 +976,67 @@
        enddo
        enddo
 
-    mp2_select: select case(mp_scheme)
-       case("mp_thompson","mp_thompson_aerosols")
-          call mpas_pool_get_dimension(state,'index_nc'  ,index_nc  )
-          call mpas_pool_get_dimension(state,'index_ni'  ,index_ni  )
-          call mpas_pool_get_dimension(state,'index_nr'  ,index_nr  )
-          call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
-          call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
+       mp2_select: select case(trim(mp_scheme))
+          case("mp_thompson","mp_thompson_aerosols")
+             call mpas_pool_get_dimension(state,'index_ni',index_ni)
+             call mpas_pool_get_dimension(state,'index_nr',index_nr)
+             ni   => scalars(index_ni,:,:)
+             nr   => scalars(index_nr,:,:)
 
-          call mpas_pool_get_array(diag_physics,'rainprod',rainprod)
-          call mpas_pool_get_array(diag_physics,'evapprod',evapprod)
+             do j = jts,jte
+             do k = kts,kte
+             do i = its,ite
+                ni(k,i) = ni_p(i,k,j)
+                nr(k,i) = nr_p(i,k,j)
+             enddo
+             enddo
+             enddo
 
-          nc => scalars(index_nc,:,:)
-          ni => scalars(index_ni,:,:)
-          nr => scalars(index_nr,:,:)
-          nifa => scalars(index_nifa,:,:)
-          nwfa => scalars(index_nwfa,:,:)
+             mp3_select: select case(trim(mp_scheme))
+                case("mp_thompson_aerosols")
+                   call mpas_pool_get_dimension(state,'index_nc'  ,index_nc  )
+                   call mpas_pool_get_dimension(state,'index_nifa',index_nifa)
+                   call mpas_pool_get_dimension(state,'index_nwfa',index_nwfa)
+                   nc   => scalars(index_nc,:,:)
+                   nifa => scalars(index_nifa,:,:)
+                   nwfa => scalars(index_nwfa,:,:)
 
-          do j = jts, jte
-          do k = kts, kte
-          do i = its, ite
-             nc(k,i)   = nc_p(i,k,j)
-             ni(k,i)   = ni_p(i,k,j)
-             nr(k,i)   = nr_p(i,k,j)
-             nifa(k,i) = nifa_p(i,k,j)
-             nwfa(k,i) = nwfa_p(i,k,j)
-             rainprod(k,i) = rainprod_p(i,k,j)
-             evapprod(k,i) = evapprod_p(i,k,j)
-          enddo
-          enddo
-          enddo
+                   call mpas_pool_get_array(diag_physics,'nifa2d',nifa2d)
+                   call mpas_pool_get_array(diag_physics,'nwfa2d',nwfa2d)
+                   do j = jts,jte
+                   do i = its,ite
+                      nifa2d(i) = nifa2d_p(i,j)
+                      nwfa2d(i) = nwfa2d_p(i,j)
+                   enddo
+                   do k = kts, kte
+                   do i = its, ite
+                      nc(k,i)   = nc_p(i,k,j)
+                      nifa(k,i) = nifa_p(i,k,j)
+                      nwfa(k,i) = nwfa_p(i,k,j)
+                   enddo
+                   enddo
+                   enddo
 
-       case default
-    end select mp2_select
+                case default
+             end select mp3_select
+
+          case default
+       end select mp2_select
 
     case default
  end select mp_select
 
-!end calculation of the cloud microphysics tendencies:
- mp_tend_select: select case(mp_scheme)
+!end calculation of cloud microphysics tendencies:
+ mp_tend_select: select case(trim(mp_scheme))
+    case("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+       call mpas_pool_get_array(tend_physics,'rthmpten',rthmpten)
+       call mpas_pool_get_array(tend_physics,'rqvmpten',rqvmpten)
+       call mpas_pool_get_array(tend_physics,'rqcmpten',rqcmpten)
+       call mpas_pool_get_array(tend_physics,'rqrmpten',rqrmpten)
+       call mpas_pool_get_array(tend_physics,'rqimpten',rqimpten)
+       call mpas_pool_get_array(tend_physics,'rqsmpten',rqsmpten)
+       call mpas_pool_get_array(tend_physics,'rqgmpten',rqgmpten)
 
-    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
        do k = kts,kte
        do i = its,ite
           rthmpten(k,i) = (theta_m(k,i)/(1._RKIND+R_v/R_d*max(0._RKIND,qv(k,i)))-rthmpten(k,i))/dt_dyn
@@ -967,17 +1049,34 @@
        enddo
        enddo
 
-       mp2_tend_select: select case(mp_scheme)
+       mp2_tend_select: select case(trim(mp_scheme))
           case("mp_thompson","mp_thompson_aerosols")
+             call mpas_pool_get_array(tend_physics,'rnimpten',rnimpten)
+             call mpas_pool_get_array(tend_physics,'rnrmpten',rnrmpten)
+
              do k = kts,kte
              do i = its,ite
-                rncmpten(k,i) = (nc(k,i)-rncmpten(k,i))/dt_dyn
                 rnimpten(k,i) = (ni(k,i)-rnimpten(k,i))/dt_dyn
                 rnrmpten(k,i) = (nr(k,i)-rnrmpten(k,i))/dt_dyn
-                rnifampten(k,i) = (nifa(k,i)-rnifampten(k,i))/dt_dyn
-                rnwfampten(k,i) = (nwfa(k,i)-rnwfampten(k,i))/dt_dyn
              enddo
              enddo
+
+             mp3_tend_select: select case(trim(mp_scheme))
+                case("mp_thompson_aerosols")
+                   call mpas_pool_get_array(tend_physics,'rncmpten',rncmpten)
+                   call mpas_pool_get_array(tend_physics,'rnifampten',rnifampten)
+                   call mpas_pool_get_array(tend_physics,'rnwfampten',rnwfampten)
+
+                   do k = kts,kte
+                   do i = its,ite
+                      rncmpten(k,i)   = (nc(k,i)-rncmpten(k,i))/dt_dyn
+                      rnifampten(k,i) = (nifa(k,i)-rnifampten(k,i))/dt_dyn
+                      rnwfampten(k,i) = (nwfa(k,i)-rnwfampten(k,i))/dt_dyn
+                   enddo
+                   enddo
+
+                case default
+             end select mp3_tend_select
 
           case default
        end select mp2_tend_select

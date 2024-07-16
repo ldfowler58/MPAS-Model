@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<registry model="mpas" core="atmosphere" core_abbrev="atm" version="8.1.0">
+<registry model="mpas" core="atmosphere" core_abbrev="atm" version="8.2.0">
 
 <!-- **************************************************************************************** -->
 <!-- ************************************** Dimensions ************************************** -->
@@ -401,13 +401,14 @@
         <packages>
                 <package name="mp_kessler_in" description="parameterization of kessler microphysics."/>
                 <package name="mp_thompson_in" description="parameterization of Thompson cloud microphysics."/>
-                <package name="mp_thompson_aers_in" description="parameterization of scale-aware Thompson cloud microphysics."/>
+                <package name="mp_thompson_aers_in" description="parameterization of aerosol-aware Thompson cloud microphysics."/>
                 <package name="mp_wsm6_in" description="parameterization of WSM6 cloud microphysics."/>
                 <package name="cu_grell_freitas_in" description="parameterization of Grell-Freitas convection."/>
                 <package name="cu_kain_fritsch_in" description="parameterization of Kain-Fritsch convection."/>
                 <package name="cu_ntiedtke_in" description="parameterization of Tiedtke convection."/>
                 <package name="bl_ysu_in" description="parameterization of YSU Planetary Boundary Layer."/>
                 <package name="bl_mynn_in" description="parameterization of MYNN Planetary Boundary Layer."/>
+                <package name="sf_noahmp_in" description="parameterization of NOAH-MP land surface scheme."/>
 
                 <package name="iau" description="Incremental Analysis Update"/>
                 <package name="limited_area" description="Limited-area simulations, which have lateral boundaries"/>
@@ -517,6 +518,11 @@
 			<var name="ol2"/>
 			<var name="ol3"/>
 			<var name="ol4"/>
+			<var name="soilcomp"/>
+			<var name="soilcl1"/>
+			<var name="soilcl2"/>
+			<var name="soilcl3"/>
+			<var name="soilcl4"/>
 #ifdef ATM_CHEMISTRY
 			<var name="erod"/>
 			<var name="clayfrac"/>
@@ -939,6 +945,7 @@
 			<var name="h_oml_initial"/>
 			<var name="hu_oml"/>
 			<var name="hv_oml"/>
+			<var_struct name="diag_physics_noahmp"/>
                         <var name="p_fg"/>
 #ifdef ATM_CHEMISTRY
 			<var name="bc1_em_anthro"/>
@@ -1693,11 +1700,11 @@
 
                         <var name="nifa" array_group="number" units="nb kg^{-1}"
                              description="Ice-friendly aerosol number concentration"
-                             packages="bl_mynn_in;mp_thompson_aers_in"/>
+                             packages="mp_thompson_aers_in"/>
 
                         <var name="nwfa" array_group="number" units="nb kg^{-1}"
                              description="Water-friendly aerosol number concentration"
-                             packages="bl_mynn_in;mp_thompson_aers_in"/>
+                             packages="mp_thompson_aers_in"/>
                 </var_array>
 #endif
 
@@ -2035,11 +2042,11 @@
 
                         <var name="tend_nifa" name_in_code="nifa" array_group="number" units="nb m^{-3} s^{-1}"
                              description="Tendency of ice-friendly aerosol number concentration multiplied by dry air density divided by d(zeta)/dz"
-                             packages="bl_mynn_in;mp_thompson_aers_in"/>
+                             packages="mp_thompson_aers_in"/>
 
                         <var name="tend_nwfa" name_in_code="nwfa" array_group="number" units="nb m^{-3} s^{-1}"
                              description="Tendency of water-friendly aerosol number concentration multiplied by dry air density divided by d(zeta)/dz"
-                             packages="bl_mynn_in;mp_thompson_aers_in"/>
+                             packages="mp_thompson_aers_in"/>
                 </var_array>
 #endif
         </var_struct>
@@ -2221,6 +2228,11 @@
                      description="logical for turning on/off top-down, radiation_driven mixing"
                      possible_values=".true. to turn on top-down radiation_driven mixing; .false. otherwise"/>
 
+                <nml_option name="config_urban_physics" type="logical" default_value="false" in_defaults="false"
+                     units="-"
+                     description="logical for turn on/off the urban physics parameterization"
+                     possible_values=".true. to turn on the urban physics; .false. otherwise"/>
+
                 <nml_option name="config_n_microp" type="integer" default_value="1" in_defaults="false"
                      units="-"
                      description="number of microphysics time-steps per physics time-steps"
@@ -2269,7 +2281,7 @@
                 <nml_option name="config_microp_scheme" type="character" default_value="suite" in_defaults="false"
                      units="-"
                      description="configuration for cloud microphysics schemes"
-                     possible_values="`suite',`mp_wsm6',`mp_thompson',`mp_kessler',`off'"/>
+                     possible_values="`suite',`mp_wsm6',`mp_thompson',`mp_thompson_aerosols', `mp_kessler',`off'"/>
 
                 <nml_option name="config_convection_scheme" type="character" default_value="suite" in_defaults="false"
                      units="-"
@@ -2279,7 +2291,7 @@
                 <nml_option name="config_lsm_scheme" type="character" default_value="suite" in_defaults="false"
                      units="-"
                      description="configuration for land-surface schemes"
-                     possible_values="`suite',`noah',`off'"/>
+                     possible_values="`suite',`sf_noah',`sf_noahmp`, `off'"/>
 
                 <nml_option name="config_pbl_scheme" type="character" default_value="suite" in_defaults="false"
                      units="-"
@@ -2631,7 +2643,6 @@
                 <var name="w0avg" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
                      description="time running-averaged vertical velocity"
                      packages="cu_kain_fritsch_in"/>
-                <!-- ... END KAIN_FRITSCH ONLY: -->
 
 
                 <!-- ... GRELL-FREITAS ONLY: -->
@@ -3568,11 +3579,11 @@
                      packages="mp_thompson_aers_in"/>
 
                 <var name="rnifampten" type="real" dimensions="nVertLevels nCells Time" units="nb kg^{-1} s^{-1}"
-                     description="tendency of "ice-friendly" aerosol number concentration due to microphysics"
+                     description="tendency of ice-friendly aerosol number concentration due to microphysics"
                      packages="mp_thompson_aers_in"/>
 
                 <var name="rnwfampten" type="real" dimensions="nVertLevels nCells Time" units="nb kg^{-1} s^{-1}"
-                     description="tendency of "water-friendly" aerosol number concentration due to microphysics"
+                     description="tendency of water-friendly aerosol number concentration due to microphysics"
                      packages="mp_thompson_aers_in"/>
 
                 <!-- ================================================================================================== -->
@@ -3996,6 +4007,7 @@
 <!-- **************************************************************************************** -->
 
 #include "diagnostics/Registry_diagnostics.xml"
+#include "physics/Registry_noahmp.xml"
 #ifdef ATM_CHEMISTRY
 #include "chemistry/Registry_chems_gocart.xml"
 #include "chemistry/Registry_chems.xml"

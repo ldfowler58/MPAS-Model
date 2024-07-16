@@ -1,5 +1,7 @@
 .SUFFIXES: .F .o
 
+.PHONY: physics_wrf physics_wrf_lib
+
 all: dummy physics_wrf
 
 dummy:
@@ -52,9 +54,14 @@ OBJS = \
 	module_sf_urban.o                \
 	bl_mynn_post.o                   \
 	bl_mynn_pre.o                    \
-	sf_mynn_pre.o
+	cu_ntiedtke_post.o               \
+	cu_ntiedtke_pre.o	         \
+	sf_mynn_pre.o                    \
+	sf_sfclayrev_pre.o
 
 physics_wrf: $(OBJS)
+
+physics_wrf_lib:
 	ar -ru ./../libphys.a $(OBJS)
 
 # DEPENDENCIES:
@@ -84,6 +91,10 @@ module_cu_gf.mpas.wrf-3.9.0.o:  \
 	module_cu_gf_sh.o \
 	module_cu_gf_shared.o
 
+module_cu_ntiedtke.o: \
+	cu_ntiedtke_post.o \
+	cu_ntiedtke_pre.o
+
 module_mp_thompson.o: \
 	module_mp_radar.o
 
@@ -108,6 +119,9 @@ module_sf_bep_bem.o: \
 
 module_sf_mynn.o: \
 	sf_mynn_pre.o
+
+module_sf_sfclayrev.o: \
+	sf_sfclayrev_pre.o
 
 module_sf_noahdrv.o: \
 	module_sf_bem.o \

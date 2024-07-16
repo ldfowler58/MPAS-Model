@@ -128,7 +128,7 @@
  real(kind=RKIND),dimension(:,:),allocatable:: hgt
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine init_thompson_aerosols_forMPAS:')
+!call mpas_log_write('--- enter subroutine init_thompson_aerosols_forMPAS:')
 
  is_aerosol_aware = .true.
 
@@ -229,37 +229,26 @@
     call mpas_log_write('--- initialize nifa using the climatological GOCART data.')
  endif
 
-!do iCell = 1, nCellsSolve
-!   do k = 1, nVertLevels
-!      write(0,202) iCell,k,hgt(k,iCell),nwfa(k,iCell),nifa(k,iCell)
-!   enddo
-!   write(0,*)
-!enddo
-!202 format(2i8,10(1x,e15.8))
-!stop
-
 !... scale the lowest level aerosol data into an emissions rate.  This is very far from ideal, but
 !... need higher emissions where larger amount of (climo) existing and lesser emissions where there
 !... exists fewer to begin as a first-order simplistic approach.  Later, proper connection to emission
 !... inventory would be better, but, for now, scale like this:
 !... where: Nwfa=50 per cc, emit 0.875E4 aerosols per second per grid box unit
-!... that was tested as ~(20kmx20kmx50m = 2.E10 m**-3).
+!... that was tested as ~(20kmx20kmx50m = 2.E10 m**3).
 
-!k = 1
-!do iCell = 1, nCellsSolve
-!   airmass = rho_zz(k,iCell)*zz(k,iCell)
-!   airmass = airmass*(zgrid(k+1,iCell)-zgrid(k,iCell))*areaCell(iCell) ! (in kg)
-!   nwfa2d(iCell) = nwfa(k,iCell)*0.000196*(airmass*2.E-10)
-!   nwfa2d(iCell) = 0._RKIND
-!   nifa2d(iCell) = 0._RKIND
-!   call mpas_log_write('$i $r $r $r $r',intArgs=(/iCell/),realArgs=(/airmass,nwfa2d(iCell), &
-!                       nwfa2d(iCell)*450.,nifa2d(iCell)/))
-!enddo
+ k = 1
+ do iCell = 1, nCellsSolve
+    airmass = rho_zz(k,iCell)*zz(k,iCell)
+    airmass = airmass*(zgrid(k+1,iCell)-zgrid(k,iCell))*areaCell(iCell) ! (in kg)
+    nwfa2d(iCell) = nwfa(k,iCell)*0.000196*airmass*0.5e-10
+    nifa2d(iCell) = 0._RKIND
+!   call mpas_log_write('$i $r $r $r',intArgs=(/iCell/),realArgs=(/airmass,nwfa2d(iCell),nifa2d(iCell)/))
+ enddo
 
 !... deallocate local arrays:
  if(allocated(hgt)) deallocate(hgt)
 
- call mpas_log_write('--- end subroutine init_thompson_aerosols_forMPAS.')
+!call mpas_log_write('--- end subroutine init_thompson_aerosols_forMPAS.')
 
  end subroutine init_thompson_aerosols_forMPAS
 
@@ -317,7 +306,7 @@
        call physics_error_fatal(errmess)
     endif
  endif
- 
+
  DM_BCAST_MACRO(tnccn_act)
 
  end subroutine table_ccnAct
@@ -325,6 +314,3 @@
 !=================================================================================================================
  end module mpas_atmphys_init_microphysics
 !=================================================================================================================
-
- 
- 

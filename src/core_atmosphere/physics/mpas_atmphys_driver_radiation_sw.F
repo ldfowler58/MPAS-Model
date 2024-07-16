@@ -86,13 +86,11 @@
 ! * in subroutine radiation_sw_from_MPAS, added the calculation of the optical properties of "water-friendly" and
 !   "ice-friendly" aerosols from the Thompson cloud microphysics scheme for use in the RRTMG short-wave radiation
 !   code.
-!   Laura D. Fowler (laura@ucar.edu) / 2019-01-13.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-05-16.
 ! * in subroutine driver_radiation_sw, modified the argument list in the call to subroutine rrtmg_sw to include
 !   the optical properties of "water-friendly" and "ice-friendly" aerosols from the Thompson cloud microphysics
 !   scheme.
-!   Laura D. Fowler (laura@ucar.edu) / 2019-01-23.
-! * added the variables swddir,swddni,swddif for use in the updated version of the Noah LSM.
-!   Laura D. Fowler (laura@ucar.edu) / 2023-04-21.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-05-16.
 
 
  contains
@@ -107,12 +105,12 @@
  real(kind=RKIND),intent(in):: xtime_s
 
 !local pointers:
- character(len=StrKIND),pointer:: mp_scheme, &
+ character(len=StrKIND),pointer:: mp_scheme,     &
                                   radt_sw_scheme
 
 !-----------------------------------------------------------------------------------------------------------------
 
- call mpas_pool_get_config(configs,'config_microp_scheme',mp_scheme)
+ call mpas_pool_get_config(configs,'config_microp_scheme' ,mp_scheme     )
  call mpas_pool_get_config(configs,'config_radt_sw_scheme',radt_sw_scheme)
 
  if(.not.allocated(f_ice)        ) allocate(f_ice(ims:ime,kms:kme,jms:jme)        )
@@ -195,12 +193,12 @@
  type(mpas_pool_type),intent(in):: configs
 
 !local pointers:
- character(len=StrKIND),pointer:: mp_scheme, &
+ character(len=StrKIND),pointer:: mp_scheme,     &
                                   radt_sw_scheme
 
 !-----------------------------------------------------------------------------------------------------------------
 
- call mpas_pool_get_config(configs,'config_microp_scheme',mp_scheme)
+ call mpas_pool_get_config(configs,'config_microp_scheme' ,mp_scheme     )
  call mpas_pool_get_config(configs,'config_radt_sw_scheme',radt_sw_scheme)
 
  if(allocated(f_ice)        ) deallocate(f_ice        )
@@ -308,14 +306,13 @@
  real(kind=RKIND),dimension(:,:),pointer  :: zgrid
  real(kind=RKIND),dimension(:,:),pointer  :: cldfrac,o3clim
  real(kind=RKIND),dimension(:,:),pointer  :: re_cloud,re_ice,re_snow
- real(kind=RKIND),dimension(:,:,:),pointer:: ozmixm
 
 !-----------------------------------------------------------------------------------------------------------------
 
  call mpas_pool_get_config(configs,'config_microp_re'     ,config_microp_re    )
  call mpas_pool_get_config(configs,'config_o3climatology' ,config_o3climatology)
  call mpas_pool_get_config(configs,'config_radt_sw_scheme',radt_sw_scheme      )
- call mpas_pool_get_config(configs,'config_microp_scheme' ,microp_scheme)
+ call mpas_pool_get_config(configs,'config_microp_scheme' ,microp_scheme       )
 
  call mpas_pool_get_array(mesh,'latCell',latCell)
  call mpas_pool_get_array(mesh,'lonCell',lonCell)
@@ -443,6 +440,7 @@
           case("mp_thompson_aerosols")
              call mpas_pool_get_array(mesh,'zgrid',zgrid)
              call mpas_pool_get_array(diag_physics,'taod5502d',taod5502d)
+             call mpas_pool_get_array(diag_physics,'taod5503d',taod5503d)
 
              aer_opt = 3
              do j = jts,jte
@@ -469,6 +467,7 @@
                 taod5502d_p(i,j) = 0._RKIND
                 do k = kts,kte
                    taod5502d_p(i,j) = taod5502d_p(i,j) + taod5503d_p(i,k,j)
+                   taod5503d(k,i) = taod5503d_p(i,k,j)
                 enddo
                 taod5502d(i) = taod5502d_p(i,j)
              enddo

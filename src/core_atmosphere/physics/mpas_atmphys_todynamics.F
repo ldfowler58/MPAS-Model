@@ -37,13 +37,13 @@
 !   Laura D. Fowler (laura@ucar.edu) / 2018-01-23.
 ! * removed the option bl_mynn_wrf390.
 !   Laura D. Fowler (laura@ucar.edu) / 2018-01-24.
-! * added the PBL tendencies for the cloud water and cloud ice number concentrations. added the PBL tendencies
-!   for the "ice-friendly" and "water-friendly" aerosol number concentrations for the MYNN PBL parameterization.
-!   Laura D. Fowler (laura@ucar.edu) / 2019-05-09.
 ! * added the convective tendencies for the cloud water and cloud ice number concentrations. added the convective
 !   tendencies for the "ice-friendly" and "water-friendly" aerosol number concentrations for convective transport
 !   in the GF convection scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2019-05-09.
+! * added tendencies of cloud liquid water number concentration, and water-friendly and ice-friendly aerosol
+!   number concentrations due to PBL processes.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-05-16.
 
 !
 ! Abstract interface for routine used to communicate halos of fields
@@ -89,6 +89,7 @@
 !local variables:
  character(len=StrKIND),pointer:: pbl_scheme,        &
                                   convection_scheme, &
+                                  microp_scheme,     &
                                   radt_lw_scheme,    &
                                   radt_sw_scheme
 
@@ -126,6 +127,7 @@
  call mpas_pool_get_dimension(mesh,'nEdgesSolve',nEdgesSolve)
 
  call mpas_pool_get_config(configs,'config_convection_scheme',convection_scheme)
+ call mpas_pool_get_config(configs,'config_microp_scheme'    ,microp_scheme    )
  call mpas_pool_get_config(configs,'config_pbl_scheme'       ,pbl_scheme       )
  call mpas_pool_get_config(configs,'config_radt_lw_scheme'   ,radt_lw_scheme   )
  call mpas_pool_get_config(configs,'config_radt_sw_scheme'   ,radt_sw_scheme   )
@@ -219,7 +221,7 @@
 
  call physics_get_tend_work( &
               block,mesh,nCells,nEdges,nCellsSolve,nEdgesSolve,rk_step,dynamics_substep, &
-              pbl_scheme,convection_scheme,radt_lw_scheme,radt_sw_scheme,                &
+              pbl_scheme,convection_scheme,microp_scheme,radt_lw_scheme,radt_sw_scheme,  &
               index_qv,index_qc,index_qr,index_qi,index_qs,                              &
               index_nc,index_ni,index_nifa,index_nwfa,                                   &
               mass,mass_edge,theta_m,scalars,                                            &
@@ -264,7 +266,7 @@
 !=================================================================================================================
  subroutine physics_get_tend_work( &
                     block,mesh,nCells,nEdges,nCellsSolve,nEdgesSolve,rk_step,dynamics_substep, &
-                    pbl_scheme,convection_scheme,radt_lw_scheme,radt_sw_scheme,                &
+                    pbl_scheme,convection_scheme,microp_scheme,radt_lw_scheme,radt_sw_scheme,  &
                     index_qv,index_qc,index_qr,index_qi,index_qs,                              &
                     index_nc,index_ni,index_nifa,index_nwfa,                                   &
                     mass,mass_edge,theta_m,scalars,                                            &
@@ -284,6 +286,7 @@
  type(mpas_pool_type),intent(in):: mesh
 
  character(len=StrKIND),intent(in):: convection_scheme
+ character(len=StrKIND),intent(in):: microp_scheme
  character(len=StrKIND),intent(in):: pbl_scheme
  character(len=StrKIND),intent(in):: radt_lw_scheme
  character(len=StrKIND),intent(in):: radt_sw_scheme
