@@ -9,8 +9,7 @@
  module mpas_atmphys_vars
  use mpas_kind_types
 
- use NoahmpIOVarType
- 
+
  implicit none
  public
  save
@@ -944,12 +943,6 @@
  real(kind=RKIND),dimension(:,:),allocatable:: &
     frc_urb_p,        &!urban fraction                                                                         [-]
     ust_urb_p          !urban u* in similarity theory                                                        [m/s]
-
-!=================================================================================================================
-!.. variables and arrays related to the Noahmp land-surface parameterization:
-!=================================================================================================================
-
- type(NoahmpIO_type):: mpas_noahmp
 
 !=================================================================================================================
 !.. variables and arrays related to surface characteristics:

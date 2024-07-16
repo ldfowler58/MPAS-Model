@@ -6,34 +6,22 @@
 ! distributed with this code, or at http://mpas-dev.github.com/license.html
 !
 !=================================================================================================================
- module mpas_atmphys_lsm_noahmpfinalize
- use mpas_log,only: mpas_log_write
+ module mpas_atmphys_vars_noahmp
+ use mpas_kind_types
 
- use mpas_atmphys_vars_noahmp,only: mpas_noahmp
- use NoahmpIOVarFinalizeMod,only: NoahmpIOVarFinalizeDefault
+ use NoahmpIOVarType
+ 
+ implicit none
+ public
+ save
 
-
- private
- public:: sf_noahmp_deallocate
-
-
- contains
 
 !=================================================================================================================
- subroutine sf_noahmp_deallocate( )
+!.. variables and arrays related to the Noahmp land-surface parameterization:
 !=================================================================================================================
-!call mpas_log_write(' ')
-!call mpas_log_write('--- enter subroutine sf_noahmp_deallocate:')
 
-
-!--- deallocate Noahmp arrays:
- call NoahmpIOVarFinalizeDefault(mpas_noahmp)
-
-
-!call mpas_log_write('--- end subroutine sf_noahmp_deallocate:')
-
- end subroutine sf_noahmp_deallocate
+ type(NoahmpIO_type):: mpas_noahmp
 
 !=================================================================================================================
- end module mpas_atmphys_lsm_noahmpfinalize
+ end module mpas_atmphys_vars_noahmp
 !=================================================================================================================

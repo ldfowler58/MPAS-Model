@@ -11,11 +11,10 @@
  use mpas_pool_routines
 
  use mpas_atmphys_utilities,only: physics_error_fatal
- use mpas_atmphys_vars,only     : mpas_noahmp
+ use mpas_atmphys_vars_noahmp,only: mpas_noahmp
 
  use NoahmpInitMainMod,only : NoahmpInitMain
  use NoahmpIOVarInitMod,only: NoahmpIOVarInitDefault
- use NoahmpIOVarType
  use NoahmpReadNamelistMod
  use NoahmpReadTableMod,only: NoahmpReadTable
 

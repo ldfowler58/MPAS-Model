@@ -12,12 +12,11 @@
  use mpas_pool_routines
  use mpas_timer,only: mpas_timer_start, mpas_timer_stop
 
- use mpas_atmphys_constants,only: R_d,R_v
- use mpas_atmphys_manager,only  : year,curr_julday,month,day
- use mpas_atmphys_vars,only     : mpas_noahmp,xice_threshold
+ use mpas_atmphys_constants,only  : R_d,R_v
+ use mpas_atmphys_manager,only    : year,curr_julday,month,day
+ use mpas_atmphys_vars,only       : xice_threshold
+ use mpas_atmphys_vars_noahmp,only: mpas_noahmp
 
-
- use NoahmpIOVarType
  use NoahmpDriverMainMod,only: NoahmpDriverMain
 
  implicit none

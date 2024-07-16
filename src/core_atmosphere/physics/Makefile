@@ -20,40 +20,41 @@ OBJS_init = \
 	mpas_atmphys_vars.o
 
 OBJS = \
+	mpas_atmphys_control.o             \
+	mpas_atmphys_driver.o              \
+	mpas_atmphys_driver_cloudiness.o   \
+	mpas_atmphys_driver_convection.o   \
+	mpas_atmphys_driver_gwdo.o         \
+	mpas_atmphys_driver_lsm.o          \
+	mpas_atmphys_driver_lsm_noahmp.o   \
+	mpas_atmphys_driver_microphysics.o \
+	mpas_atmphys_driver_oml.o          \
+	mpas_atmphys_driver_pbl.o          \
+	mpas_atmphys_driver_radiation_lw.o \
+	mpas_atmphys_driver_radiation_sw.o \
+	mpas_atmphys_driver_seaice.o       \
+	mpas_atmphys_driver_sfclayer.o     \
+	mpas_atmphys_finalize.o            \
+	mpas_atmphys_init.o                \
+	mpas_atmphys_init_microphysics.o   \
+	mpas_atmphys_interface.o           \
+	mpas_atmphys_landuse.o             \
+	mpas_atmphys_lsm_noahinit.o        \
+	mpas_atmphys_lsm_noahmpinit.o      \
+	mpas_atmphys_lsm_noahmpfinalize.o  \
+	mpas_atmphys_lsm_shared.o          \
+	mpas_atmphys_manager.o             \
+	mpas_atmphys_o3climatology.o       \
+	mpas_atmphys_packages.o            \
+	mpas_atmphys_rrtmg_lwinit.o        \
+	mpas_atmphys_rrtmg_swinit.o        \
+	mpas_atmphys_todynamics.o          \
+	mpas_atmphys_update_surface.o      \
+	mpas_atmphys_update.o              \
+	mpas_atmphys_vars_noahmp.o         \
 	mpas_atmphys_compute_diagnostics.o    \
 	mpas_atmphys_compute_diagnostics_bl.o \
-	mpas_atmphys_compute_diagnostics_cu.o \
-	mpas_atmphys_control.o                \
-	mpas_atmphys_driver.o                 \
-	mpas_atmphys_driver_cloudiness.o      \
-	mpas_atmphys_driver_convection.o      \
-	mpas_atmphys_driver_gwdo.o            \
-	mpas_atmphys_driver_lsm.o             \
-	mpas_atmphys_driver_lsm_noahmp.o      \
-	mpas_atmphys_driver_microphysics.o    \
-	mpas_atmphys_driver_oml.o             \
-	mpas_atmphys_driver_pbl.o             \
-	mpas_atmphys_driver_radiation_lw.o    \
-	mpas_atmphys_driver_radiation_sw.o    \
-	mpas_atmphys_driver_seaice.o          \
-	mpas_atmphys_driver_sfclayer.o        \
-	mpas_atmphys_finalize.o               \
-	mpas_atmphys_init.o                   \
-	mpas_atmphys_init_microphysics.o      \
-	mpas_atmphys_interface.o              \
-	mpas_atmphys_landuse.o                \
-	mpas_atmphys_lsm_noahinit.o           \
-	mpas_atmphys_lsm_noahmpinit.o         \
-	mpas_atmphys_lsm_noahmpfinalize.o     \
-	mpas_atmphys_lsm_shared.o             \
-	mpas_atmphys_manager.o                \
-	mpas_atmphys_o3climatology.o          \
-	mpas_atmphys_packages.o               \
-	mpas_atmphys_rrtmg_lwinit.o           \
-	mpas_atmphys_rrtmg_swinit.o           \
-	mpas_atmphys_todynamics.o             \
-	mpas_atmphys_update_surface.o         \
-	mpas_atmphys_update.o
+	mpas_atmphys_compute_diagnostics_cu.o
 
 lookup_tables:
 	./checkout_data_files.sh
@@ -69,7 +70,8 @@ core_physics_noahmp:
 	(cd physics_noahmp/src; $(MAKE) all COREDEF="$(COREDEF)")
 	(cd physics_noahmp/drivers/mpas; $(MAKE) all COREDEF="$(COREDEF)")
 
-core_physics_init: $(OBJS_init)
+core_physics_init:
+	($(MAKE) phys_interface_init COREDEF="$(COREDEF)")
 
 core_physics: core_physics_wrf core_physics_noahmp
 	($(MAKE) phys_interface COREDEF="$(COREDEF)")
@@ -81,6 +83,8 @@ core_physics: core_physics_wrf core_physics_noahmp
 	($(MAKE) -C ./physics_noahmp/utility utility_lib)
 
 phys_interface: $(OBJS)
+
+phys_interface_init: $(OBJS_init)
 
 # DEPENDENCIES:
 mpas_atmphys_compute_diagnostics.o: \
@@ -140,7 +144,8 @@ mpas_atmphys_driver_lsm.o: \
 mpas_atmphys_driver_lsm_noahmp.o: \
 	mpas_atmphys_constants.o \
 	mpas_atmphys_manager.o \
-	mpas_atmphys_vars.o
+	mpas_atmphys_vars.o \
+	mpas_atmphys_vars_noahmp.o
 
 mpas_atmphys_driver_microphysics.o: \
 	mpas_atmphys_constants.o \
@@ -209,7 +214,10 @@ mpas_atmphys_lsm_noahinit.o: \
 
 mpas_atmphys_lsm_noahmpinit.o: \
 	mpas_atmphys_utilities.o \
-	mpas_atmphys_vars.o
+	mpas_atmphys_vars_noahmp.o
+
+mpas_atmphys_lsm_noahmpfinalize.o: \
+	mpas_atmphys_vars_noahmp.o
 
 mpas_atmphys_manager.o: \
 	mpas_atmphys_constants.o \
@@ -259,7 +267,7 @@ clean:
 	$(RM) $@ $*.mod
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I./physics_mmm -I./physics_wrf -I.. -I../chemistry -I../../framework -I../../external/esmf_time_f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I./physics_mmm -I./physics_wrf -I./physics_noahmp -I./physics_noahmp/utility -I./physics_noahmp/drivers/mpas -I./physics_noahmp/src -I.. -I../chemistry -I../../framework -I../../external/esmf_time_f90
 else
-	$(FC) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./physics_mmm -I./physics_wrf -I.. -I../chemistry -I../../framework -I../../external/esmf_time_f90
+	$(FC) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./physics_mmm -I./physics_wrf -I./physics_noahmp -I./physics_noahmp/utility -I./physics_noahmp/drivers/mpas -I./physics_noahmp/src -I.. -I../chemistry -I../../framework -I../../external/esmf_time_f90
 endif
