@@ -26,18 +26,17 @@
 
  interface
     subroutine read_geogrid(fname,rarray,nx,ny,nz,isigned,endian, &
-                            scalefactor,wordsize,status) bind(C)
-       use iso_c_binding, only : c_char, c_int, c_float, c_ptr
-       character (c_char), dimension(*), intent(in) :: fname
-       type (c_ptr), value :: rarray
-       integer (c_int), intent(in), value :: nx
-       integer (c_int), intent(in), value :: ny
-       integer (c_int), intent(in), value :: nz
-       integer (c_int), intent(in), value :: isigned
-       integer (c_int), intent(in), value :: endian
-       real (c_float), intent(in), value :: scalefactor
-       integer (c_int), intent(in), value :: wordsize
-       integer (c_int), intent(inout) :: status
+                            wordsize,status) bind(C)
+       use iso_c_binding,only: c_char,c_int,c_float,c_ptr
+       character(c_char),dimension(*),intent(in):: fname
+       type(c_ptr),value:: rarray
+       integer(c_int),intent(in),value:: nx
+       integer(c_int),intent(in),value:: ny
+       integer(c_int),intent(in),value:: nz
+       integer(c_int),intent(in),value:: isigned
+       integer(c_int),intent(in),value:: endian
+       integer(c_int),intent(in),value:: wordsize
+       integer(c_int),intent(inout):: status
     end subroutine read_geogrid
  end interface
 
@@ -138,8 +137,9 @@
  call mpas_f_to_c_string(fname,c_fname)
 
  rarray_ptr = c_loc(rarray)
- call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,scalefactor,wordsize,istatus)
+ call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,wordsize,istatus)
  call init_atm_check_read_error(istatus,fname)
+ rarray(:,:,:) = rarray(:,:,:)*real(scalefactor,kind=c_float)
  erod_r(1:1440,1:720,1:3) = rarray(1:1440,1:720,1:3)
 
  do k = 1,nz
@@ -220,8 +220,9 @@
  call mpas_f_to_c_string(fname,c_fname)
 
  rarray_ptr = c_loc(rarray)
- call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,scalefactor,wordsize,istatus)
+ call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,wordsize,istatus)
  call init_atm_check_read_error(istatus,fname)
+ rarray(:,:,:) = rarray(:,:,:)*real(scalefactor,kind=c_float)
  clayfrac_r(1:4500,1:2250) = rarray(1:4500,1:2250,1)
 
  call mpas_log_write('--- max clayfrac_r = $r',realArgs=(/maxval(clayfrac_r(1:4500,1:2250))/))
@@ -289,8 +290,9 @@
  call mpas_f_to_c_string(fname,c_fname)
 
  rarray_ptr = c_loc(rarray)
- call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,scalefactor,wordsize,istatus)
+ call read_geogrid(c_fname,rarray_ptr,nx,ny,nz,isigned,endian,wordsize,istatus)
  call init_atm_check_read_error(istatus,fname)
+ rarray(:,:,:) = rarray(:,:,:)*real(scalefactor,kind=c_float)
  sandfrac_r(1:4500,1:2250) = rarray(1:4500,1:2250,1)
 
  call mpas_log_write('--- max sandfrac_r = $r',realArgs=(/maxval(sandfrac_r(1:4500,1:2250))/))
