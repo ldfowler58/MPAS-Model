@@ -1,1 +1,0 @@
-./../core_atmosphere/chemistry/mpas_init_atm_chems_static.F

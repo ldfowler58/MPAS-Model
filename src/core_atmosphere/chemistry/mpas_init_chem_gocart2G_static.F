@@ -1,5 +1,5 @@
 !=================================================================================================================
- module mpas_init_atm_chems_static
+ module mpas_init_chem_gocart2G_static
 !=================================================================================================================
  use mpas_kind_types
  use mpas_log
@@ -16,7 +16,7 @@
 
  implicit none
  private
- public:: init_atm_chems_static
+ public:: init_chem_gocart2G_static
 
 
 !additional interpolation of static fields to run the AFWA GOCART dust model: subroutine init_atm_chems_static
@@ -45,7 +45,7 @@
 
 
 !=================================================================================================================
- subroutine init_atm_chems_static(configs,mesh)
+ subroutine init_chem_gocart2G_static(configs,mesh)
 !=================================================================================================================
 
 !input arguments:
@@ -85,7 +85,7 @@
 
 !--------------------------------------------------------------------------------------------------
  call mpas_log_write('')
- call mpas_log_write('--- enter subroutine init_atm_chems_static:')
+ call mpas_log_write('--- enter subroutine init_chem_gocart2G_static:')
 
  call mpas_pool_get_dimension(mesh,'nCells',nCells)
 
@@ -327,10 +327,10 @@
  call mpas_log_write('--- end interpolate SANDFRAC.')
 
 
- call mpas_log_write('--- end subroutine init_atm_chems_static:')
+ call mpas_log_write('--- end subroutine init_chem_gocart2G_static:')
 
- end subroutine init_atm_chems_static
+ end subroutine init_chem_gocart2G_static
 
 !=================================================================================================================
- end module mpas_init_atm_chems_static
+ end module mpas_init_chem_gocart2G_static
 !=================================================================================================================

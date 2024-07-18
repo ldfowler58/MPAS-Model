@@ -26,7 +26,7 @@ module init_atm_cases
    use mpas_log, only : mpas_log_write
 #ifdef ATM_CHEMISTRY
    use mpas_init_atm_chems,only: init_atm_CAMS_emissions,init_atm_camchem_toGOCART
-   use mpas_init_atm_chems_static,only: init_atm_chems_static
+   use mpas_init_chem_gocart2G_static,only: init_chem_gocart2G_static
    use mpas_init_atm_tracers
 #endif
 
@@ -283,7 +283,7 @@ module init_atm_cases
 
             if(config_gocart2G_static) then
                call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
-               call init_atm_chems_static(block_ptr%configs,mesh)
+               call init_chem_gocart2G_static(block_ptr%configs,mesh)
             endif
 
             if(config_chems_cams) then
