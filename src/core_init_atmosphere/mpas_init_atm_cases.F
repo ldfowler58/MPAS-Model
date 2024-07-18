@@ -75,7 +75,7 @@ module init_atm_cases
 #ifdef ATM_CHEMISTRY
       logical, pointer :: config_chems_cams
       logical, pointer :: config_chems_interp
-      logical, pointer :: config_chems_static
+      logical, pointer :: config_gocart2G_static
       logical, pointer :: config_tracers_interp
 
       type (mpas_pool_type), pointer :: CAMS_emissions
@@ -279,9 +279,9 @@ module init_atm_cases
             !interpolation of chemistry species:
             call mpas_pool_get_config(block_ptr%configs,'config_chems_cams',config_chems_cams)
             call mpas_pool_get_config(block_ptr%configs,'config_chems_interp',config_chems_interp)
-            call mpas_pool_get_config(block_ptr%configs,'config_chems_static',config_chems_static)
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_static',config_gocart2G_static)
 
-            if(config_chems_static) then
+            if(config_gocart2G_static) then
                call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
                call init_atm_chems_static(block_ptr%configs,mesh)
             endif

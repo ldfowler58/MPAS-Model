@@ -354,6 +354,10 @@
                 <package name="met_stage_out" description="Active only if meteorological fields are being interpolated"/>
                 <package name="first_guess_field" description="3-d atmospheric or land-surface fields on first-guess levels"/>
                 <package name="mp_thompson_aers_in" description="initialization of GOCART-based Thompson water- and ice-friendly aerosols"/>
+#ifdef ATM_CHEMISTRY
+                <package name="gocart2G_static_in" description="Active for initialization of GOCART-2G static fields are read"/>
+                <package name="gocart2G_static_out" description="Active for initialization of GOCART-2G static fields are generated"/>
+#endif
         </packages>
 
 
@@ -461,11 +465,6 @@
                         <var name="zb" packages="met_stage_in"/>
                         <var name="zb3" packages="met_stage_in"/>
                         <var name="dss" packages="met_stage_in"/>
-#ifdef ATM_CHEMISTRY
-                        <var name="erod" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
-                        <var name="clayfrac" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
-                        <var name="sandfrac" packages="gwd_stage_in;vertical_stage_in;met_stage_in"/>
-#endif
 		</stream>
 
 		<stream name="output" 
@@ -613,6 +612,9 @@
                         <var name="rh2" packages="met_stage_out"/>
                         <var name="t2m" packages="met_stage_out"/>
 #ifdef ATM_CHEMISTRY
+                        <var name="erod" packages="gocart2G_static_out"/>
+                        <var name="clayfrac" packages="gocart2G_static_out"/>
+                        <var name="sandfrac" packages="gocart2G_static_out"/>
                         <var_array name="tracers" packages="met_stage_out"/>
                         <var name="bc1_em_anthro" packages="met_stage_out"/>
                         <var name="co_em_anthro" packages="met_stage_out"/>
@@ -623,9 +625,6 @@
                         <var name="background_oh" packages="met_stage_out"/>
                         <var name="background_h2o2" packages="met_stage_out"/>
                         <var name="background_no3" packages="met_stage_out"/>
-                        <var name="erod" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
-                        <var name="clayfrac" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
-                        <var name="sandfrac" packages="gwd_stage_out;vertical_stage_out;met_stage_out"/>
                         <var name="pcam_fg" packages="met_stage_out"/>
                         <var name="dpcam_fg" packages="met_stage_out"/>
                         <var_array name="chems" packages="met_stage_out"/>
@@ -1377,7 +1376,7 @@
         </var_struct>
 
 #ifdef ATM_CHEMISTRY
-#include "../core_atmosphere/chemistry/Registry_init_chems.xml"
+#include "../core_atmosphere/chemistry/Registry_init_gocart2G.xml"
 #include "../core_atmosphere/chemistry/Registry_init_tracers.xml"
 #endif
 

@@ -121,7 +121,9 @@ module init_atm_core_interface
       logical, pointer :: mp_thompson_aers_in
       integer, pointer :: config_init_case
 #ifdef ATM_CHEMISTRY
-      logical, pointer :: config_chems_static
+      logical, pointer :: config_gocart2G_static
+      logical, pointer :: gocart2G_static_in
+      logical, pointer :: gocart2G_static_out
 #endif
 
 
@@ -221,16 +223,6 @@ module init_atm_core_interface
          inquire(file="QNWFA_QNIFA_SIGMA_MONTHLY.dat",exist=lexist)
          if((lexist .and. met_stage_out) .or. (lexist .and. met_stage_in)) mp_thompson_aers_in = .true.
 
-#ifdef ATM_CHEMISTRY
-         call mpas_pool_get_config(configs,'config_chems_static',config_chems_static)
-         if(config_chems_static) then
-            if(.not.config_native_gwd_static .or. .not.config_met_interp .or. .not.config_vertical_grid) then
-               gwd_stage_in  = .true.
-               gwd_stage_out = .true.
-            endif
-         endif
-#endif
-
       else if (config_init_case == 8) then
          gwd_stage_in = .false.
          gwd_stage_out = .false.
@@ -285,6 +277,54 @@ module init_atm_core_interface
       if ((config_init_case == 7 .and. config_met_interp) .or. config_init_case == 9) then
          first_guess_field = .true.
       end if
+
+#ifdef ATM_CHEMISTRY
+      ierr = 0
+      nullify(gocart2G_static_in)
+      call mpas_pool_get_package(packages, 'gocart2G_static_inActive', gocart2G_static_in)
+      if (.not. associated(gocart2G_static_in)) then
+         call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
+         call mpas_log_write('* Error while setting up gocart2G_static_in for init_atmosphere core.',            messageType=MPAS_LOG_ERR)
+         call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
+         ierr = 1
+         return
+      end if
+
+      nullify(gocart2G_static_out)
+      call mpas_pool_get_package(packages, 'gocart2G_static_outActive', gocart2G_static_out)
+      if (.not. associated(gocart2G_static_out)) then
+         call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
+         call mpas_log_write('* Error while setting up gocart2G_static_out for init_atmosphere core.',           messageType=MPAS_LOG_ERR)
+         call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
+         ierr = 1
+         return
+      end if
+
+      call mpas_pool_get_config(configs, 'config_gocart2G_static', config_gocart2G_static)
+
+      gocart2G_static_in  = .false.
+      gocart2G_static_out = .false.
+      if (config_init_case == 7 .and. config_gocart2G_static) then
+         gocart2G_static_out = .true.
+         gwd_stage_in        = .true.
+         gwd_stage_out       = .true.
+         vertical_stage_in   = .true.
+         met_stage_in        = .true.
+      end if
+
+      call mpas_log_write(' ')
+      call mpas_log_write('--- end function init_atm_setup_packages:')
+      call mpas_log_write('--- gwd_stage_in        = $l',logicArgs=(/gwd_stage_in/))
+      call mpas_log_write('--- gwd_stage_out       = $l',logicArgs=(/gwd_stage_out/))
+      call mpas_log_write('--- vertical_stage_in   = $l',logicArgs=(/vertical_stage_in/))
+      call mpas_log_write('--- vertical_stage_out  = $l',logicArgs=(/vertical_stage_out/))
+      call mpas_log_write('--- met_stage_in        = $l',logicArgs=(/met_stage_in/))
+      call mpas_log_write('--- met_stage_out       = $l',logicArgs=(/met_stage_out/))
+      call mpas_log_write('--- gocart2G_static_in  = $l',logicArgs=(/gocart2g_static_in/))
+      call mpas_log_write('--- gocart2G_static_out = $l',logicArgs=(/gocart2g_static_out/))
+      call mpas_log_write(' ')
+#endif
+
 
    end function init_atm_setup_packages
 

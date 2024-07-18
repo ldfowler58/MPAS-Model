@@ -2,10 +2,14 @@
 
  <dims>
       <dim name="nDustErosionDim" definition="3"
-           description="The number of erosion layers in the GOCART dust emission parameterization"/>
+           description="The number of erosion layers in the gocart2G dust emission parameterization"/>
 
       <dim name="nCAMLevels" definition="namelist:config_chems_levels"
            description="The number of atmospheric levels in the first-guess CAM-Chem data set"/>
+
+      <dim name="nBCKLevels" definition="namelist:config_chems_bck_levels"
+           description="The number of atmospheric levels for the monthly-mean background H2O2, OH, and NO3 fields"/>
+
  </dims>
 
 
@@ -21,6 +25,11 @@
            description="The number of atmospheric levels in the first guess CAM-Chem data set"
            possible_values="Positive integer values"/>
 
+      <nml_option name="config_chems_bck_levels" type="integer" default_value="55"
+           units="-"
+           description="The number of atmospheric levels for the monthly-mean background H2O2, OH, and NO3 fields"
+           possible_values="Positive integer values"/>
+
       <nml_option name="config_chems_cams" type="logical" default_value="false"
            units="-"
            description="Whether to read the CAMS surface emissions file"
@@ -31,7 +40,7 @@
            description="Whether to interpolate first-guess chemical species and emissions from input data"
            possible_values="true or false"/>
 
-      <nml_option name="config_chems_static" type="logical" default_value="false"
+      <nml_option name="config_gocart2G_static" type="logical" default_value="false"
            units="-"
            description="Whether to interpolate erod,clayfrac,and sandfrac WPS static data (case 7 only)"
            possible_values="true or false"/>
@@ -41,14 +50,14 @@
 
  <var_struct name="mesh" time_levs="1">
 
-      <var name="erod" type="real" dimensions="nDustErosionDim nCells" units="-"
-                description="fraction of erodible surface for use in GOCART chemistry"/>
+      <var name="erod" type="real" dimensions="nDustErosionDim nCells" units="fraction"
+                description="fraction of erodible surface for use in the gocart2G chemistry"/>
 
-      <var name="clayfrac" type="real" dimensions="nCells" units="-"
-                description="fraction of clay soil for use in GOCART chemistry"/>
+      <var name="clayfrac" type="real" dimensions="nCells" units="fraction"
+                description="fraction of clay soil for use in the gocart2G chemistry"/>
 
-      <var name="sandfrac" type="real" dimensions="nCells" units="-"
-                description="fraction of sand soil fraction for use in GOCART chemistry"/>
+      <var name="sandfrac" type="real" dimensions="nCells" units="fraction"
+                description="fraction of sand soil fraction for use in the gocart2G chemistry"/>
 
  </var_struct>
 
@@ -73,7 +82,19 @@
  </var_struct>
 
 
- <var_struct name="GOCART_backgrounds" time_levs="1">
+ <var_struct name="gocart2G_background" time_levs="1">
+
+      <var name="dms_gocart2G_clim" type="real" dimensions="nMonths nCells" units="nM/L"
+           description="Monthly-mean climatological surface concentration of dimethyl sulfide (DMS) over oceans"/>
+
+      <var name="oh_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells Time" units="mole mole^{-1}"
+           description="Monthly-mean climatological background of hydroxide (OH)"/>
+
+      <var name="h2o2_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells Time" units="mole mole^{-1}"
+           description="Monthly-mean climatological background of hydrogen peroxide (H2O2)"/>
+
+      <var name="no3_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells Time" units="mole mole^{-1}"
+           description="Monthly-mean climatological background of nitrate (NO3)"/>
 
       <var name="background_dms" type="real" dimensions="nCells Time" units="nM/L"
            description="Surface concentration of dimethyl sulfide (DMS) over oceans"/>
@@ -86,6 +107,17 @@
 
       <var name="background_no3" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
            description="Background of nitrate (NO3)"/>
+
+ </var_struct>
+
+
+ <var_struct name="gocart2G_met" time_levs="1">
+
+      <var name="ptrop_gocart2G_clim" type="real" dimensions="nMonths nCells Time" units="Pa"
+           description="Monthly-mean climatological pressure at tropopause height"/>
+
+      <var name="background_ptrop" type="real" dimensions="nCells Time" units="Pa"
+           description="Pressure at tropopause height"/>
 
  </var_struct>
 
@@ -175,67 +207,67 @@
  <var_struct name="state" time_levs="1">
 
     <var_array name="chems" type="real" dimensions="nVertLevels nCells Time">
-           <var name="qbc1" array_group="gocart" units="kg kg^{-1}"
+           <var name="qbc1" array_group="gocart2G" units="kg kg^{-1}"
                 description="BC1 - black carbon hydrophobic mass mixing ratio"/>
 
-           <var name="qbc2" array_group="gocart" units="kg kg^{-1}"
+           <var name="qbc2" array_group="gocart2G" units="kg kg^{-1}"
                 description="BC2 - black carbon hydrophilic mass mixing ratio"/>
 
-           <var name="qoc1" array_group="gocart" units="kg kg^{-1}"
+           <var name="qoc1" array_group="gocart2G" units="kg kg^{-1}"
                 description="OC1 - organic carbon hydrophobic mass mixing ratio"/>
 
-           <var name="qoc2" array_group="gocart" units="kg kg^{-1}"
+           <var name="qoc2" array_group="gocart2G" units="kg kg^{-1}"
                 description="OC2 - organic carbon hydrophilic mass mixing ratio"/>
 
-           <var name="qdust1" array_group="gocart" units="kg kg^{-1}"
+           <var name="qdust1" array_group="gocart2G" units="kg kg^{-1}"
                 description="DUST1 - dust size bin 1 mass mixing ratio (0.5um eff. radius)"/>
 
-           <var name="qdust2" array_group="gocart" units="kg kg^{-1}"
+           <var name="qdust2" array_group="gocart2G" units="kg kg^{-1}"
                 description="DUST2 - dust size bin 2 mass mixing ratio (1.4um eff. radius)"/>
 
-           <var name="qdust3" array_group="gocart" units="kg kg^{-1}"
+           <var name="qdust3" array_group="gocart2G" units="kg kg^{-1}"
                 description="DUST3 - dust size bin 3 mass mixing ratio (2.4um eff. radius)"/>
 
-           <var name="qdust4" array_group="gocart" units="kg kg^{-1}"
+           <var name="qdust4" array_group="gocart2G" units="kg kg^{-1}"
                 description="DUST4 - dust size bin 4 mass mixing ratio (4.5um eff. radius)"/>
 
-           <var name="qdust5" array_group="gocart" units="kg kg^{-1}"
+           <var name="qdust5" array_group="gocart2G" units="kg kg^{-1}"
                 description="DUST5 - dust size bin 5 mass mixing ratio (8.0um eff. radius)"/>
 
-           <var name="qseas1" array_group="gocart" units="kg kg^{-1}"
+           <var name="qseas1" array_group="gocart2G" units="kg kg^{-1}"
                 description="SEAS1 - sea-salt size bin 1 mass mixing ratio (0.3um eff. radius)"/>
 
-           <var name="qseas2" array_group="gocart" units="kg kg^{-1}"
+           <var name="qseas2" array_group="gocart2G" units="kg kg^{-1}"
                 description="SEAS2 - sea-salt size bin 2 mass mixing ratio (1.0um eff. radius)"/>
 
-           <var name="qseas3" array_group="gocart" units="kg kg^{-1}"
+           <var name="qseas3" array_group="gocart2G" units="kg kg^{-1}"
                 description="SEAS3 - sea-salt size bin 3 mass mixing ratio (3.2um eff. radius)"/>
 
-           <var name="qseas4" array_group="gocart" units="kg kg^{-1}"
+           <var name="qseas4" array_group="gocart2G" units="kg kg^{-1}"
                 description="SEAS4 - sea-salt size bin 4 mass mixing ratio (7.5um eff. radius)"/>
 
-           <var name="qsulf" array_group="gocart" units="kg kg^{-1}"
+           <var name="qsulf" array_group="gocart2G" units="kg kg^{-1}"
                 description="SULF - sulfate mass mixing ratio"/>
 
-           <var name="qdms" array_group="gocart" units="mole mole^{-1}"
+           <var name="qdms" array_group="gocart2G" units="mole mole^{-1}"
                 description="DMS - dimethyl sulfide mass mixing ratio"/>
 
-           <var name="qmsa" array_group="gocart" units="mole mole^{-1}"
+           <var name="qmsa" array_group="gocart2G" units="mole mole^{-1}"
                 description="MSA - methanesulfonic acid mass mixing ratio"/>
 
-           <var name="qco" array_group="gocart"  units="mole mole^{-1}"
+           <var name="qco" array_group="gocart2G"  units="mole mole^{-1}"
                 description="CO -  carbon monoxide mass mixing ratio"/>
 
-           <var name="qh2o2" array_group="gocart"  units="mole mole^{-1}"
+           <var name="qh2o2" array_group="gocart2G"  units="mole mole^{-1}"
                 description="H2O2 - hydrogen peroxide mass mixing ratio"/>
 
-           <var name="qoh" array_group="gocart"  units="mole mole^{-1}"
+           <var name="qoh" array_group="gocart2G"  units="mole mole^{-1}"
                 description="OH -  hydroxide mass mixing ratio"/>
 
-           <var name="qso2" array_group="gocart" units="mole mole^{-1}"
+           <var name="qso2" array_group="gocart2G" units="mole mole^{-1}"
                 description="SO2 - sulfur dioxide mass mixing ratio"/>
 
-           <var name="qno3" array_group="gocart" units="mole mole^{-1}"
+           <var name="qno3" array_group="gocart2G" units="mole mole^{-1}"
                 description="NO3 - nitrate mass mixing ratio"/>
     </var_array>
 

@@ -63,12 +63,12 @@ mpas_init_atm_cases.o: \
 	mpas_init_atm_surface.o \
 	mpas_init_atm_thompson_aerosols.o \
 	mpas_init_atm_vinterp.o \
-	mpas_init_atm_chems.o \
-	mpas_init_atm_chems_static.o \
-	mpas_init_atm_tracers.o \
 	mpas_atmphys_constants.o \
 	mpas_atmphys_functions.o \
-	mpas_atmphys_initialize_real.o
+	mpas_atmphys_initialize_real.o \
+	mpas_init_atm_chems.o \
+	mpas_init_atm_chems_static.o \
+	mpas_init_atm_tracers.o
 
 mpas_init_atm_hinterp.o: mpas_init_atm_queue.o mpas_init_atm_bitarray.o
 
@@ -100,15 +100,6 @@ mpas_parse_geoindex.o:
 
 mpas_geotile_manager.o: mpas_parse_geoindex.o
 
-mpas_init_atm_chems.o: \
-	mpas_init_atm_hinterp.o \
-	mpas_init_atm_llxy.o \
-	mpas_init_atm_read_met.o
-
-mpas_init_atm_chems_static.o: \
-	mpas_init_atm_hinterp.o \
-	mpas_init_atm_llxy.o
-
 mpas_init_atm_static.o: \
 	mpas_atm_advection.o \
 	mpas_init_atm_hinterp.o \
@@ -128,6 +119,15 @@ mpas_atmphys_initialize_real.o:  \
 	mpas_init_atm_surface.o  \
 	mpas_atmphys_date_time.o \
 	mpas_atmphys_utilities.o
+
+mpas_init_atm_chems.o: \
+	mpas_init_atm_hinterp.o \
+	mpas_init_atm_llxy.o \
+	mpas_init_atm_read_met.o
+
+mpas_init_atm_chems_static.o: \
+	mpas_init_atm_hinterp.o \
+	mpas_init_atm_llxy.o
 
 clean:
 	$(RM) *.o *.mod *.f90 libdycore.a
