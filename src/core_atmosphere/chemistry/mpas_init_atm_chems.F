@@ -137,7 +137,7 @@
  end subroutine init_atm_CAMS_emissions
 
 !=================================================================================================================
- subroutine init_atm_camchem_toGOCART(configs,mesh,fg,diag,state,GOCART_backgrounds)
+ subroutine init_atm_camchem_toGOCART(configs,mesh,fg,diag,state)
 !=================================================================================================================
 
 !input arguments:
@@ -148,7 +148,6 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: fg
  type(mpas_pool_type),intent(inout):: state
- type(mpas_pool_type),intent(inout):: GOCART_backgrounds
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -156,68 +155,11 @@
 
  call init_hinterp_camchem(configs,mesh,fg)
  call init_vinterp_camchem(configs,mesh,fg,diag,state)
- call init_backgrounds_gocart(mesh,state,GOCART_backgrounds)
 
  call mpas_log_write('--- end subroutine init_atm_camchem.')
  call mpas_log_write(' ')
 
  end subroutine init_atm_camchem_toGOCART
-
-!=================================================================================================================
- subroutine init_backgrounds_gocart(mesh,state,GOCART_backgrounds)
-!=================================================================================================================
-
-!input arguments:
- type(mpas_pool_type),intent(in):: mesh
-
-!inout arguments:
- type(mpas_pool_type),intent(inout):: state
- type(mpas_pool_type),intent(inout):: GOCART_backgrounds
-
-!local variables and arrays:
- integer,pointer:: nCells,nVertLevels
- integer,pointer:: index_qdms,index_qoh,index_qh2o2,index_qno3
- integer:: iCell,k
-
- real(kind=RKIND),dimension(:),pointer:: background_dms
- real(kind=RKIND),dimension(:,:),pointer:: background_oh,background_h2o2,background_no3
- real(kind=RKIND),dimension(:,:,:),pointer:: chems
-
-!-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine init_backgrounds_gocart:')
-
- call mpas_pool_get_dimension(mesh,'nCells',nCells)
- call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
-
- call mpas_pool_get_dimension(state,'index_qdms' ,index_qdms )
- call mpas_pool_get_dimension(state,'index_qoh'  ,index_qoh  )
- call mpas_pool_get_dimension(state,'index_qh2o2',index_qh2o2)
- call mpas_pool_get_dimension(state,'index_qno3' ,index_qno3 )
-
- call mpas_pool_get_array(GOCART_backgrounds,'background_dms' ,background_dms )
- call mpas_pool_get_array(GOCART_backgrounds,'background_oh'  ,background_oh  )
- call mpas_pool_get_array(GOCART_backgrounds,'background_h2o2',background_h2o2)
- call mpas_pool_get_array(GOCART_backgrounds,'background_no3' ,background_no3 )
-
- call mpas_pool_get_array(state,'chems',chems)
-
- k = 1
- do iCell = 1,nCells
-    background_dms(iCell)  = chems(index_qdms,k,iCell)
- enddo
-
- do k = 1,nVertLevels
-    do iCell = 1,nCells
-       background_oh(k,iCell)   = chems(index_qoh,k,iCell)
-       background_h2o2(k,iCell) = chems(index_qh2o2,k,iCell)
-       background_no3(k,iCell)  = chems(index_qno3,k,iCell)
-    enddo
- enddo
-
- call mpas_log_write('--- exit subroutine init_backgrounds_gocart:')
-
- end subroutine init_backgrounds_gocart
 
 !=================================================================================================================
  subroutine init_hinterp_camchem(configs,mesh,fg)
@@ -282,8 +224,8 @@
 !call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine init_hinterp_camchem:')
 
- call mpas_pool_get_config(configs,'config_chems_prefix',prefix    )
- call mpas_pool_get_config(configs,'config_start_time'  ,start_time)
+ call mpas_pool_get_config(configs,'config_CAMchem_prefix',prefix    )
+ call mpas_pool_get_config(configs,'config_start_time'    ,start_time)
 
  call mpas_pool_get_dimension(mesh,'nCells'    ,nCells    )
  call mpas_pool_get_dimension(mesh,'nCAMLevels',nCAMLevels)
@@ -754,9 +696,9 @@
  enddo
  call read_met_close()
 
+ call mpas_log_write('--- end subroutine init_hinterp_camchem.')
 
  end subroutine init_hinterp_camchem
-
 
 !=================================================================================================================
  subroutine init_vinterp_camchem(configs,mesh,fg,diag,state)
@@ -784,7 +726,7 @@
  integer,pointer:: index_qdms_fg,index_qmsa_fg,index_qco_fg,index_qh2o2_fg,index_qoh_fg, &
                    index_qso2_fg,index_qno3_fg
 
- integer,pointer:: num_chems,gocart_start,gocart_end
+ integer,pointer:: num_chems,gocart2G_start,gocart2G_end
  integer,pointer:: index_qbc1,index_qbc2
  integer,pointer:: index_qoc1,index_qoc2
  integer,pointer:: index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
@@ -817,18 +759,18 @@
  call mpas_pool_get_dimension(fg,'num_chems_fg' ,num_chems_fg )
  call mpas_pool_get_dimension(fg,'camchem_start',camchem_start)
  call mpas_pool_get_dimension(fg,'camchem_end'  ,camchem_end  )
- call mpas_log_write('--- num_chems_fg  = $i',intArgs=(/num_chems_fg/) )
- call mpas_log_write('--- camchem_start = $i',intArgs=(/camchem_start/))
- call mpas_log_write('--- camchem_end   = $i',intArgs=(/camchem_end/)  )
+ call mpas_log_write('--- num_chems_fg   = $i',intArgs=(/num_chems_fg/) )
+ call mpas_log_write('--- camchem_start  = $i',intArgs=(/camchem_start/))
+ call mpas_log_write('--- camchem_end    = $i',intArgs=(/camchem_end/)  )
  call mpas_log_write(' ')
 
 
  call mpas_pool_get_dimension(state,'num_chems' ,num_chems )
- call mpas_pool_get_dimension(state,'gocart_start',gocart_start)
- call mpas_pool_get_dimension(state,'gocart_end'  ,gocart_end  )
- call mpas_log_write('--- num_chems     = $i',intArgs=(/num_chems/)   )
- call mpas_log_write('--- gocart_start  = $i',intArgs=(/gocart_start/))
- call mpas_log_write('--- gocart_end    = $i',intArgs=(/gocart_end/)  )
+ call mpas_pool_get_dimension(state,'gocart2G_start',gocart2G_start)
+ call mpas_pool_get_dimension(state,'gocart2G_end'  ,gocart2G_end  )
+ call mpas_log_write('--- num_chems      = $i',intArgs=(/num_chems/)     )
+ call mpas_log_write('--- gocart2G_start = $i',intArgs=(/gocart2G_start/))
+ call mpas_log_write('--- gocart2G_end   = $i',intArgs=(/gocart2G_end/)  )
  call mpas_log_write(' ')
 
  if(.not.allocated(sorted_arr)) allocate(sorted_arr(2,nCAMLevels))
@@ -849,7 +791,7 @@
  call mpas_log_write(' ')
 
  do n = camchem_start,camchem_end
-    do nn = gocart_start,gocart_end
+    do nn = gocart2G_start,gocart2G_end
        if(n == index_qbca4 .and. nn == index_qbc1) then
           call mpas_log_write('--- BLACK CARBON - HYDROPHOBIC: n = $i  nn = $i',intArgs=(/n,nn/))
           do iCell = 1,nCells
@@ -896,7 +838,7 @@
  call mpas_log_write(' ')
 
  do n = camchem_start,camchem_end
-    do nn = gocart_start,gocart_end
+    do nn = gocart2G_start,gocart2G_end
        if(n == index_qpoma4 .and. nn == index_qoc1) then
           call mpas_log_write('--- ORGANIC CARBON - HYDROPHOBIC: n = $i  nn = $i',intArgs=(/n,nn/))
           do iCell = 1,nCells
@@ -953,7 +895,7 @@
  call mpas_log_write('--- index_qdust5   = $i',intArgs=(/index_qdust5/))
  call mpas_log_write(' ')
 
- do nn = gocart_start,gocart_end
+ do nn = gocart2G_start,gocart2G_end
     if(nn == index_qdust1) then
        do iCell = 1,nCells
           sorted_arr(1,1:nCAMLevels) = 0._RKIND
@@ -1024,7 +966,7 @@
  call mpas_log_write('--- index_qseas4   = $i',intArgs=(/index_qseas4/))
  call mpas_log_write(' ')
 
- do nn = gocart_start,gocart_end
+ do nn = gocart2G_start,gocart2G_end
     if(nn == index_qseas1) then
        do iCell = 1,nCells
           sorted_arr(1,1:nCAMLevels) = 0._RKIND
@@ -1088,7 +1030,7 @@
  call mpas_log_write('--- index_qsulf    = $i',intArgs=(/index_qsulf/))
  call mpas_log_write(' ')
 
- do nn = gocart_start,gocart_end
+ do nn = gocart2G_start,gocart2G_end
     if(nn == index_qsulf) then
        do iCell = 1,nCells
           sorted_arr(1,1:nCAMLevels) = 0._RKIND
@@ -1138,7 +1080,7 @@
  call mpas_log_write('--- index_qno3     = $i',intArgs=(/index_qno3/)    )
  call mpas_log_write(' ')
 
- do nn = gocart_start,gocart_end
+ do nn = gocart2G_start,gocart2G_end
     if(nn == index_qdms) then
        do iCell = 1,nCells
           sorted_arr(1,1:nCAMLevels) = 0._RKIND

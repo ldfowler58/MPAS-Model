@@ -26,6 +26,7 @@ OBJS =  \
 	mpas_parse_geoindex.o \
 	mpas_geotile_manager.o \
 	mpas_init_atm_chems.o \
+	mpas_init_chem_gocart2G_climatology.o \
 	mpas_init_chem_gocart2G_static.o \
 	mpas_init_atm_tracers.o
 
@@ -67,6 +68,7 @@ mpas_init_atm_cases.o: \
 	mpas_atmphys_functions.o \
 	mpas_atmphys_initialize_real.o \
 	mpas_init_atm_chems.o \
+	mpas_init_chem_gocart2G_climatology.o \
 	mpas_init_chem_gocart2G_static.o \
 	mpas_init_atm_tracers.o
 
@@ -124,6 +126,12 @@ mpas_init_atm_chems.o: \
 	mpas_init_atm_hinterp.o \
 	mpas_init_atm_llxy.o \
 	mpas_init_atm_read_met.o
+
+mpas_init_chem_gocart2G_climatology.o: \
+	mpas_init_atm_hinterp.o \
+	mpas_init_atm_llxy.o \
+	mpas_init_atm_read_met.o \
+	mpas_init_atm_vinterp.o
 
 mpas_init_chem_gocart2G_static.o: \
 	mpas_init_atm_hinterp.o \

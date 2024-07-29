@@ -26,6 +26,7 @@ module init_atm_cases
    use mpas_log, only : mpas_log_write
 #ifdef ATM_CHEMISTRY
    use mpas_init_atm_chems,only: init_atm_CAMS_emissions,init_atm_camchem_toGOCART
+   use mpas_init_chem_gocart2G_climatology,only: init_chem_gocart2G_climatology
    use mpas_init_chem_gocart2G_static,only: init_chem_gocart2G_static
    use mpas_init_atm_tracers
 #endif
@@ -73,13 +74,15 @@ module init_atm_cases
       logical, pointer :: config_met_interp
       logical, pointer :: config_blend_bdy_terrain
 #ifdef ATM_CHEMISTRY
-      logical, pointer :: config_chems_cams
-      logical, pointer :: config_chems_interp
+      logical, pointer :: config_CAMchem_interp
+      logical, pointer :: config_gocart2G_clim
       logical, pointer :: config_gocart2G_static
+      logical, pointer :: config_CAMS_emissions
       logical, pointer :: config_tracers_interp
 
       type (mpas_pool_type), pointer :: CAMS_emissions
-      type (mpas_pool_type), pointer :: GOCART_backgrounds
+      type (mpas_pool_type), pointer :: gocart2G_backgrounds
+      type (mpas_pool_type), pointer :: gocart2G_met
 #endif
       character (len=StrKIND), pointer :: config_start_time
       character (len=StrKIND), pointer :: config_met_prefix
@@ -277,16 +280,25 @@ module init_atm_cases
             if(config_tracers_interp) call init_atm_tracers(block_ptr, mesh, block_ptr % configs, state)
 
             !interpolation of chemistry species:
-            call mpas_pool_get_config(block_ptr%configs,'config_chems_cams',config_chems_cams)
-            call mpas_pool_get_config(block_ptr%configs,'config_chems_interp',config_chems_interp)
+            call mpas_pool_get_config(block_ptr%configs,'config_CAMchem_interp',config_CAMchem_interp)
+            call mpas_pool_get_config(block_ptr%configs,'config_CAMS_emissions',config_CAMS_emissions)
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_clim',config_gocart2G_clim)
             call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_static',config_gocart2G_static)
+
+            if(config_gocart2G_clim) then
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
+               call mpas_pool_get_subpool(block_ptr%structs,'diag',diag)
+               call mpas_pool_get_subpool(block_ptr%structs,'gocart2G_met',gocart2G_met)
+               call mpas_pool_get_subpool(block_ptr%structs,'gocart2G_backgrounds',gocart2G_backgrounds)
+               call init_chem_gocart2G_climatology(block_ptr,block_ptr%configs,mesh,diag,gocart2G_met,gocart2G_backgrounds)
+            endif
 
             if(config_gocart2G_static) then
                call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
                call init_chem_gocart2G_static(block_ptr%configs,mesh)
             endif
 
-            if(config_chems_cams) then
+            if(config_CAMS_emissions) then
                call mpas_log_write(' ')
                call mpas_log_write('--- read CAMS anthropogenic surface emissions:')!
                call mpas_pool_get_subpool(block_ptr%structs,'CAMS_emissions',CAMS_emissions)
@@ -294,14 +306,13 @@ module init_atm_cases
                call mpas_log_write('--- end read CAMS anthropogenic surface emissions:')
             endif
 
-            if(config_chems_interp) then
-               call mpas_pool_get_subpool(block_ptr%structs,'mesh'              ,mesh              )
-               call mpas_pool_get_subpool(block_ptr%structs,'fg'                ,fg                )
-               call mpas_pool_get_subpool(block_ptr%structs,'diag'              ,diag              )
-               call mpas_pool_get_subpool(block_ptr%structs,'state'             ,state             )
-               call mpas_pool_get_subpool(block_ptr%structs,'GOCART_backgrounds',GOCART_backgrounds)
+            if(config_CAMchem_interp) then
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh' ,mesh )
+               call mpas_pool_get_subpool(block_ptr%structs,'fg'   ,fg   )
+               call mpas_pool_get_subpool(block_ptr%structs,'diag' ,diag )
+               call mpas_pool_get_subpool(block_ptr%structs,'state',state)
 
-               call init_atm_camchem_toGOCART(block_ptr%configs,mesh,fg,diag,state,GOCART_backgrounds)
+               call init_atm_camchem_toGOCART(block_ptr%configs,mesh,fg,diag,state)
             endif
 
             block_ptr => block_ptr % next

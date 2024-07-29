@@ -4,7 +4,7 @@
       <dim name="nDustErosionDim" definition="3"
            description="The number of erosion layers in the gocart2G dust emission parameterization"/>
 
-      <dim name="nCAMLevels" definition="namelist:config_chems_levels"
+      <dim name="nCAMLevels" definition="namelist:config_CAMchem_levels"
            description="The number of atmospheric levels in the first-guess CAM-Chem data set"/>
 
       <dim name="nBCKLevels" definition="namelist:config_chems_bck_levels"
@@ -15,12 +15,12 @@
 
  <nml_record name="preproc_chemistry" in_defaults="true">
 
-      <nml_option name="config_chems_prefix" type="character" default_value="CAM-Chem"
+      <nml_option name="config_CAMchem_prefix" type="character" default_value="CAM-Chem"
            units="-"
            description="Filename prefix of the first guess CAM-Chem data set"
            possible_values="Any alpha-numeric string"/>
 
-      <nml_option name="config_chems_levels" type="integer" default_value="56"
+      <nml_option name="config_CAMchem_levels" type="integer" default_value="56"
            units="-"
            description="The number of atmospheric levels in the first guess CAM-Chem data set"
            possible_values="Positive integer values"/>
@@ -30,14 +30,19 @@
            description="The number of atmospheric levels for the monthly-mean background H2O2, OH, and NO3 fields"
            possible_values="Positive integer values"/>
 
-      <nml_option name="config_chems_cams" type="logical" default_value="false"
+      <nml_option name="config_CAMS_emissions" type="logical" default_value="false"
            units="-"
            description="Whether to read the CAMS surface emissions file"
            possible_values="true or false"/>
 
-      <nml_option name="config_chems_interp" type="logical" default_value="false"
+      <nml_option name="config_CAMchem_interp" type="logical" default_value="false"
            units="-"
-           description="Whether to interpolate first-guess chemical species and emissions from input data"
+           description="Whether to interpolate first-guess chemical species and emissions from CAMchem input data"
+           possible_values="true or false"/>
+
+      <nml_option name="config_gocart2G_clim" type="logical" default_value="false"
+           units="-"
+           description="Whether to interpolate climatological data to run gocart2G (case 7 only)"
            possible_values="true or false"/>
 
       <nml_option name="config_gocart2G_static" type="logical" default_value="false"
