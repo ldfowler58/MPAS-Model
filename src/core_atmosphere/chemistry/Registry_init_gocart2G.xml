@@ -87,7 +87,7 @@
  </var_struct>
 
 
- <var_struct name="gocart2G_background" time_levs="1">
+ <var_struct name="gocart2G_backgrounds" time_levs="1">
 
       <var name="dms_gocart2G_clim" type="real" dimensions="nMonths nCells" units="nM/L"
            description="Monthly-mean climatological surface concentration of dimethyl sulfide (DMS) over oceans"/>
@@ -100,6 +100,12 @@
 
       <var name="no3_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells Time" units="mole mole^{-1}"
            description="Monthly-mean climatological background of nitrate (NO3)"/>
+
+      <var name="pres_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="Pa"
+           description="Monthly-mean climatological background layer pressure"/>
+
+      <var name="dpres_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="Pa"
+           description="Monthly-mean climatological background layer thickness"/>
 
       <var name="background_dms" type="real" dimensions="nCells Time" units="nM/L"
            description="Surface concentration of dimethyl sulfide (DMS) over oceans"/>

@@ -225,7 +225,9 @@
 
  real(kind=RKIND),dimension(:,:),pointer:: pressure
  real(kind=RKIND),dimension(:,:),pointer:: oh,h2o2,no3
- real(kind=RKIND),dimension(:,:,:),pointer:: oh_clim,h2o2_clim,no3_clim,pres_clim
+ real(kind=RKIND),dimension(:,:,:),pointer:: oh_clim,h2o2_clim,no3_clim
+ real(kind=RKIND),dimension(:,:,:),pointer:: pres_clim,dpres_clim
+
 
  real(kind=RKIND):: target_p
  real(kind=RKIND),dimension(:,:),allocatable:: oh_int,h2o2_int,no3_int,pres_int,sorted_arr
@@ -243,10 +245,11 @@
 
  call mpas_pool_get_array(diag,'pressure_base',pressure)
 
- call mpas_pool_get_array(gocart2G_backgrounds,'oh_gocart2G_clim'  ,oh_clim  )
- call mpas_pool_get_array(gocart2G_backgrounds,'h2o2_gocart2G_clim',h2o2_clim)
- call mpas_pool_get_array(gocart2G_backgrounds,'no3_gocart2G_clim' ,no3_clim )
- call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',pres_clim)
+ call mpas_pool_get_array(gocart2G_backgrounds,'oh_gocart2G_clim'   ,oh_clim   )
+ call mpas_pool_get_array(gocart2G_backgrounds,'h2o2_gocart2G_clim' ,h2o2_clim )
+ call mpas_pool_get_array(gocart2G_backgrounds,'no3_gocart2G_clim'  ,no3_clim  )
+ call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim' ,pres_clim )
+ call mpas_pool_get_array(gocart2G_backgrounds,'dpres_gocart2G_clim',dpres_clim)
 
  call mpas_pool_get_array(gocart2G_backgrounds,'background_oh'  ,oh  )
  call mpas_pool_get_array(gocart2G_backgrounds,'background_h2o2',h2o2)
