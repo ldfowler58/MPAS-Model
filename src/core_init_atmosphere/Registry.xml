@@ -625,6 +625,8 @@
                         <var name="h2o2_gocart2G_clim" packages="gocart2G_interp_out"/>
                         <var name="oh_gocart2G_clim" packages="gocart2G_interp_out"/>
                         <var name="no3_gocart2G_clim" packages="gocart2G_interp_out"/>
+                        <var name="pres_gocart2G_clim" packages="gocart2G_interp_out"/>
+                        <var name="dpres_gocart2G_clim" packages="gocart2G_interp_out"/>
                         <var name="ptrop_gocart2G_clim" packages="gocart2G_interp_out"/>
                         <var name="background_dms" packages="gocart2G_interp_out"/>
                         <var name="background_h2o2" packages="gocart2G_interp_out"/>
