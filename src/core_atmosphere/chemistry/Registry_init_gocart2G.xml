@@ -92,13 +92,13 @@
       <var name="dms_gocart2G_clim" type="real" dimensions="nMonths nCells" units="nM/L"
            description="Monthly-mean climatological surface concentration of dimethyl sulfide (DMS) over oceans"/>
 
-      <var name="oh_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells Time" units="mole mole^{-1}"
+      <var name="oh_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="volume mixing ratio"
            description="Monthly-mean climatological background of hydroxide (OH)"/>
 
-      <var name="h2o2_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells Time" units="mole mole^{-1}"
+      <var name="h2o2_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="volume mixing ratio"
            description="Monthly-mean climatological background of hydrogen peroxide (H2O2)"/>
 
-      <var name="no3_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells Time" units="mole mole^{-1}"
+      <var name="no3_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="volume mixing ratio"
            description="Monthly-mean climatological background of nitrate (NO3)"/>
 
       <var name="pres_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="Pa"
@@ -110,13 +110,13 @@
       <var name="background_dms" type="real" dimensions="nCells Time" units="nM/L"
            description="Surface concentration of dimethyl sulfide (DMS) over oceans"/>
 
-      <var name="background_oh" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
+      <var name="background_oh" type="real" dimensions="nVertLevels nCells Time" units="volume mixing ratio"
            description="Background of hydroxide (OH)"/>
 
-      <var name="background_h2o2" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
+      <var name="background_h2o2" type="real" dimensions="nVertLevels nCells Time" units="volume mixing ratio"
            description="Background of hydrogen peroxide (H2O2)"/>
 
-      <var name="background_no3" type="real" dimensions="nVertLevels nCells Time" units="mole mole^{-1}"
+      <var name="background_no3" type="real" dimensions="nVertLevels nCells Time" units="volume mixing ratio"
            description="Background of nitrate (NO3)"/>
 
  </var_struct>
@@ -124,7 +124,7 @@
 
  <var_struct name="gocart2G_met" time_levs="1">
 
-      <var name="ptrop_gocart2G_clim" type="real" dimensions="nMonths nCells Time" units="Pa"
+      <var name="ptrop_gocart2G_clim" type="real" dimensions="nMonths nCells" units="Pa"
            description="Monthly-mean climatological pressure at tropopause height"/>
 
       <var name="background_ptrop" type="real" dimensions="nCells Time" units="Pa"

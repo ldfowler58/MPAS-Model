@@ -284,6 +284,13 @@
     h2o2_int(k,1:nCells) = dummy2(1:nCells)
  enddo
  do iCell = 1, nCells
+    do k = 1, nBCKLevels
+       call mpas_log_write('$i $i $r $r',intArgs=(/iCell,k/),realArgs=(/pres_int(k,iCell),h2o2_int(k,iCell)/))
+    enddo
+    call mpas_log_write(' ')
+ enddo
+
+ do iCell = 1, nCells
     sorted_arr(1,1:nBCKLevels) = 0._RKIND
     sorted_arr(2,1:nBCKLevels) = 0._RKIND
     do k = 1, nBCKLevels
@@ -1121,18 +1128,18 @@
        index(field % field, 'OH_OCT')    /= 0 .or. &
        index(field % field, 'OH_NOV')    /= 0 .or. &
        index(field % field, 'OH_DEC')    /= 0 .or. &
-       index(field % field, 'PRES_JAN')  /= 0 .or. &
-       index(field % field, 'PRES_FEB')  /= 0 .or. &
-       index(field % field, 'PRES_MAR')  /= 0 .or. &
-       index(field % field, 'PRES_APR')  /= 0 .or. &
-       index(field % field, 'PRES_MAY')  /= 0 .or. &
-       index(field % field, 'PRES_JUN')  /= 0 .or. &
-       index(field % field, 'PRES_JUL')  /= 0 .or. &
-       index(field % field, 'PRES_AUG')  /= 0 .or. &
-       index(field % field, 'PRES_SEP')  /= 0 .or. &
-       index(field % field, 'PRES_OCT')  /= 0 .or. &
-       index(field % field, 'PRES_NOV')  /= 0 .or. &
-       index(field % field, 'PRES_DEC')  /= 0 .or. &
+       index(field % field, 'PSULF_JAN') /= 0 .or. &
+       index(field % field, 'PSULF_FEB') /= 0 .or. &
+       index(field % field, 'PSULF_MAR') /= 0 .or. &
+       index(field % field, 'PSULF_APR') /= 0 .or. &
+       index(field % field, 'PSULF_MAY') /= 0 .or. &
+       index(field % field, 'PSULF_JUN') /= 0 .or. &
+       index(field % field, 'PSULF_JUL') /= 0 .or. &
+       index(field % field, 'PSULF_AUG') /= 0 .or. &
+       index(field % field, 'PSULF_SEP') /= 0 .or. &
+       index(field % field, 'PSULF_OCT') /= 0 .or. &
+       index(field % field, 'PSULF_NOV') /= 0 .or. &
+       index(field % field, 'PSULF_DEC') /= 0 .or. &
        index(field % field, 'DPRES_JAN') /= 0 .or. &
        index(field % field, 'DPRES_FEB') /= 0 .or. &
        index(field % field, 'DPRES_MAR') /= 0 .or. &
@@ -1459,97 +1466,97 @@
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'oh_gocart2G_clim',destField3d)
            nmonths = 12
-       elseif(index(field%field,'PRES_JAN') /= 0) then
+       elseif(index(field%field,'PSULF_JAN') /= 0) then
           k = field%xlvl
-          call mpas_log_write('Interpolating PRES_JAN at $i',intArgs=(/k/))
+          call mpas_log_write('Interpolating PSULF_JAN at $i',intArgs=(/k/))
           nInterpPoints = nCells
           latPoints => latCell
           lonPoints => lonCell
           call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
           nmonths = 1
-       elseif(index(field%field,'PRES_FEB') /= 0) then
+       elseif(index(field%field,'PSULF_FEB') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_FEB at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_FEB at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 2
-       elseif(index(field%field,'PRES_MAR') /= 0) then
+       elseif(index(field%field,'PSULF_MAR') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_MAR at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_MAR at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 3
-       elseif(index(field%field,'PRES_APR') /= 0) then
+       elseif(index(field%field,'PSULF_APR') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_APR at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_APR at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 4
-       elseif(index(field%field,'PRES_MAY') /= 0) then
+       elseif(index(field%field,'PSULF_MAY') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_MAY at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_MAY at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 5
-       elseif(index(field%field,'PRES_JUN') /= 0) then
+       elseif(index(field%field,'PSULF_JUN') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_JUN at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_JUN at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 6
-       elseif(index(field%field,'PRES_JUL') /= 0) then
+       elseif(index(field%field,'PSULF_JUL') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_JUL at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_JUL at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 7
-       elseif(index(field%field,'PRES_AUG') /= 0) then
+       elseif(index(field%field,'PSULF_AUG') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_AUG at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_AUG at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 8
-       elseif(index(field%field,'PRES_SEP') /= 0) then
+       elseif(index(field%field,'PSULF_SEP') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_SEP at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_SEP at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 9
-       elseif(index(field%field,'PRES_OCT') /= 0) then
+       elseif(index(field%field,'PSULF_OCT') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_OCT at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_OCT at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 10
-       elseif(index(field%field,'PRES_NOV') /= 0) then
+       elseif(index(field%field,'PSULF_NOV') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_NOV at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_NOV at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
            call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim',destField3d)
            nmonths = 11
-       elseif(index(field%field,'PRES_DEC') /= 0) then
+       elseif(index(field%field,'PSULF_DEC') /= 0) then
            k = field%xlvl
-           call mpas_log_write('Interpolating PRES_DEC at $i',intArgs=(/k/))
+           call mpas_log_write('Interpolating PSULF_DEC at $i',intArgs=(/k/))
            nInterpPoints = nCells
            latPoints => latCell
            lonPoints => lonCell
