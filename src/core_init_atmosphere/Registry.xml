@@ -358,6 +358,7 @@
                 <package name="gocart2G_static_in" description="Active for initialization of GOCART-2G static fields are read"/>
                 <package name="gocart2G_static_out" description="Active for initialization of GOCART-2G static fields are generated"/>
                 <package name="gocart2G_interp_out" description="Active for initialization of GOCART-2G chemistry fields are generated"/>
+                <package name="tracers_interp_out" description="Active for initialization and output of passive tracers"/>
 #endif
         </packages>
 
@@ -635,6 +636,7 @@
                         <var name="background_ptrop" packages="gocart2G_interp_out"/>
                         <var_array name="chems" packages="gocart2G_interp_out"/>
                         <var_array name="chems_fg" packages="gocart2G_interp_out"/>
+                        <var_array name="tracers" packages="tracers_interp_out"/>
 #endif
 		</stream>
 

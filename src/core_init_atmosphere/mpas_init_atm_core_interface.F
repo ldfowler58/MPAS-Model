@@ -121,11 +121,13 @@ module init_atm_core_interface
       logical, pointer :: mp_thompson_aers_in
       integer, pointer :: config_init_case
 #ifdef ATM_CHEMISTRY
+      logical, pointer :: config_tracers_interp
       logical, pointer :: config_CAMchem_interp
       logical, pointer :: config_CAMS_emissions
       logical, pointer :: config_gocart2G_clim
       logical, pointer :: config_gocart2G_static
 
+      logical, pointer :: tracers_interp_out
       logical, pointer :: gocart2G_interp_out
       logical, pointer :: gocart2G_static_in
       logical, pointer :: gocart2G_static_out
@@ -284,6 +286,10 @@ module init_atm_core_interface
       end if
 
 #ifdef ATM_CHEMISTRY
+
+      !
+      ! gocart2G chemistry package:
+      !
       ierr = 0
       nullify(gocart2G_interp_out)
       call mpas_pool_get_package(packages, 'gocart2G_interp_outActive', gocart2G_interp_out)
@@ -354,6 +360,30 @@ module init_atm_core_interface
       call mpas_log_write('--- gocart2G_static_in  = $l',logicArgs=(/gocart2g_static_in/))
       call mpas_log_write('--- gocart2G_static_out = $l',logicArgs=(/gocart2g_static_out/))
       call mpas_log_write(' ')
+
+      !
+      ! Passive tracers package:
+      !
+      ierr = 0
+      nullify(tracers_interp_out)
+      call mpas_pool_get_package(packages, 'tracers_interp_outActive', tracers_interp_out)
+      if (.not. associated(tracers_interp_out)) then
+         call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
+         call mpas_log_write('* Error while setting up tracers_interp_out for init_atmosphere core.',            messageType=MPAS_LOG_ERR)
+         call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
+         ierr = 1
+         return
+      end if
+
+      call mpas_pool_get_config(configs, 'config_tracers_interp', config_tracers_interp)
+
+      tracers_interp_out = .false.
+      if (config_init_case == 7) then
+         if (config_tracers_interp) then
+            tracers_interp_out = .true.
+         endif
+      end if
+
 #endif
 
 
