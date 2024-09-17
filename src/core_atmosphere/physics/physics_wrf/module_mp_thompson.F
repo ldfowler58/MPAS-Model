@@ -1,33 +1,3 @@
-!=================================================================================================================
-!reference: WRF-v4.1.4
-!Laura D. Fowler (laura@ucar.edu) / 2020-01-10.
-
-!module_mp_thompson was originally copied from./phys/module_mp_thompson.F from WRF version 3.8. Modifications made
-!to the original sourcecode are mostly confined to subroutine thompson_init.
-!Laura D. Fowler (laura@ucar.edu) / 2016-06-04.
-
-!modifications to sourcecode for MPAS:
-!   * changed all the lines #if ( WRF_CHEM == 1 ) with #if defined(mpas).
-!   * commented out all the lines CALL wrf_debug(..., mp_debug).
-!     Laura D. Fowler (laura@ucar.edu) / 2016-06-04.
-!   * in subroutine mp_thompson, added corrections made by Greg for WRF version 3.8.1.
-!     Laura D. Fowler (laura@ucar.edu) / 2016-10-29.
-!   * in subroutine mp_gt_driver, moved the initialization of variables Nt_c and mu_c
-!     before initialization of local mixing ratios and number concentrations.
-!     Laura D. Fowler (laura@ucar.edu) / 2016-12-30.
-!   * in subroutine freezeH2O, modified the calculation of the variable prob, following
-!     Greg Thompson for the release of WRF version 3.9.0.
-!     Laura D. Fowler (laura@ucar.edu) / 2017-03-27.
-!   * in subroutine mp_gt_driver, added the variables vqr, vqi, vqs, and vqg to output the
-!     mean mass-weighted fall velocities of rain, cloud ice, snow, and graupel to compute
-!     diagnostics of lightning flash rates.
-!     Laura D. Fowler (laura@ucar.edu) / 2017-04-19.
-!   * in subroutine mp_gt_driver, changed the declarations of arrays vqg1d, vqid1,vqr1d, and vqs1d,
-!     from (kts:kte) to (kts:kte+1) to match the dimensions of arrays vtgk, vtik, vtsk, and vtrk, in
-!     subroutine mp_thompson.
-!     Laura D. Fowler (laura@ucar.edu) / 2017-08-31.
-
-
 !+---+-----------------------------------------------------------------+
 !.. This subroutine computes the moisture tendencies of water vapor,
 !.. cloud droplets, rain, cloud ice (pristine), snow, and graupel.
