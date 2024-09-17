@@ -46,6 +46,7 @@
 
       use mpas_log
       use mpas_kind_types
+      use mpas_atmphys_constants, only: RE_QC_BG,RE_QI_BG,RE_QS_BG
       use mpas_atmphys_functions, only: gammp,wgamma,rslf,rsif
       use mpas_atmphys_utilities
       use mpas_io_units, only : mpas_new_unit, mpas_release_unit
@@ -968,18 +969,18 @@
 !+---+-----------------------------------------------------------------+
 !..This is a wrapper routine designed to transfer values from 3D to 1D.
 !+---+-----------------------------------------------------------------+
-      SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, ni, nr, nc,     &
-                              nwfa, nifa, nwfa2d, nifa2d,             &
-                              th, pii, p, w, dz, dt_in, itimestep,    &
-                              RAINNC, RAINNCV,                        &
-                              SNOWNC, SNOWNCV,                        &
-                              GRAUPELNC, GRAUPELNCV, SR,              &
-                              rainprod, evapprod,                     &
-                              refl_10cm, diagflag, do_radar_ref,      &
-                              re_cloud, re_ice, re_snow,              &
-                              has_reqc, has_reqi, has_reqs,           &
+      SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, ni, nr, nc,         &
+                              nwfa, nifa, nwfa2d, nifa2d,                 &
+                              th, pii, p, w, dz, dt_in, itimestep,        &
+                              RAINNC, RAINNCV,                            &
+                              SNOWNC, SNOWNCV,                            &
+                              GRAUPELNC, GRAUPELNCV, SR,                  &
+                              rainprod, evapprod,                         &
+                              refl_10cm, diagflag, ke_diag, do_radar_ref, &
+                              re_cloud, re_ice, re_snow,                  &
+                              has_reqc, has_reqi, has_reqs,               &
 #if defined(mpas)
-                              ntc,muc,                                &
+                              ntc,muc,                                    &
 #endif
                               ids,ide, jds,jde, kds,kde, &             ! domain dims
                               ims,ime, jms,jme, kms,kme, &             ! memory dims
@@ -1036,7 +1037,7 @@
       INTEGER:: kmax_qc,kmax_qr,kmax_qi,kmax_qs,kmax_qg,kmax_ni,kmax_nr
       INTEGER:: i_start, j_start, i_end, j_end
       LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
-      INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
+      INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref, ke_diag
 !     CHARACTER*256:: mp_debug
 
 !+---+
@@ -1322,16 +1323,16 @@
 
          IF (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) THEN
           do k = kts, kte
-             re_qc1d(k) = 2.49E-6
-             re_qi1d(k) = 4.99E-6
-             re_qs1d(k) = 9.99E-6
+             re_qc1d(k) = RE_QC_BG
+             re_qi1d(k) = RE_QI_BG
+             re_qs1d(k) = RE_QS_BG
           enddo
           call calc_effectRad (t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d,  &
                       re_qc1d, re_qi1d, re_qs1d, kts, kte)
           do k = kts, kte
-             re_cloud(i,k,j) = MAX(2.49E-6, MIN(re_qc1d(k), 50.E-6))
-             re_ice(i,k,j)   = MAX(4.99E-6, MIN(re_qi1d(k), 125.E-6))
-             re_snow(i,k,j)  = MAX(9.99E-6, MIN(re_qs1d(k), 999.E-6))
+             re_cloud(i,k,j) = MAX(RE_QC_BG, MIN(re_qc1d(k), 50.E-6))
+             re_ice(i,k,j)   = MAX(RE_QI_BG, MIN(re_qi1d(k), 125.E-6))
+             re_snow(i,k,j)  = MAX(RE_QS_BG, MIN(re_qs1d(k), 999.E-6))
           enddo
          ENDIF
 
@@ -4799,7 +4800,7 @@
 
       if (has_qc) then
       do k = kts, kte
-         re_qc1d(k) = 2.49E-6
+         re_qc1d(k) = RE_QC_BG
          if (rc(k).le.R1 .or. nc(k).le.R2) CYCLE
          if (nc(k).lt.100) then
             inu_c = 15
@@ -4815,16 +4816,16 @@
 
       if (has_qi) then
       do k = kts, kte
-         re_qi1d(k) = 2.49E-6
+         re_qi1d(k) = RE_QI_BG
          if (ri(k).le.R1 .or. ni(k).le.R2) CYCLE
          lami = (am_i*cig(2)*oig1*ni(k)/ri(k))**obmi
-         re_qi1d(k) = MAX(2.51E-6, MIN(SNGL(0.5D0 * DBLE(3.+mu_i)/lami), 125.E-6))
+         re_qi1d(k) = MAX(5.01E-6, MIN(SNGL(0.5D0 * DBLE(3.+mu_i)/lami), 125.E-6))
       enddo
       endif
 
       if (has_qs) then
       do k = kts, kte
-         re_qs1d(k) = 4.99E-6
+         re_qs1d(k) = RE_QS_BG
          if (rs(k).le.R1) CYCLE
          tc0 = MIN(-0.1, t1d(k)-273.15)
          smob = rs(k)*oams
@@ -4859,7 +4860,7 @@
      &        + sb(7)*tc0*tc0*cse(1) + sb(8)*tc0*cse(1)*cse(1) &
      &        + sb(9)*tc0*tc0*tc0 + sb(10)*cse(1)*cse(1)*cse(1)
          smoc = a_ * smo2**b_
-         re_qs1d(k) = MAX(5.01E-6, MIN(0.5*(smoc/smob), 999.E-6))
+         re_qs1d(k) = MAX(10.01E-6, MIN(0.5*(smoc/smob), 999.E-6))
       enddo
       endif
 
@@ -4875,12 +4876,12 @@
 !+---+-----------------------------------------------------------------+
 
       subroutine calc_refl10cm (qv1d, qc1d, qr1d, nr1d, qs1d, qg1d,     &
-                          t1d, p1d, dBZ, kts, kte, ii, jj)
+                          t1d, p1d, dBZ, kts, kte, ii, jj, ke_diag)
 
       IMPLICIT NONE
 
 !..Sub arguments
-      INTEGER, INTENT(IN):: kts, kte, ii, jj
+      INTEGER, INTENT(IN):: kts, kte, ii, jj, ke_diag
       REAL, DIMENSION(kts:kte), INTENT(IN)::                            &
                           qv1d, qc1d, qr1d, nr1d, qs1d, qg1d, t1d, p1d
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: dBZ
@@ -4903,12 +4904,13 @@
       REAL:: a_, b_, loga_, tc0
       DOUBLE PRECISION:: fmelt_s, fmelt_g
 
-      INTEGER:: i, k, k_0, kbot, n
+      INTEGER:: i, k, k_0, kbot, n, ktop
       LOGICAL:: melti
       LOGICAL, DIMENSION(kts:kte):: L_qr, L_qs, L_qg
 
       DOUBLE PRECISION:: cback, x, eta, f_d
       REAL:: xslw1, ygra1, zans1
+      INTEGER :: k_0loop
 
 !+---+
 
@@ -4919,6 +4921,7 @@
 !+---+-----------------------------------------------------------------+
 !..Put column of data into local arrays.
 !+---+-----------------------------------------------------------------+
+
       do k = kts, kte
          temp(k) = t1d(k)
          qv(k) = MAX(1.E-10, qv1d(k))
@@ -4965,8 +4968,9 @@
          smoc(k) = 0.
          smoz(k) = 0.
       enddo
-      if (ANY(L_qs .eqv. .true.)) then
-      do k = kts, kte
+      if ( ( ke_diag > kts .and. ANY(L_qs .eqv. .true.) ) .or.  &
+            (ke_diag == kts .and. L_qs(kts) .eqv. .true. ) ) then
+      do k = kts, ke_diag ! kte
          if (.not. L_qs(k)) CYCLE
          tc0 = MIN(-0.1, temp(k)-273.15)
          smob(k) = rs(k)*oams
@@ -5023,23 +5027,11 @@
 !+---+-----------------------------------------------------------------+
 
       if (ANY(L_qg .eqv. .true.)) then
-      N0_min = gonv_max
-      k_0 = kts
       do k = kte, kts, -1
-         if (temp(k).ge.270.65) k_0 = MAX(k_0, k)
-      enddo
-      do k = kte, kts, -1
-         if (k.gt.k_0 .and. L_qr(k) .and. mvd_r(k).gt.100.E-6) then
-            xslw1 = 4.01 + alog10(mvd_r(k))
-         else
-            xslw1 = 0.01
-         endif
-         ygra1 = 4.31 + alog10(max(5.E-5, rg(k)))
-         zans1 = 3.1 + (100./(300.*xslw1*ygra1/(10./xslw1+1.+0.25*ygra1)+30.+10.*ygra1))
+         ygra1 = alog10(max(1.E-9, rg(k)))
+         zans1 = 3.0 + 2./7.*(ygra1+8.)
+         zans1 = MAX(2., MIN(zans1, 6.))
          N0_exp = 10.**(zans1)
-         N0_exp = MAX(DBLE(gonv_min), MIN(N0_exp, DBLE(gonv_max)))
-         N0_min = MIN(N0_exp, N0_min)
-         N0_exp = N0_min
          lam_exp = (N0_exp*am_g*cgg(1)/rg(k))**oge1
          lamg = lam_exp * (cgg(3)*ogg2*ogg1)**obmg
          ilamg(k) = 1./lamg
@@ -5062,13 +5054,16 @@
       enddo
  195  continue
 
+! Set loop limit for wet ice according to whether the full 3D field is needed or just k=1
+      k_0loop = Min(k_0, ke_diag+1)
+
 !+---+-----------------------------------------------------------------+
 !..Assume Rayleigh approximation at 10 cm wavelength. Rain (all temps)
 !.. and non-water-coated snow and graupel when below freezing are
 !.. simple. Integrations of m(D)*m(D)*N(D)*dD.
 !+---+-----------------------------------------------------------------+
 
-      do k = kts, kte
+      do k = kts, ke_diag ! kte
          ze_rain(k) = 1.e-22
          ze_snow(k) = 1.e-22
          ze_graupel(k) = 1.e-22
@@ -5089,7 +5084,7 @@
 !+---+-----------------------------------------------------------------+
 
       if (.not. iiwarm .and. melti .and. k_0.ge.2) then
-       do k = k_0-1, kts, -1
+       do k = k_0loop-1, kts, -1
 
 !..Reflectivity contributed by melting snow
           if (L_qs(k) .and. L_qs(k_0) ) then
@@ -5136,7 +5131,7 @@
        enddo
       endif
 
-      do k = kte, kts, -1
+      do k = ke_diag, kts, -1
          dBZ(k) = 10.*log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.d18)
       enddo
 

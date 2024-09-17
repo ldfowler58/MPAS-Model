@@ -759,7 +759,7 @@
              zp(k) = z_p(i,k,j) - z_p(i,1,j) + 0.5*dz_p(i,k,j) ! height AGL
           enddo
 
-          call calc_refl10cm(qv1d,qc1d,qr1d,nr1d,qs1d,qg1d,t1d,p1d,dBZ1d,kts,kte,i,j)
+          call calc_refl10cm(qv1d,qc1d,qr1d,nr1d,qs1d,qg1d,t1d,p1d,dBZ1d,kts,kte,i,j,kte)
 
           kp = 1
           do k = kts,kte
