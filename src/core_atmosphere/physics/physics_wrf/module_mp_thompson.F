@@ -1506,8 +1506,6 @@
 !     Laura D. Fowler (laura@ucar.edu) / 2017-03-27.
 !     real, parameter:: mvd_r_breakup = 1.e-3
 !...  end modifications.
-      LOGICAL, DIMENSION(kts:kte):: L_nifa,L_nwfa
-      REAL:: tem
 !+---+
 
       debug_flag = .false.
@@ -1624,15 +1622,6 @@
          rainprod(k) = 0.
          evapprod(k) = 0.
       enddo
-!.. initialize the logicals L_nifa and L_nwfa used to detect instances of the cloud
-!.. ice and cloud liquid water mixing ratios being greater than R1 but their number
-!.. concentration being less than 2. and R2:
-      if(is_aerosol_aware) then
-         do k = kts, kte
-            L_nifa(k) = .false.
-            L_nwfa(k) = .false.
-         enddo
-      endif
 
 !..Bug fix (2016Jun15), prevent use of uninitialized value(s) of snow moments.
       do k = kts, kte
@@ -1664,8 +1653,6 @@
             rc(k) = qc1d(k)*rho(k)
             nc(k) = MAX(2., MIN(nc1d(k)*rho(k), Nt_c_max))
             L_qc(k) = .true.
-!.. set L_nwfa to true when the cloud liquid water number concentration is less than 2.:
-            if(is_aerosol_aware .and. nc(k) .le. 2.) L_nwfa(k) = .true.
             nu_c = MIN(15, NINT(1000.E6/nc(k)) + 2)
             lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
             xDc = (bm_r + nu_c + 1.) / lamc
@@ -1689,14 +1676,11 @@
             no_micro = .false.
             ri(k) = qi1d(k)*rho(k)
             ni(k) = MAX(R2, ni1d(k)*rho(k))
-            L_qi(k) = .true.
-!.. set L_nifa to true when the cloud ice number concentration is less than R2:
-            if(is_aerosol_aware .and. ni(k) .le. R2) L_nifa(k) = .true.
             if (ni(k).le. R2) then
                lami = cie(2)/5.E-6
                ni(k) = MIN(9999.D3, cig(1)*oig2*ri(k)/am_i*lami**bm_i)
             endif
-!           L_qi(k) = .true.
+            L_qi(k) = .true.
             lami = (am_i*cig(2)*oig1*ni(k)/ri(k))**obmi
             ilami = 1./lami
             xDi = (bm_i + mu_i + 1.) * ilami
@@ -3105,7 +3089,6 @@
                        -tnc_wev(idx_d, idx_c, idx_n)*orho*odt)
 
            endif
-           if(is_aerosol_aware .and. L_nwfa(k)) L_nwfa(k) = .false.
           else
            prw_vcd(k) = -rc(k)*orho*odt
            pnc_wcd(k) = -nc(k)*orho*odt
