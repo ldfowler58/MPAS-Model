@@ -972,6 +972,12 @@ else
 	OPENACC_MESSAGE="MPAS was built without OpenACC accelerator support."
 endif
 
+ifeq "$(GOCART2G)" "true"
+	MODEL_FORMULATION = -DDO_GOCART2G
+	CHEMISTRY_MESSAGE="MPAS was built with GOCART-2G enabled."
+else
+	CHEMISTRY_MESSAGE="MPAS was built without GOCART-2G enabled."
+endif
 
 ifneq ($(wildcard namelist.$(NAMELIST_SUFFIX)), ) # Check for generated namelist file.
 	NAMELIST_MESSAGE="A default namelist file (namelist.$(NAMELIST_SUFFIX).defaults) has been generated, but namelist.$(NAMELIST_SUFFIX) has not been modified."
@@ -1509,6 +1515,7 @@ mpas_main: $(MAIN_DEPS)
 	@echo $(OPENACC_MESSAGE)
 	@echo $(MUSICA_MESSAGE)
 	@echo $(SHAREDLIB_MESSAGE)
+	@echo $(CHEMISTRY_MESSAGE)
 ifeq "$(AUTOCLEAN)" "true"
 	@echo $(AUTOCLEAN_MESSAGE)
 endif
