@@ -1,0 +1,96 @@
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G DIAGNOSTICS: NI2G                                                                                -->
+<!-- ========================================================================================================== -->
+
+ <var_struct name="NI2G_diags" time_levs="1">
+
+     <var name="nh3MASS" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="Ammonia aerosol mass mixing ratio"/>
+
+     <var name="nh4MASS" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="Ammonium aerosol mass mixing ratio"/>
+
+     <var name="niMASS" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="Nitrate aerosol mass mixing ratio"/>
+
+     <var name="niMASS25" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="Nitrate aerosol mass mixing ratio - PM2.5"/>
+
+     <var name="hno3CONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+               description="Nitrate acid mass concentration"/>
+
+     <var name="hn3CONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+               description="Ammonia aerosol mass concentration"/>
+
+     <var name="hn4CONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+               description="Ammonium aerosol mass concentration"/>
+
+     <var name="niCONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+               description="Nitrate aerosol mass concentration"/>
+
+     <var name="niCONC25" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+               description="Nitrate aerosol mass concentration - PM2.5"/>
+
+     <var name="niFLUXU" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column u-wind mass flux of nitrate aerosols"/>
+
+     <var name="niFLUXV" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column v-wind mass flux of nitrate aerosols"/>
+
+ </var_struct>
+
+<!-- ========================================================================================================== -->
+
+ <var_struct name="NI2G_aops" time_levs="1">
+
+     <var name="niEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of nitrate aerosols"/>
+
+     <var name="niSTEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of nitrate aerosols in stratosphere"/>
+
+     <var name="niSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of nitrate aerosols"/>
+
+     <var name="niSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of nitrate aerosols in stratosphere"/>
+
+     <var name="niEXTT25" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of nitrate aerosols - PM2.5"/>
+
+     <var name="niSCAT25" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of nitrate aerosols - PM2.5"/>
+
+     <var name="niEXTTFM" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of nitrate aerosols - PM1.0"/>
+
+     <var name="niSCATFM" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of nitrate aerosols - PM1.0"/>
+
+     <var name="niEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of nitrate aerosols at 550 nm"/>
+
+     <var name="niEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of nitrate aerosols at 550 nm (Rh=20%)"/>
+
+     <var name="niEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of nitrate aerosols at 550 nm (RH=80%)"/>
+
+     <var name="niSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of nitrate aerosols at 550 nm"/>
+
+     <var name="niSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of nitrate aerosols at 550 nm (RH=20%)"/>
+
+     <var name="niSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of nitrate aerosols at 550 nm (RH=20%)"/>
+
+     <var name="niBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+               description="Monochromatic backscatter coefficient of nitrate aerosols at 550 nm"/>
+
+     <var name="niANGSTR" type="real" dimensions="nCells Time" units="unitless"
+               description="Angstrom parameter [470nm-870nm] of nitrate aerosols"/>
+
+ </var_struct>
+
+

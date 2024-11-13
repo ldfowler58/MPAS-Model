@@ -1,0 +1,15 @@
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G AEROSOL OPTICAL PROPERTIES:                                                                      -->
+<!-- ========================================================================================================== -->
+
+ <dims>
+
+     <dim name="npAOPs" definition="1"
+          description="The number of monochromatic wavelengths used to read the gocart2G LUTs"/>
+
+     <dim name="nvAOPs" definition="1"
+          description="The number of monochromatic wavelengths used to compute vertically-integrated AOPs"/>
+
+ </dims>
+
+

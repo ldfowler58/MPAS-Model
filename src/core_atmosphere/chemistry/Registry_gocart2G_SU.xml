@@ -1,0 +1,191 @@
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G DIAGNOSTICS: SU2G                                                                                -->
+<!-- ========================================================================================================== -->
+
+ <var_struct name="SU2G_diags" time_levs="1">
+     <var name="SO4eman" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO4 anthropogenic emissions"/>
+
+     <var name="SO2eman" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO2 anthropogenic emissions"/>
+
+     <var name="SO2embb" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO2 biomass burning emissions"/>
+
+     <var name="SO2emvn" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO2 volcanic (non-explosive) emissions"/>
+
+     <var name="SO2emve" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO2 volcanic (explosive) emissions"/>
+
+     <var name="suEM_dms" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Surface emission of DMS"/>
+
+     <var name="suEM_so2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Surface emission of SO2"/>
+
+     <var name="suEM_so4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Surface emission of SO4"/>
+
+     <var name="suEM_msa" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Surface emission of MSA"/>
+
+     <var name="suSD_dms" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of DMS"/>
+
+     <var name="suSD_so2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of SO2"/>
+
+     <var name="suSD_so4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of SO4"/>
+
+     <var name="suSD_msa" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of MSA"/>
+
+     <var name="suDP_dms" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of DMS"/>
+
+     <var name="suDP_so2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of SO2"/>
+
+     <var name="suDP_so4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of SO4"/>
+
+     <var name="suDP_msa" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of MSA"/>
+
+     <var name="suWT_dms" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of DMS"/>
+
+     <var name="suWT_so2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of SO2"/>
+
+     <var name="suWT_so4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of SO4"/>
+
+     <var name="suWT_msa" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of MSA"/>
+
+     <var name="suSV_dms" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of DMS"/>
+
+     <var name="suSV_so2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of SO2"/>
+
+     <var name="suSV_so4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of SO4"/>
+
+     <var name="suSV_msa" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of MSA"/>
+
+     <var name="supSO2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO2 production from DMS oxidation"/>
+
+     <var name="supMSA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="MSA production from DMS oxidation"/>
+
+     <var name="supSO4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO4 production from all SO2 oxidation"/>
+
+     <var name="supSO4g" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO4 production from gaseous SO2 oxidation"/>
+
+     <var name="supSO4aq" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO4 production from aqueous SO2 oxidation"/>
+
+     <var name="supSO4wt" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SO4 production from aqueous SO2 oxidation (wet deposition)"/>
+
+     <var name="SO2smass" type="real" dimensions="nCells Time" units=kg m^{-3}"
+               description="SO2 surface mass concentration"/>
+
+     <var name="SO2cmass" type="real" dimensions="nCells Time" units=kg m^{-3}"
+               description="SO2 column mass density"/>
+
+     <var name="SO4smass" type="real" dimensions="nCells Time" units=kg m^{-3}"
+               description="SO4 surface mass concentration"/>
+
+     <var name="SO4cmass" type="real" dimensions="nCells Time" units=kg m^{-3}"
+               description="SO4 column mass density"/>
+
+     <var name="DMSsmass" type="real" dimensions="nCells Time" units=kg m^{-3}"
+               description="DMS surface mass concentration"/>
+
+     <var name="DMScmass" type="real" dimensions="nCells Time" units=kg m^{-3}"
+               description="DMS column mass density"/>
+
+     <var name="MSAsmass" type="real" dimensions="nCells Time" units=kg m^{-3}"
+               description="MSA surface mass concentration"/>
+
+     <var name="MSAcmass" type="real" dimensions="nCells Time" units=kg m^{-3}"
+               description="MSA column mass density"/>
+
+     <var name="SO4mass" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="SO4 aerosol mass minxg ratio"/>
+
+     <var name="SO4sarea" type="real" dimensions="nVertLevels nCells Time" units="m2 m^{-3}"
+               description="SO4 surface area density
+
+     <var name="SO4snum" type="real" dimensions="nVertLevels nCells Time" units="m^{-3}"
+               description="SO4 number density"
+
+     <var name="pSO2" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+               description="3-dimensional SO2 production from DMS oxidation"/>
+
+     <var name="pMSA" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+               description="3-dimensional MSA production from DMS oxidation"/>
+
+     <var name="pSO4" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+               description="3-dimensional SO4 production from all SO2 oxidation"/>
+
+     <var name="pSO4g" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+               description="3-dimensional SO4 production from gaseous SO2 oxidation"/>
+
+     <var name="pSO4aq" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+               description="3-dimensional SO4 production from aqueous SO2 oxidation"/>
+
+     <var name="pSO4wt" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+               description="3-dimensional SO4 production from aqueous SO2 oxidation (wet deposition)"/>
+
+ </var_struct>
+
+<!-- ========================================================================================================== -->
+
+ <var_struct name="SU2G_aops" time_levs="1">
+
+     <var name="suEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitlesu"
+               description="Extinction AOT of sulfate aerosols"/>
+
+     <var name="suSTEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitlesu"
+               description="Extinction AOT of sulfate aerosols in stratosphere"/>
+
+     <var name="suSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitlesu"
+               description="Scattering AOT of sulfate aerosols"/>
+
+     <var name="suSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitlesu"
+               description="Scattering AOT of sulfate aerosols in stratosphere"/>
+
+     <var name="suEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of sulfate aerosols at 550 nm"/>
+
+     <var name="suEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of sulfate aerosols at 550 nm (Rh=20%)"/>
+
+     <var name="suEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of sulfate aerosols at 550 nm (RH=80%)"/>
+
+     <var name="suSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of sulfate aerosols at 550 nm"/>
+
+     <var name="suSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of sulfate aerosols at 550 nm (RH=20%)"/>
+
+     <var name="suSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of sulfate aerosols at 550 nm (RH=20%)"/>
+
+     <var name="suBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+               description="Monochromatic backscatter coefficient of sulfate aerosols at 550 nm"/>
+
+ </var_struct>
+
+

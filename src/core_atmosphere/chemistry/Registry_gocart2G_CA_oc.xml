@@ -1,0 +1,120 @@
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G DIAGNOSTICS: CA2G_oc                                                                             -->
+<!-- ========================================================================================================== -->
+
+ <var_struct name="CA2G_oc_diags" time_levs="1">
+
+     <var name="ocEM_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Emissions of hydrophobic organic carbon aerosols"/>
+
+     <var name="ocEM_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Emissions of hydrophilic organic carbon aerosols"/>
+
+     <var name="ocEMAN" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Anthropogenic emission of organic carbon aerosols"/>
+
+     <var name="ocEMBB" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Biomass burning emission of organic carbon aerosols"/>
+
+     <var name="ocEMBF" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Biofuel emission of organic carbon aerosols"/>
+
+     <var name="ocEMBG" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Biogenic emission of organic carbon aerosols"/>
+
+     <var name="ocHYPHIL" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Conversion of hydrophobic to hydrophilic organic carbon aerosols"/>
+
+     <var name="ocSD_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of hydrophobic organic carbon aerosols"/>
+
+     <var name="ocSD_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of hydrophilic organic carbon aerosols"/>
+
+     <var name="ocDP_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of hydrophobic organic carbon aerosols"/>
+
+     <var name="ocDP_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of hydrophilic organic carbon aerosols"/>
+
+     <var name="ocWT_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of hydrophobic organic carbon aerosols"/>
+
+     <var name="ocWT_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of hydrophilic organic carbon aerosols"/>
+
+     <var name="ocSV_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of hydrophobic organic carbon aerosols"/>
+
+     <var name="ocSV_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of hydrophilic organic carbon aerosols"/>
+
+     <var name="ocSMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of organic carbon aerosols"/>
+
+     <var name="ocCMASS" type="real" dimensions="nCells Time" units="kg m^{-2}"
+               description="Column mass density of organic carbon aerosols"/>
+
+     <var name="ocFLUXU" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column u-wind mass flux of organic carbon aerosols"/>
+
+     <var name="ocFLUXV" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column v-wind mass flux of organic carbon aerosols"/>
+
+     <var name="ocMASS" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="Mass mixing ratio of organic carbon aerosols"/>
+
+     <var name="ocCONC" type="real" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+               description="Mass concentration of organic carbon aerosols"/>
+
+ </var_struct>
+
+<!-- ========================================================================================================== -->
+
+ <var_struct name="CA2G_oc_aops" time_levs="1">
+
+     <var name="ocEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of organic carbon aerosols"/>
+
+     <var name="ocSTEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of organic carbon aerosols in stratosphere"/>
+
+     <var name="ocSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of organic carbon aerosols"/>
+
+     <var name="ocSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of organic carbon aerosols in stratosphere"/>
+
+     <var name="ocEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of organic carbon aerosols at 550 nm"/>
+
+     <var name="ocEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of organic carbon aerosols at 550 nm (Rh=20%)"/>
+
+     <var name="ocEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of organic carbon aerosols at 550 nm (RH=80%)"/>
+
+     <var name="ocSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of organic carbon aerosols at 550 nm"/>
+
+     <var name="ocSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of organic carbon aerosols at 550 nm (RH=20%)"/>
+
+     <var name="ocSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of organic carbon aerosols at 550 nm (RH=20%)"/>
+
+     <var name="ocBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+               description="Monochromatic backscatter coefficient of organic carbon aerosols at 550 nm"/>
+
+     <var name="ocPSOA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SOA production of organic carbon aerosols"/>
+
+     <var name="ocANGSTR" type="real" dimensions="nCells Time" units="unitless"
+               description="Angstrom parameter [470nm-870nm] of organic carbon aerosols"/>
+
+     <var name="ocAERIDX" type="real" dimensions="" units="unitless"
+               description="TOMS UV index of organic aerosols"/>
+
+ </var_struct>
+
+

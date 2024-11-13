@@ -1,0 +1,120 @@
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G DIAGNOSTICS: CA2G_br                                                                             -->
+<!-- ========================================================================================================== -->
+
+ <var_struct name="CA2G_br_diags" time_levs="1">
+
+     <var name="brEM_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Emissions of hydrophobic brown carbon aerosols"/>
+
+     <var name="brEM_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Emissions of hydrophilic brown carbon aerosols"/>
+
+     <var name="brEMAN" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Anthropogenic emission of brown carbon aerosols"/>
+
+     <var name="brEMBB" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Biomass burning emission of brown carbon aerosols"/>
+
+     <var name="brEMBF" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Biofuel emission of brown carbon aerosols"/>
+
+     <var name="brEMBG" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Biogenic emission of brown carbon aerosols"/>
+
+     <var name="brHYPHIL" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Conversion of hydrophobic to hydrophilic brown carbon aerosols"/>
+
+     <var name="brSD_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of hydrophobic brown carbon aerosols"/>
+
+     <var name="brSD_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of hydrophilic brown carbon aerosols"/>
+
+     <var name="brDP_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of hydrophobic brown carbon aerosols"/>
+
+     <var name="brDP_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of hydrophilic brown carbon aerosols"/>
+
+     <var name="brWT_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of hydrophobic brown carbon aerosols"/>
+
+     <var name="brWT_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of hydrophilic brown carbon aerosols"/>
+
+     <var name="brSV_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of hydrophobic brown carbon aerosols"/>
+
+     <var name="brSV_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of hydrophilic brown carbon aerosols"/>
+
+     <var name="brSMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of brown carbon aerosols"/>
+
+     <var name="brCMASS" type="real" dimensions="nCells Time" units="kg m^{-2}"
+               description="Column mass density of brown carbon aerosols"/>
+
+     <var name="brFLUXU" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column u-wind mass flux of brown carbon aerosols"/>
+
+     <var name="brFLUXV" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column v-wind mass flux of brown carbon aerosols"/>
+
+     <var name="brMASS" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="Mass mixing ratio of brown carbon aerosols"/>
+
+     <var name="brCONC" type="real" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+               description="Mass concentration of brown carbon aerosols"/>
+
+ </var_struct>
+
+<!-- ========================================================================================================== -->
+
+ <var_struct name="CA2G_br_aops" time_levs="1">
+
+     <var name="brEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of brown carbon aerosols"/>
+
+     <var name="brSTEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of brown carbon aerosols in stratosphere"/>
+
+     <var name="brSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of brown carbon aerosols"/>
+
+     <var name="brSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of brown carbon aerosols in stratosphere"/>
+
+     <var name="brEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of brown carbon aerosols at 550 nm"/>
+
+     <var name="brEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of brown carbon aerosols at 550 nm (Rh=20%)"/>
+
+     <var name="brEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of brown carbon aerosols at 550 nm (RH=80%)"/>
+
+     <var name="brSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of brown carbon aerosols at 550 nm"/>
+
+     <var name="brSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of brown carbon aerosols at 550 nm (RH=20%)"/>
+
+     <var name="brSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of brown carbon aerosols at 550 nm (RH=20%)"/>
+
+     <var name="brbrKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+               description="Monochromatic backscatter coefficient of brown carbon aerosols at 550 nm"/>
+
+     <var name="brPSOA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SOA production of brown carbon aerosols"/>
+
+     <var name="brANGSTR" type="real" dimensions="nCells Time" units="unitless"
+               description="Angstrom parameter [470nm-870nm] of brown carbon aerosols"/>
+
+     <var name="brAERIDX" type="real" dimensions="" units="unitless"
+               description="TOMS UV index of brown carbon aerosols"/>
+
+ </var_struct>
+
+

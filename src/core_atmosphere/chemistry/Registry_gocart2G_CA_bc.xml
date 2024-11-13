@@ -1,0 +1,120 @@
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G DIAGNOSTICS: CA2G_bc                                                                             -->
+<!-- ========================================================================================================== -->
+
+ <var_struct name="CA2G_bc_diags" time_levs="1">
+
+     <var name="bcEM_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Emissions of hydrophobic black carbon aerosols"/>
+
+     <var name="bcEM_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Emissions of hydrophilic black carbon aerosols"/>
+
+     <var name="bcEMAN" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Anthropogenic emission of black carbon aerosols"/>
+
+     <var name="bcEMBB" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Biomass burning emission of black carbon aerosols"/>
+
+     <var name="bcEMBF" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Biofuel emission of black carbon aerosols"/>
+
+     <var name="bcEMBG" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Biogenic emission of black carbon aerosols"/>
+
+     <var name="bcHYPHIL" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Conversion of hydrophobic to hydrophilic black carbon aerosols"/>
+
+     <var name="bcSD_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of hydrophobic black carbon aerosols"/>
+
+     <var name="bcSD_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of hydrophilic black carbon aerosols"/>
+
+     <var name="bcDP_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of hydrophobic black carbon aerosols"/>
+
+     <var name="bcDP_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of hydrophilic black carbon aerosols"/>
+
+     <var name="bcWT_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of hydrophobic black carbon aerosols"/>
+
+     <var name="bcWT_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of hydrophilic black carbon aerosols"/>
+
+     <var name="bcSV_phobic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of hydrophobic black carbon aerosols"/>
+
+     <var name="bcSV_philic" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of hydrophilic black carbon aerosols"/>
+
+     <var name="bcSMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of black carbon aerosols"/>
+
+     <var name="bcCMASS" type="real" dimensions="nCells Time" units="kg m^{-2}"
+               description="Column mass density of black carbon aerosols"/>
+
+     <var name="bcFLUXU" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column u-wind mass flux of black carbon aerosols"/>
+
+     <var name="bcFLUXV" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column v-wind mass flux of black carbon aerosols"/>
+
+     <var name="bcMASS" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="Mass mixing ratio of black carbon aerosols"/>
+
+     <var name="bcCONC" type="real" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+               description="Mass concentration of black carbon aerosols"/>
+
+ </var_struct>
+
+<!-- ========================================================================================================== -->
+
+ <var_struct name="CA2G_bc_aops" time_levs="1">
+
+     <var name="bcEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of black carbon aerosols"/>
+
+     <var name="bcSTEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of black carbon aerosols in stratosphere"/>
+
+     <var name="bcSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of black carbon aerosols"/>
+
+     <var name="bcSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of black carbon aerosols in stratosphere"/>
+
+     <var name="bcEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of black carbon aerosols at 550 nm"/>
+
+     <var name="bcEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of black carbon aerosols at 550 nm (Rh=20%)"/>
+
+     <var name="bcEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of black carbon aerosols at 550 nm (RH=80%)"/>
+
+     <var name="bcSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of black carbon aerosols at 550 nm"/>
+
+     <var name="bcSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of black carbon aerosols at 550 nm (RH=20%)"/>
+
+     <var name="bcSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of black carbon aerosols at 550 nm (RH=20%)"/>
+
+     <var name="bcBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+               description="Monochromatic backscatter coefficient of black carbon aerosols at 550 nm"/>
+
+     <var name="bcPSOA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="SOA production of black carbon aerosols"/>
+
+     <var name="bcANGSTR" type="real" dimensions="nCells Time" units="unitless"
+               description="Angstrom parameter [470nm-870nm] of black carbon aerosols"/>
+
+     <var name="bcAERIDX" type="real" dimensions="" units="unitless"
+               description="TOMS UV index of black carbon aerosols"/>
+
+ </var_struct>
+
+

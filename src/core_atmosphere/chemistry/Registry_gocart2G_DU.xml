@@ -1,0 +1,162 @@
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G DIAGNOSTICS: DU2G                                                                                -->
+<!-- ========================================================================================================== -->
+
+ <var_struct name="DU2G_diags" time_levs="1">
+
+     <var name="duEM_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Surface emission of dust in size bin 1 [0.1um-1.0um]"/>
+
+     <var name="duEM_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Surface emission of dust in size bin 2 [1.0um-1.8um]"/>
+
+     <var name="duEM_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Surface emission of dust in size bin 3 [1.8um-3.0um]"/>
+
+     <var name="duEM_bin4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Surface emission of dust in size bin 4 [3.0um-6.0um]"/>
+
+     <var name="duEM_bin5" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Surface emission of dust in size bin 5 [6.0um-10.0um]"/>
+
+     <var name="duSD_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Sedimentation of dust in size bin 1 [0.1um-1.0um]"/>
+
+     <var name="duSD_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Sedimentation of dust in size bin 2 [1.0um-1.8um]"/>
+
+     <var name="duSD_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Sedimentation of dust in size bin 3 [1.8um-3.0um]"/>
+
+     <var name="duSD_bin4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Sedimentation of dust in size bin 4 [3.0um-6.0um]"/>
+
+     <var name="duSD_bin5" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Sedimentation of dust in size bin 5 [6.0um-10.0um]"/>
+
+     <var name="duDP_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Dry deposition of dust in size bin 1 [0.1um-1.0um]"/>
+
+     <var name="duDP_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Dry deposition of dust in size bin 2 [1.0um-1.8um]"/>
+
+     <var name="duDP_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Dry deposition of dust in size bin 3 [1.8um-3.0um]"/>
+
+     <var name="duDP_bin4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Dry deposition of dust in size bin 4 [3.0um-6.0um]"/>
+
+     <var name="duDP_bin5" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Dry deposition of dust in size bin 5 [6.0um-10.0um]"/>
+
+     <var name="duWT_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Wet deposition of dust in size bin 1 [0.1um-1.0um]"/>
+
+     <var name="duWT_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Wet deposition of dust in size bin 2 [1.0um-1.8um]"/>
+
+     <var name="duWT_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Wet deposition of dust in size bin 3 [1.8um-3.0um]"/>
+
+     <var name="duWT_bin4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Wet deposition of dust in size bin 4 [3.0um-6.0um]"/>
+
+     <var name="duWT_bin5" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Wet deposition of dust in size bin 5 [6.0um-10.0um]"/>
+
+     <var name="duSV_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Convective scavenging of dust in size bin 1 [0.1um-1.0um]"/>
+
+     <var name="duSV_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Convective scavenging of dust in size bin 2 [1.0um-1.8um]"/>
+
+     <var name="duSV_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Convective scavenging of dust in size bin 3 [1.8um-3.0um]"/>
+
+     <var name="duSV_bin4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Convective scavenging of dust in size bin 4 [3.0um-6.0um]"/>
+
+     <var name="duSV_bin5" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}" 
+               description="Convective scavenging of dust in size bin 5 [6.0um-10.0um]"/>
+
+     <var name="duSMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of dust aerosols"/>
+
+     <var name="duSMASS25" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of dust aerosols - PM2.5"/>
+
+     <var name="duCMASS" type="real" dimensions="nCells Time" units="kg m^{-2}"
+               description="Column mass density of dust aerosols"/>
+
+     <var name="duCMASS25" type="real" dimensions="nCells Time" units="kg m^{-2}"
+               description="Column mass density of dust aerosols - PM2.5"/>
+
+     <var name="duFLUXU" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column u-wind mass flux of dust aerosols"/>
+
+     <var name="duFLUXV" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
+               description="Column v-wind mass flux of dust aerosols"/>
+
+     <var name="duMASS" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="Mass mixing ratio of dust aerosols"/>
+
+     <var name="duMASS25" type="real" dimensions="nVertLevels nCells Time" units="kg kg^{-1}"
+               description="Mass mixing ratio of dust aerosols - PM2.5"/>
+
+     <var name="duCONC" type="real" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+               description="Mass concentration of dust aerosols"/>
+
+ </var_struct>
+
+<!-- ========================================================================================================== -->
+
+ <var_struct name="DU2G_aops" time_levs="1">
+
+     <var name="duEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of dust aerosols"/>
+
+     <var name="duSTEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of dust aerosols in stratosphere"/>
+
+     <var name="duSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of dust aerosols"/>
+
+     <var name="duSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of dust aerosols in stratosphere"/>
+
+     <var name="duEXTT25" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of dust aerosols - PM2.5"/>
+
+     <var name="duSCAT25" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of dust aerosols - PM2.5"/>
+
+     <var name="duEXTTFM" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Extinction AOT of dust aerosols - PM1.0"/>
+
+     <var name="duSCATFM" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Scattering AOT of dust aerosols - PM1.0"/>
+
+     <var name="duEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of dust aerosols at 550 nm"/>
+
+     <var name="duEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of dust aerosols at 550 nm (Rh=20%)"/>
+
+     <var name="duEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic extinction coefficient of dust aerosols at 550 nm (RH=80%)"/>
+
+     <var name="duSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of dust aerosols at 550 nm"/>
+
+     <var name="duSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of dust aerosols at 550 nm (RH=20%)"/>
+
+     <var name="duSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Monochromatic scattering coefficient of dust aerosols at 550 nm (RH=20%)"/>
+
+     <var name="duBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+               description="Monochromatic backscatter coefficient of dust aerosols at 550 nm"/>
+
+ </var_struct>
+
+
