@@ -527,6 +527,18 @@
 			<var name="soilcl3"/>
 			<var name="soilcl4"/>
 #endif
+#ifdef DO_GOCART2G
+			<var name="erod"/>
+			<var name="clayfrac"/>
+			<var name="sandfrac"/>
+			<var name="dms_gocart2G_clim"/>
+			<var name="h2o2_gocart2G_clim"/>
+			<var name="oh_gocart2G_clim"/>
+			<var name="no3_gocart2G_clim"/>
+			<var name="pres_gocart2G_clim"/>
+			<var name="dpres_gocart2G_clim"/>
+			<var name="ptrop_gocart2G_clim"/>
+#endif
 
                 </stream>
 
@@ -575,6 +587,19 @@
 			<var name="smois"/>
 			<var name="tslb"/>
 			<var name="h_oml_initial"/>
+#endif
+#ifdef DO_GOCART2G
+			<var name="bc1_em_anthro"/>
+			<var name="co_em_anthro"/>
+			<var name="oc1_em_anthro"/>
+			<var name="nh3_em_anthro"/>
+			<var name="so2_em_anthro"/>
+			<var name="background_dms"/>
+			<var name="background_h2o2"/>
+			<var name="background_oh"/>
+			<var name="background_no3"/>
+			<var name="background_ptrop"/>
+			<var_array name="chems"/>
 #endif
 		</stream>
 
@@ -853,6 +878,19 @@
 			<var name="hu_oml"/>
 			<var name="hv_oml"/>
 			<var_struct name="diag_physics_noahmp"/>
+#endif
+#ifdef DO_GOCART2G
+			<var name="bc1_em_anthro"/>
+			<var name="co_em_anthro"/>
+			<var name="oc1_em_anthro"/>
+			<var name="nh3_em_anthro"/>
+			<var name="so2_em_anthro"/>
+			<var name="background_dms"/>
+			<var name="background_h2o2"/>
+			<var name="background_oh"/>
+			<var name="background_no3"/>
+			<var name="background_ptrop"/>
+			<var_array name="chems"/>
 #endif
 		</stream>
 
@@ -3937,4 +3975,12 @@
 #ifdef DO_PHYSICS
 #include "physics/Registry_noahmp.xml"
 #endif
+
+#ifdef DO_GOCART2G
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G BULK AEROSOL PARAMETERIZATION:                                                                   -->
+#include "chemistry/Registry_gocart2G.xml"
+#endif
+<!-- ========================================================================================================== -->
+
 </registry>
