@@ -16,7 +16,8 @@ OBJS_init = \
 	mpas_atmphys_constants.o \
 	mpas_atmphys_date_time.o \
 	mpas_atmphys_functions.o \
-	mpas_atmphys_utilities.o
+	mpas_atmphys_utilities.o \
+	mpas_atmphys_vars.o
 
 OBJS = \
 	mpas_atmphys_camrad_init.o         \
@@ -52,7 +53,6 @@ OBJS = \
 	mpas_atmphys_todynamics.o          \
 	mpas_atmphys_update_surface.o      \
 	mpas_atmphys_update.o              \
-	mpas_atmphys_vars.o                \
 	mpas_atmphys_vars_noahmp.o
 
 lookup_tables:
