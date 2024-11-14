@@ -378,6 +378,10 @@ module atm_core
       use mpas_atmphys_init
       use mpas_atmphys_manager
 #endif
+#ifdef DO_GOCART2G
+      use mpas_chemistry_gocart2G_init
+      use mpas_chemistry_gocart2G_manager
+#endif
 
       implicit none
    
@@ -580,7 +584,11 @@ module atm_core
                            diag_physics, diag_physics_noahmp, ngw_input, atm_input, sfc_input, output_noahmp)
       endif
 #endif
-   
+#ifdef DO_GOCART2G
+      call init_gocart2G_timetracker(block % configs, clock)
+      call init_gocart2G_chemistry(dminfo, block % configs, mesh)
+#endif
+
       call atm_compute_mesh_scaling(mesh, block % configs)
 
       call atm_compute_damping_coefs(mesh, block % configs)
@@ -986,6 +994,10 @@ module atm_core
       use mpas_atmphys_manager
       use mpas_atmphys_update
 #endif
+#ifdef DO_GOCART2G
+      use mpas_chemistry_gocart2G_manager,only: gocart2G_timetracker
+      use mpas_chemistry_gocart2G_driver,only : gocart2G_driver
+#endif
       use mpas_atm_halos, only: exchange_halo_group
    
       implicit none
@@ -1021,6 +1033,11 @@ module atm_core
 
       call atm_timestep(domain, dt, currTime, itimestep, exchange_halo_group)
 
+#ifdef DO_GOCART2G
+      call gocart2G_timetracker(domain,clock)
+      call gocart2G_driver(domain,itimestep,xtime_s)
+#endif
+
    end subroutine atm_do_timestep
    
    
@@ -1035,6 +1052,9 @@ module atm_core
    
 #ifdef DO_PHYSICS
       use mpas_atmphys_finalize
+#endif
+#ifdef DO_GOCART2G
+      use mpas_chemistry_gocart2G_finalize,only: gocart2G_finalize
 #endif
 
       implicit none
@@ -1062,6 +1082,14 @@ module atm_core
          block_ptr => domain % blocklist
          do while (associated(block_ptr))
             call atmphys_finalize(block_ptr%configs)
+
+            block_ptr => block_ptr%next
+         end do
+#endif
+#ifdef DO_GOCART2G
+         block_ptr => domain % blocklist
+         do while (associated(block_ptr))
+            call gocart2G_finalize(block_ptr%configs)
 
             block_ptr => block_ptr%next
          end do

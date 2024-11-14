@@ -56,7 +56,8 @@ physcore: mpas_atm_dimensions.o
 	( cd ../..; ln -sf ./src/core_atmosphere/physics/physics_noahmp/parameters/*TBL .)
 
 chemcore:
-	( cd chemistry/gocart2G; $(MAKE) all )
+	( cd chemistry; $(MAKE) all )
+	( mkdir libchem; cd libchem; ar -x ../chemistry/libchem.a )
 
 dycore: mpas_atm_dimensions.o $(PHYSCORE)
 	( cd dynamics; $(MAKE) all PHYSICS="$(PHYSICS)" )
@@ -67,8 +68,8 @@ diagcore: $(PHYSCORE) dycore
 utilities: $(PHYSCORE)
 	( cd utils; $(MAKE) all PHYSICS="$(PHYSICS)" )
 
-atmcore: $(PHYSCORE) dycore diagcore $(OBJS)
-	ar -ru libdycore.a $(OBJS) dynamics/*.o $(PHYS_OBJS) diagnostics/*.o
+atmcore: $(CHEMCORE) $(PHYSCORE) dycore diagcore $(OBJS)
+	ar -ru libdycore.a $(OBJS) dynamics/*.o $(CHEM_OBJS) $(PHYS_OBJS) diagnostics/*.o
 
 mpas_atm_core_interface.o: mpas_atm_core.o
 
@@ -78,13 +79,14 @@ mpas_atm_dimensions.o:
 
 clean:
 	( cd physics; $(MAKE) clean )
-	( cd chemistry/gocart2G; $(MAKE) clean )
+	( cd chemistry; $(MAKE) clean )
 	( cd dynamics; $(MAKE) clean )
 	( cd diagnostics; $(MAKE) clean )
 	( cd utils; $(MAKE) clean )
 	( cd ../..; rm -f *TBL )
 	( cd ../..; rm -f *DATA* )
 	$(RM) -r libphys
+	$(RM) -r libchem
 	$(RM) *.o *.mod *.f90 libdycore.a
 	$(RM) Registry_processed.xml
 	@# Certain systems with intel compilers generate *.i files
@@ -99,7 +101,7 @@ ifeq "$(GEN_F90)" "true"
 	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I./physics/physics_mmm -I./physics/physics_noaa/UGWP -I../external/esmf_time_f90
 else
 ifeq "$(GOCART2G)" "true"
-	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I./physics/physics_mmm -I../external/esmf_time_f90 -I../../../external/SMIOL
+	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./chemistry -I./physics -I./dynamics -I./diagnostics -I./chemistry/gocart2G -I./physics/physics_wrf -I./physics/physics_mmm -I../external/esmf_time_f90 -I../../../external/SMIOL
 else
 	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I./physics/physics_mmm -I../external/esmf_time_f90
 endif
