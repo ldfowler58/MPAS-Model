@@ -221,9 +221,6 @@
 !
  nullify(decomp)
  stat = SMIOLf_get_var(aop_file,'rh',decomp,rh)
- do n = 1,rh_size
-    call mpas_log_write('--- rh: n = $i $r',intArgs=(/n/),realArgs=(/rh(n)/))
- enddo
  if(stat /= SMIOL_SUCCESS) then
     call mpas_log_write('Error reading variable rh',messageType=MPAS_LOG_ERR)
     call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
@@ -235,9 +232,6 @@
 
  nullify(decomp)
  stat = SMIOLf_get_var(aop_file,'lambda',decomp,lambda)
- do n = 1,lambda_size
-    call mpas_log_write('--- lambda: n = $i $r',intArgs=(/n/),realArgs=(/lambda(n)/))
- enddo
  if(stat /= SMIOL_SUCCESS) then
     call mpas_log_write('Error reading variable lambda',messageType=MPAS_LOG_ERR)
     call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
