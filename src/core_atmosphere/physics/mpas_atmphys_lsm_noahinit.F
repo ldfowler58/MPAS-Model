@@ -47,6 +47,8 @@
 !   land surface scheme.added the categories low_density_residential,high_density_residential,and high_intensity_
 !   industrial.added the variables ztopvtbl and zbotvtbl.
 !   Laura D. Fowler (laura@ucar.edu) / 2017-01-25.
+! * in subroutine lsminit, added the variable porosity.
+!   Laura D. Fowler (laura@ucar.edu) / 2024-11-14.
 
 
  contains
@@ -93,6 +95,7 @@
  integer,pointer:: nCells,nSoilLevels
  integer,dimension(:),pointer:: ivgtyp,isltyp
 
+ real(kind=RKIND),dimension(:),pointer:: porosity
  real(kind=RKIND),dimension(:),pointer:: snoalb,snow,snowh
  real(kind=RKIND),dimension(:,:),pointer:: tslb,smois,sh2o
 
@@ -117,14 +120,15 @@
  call mpas_pool_get_dimension(mesh,'nCells'     ,nCells     )
  call mpas_pool_get_dimension(mesh,'nSoilLevels',nSoilLevels)
 
- call mpas_pool_get_array(sfc_input,'isltyp', isltyp)
- call mpas_pool_get_array(sfc_input,'ivgtyp', ivgtyp)
- call mpas_pool_get_array(sfc_input,'sh2o'  , sh2o  )
- call mpas_pool_get_array(sfc_input,'smois' , smois )
- call mpas_pool_get_array(sfc_input,'tslb'  , tslb  )
- call mpas_pool_get_array(sfc_input,'snoalb', snoalb)
- call mpas_pool_get_array(sfc_input,'snow'  , snow  )
- call mpas_pool_get_array(sfc_input,'snowh' , snowh )
+ call mpas_pool_get_array(sfc_input,'isltyp'  , isltyp  )
+ call mpas_pool_get_array(sfc_input,'ivgtyp'  , ivgtyp  )
+ call mpas_pool_get_array(sfc_input,'porosity', porosity)
+ call mpas_pool_get_array(sfc_input,'sh2o'    , sh2o    )
+ call mpas_pool_get_array(sfc_input,'smois'   , smois   )
+ call mpas_pool_get_array(sfc_input,'tslb'    , tslb    )
+ call mpas_pool_get_array(sfc_input,'snoalb'  , snoalb  )
+ call mpas_pool_get_array(sfc_input,'snow'    , snow    )
+ call mpas_pool_get_array(sfc_input,'snowh'   , snowh   )
 
 !reads the NOAH LSM tables:
  call mpas_log_write('')
@@ -153,6 +157,7 @@
     do iCell = 1, nCells
        bx = bb(isltyp(iCell))
        smcmax = maxsmc(isltyp(iCell))
+       porosity(iCell) = smcmax
        psisat = satpsi(isltyp(iCell))
        if((bx > 0.0).and.(smcmax > 0.0).and.(psisat > 0.0)) then
           do ns = 1, nSoilLevels

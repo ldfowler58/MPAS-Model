@@ -844,6 +844,7 @@
 			<var name="sh2o"/>
 			<var name="smois"/>
 			<var name="tslb"/>
+			<var name="porosity"/>
 			<var name="t_oml"/>
 			<var name="t_oml_initial"/>
 			<var name="t_oml_200m_initial"/>
@@ -3709,6 +3710,9 @@
 
                 <var name="ter" type="real" dimensions="nCells" units="m"
                      description="terrain height"/>
+
+                <var name="porosity" type="real" dimensions="nCells" units="m^{3}"
+                     description="maximum soil moisture content (porosity)"/>
 
                 <var name="albedo12m" type="real" dimensions="nMonths nCells" units="percent"
                      description="monthly-mean climatological surface albedo"/>
