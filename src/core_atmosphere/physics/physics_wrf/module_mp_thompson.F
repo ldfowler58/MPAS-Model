@@ -1010,6 +1010,7 @@
                               has_reqc, has_reqi, has_reqs,           &
 #if defined(mpas)
                               ntc,muc,                                &
+                              pflrain,pflice,pflsnow,pflgraul,        &
 #endif
                               ids,ide, jds,jde, kds,kde, &             ! domain dims
                               ims,ime, jms,jme, kms,kme, &             ! memory dims
@@ -1042,6 +1043,8 @@
                           ntc,muc
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT), OPTIONAL:: &
                           refl_10cm
+      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT), OPTIONAL:: &
+                          pflrain,pflice,pflsnow,pflgraul
 #else
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT)::       &
                           refl_10cm
@@ -1056,6 +1059,7 @@
                           t1d, p1d, w1d, dz1d, rho, dBZ
       REAL, DIMENSION(kts:kte):: re_qc1d, re_qi1d, re_qs1d
       REAL, DIMENSION(kts:kte):: rainprod1d, evapprod1d
+      REAL, DIMENSION(kts:kte):: ppfr1d,ppfi1d,ppfs1d,ppfg1d
       REAL, DIMENSION(its:ite, jts:jte):: pcp_ra, pcp_sn, pcp_gr, pcp_ic
       REAL:: dt, pptrain, pptsnow, pptgraul, pptice
       REAL:: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
@@ -1148,6 +1152,10 @@
          do k = kts,kte
             rainprod1d(k) = 0.
             evapprod1d(k) = 0.
+            ppfr1d(k) = 0.
+            ppfi1d(k) = 0.
+            ppfs1d(k) = 0.
+            ppfg1d(k) = 0.
          enddo
 
          do k = kts, kte
@@ -1185,6 +1193,7 @@
                       nr1d, nc1d, nwfa1d, nifa1d, t1d, p1d, w1d, dz1d,  &
                       pptrain, pptsnow, pptgraul, pptice,               &
                       rainprod1d, evapprod1d,                           &
+                      ppfr1d, ppfi1d, ppfs1d, ppfg1d,                   &
                       kts, kte, dt, i, j)
 
          pcp_ra(i,j) = pptrain
@@ -1204,6 +1213,16 @@
          SR(i,j) = (pptsnow + pptgraul + pptice)/(RAINNCV(i,j)+1.e-12)
 
 
+
+         if(present(pflrain) .and. present(pflice) .and. &
+            present(pflsnow) .and. present(pflgraul)) then
+            do k = kts, kte
+               pflrain(i,k,j)  = ppfr1d(k)
+               pflice(i,k,j)   = ppfi1d(k)
+               pflsnow(i,k,j)  = ppfs1d(k)
+               pflgraul(i,k,j) = ppfg1d(k)
+            enddo
+         endif
 
 !..Reset lowest model level to initial state aerosols (fake sfc source).
 !.. Changed 13 May 2013 to fake emissions in which nwfa2d is aerosol
@@ -1401,6 +1420,7 @@
                           nr1d, nc1d, nwfa1d, nifa1d, t1d, p1d, w1d, dzq, &
                           pptrain, pptsnow, pptgraul, pptice,             &
                           rainprod, evapprod,                             &
+                          ppfr,ppfi,ppfs,ppfg,                            &
                           kts, kte, dt, ii, jj)
 
       implicit none
@@ -1415,6 +1435,8 @@
       REAL, INTENT(IN):: dt
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
                           rainprod, evapprod
+      REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
+                          ppfr,ppfi,ppfs,ppfg
 
 !..Local variables
       REAL, DIMENSION(kts:kte):: tten, qvten, qcten, qiten, &
@@ -1623,6 +1645,10 @@
       do k = kts, kte
          rainprod(k) = 0.
          evapprod(k) = 0.
+         ppfr(k)     = 0.
+         ppfi(k)     = 0.
+         ppfs(k)     = 0.
+         ppfg(k)     = 0.
       enddo
 !.. initialize the logicals L_nifa and L_nwfa used to detect instances of the cloud
 !.. ice and cloud liquid water mixing ratios being greater than R1 but their number
@@ -3407,6 +3433,10 @@
 !+---+-----------------------------------------------------------------+
 
       if (ANY(L_qr .eqv. .true.)) then
+      !--- initializes sedimentation flux of rain:
+      do k = kts,kte
+         ppfr(k) = qrten(k)
+      enddo
       nstep = NINT(1./onstep(1))
       do n = 1, nstep
          do k = kte, kts, -1
@@ -3436,6 +3466,10 @@
          if (rr(kts).gt.R1*1000.) &
          pptrain = pptrain + sed_r(kts)*DT*onstep(1)
       enddo
+      !--- computes sedimentation flux of rain:
+      do k = kts,kte
+         ppfr(k) = (qrten(k)-ppfr(k))/(odzq*orho)
+      enddo
       endif
 
 !+---+-----------------------------------------------------------------+
@@ -3458,6 +3492,10 @@
 !+---+-----------------------------------------------------------------+
 
       if (ANY(L_qi .eqv. .true.)) then
+      !--- initializes sedimentation flux of ice:
+      do k = kts,kte
+         ppfi(k) = qiten(k)
+      enddo
       nstep = NINT(1./onstep(2))
       do n = 1, nstep
          do k = kte, kts, -1
@@ -3487,11 +3525,19 @@
          if (ri(kts).gt.R1*1000.) &
          pptice = pptice + sed_i(kts)*DT*onstep(2)
       enddo
+      !--- computes sedimentation flux of ice:
+      do k = kts,kte
+         ppfi(k) = (qiten(k)-ppfi(k))/(odzq*orho)
+      enddo
       endif
 
 !+---+-----------------------------------------------------------------+
 
       if (ANY(L_qs .eqv. .true.)) then
+      !--- initializes sedimentation flux of snow:
+      do k = kts,kte
+         ppfs(k) = qsten(k)
+      enddo
       nstep = NINT(1./onstep(3))
       do n = 1, nstep
          do k = kte, kts, -1
@@ -3514,11 +3560,19 @@
          if (rs(kts).gt.R1*1000.) &
          pptsnow = pptsnow + sed_s(kts)*DT*onstep(3)
       enddo
+      !--- computes sedimentation flux of snow:
+      do k = kts,kte
+         ppfs(k) = (qsten(k)-ppfs(k))/(odzq*orho)
+      enddo
       endif
 
 !+---+-----------------------------------------------------------------+
 
       if (ANY(L_qg .eqv. .true.)) then
+      !--- initializes sedimentation flux of graupel:
+      do k = kts,kte
+         ppfg(k) = qgten(k)
+      enddo
       nstep = NINT(1./onstep(4))
       do n = 1, nstep
          do k = kte, kts, -1
@@ -3540,6 +3594,10 @@
 
          if (rg(kts).gt.R1*1000.) &
          pptgraul = pptgraul + sed_g(kts)*DT*onstep(4)
+      enddo
+      !--- computes sedimentation flux of graupel:
+      do k = kts,kte
+         ppfg(k) = (qgten(k)-ppfg(k))/(odzq*orho)
       enddo
       endif
 

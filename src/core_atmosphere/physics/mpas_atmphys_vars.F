@@ -281,6 +281,10 @@
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     rainprod_p,       &!
     evapprod_p,       &!
+    prcpfluxr_p,      &!flux of non-convective precipitation of rain (kg/m2/s).
+    prcpfluxi_p,      &!flux of non-convective precipitation of cloud ice (kg/m2/s).
+    prcpfluxs_p,      &!flux of non-convective precipitation of snow (kg/m2/s).
+    prcpfluxg_p,      &!flux of non-convective precipitation of graupel (kg/m2/s).
     recloud_p,        &!
     reice_p,          &!
     resnow_p           !

@@ -2535,6 +2535,22 @@
                      description="rain evaporation rate"
                      packages="mp_thompson_in;mp_thompson_aers_in;mp_wsm6_in"/>
 
+                <var name="pflrain" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+                     description="flux of grid-scale precipitation of rain"
+                     packages="mp_thompson_in;mp_thompson_aers_in;mp_wsm6_in"/>
+
+                <var name="pflice" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+                     description="flux of grid-scale precipitation of ice"
+                     packages="mp_thompson_in;mp_thompson_aers_in;mp_wsm6_in"/>
+
+                <var name="pflsnow" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+                     description="flux of grid-scale precipitation of snow"
+                     packages="mp_thompson_in;mp_thompson_aers_in;mp_wsm6_in"/>
+
+                <var name="pflgraul" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
+                     description="flux of grid-scale precipitation of graupel"
+                     packages="mp_thompson_in;mp_thompson_aers_in;mp_wsm6_in"/>
+
                 <var name="re_cloud" type="real" dimensions="nVertLevels nCells Time" units="m"
                      description="effective radius of cloud water droplets"
                      packages="mp_thompson_in;mp_thompson_aers_in;mp_wsm6_in"/>

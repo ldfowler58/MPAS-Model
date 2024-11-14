@@ -156,6 +156,11 @@
           if(.not.allocated(ni_p) ) allocate(ni_p(ims:ime,kms:kme,jms:jme))
           if(.not.allocated(nr_p) ) allocate(nr_p(ims:ime,kms:kme,jms:jme))
 
+          if(.not.allocated(prcpfluxr_p)) allocate(prcpfluxr_p(ims:ime,kms:kme,jms:jme))
+          if(.not.allocated(prcpfluxi_p)) allocate(prcpfluxi_p(ims:ime,kms:kme,jms:jme))
+          if(.not.allocated(prcpfluxs_p)) allocate(prcpfluxs_p(ims:ime,kms:kme,jms:jme))
+          if(.not.allocated(prcpfluxg_p)) allocate(prcpfluxg_p(ims:ime,kms:kme,jms:jme))
+
           microp3_select: select case(trim(microp_scheme))
              case("mp_thompson_aerosols")
                 if(.not.allocated(nifa2d_p)) allocate(nifa2d_p(ims:ime,jms:jme))
@@ -236,6 +241,11 @@
           if(allocated(muc_p)) deallocate(muc_p)
           if(allocated(ni_p) ) deallocate(ni_p )
           if(allocated(nr_p) ) deallocate(nr_p )
+
+          if(allocated(prcpfluxr_p)) deallocate(prcpfluxr_p)
+          if(allocated(prcpfluxi_p)) deallocate(prcpfluxi_p)
+          if(allocated(prcpfluxs_p)) deallocate(prcpfluxs_p)
+          if(allocated(prcpfluxg_p)) deallocate(prcpfluxg_p)
 
           microp3_select: select case(trim(microp_scheme))
              case("mp_thompson_aerosols")
@@ -389,20 +399,21 @@
        istep = 1
        do while (istep .le. n_microp)
        call mp_gt_driver( &
-                  th        = th_p        , qv         = qv_p         , qc         = qc_p         , &
-                  qr        = qr_p        , qi         = qi_p         , qs         = qs_p         , &
-                  qg        = qg_p        , ni         = ni_p         , nr         = nr_p         , &
-                  pii       = pi_p        , p          = pres_p       , dz         = dz_p         , &
-                  w         = w_p         , dt_in      = dt_microp    , itimestep  = itimestep    , &
-                  rainnc    = rainnc_p    , rainncv    = rainncv_p    , snownc     = snownc_p     , &
-                  snowncv   = snowncv_p   , graupelnc  = graupelnc_p  , graupelncv = graupelncv_p , &
-                  sr        = sr_p        , rainprod   = rainprod_p   , evapprod   = evapprod_p   , &
-                  re_cloud  = recloud_p   , re_ice     = reice_p      , re_snow    = resnow_p     , &
-                  has_reqc  = has_reqc    , has_reqi   = has_reqi     , has_reqs   = has_reqs     , &
-                  ntc       = ntc_p       , muc        = muc_p                                    , &
-                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde           , &
-                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme           , &
-                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte             &
+                  th       = th_p        , qv        = qv_p        , qc         = qc_p         , &
+                  qr       = qr_p        , qi        = qi_p        , qs         = qs_p         , &
+                  qg       = qg_p        , ni        = ni_p        , nr         = nr_p         , &
+                  pii      = pi_p        , p         = pres_p      , dz         = dz_p         , &
+                  w        = w_p         , dt_in     = dt_microp   , itimestep  = itimestep    , &
+                  rainnc   = rainnc_p    , rainncv   = rainncv_p   , snownc     = snownc_p     , &
+                  snowncv  = snowncv_p   , graupelnc = graupelnc_p , graupelncv = graupelncv_p , &
+                  sr       = sr_p        , rainprod  = rainprod_p  , evapprod   = evapprod_p   , &
+                  re_cloud = recloud_p   , re_ice    = reice_p     , re_snow    = resnow_p     , &
+                  has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
+                  ntc      = ntc_p       , muc       = muc_p       , pflrain    = prcpfluxr_p  , &
+                  pflice   = prcpfluxi_p , pflsnow   = prcpfluxs_p , pflgraul   = prcpfluxg_p  , &
+                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde        , &
+                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
+                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
                            )
        istep = istep + 1
        enddo
@@ -413,22 +424,23 @@
        istep = 1
        do while (istep .le. n_microp)
        call mp_gt_driver( &
-                  th        = th_p        , qv         = qv_p         , qc         = qc_p         , &
-                  qr        = qr_p        , qi         = qi_p         , qs         = qs_p         , &
-                  qg        = qg_p        , ni         = ni_p         , nr         = nr_p         , &
-                  pii       = pi_p        , p          = pres_p       , dz         = dz_p         , &
-                  w         = w_p         , dt_in      = dt_microp    , itimestep  = itimestep    , &
-                  rainnc    = rainnc_p    , rainncv    = rainncv_p    , snownc     = snownc_p     , &
-                  snowncv   = snowncv_p   , graupelnc  = graupelnc_p  , graupelncv = graupelncv_p , &
-                  sr        = sr_p        , rainprod   = rainprod_p   , evapprod   = evapprod_p   , &
-                  re_cloud  = recloud_p   , re_ice     = reice_p      , re_snow    = resnow_p     , &
-                  has_reqc  = has_reqc    , has_reqi   = has_reqi     , has_reqs   = has_reqs     , &
-                  nc        = nc_p        , nifa       = nifa_p       , nwfa       = nwfa_p       , &
-                  nifa2d    = nifa2d_p    , nwfa2d     = nwfa2d_p     , ntc        = ntc_p        , &
-                  muc       = muc_p       ,                                                         &
-                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde           , &
-                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme           , &
-                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte             &
+                  th       = th_p        , qv        = qv_p        , qc         = qc_p         , &
+                  qr       = qr_p        , qi        = qi_p        , qs         = qs_p         , &
+                  qg       = qg_p        , ni        = ni_p        , nr         = nr_p         , &
+                  pii      = pi_p        , p         = pres_p      , dz         = dz_p         , &
+                  w        = w_p         , dt_in     = dt_microp   , itimestep  = itimestep    , &
+                  rainnc   = rainnc_p    , rainncv   = rainncv_p   , snownc     = snownc_p     , &
+                  snowncv  = snowncv_p   , graupelnc = graupelnc_p , graupelncv = graupelncv_p , &
+                  sr       = sr_p        , rainprod  = rainprod_p  , evapprod   = evapprod_p   , &
+                  re_cloud = recloud_p   , re_ice    = reice_p     , re_snow    = resnow_p     , &
+                  has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
+                  nc       = nc_p        , nifa      = nifa_p      , nwfa       = nwfa_p       , &
+                  nifa2d   = nifa2d_p    , nwfa2d    = nwfa2d_p    , ntc        = ntc_p        , &
+                  muc      = muc_p       , pflrain   = prcpfluxr_p , pflice     = prcpfluxi_p  , &
+                  pflsnow  = prcpfluxs_p , pflgraul  = prcpfluxg_p                             , &
+                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde        , &
+                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
+                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
                            )
           istep = istep + 1
           enddo

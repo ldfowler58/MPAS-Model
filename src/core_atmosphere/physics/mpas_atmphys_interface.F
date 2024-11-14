@@ -805,7 +805,8 @@
  real(kind=RKIND),dimension(:,:),pointer  :: dtheta_dt_mp
  real(kind=RKIND),dimension(:,:),pointer  :: qv,qc,qr,qi,qs,qg
  real(kind=RKIND),dimension(:,:),pointer  :: nc,ni,nr,nifa,nwfa
- real(kind=RKIND),dimension(:,:),pointer  :: rainprod,evapprod,refl10cm
+ real(kind=RKIND),dimension(:,:),pointer  :: rainprod,evapprod
+ real(kind=RKIND),dimension(:,:),pointer  :: pflrain,pflice,pflsnow,pflgraul
  real(kind=RKIND),dimension(:,:),pointer  :: re_cloud,re_ice,re_snow
  real(kind=RKIND),dimension(:,:),pointer  :: rthmpten,rqvmpten,rqcmpten,rqrmpten,rqimpten,rqsmpten,rqgmpten
  real(kind=RKIND),dimension(:,:),pointer  :: rncmpten,rnimpten,rnrmpten,rnifampten,rnwfampten
@@ -944,6 +945,21 @@
              do i = its,ite
                 ni(k,i) = ni_p(i,k,j)
                 nr(k,i) = nr_p(i,k,j)
+             enddo
+             enddo
+             enddo
+
+             call mpas_pool_get_array(diag_physics,'pflrain' ,pflrain )
+             call mpas_pool_get_array(diag_physics,'pflice'  ,pflice  )
+             call mpas_pool_get_array(diag_physics,'pflsnow' ,pflsnow )
+             call mpas_pool_get_array(diag_physics,'pflgraul',pflgraul)
+             do j = jts,jte
+             do k = kts,kte
+             do i = its,ite
+                pflrain(k,i)  = prcpfluxr_p(i,k,j)
+                pflice(k,i)   = prcpfluxi_p(i,k,j)
+                pflsnow(k,i)  = prcpfluxs_p(i,k,j)
+                pflgraul(k,i) = prcpfluxg_p(i,k,j)
              enddo
              enddo
              enddo
