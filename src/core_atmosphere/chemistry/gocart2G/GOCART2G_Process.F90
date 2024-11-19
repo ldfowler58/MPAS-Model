@@ -4790,8 +4790,6 @@ K_LOOP: do k = km, 1, -1
     do j = 1, ubound(delp, 2)
      do i = 1, ubound(delp, 1)
       qUpdate = aerosol_phobic(i,j,k)*exp(-4.63e-6*cdt)
-      call mpas_log_write('$i $i $i $r $r',intArgs=(/j,i,k/),realArgs=(/aerosol_phobic(i,j,k),qUpdate/))
-      qUpdate = max(qUpdate,1.e-32)
       delq = max(0.,aerosol_phobic(i,j,k)-qUpdate)
       aerosol_phobic(i,j,k) = qUpdate
       aerosol_philic(i,j,k) = aerosol_philic(i,j,k)+delq
@@ -4799,13 +4797,18 @@ K_LOOP: do k = km, 1, -1
        aerosol_toHydrophilic(i,j) = aerosol_toHydrophilic(i,j) &
         + delq*delp(i,j,k)/grav/cdt
      end do
-!    do i = 1, ubound(delp,1)
-!       call mpas_log_write('$i $i $r $r $r',intArgs=(/k,i/),realArgs=(/aerosol_phobic(i,j,k), &
-!                           aerosol_philic(i,j,k),aerosol_toHydrophilic(i,j)/))
-!    enddo
     end do
-!   call mpas_log_write(' ')
    end do
+! do j = 1,ubound(delp, 2)
+!    do i = 1,10
+!       do k = 1,km
+!          call mpas_log_write('$i $i $i $r $r $r $r',intArgs=(/i,j,k/),realArgs=(/aerosol_toHydrophilic(i,j), &
+!                   delp(i,j,k),aerosol_phobic(i,j,k),aerosol_philic(i,j,k)/))
+!       enddo
+!       call mpas_log_write(' ')
+!    enddo
+! enddo
+
 !  call mpas_log_write('--- end subroutine phobicTophilic.')
 !  call mpas_log_write(' ')
 
