@@ -112,7 +112,7 @@
      <var name="brANGSTR" type="real" dimensions="nCells Time" units="unitless"
                description="Angstrom parameter [470nm-870nm] of brown carbon aerosols"/>
 
-     <var name="brAERIDX" type="real" dimensions="" units="unitless"
+     <var name="brAERIDX" type="real" dimensions="nCells Time" units="unitless"
                description="TOMS UV index of brown carbon aerosols"/>
 
  </var_struct>
