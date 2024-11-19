@@ -590,7 +590,6 @@
 #endif
 #ifdef DO_GOCART2G
 			<var name="bc1_em_anthro"/>
-			<var name="co_em_anthro"/>
 			<var name="oc1_em_anthro"/>
 			<var name="nh3_em_anthro"/>
 			<var name="so2_em_anthro"/>

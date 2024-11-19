@@ -82,6 +82,9 @@
       <var name="sandfrac" type="real" dimensions="nCells" units="fraction"
                 description="fraction of sand soil fraction for use in the gocart2G chemistry"/>
 
+      <var name="ptrop_gocart2G_clim" type="real" dimensions="nMonths nCells" units="Pa"
+           description="Monthly-mean climatological pressure at tropopause height"/>
+
       <var name="dms_gocart2G_clim" type="real" dimensions="nMonths nCells" units="nM/L"
            description="Monthly-mean climatological surface concentration of dimethyl sulfide (DMS) over oceans"/>
 
@@ -156,9 +159,6 @@
 
 
  <var_struct name="gocart2G_met" time_levs="1">
-
-      <var name="ptrop_gocart2G_clim" type="real" dimensions="nMonths nCells Time" units="Pa"
-           description="Monthly-mean climatological pressure at tropopause height"/>
 
       <var name="background_ptrop" type="real" dimensions="nCells Time" units="Pa"
            description="Pressure at tropopause height"/>
@@ -317,5 +317,6 @@
 #include "Registry_gocart2G_CA_br.xml"
 #include "Registry_gocart2G_CA_oc.xml"
 #include "Registry_gocart2G_DU.xml"
+#include "Registry_gocart2G_NI.xml"
 #include "Registry_gocart2G_SS.xml"
 #include "Registry_gocart2G_SU.xml"

@@ -457,7 +457,7 @@
  real(kind=RKIND),dimension(:,:),pointer:: zgrid
  real(kind=RKIND),dimension(:,:),pointer:: airdens,qv,relhum
  real(kind=RKIND),dimension(:,:),pointer:: exner,pressure_b,pressure_p,theta,u,v
- real(kind=RKIND),dimension(:,:),pointer:: cldfrac,pflrain,pflice,pflsnow,pflgraupel
+ real(kind=RKIND),dimension(:,:),pointer:: cldfrac,pflrain,pflice,pflsnow,pflgraul
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars
 
  real(kind=RKIND):: radToDeg
@@ -521,14 +521,6 @@
 
 
  call mpas_pool_get_array(state,'chems',chems,time_lev)
- do i = its,6
-    do k = kts,kte
-       call mpas_log_write('$i $i $r $r $r $r',intArgs=(/i,k/),realArgs=(/chems(index_qbc1,k,i), &
-                           chems(index_qbc2,k,i),chems(index_qoc1,k,i),chems(index_qoc2,k,i)/))
-    enddo
-    call mpas_log_write(' ')
- enddo
-
  do k = kts,kte
     kk = kte+1-k
     do j = jts,jte
@@ -566,15 +558,6 @@
           self%nitrate4(i,j,kk)  = 0._RKIND
           self%nitrate5(i,j,kk)  = 0._RKIND
        enddo
-    enddo
- enddo
- do j = jts,jte
-    do i = its,6
-       do k = kts,kte
-          call mpas_log_write('$i $i $r $r $r $r',intArgs=(/i,k/),realArgs=(/self%qbcphobic(i,j,k), &
-                              self%qbcphilic(i,j,k),self%qocphobic(i,j,k),self%qocphilic(i,j,k)/))
-       enddo
-       call mpas_log_write(' ')
     enddo
  enddo
 
@@ -727,11 +710,11 @@
  call mpas_pool_get_dimension(state,'index_qv',index_qv)
  qv => scalars(index_qv,:,:)
 
- call mpas_pool_get_array(diag_physics,'cldfrac'   ,cldfrac   )
- call mpas_pool_get_array(diag_physics,'pflrain'   ,pflrain   )
- call mpas_pool_get_array(diag_physics,'pflice'    ,pflice    )
- call mpas_pool_get_array(diag_physics,'pflsnow'   ,pflsnow   )
- call mpas_pool_get_array(diag_physics,'pflgraupel',pflgraupel)
+ call mpas_pool_get_array(diag_physics,'cldfrac' ,cldfrac )
+ call mpas_pool_get_array(diag_physics,'pflrain' ,pflrain )
+ call mpas_pool_get_array(diag_physics,'pflice'  ,pflice  )
+ call mpas_pool_get_array(diag_physics,'pflsnow' ,pflsnow )
+ call mpas_pool_get_array(diag_physics,'pflgraul',pflgraul)
 
  do k = kts,kte
     kk = kte+1-k
@@ -747,7 +730,7 @@
 
           self%fcld(i,j,kk)     = cldfrac(k,i)
           self%pfl_lsan(i,j,kk) = pflrain(k,i)
-          self%pfi_lsan(i,j,kk) = pflice(k,i)+pflsnow(k,i)+pflgraupel(k,i)
+          self%pfi_lsan(i,j,kk) = pflice(k,i)+pflsnow(k,i)+pflgraul(k,i)
        enddo
     enddo
  enddo
@@ -763,17 +746,6 @@
     do i = its,ite
        self%sfcdz(i,j) = self%delz(i,j,kte)
     enddo
- enddo
-
- do j = jts,jte
-    do i = its,ite
-       if(self%ncn_prcp(i,j) .gt. 0._RKIND) then
-          do k = kts,kte
-             call mpas_log_write('--- pfl: $i $i $r $r $r $r $r $r',intArgs=(/i,k/),realArgs=(/pflrain(k,i), &
-                           pflice(k,i),pflsnow(k,i),pflgraupel(k,i),self%pfl_lsan(i,j,k), self%pfi_lsan(i,j,k)/))
-          enddo
-       endif
-   enddo
  enddo
 
 
@@ -913,6 +885,7 @@
        enddo
     enddo
  enddo
+
 
  call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_toMPAS:')
 

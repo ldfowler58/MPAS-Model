@@ -85,7 +85,7 @@
  call mpas_pool_get_dimension(mesh,'nCells' ,nCells )
  call mpas_pool_get_dimension(mesh,'nMonths',nMonths)
 
- call mpas_pool_get_array(gocart2G_met,'ptrop_gocart2G_clim',ptrop_clim)
+ call mpas_pool_get_array(mesh,'ptrop_gocart2G_clim',ptrop_clim)
  call mpas_pool_get_array(gocart2G_met,'background_ptrop',ptrop)
 
 
@@ -131,7 +131,7 @@
  call mpas_pool_get_dimension(mesh,'nCells' ,nCells )
  call mpas_pool_get_dimension(mesh,'nMonths',nMonths)
 
- call mpas_pool_get_array(gocart2G_backgrounds,'dms_gocart2G_clim',dms_clim)
+ call mpas_pool_get_array(mesh,'dms_gocart2G_clim',dms_clim)
  call mpas_pool_get_array(gocart2G_backgrounds,'background_dms',dms)
 
 
@@ -183,11 +183,11 @@
  call mpas_pool_get_dimension(mesh,'nBCKLevels' ,nBCKLevels )
  call mpas_pool_get_dimension(mesh,'nMonths'    ,nMonths    )
 
- call mpas_pool_get_array(gocart2G_backgrounds,'oh_gocart2G_clim'   ,oh_clim   )
- call mpas_pool_get_array(gocart2G_backgrounds,'h2o2_gocart2G_clim' ,h2o2_clim )
- call mpas_pool_get_array(gocart2G_backgrounds,'no3_gocart2G_clim'  ,no3_clim  )
- call mpas_pool_get_array(gocart2G_backgrounds,'pres_gocart2G_clim' ,pres_clim )
- call mpas_pool_get_array(gocart2G_backgrounds,'dpres_gocart2G_clim',dpres_clim)
+ call mpas_pool_get_array(mesh,'oh_gocart2G_clim'   ,oh_clim   )
+ call mpas_pool_get_array(mesh,'h2o2_gocart2G_clim' ,h2o2_clim )
+ call mpas_pool_get_array(mesh,'no3_gocart2G_clim'  ,no3_clim  )
+ call mpas_pool_get_array(mesh,'pres_gocart2G_clim' ,pres_clim )
+ call mpas_pool_get_array(mesh,'dpres_gocart2G_clim',dpres_clim)
 
  call mpas_pool_get_array(gocart2G_backgrounds,'oh_gocart2G'   ,oh   )
  call mpas_pool_get_array(gocart2G_backgrounds,'h2o2_gocart2G' ,h2o2 )

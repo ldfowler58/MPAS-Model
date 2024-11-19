@@ -19,6 +19,7 @@
                                         CA2G_br,CA2G_br_params, &
                                         CA2G_oc,CA2G_oc_params, &
                                         DU2G,DU2G_params,       &
+                                        NI2G,NI2G_params,       &
                                         SS2G,SS2G_params,       &
                                         SU2G,SU2G_params
 
@@ -141,10 +142,10 @@
        CA2G_bc_params%cdt = mpas_gocart2G%dt
        CA2G_bc%lats     => mpas_gocart2G%xlat      ; CA2G_bc%lons     => mpas_gocart2G%xlon
        CA2G_bc%area     => mpas_gocart2G%area      ; CA2G_bc%frocean  => mpas_gocart2G%frocean
-       CA2G_bc%fraci    => mpas_gocart2G%frice     ; CA2G_bc%lwi      => mpas_gocart2G%lwi
-       CA2G_bc%u10m     => mpas_gocart2G%u10m      ; CA2G_bc%v10m     => mpas_gocart2G%v10m
-       CA2G_bc%ustar    => mpas_gocart2G%ustar     ; CA2G_bc%frlake   => mpas_gocart2G%frlake
-       CA2G_bc%zpbl     => mpas_gocart2G%zpbl      ; CA2G_bc%sh       => mpas_gocart2G%sh
+       CA2G_bc%fraci    => mpas_gocart2G%frice     ; CA2G_bc%frlake   => mpas_gocart2G%frlake
+       CA2G_bc%lwi      => mpas_gocart2G%lwi       ; CA2G_bc%u10m     => mpas_gocart2G%u10m
+       CA2G_bc%v10m     => mpas_gocart2G%v10m      ; CA2G_bc%zpbl     => mpas_gocart2G%zpbl
+       CA2G_bc%ustar    => mpas_gocart2G%ustar     ; CA2G_bc%sh       => mpas_gocart2G%sh
        CA2G_bc%z0h      => mpas_gocart2G%z0h       ; CA2G_bc%cn_prcp  => mpas_gocart2G%cn_prcp
        CA2G_bc%ncn_prcp => mpas_gocart2G%ncn_prcp  ; CA2G_bc%tropp    => mpas_gocart2G%backg_ptrop
 
@@ -154,6 +155,8 @@
        CA2G_bc%ple      => mpas_gocart2G%ple       ; CA2G_bc%pfl_lsan => mpas_gocart2G%pfl_lsan
        CA2G_bc%pfi_lsan => mpas_gocart2G%pfi_lsan  ; CA2G_bc%u        => mpas_gocart2G%u
        CA2G_bc%v        => mpas_gocart2G%v
+
+       CA2G_bc%bc_ANTEBC1 => mpas_gocart2G%qbc1_em
 
        CA2G_bc%bcPHOBIC => mpas_gocart2G%qbcphobic
        CA2G_bc%bcPHILIC => mpas_gocart2G%qbcphilic
@@ -205,10 +208,10 @@
        CA2G_oc_params%cdt = mpas_gocart2G%dt
        CA2G_oc%lats     => mpas_gocart2G%xlat     ; CA2G_oc%lons     => mpas_gocart2G%xlon
        CA2G_oc%area     => mpas_gocart2G%area     ; CA2G_oc%frocean  => mpas_gocart2G%frocean
-       CA2G_oc%fraci    => mpas_gocart2G%frice    ; CA2G_oc%lwi      => mpas_gocart2G%lwi
-       CA2G_oc%u10m     => mpas_gocart2G%u10m     ; CA2G_oc%v10m     => mpas_gocart2G%v10m
-       CA2G_oc%ustar    => mpas_gocart2G%ustar    ; CA2G_oc%frlake   => mpas_gocart2G%frlake
-       CA2G_oc%zpbl     => mpas_gocart2G%zpbl     ; CA2G_oc%sh       => mpas_gocart2G%sh
+       CA2G_oc%fraci    => mpas_gocart2G%frice    ; CA2G_oc%frlake   => mpas_gocart2G%frlake
+       CA2G_oc%lwi      => mpas_gocart2G%lwi      ; CA2G_oc%u10m     => mpas_gocart2G%u10m
+       CA2G_oc%v10m     => mpas_gocart2G%v10m     ; CA2G_oc%zpbl     => mpas_gocart2G%zpbl
+       CA2G_oc%ustar    => mpas_gocart2G%ustar    ; CA2G_oc%sh       => mpas_gocart2G%sh
        CA2G_oc%z0h      => mpas_gocart2G%z0h      ; CA2G_oc%cn_prcp  => mpas_gocart2G%cn_prcp
        CA2G_oc%ncn_prcp => mpas_gocart2G%ncn_prcp ; CA2G_oc%tropp    => mpas_gocart2G%backg_ptrop
 
@@ -222,15 +225,7 @@
        CA2G_oc%ocPHOBIC => mpas_gocart2G%qocphobic
        CA2G_oc%ocPHILIC => mpas_gocart2G%qocphilic
 
-       do j = jts,jte
-          do i = its,6
-             do k = kts,kte
-                call mpas_log_write('$i $i $r $r',intArgs=(/i,k/),realArgs= &
-                          (/CA2G_oc%ocPHOBIC(i,j,k),CA2G_oc%ocPHILIC(i,j,k)/))
-             enddo
-             call mpas_log_write(' ')
-          enddo
-       enddo
+       CA2G_oc%oc_ANTEOC1 => mpas_gocart2G%qoc1_em
 
        call CA2G_oc_params%emissions_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte, &
                                       iyear,imonth,iday,ihour,iminute,isecond)
