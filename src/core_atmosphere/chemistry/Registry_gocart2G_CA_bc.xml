@@ -112,7 +112,7 @@
      <var name="bcANGSTR" type="real" dimensions="nCells Time" units="unitless"
                description="Angstrom parameter [470nm-870nm] of black carbon aerosols"/>
 
-     <var name="bcAERIDX" type="real" dimensions="" units="unitless"
+     <var name="bcAERIDX" type="real" dimensions="nCells Time" units="unitless"
                description="TOMS UV index of black carbon aerosols"/>
 
  </var_struct>

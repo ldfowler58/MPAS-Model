@@ -153,20 +153,20 @@
 
 !--- local variables and arrays:
  integer:: nymd,nhms
- integer:: istat
+ integer:: i,j,istat
 
- real(kind=RKIND),dimension(:,:),pointer:: biomass_src         !
- real(kind=RKIND),dimension(:,:),pointer:: biofuel_src         !
- real(kind=RKIND),dimension(:,:),pointer:: eocant1_src         !
- real(kind=RKIND),dimension(:,:),pointer:: eocant2_src         !
- real(kind=RKIND),dimension(:,:),pointer:: oc_ship_src         !
- real(kind=RKIND),dimension(:,:),pointer:: aviation_lto_src    !
- real(kind=RKIND),dimension(:,:),pointer:: aviation_cds_src    !
- real(kind=RKIND),dimension(:,:),pointer:: aviation_crs_src    !
- real(kind=RKIND),dimension(:,:,:),pointer:: aircraft_fuel_src !
+ real(kind=RKIND),dimension(:,:),allocatable:: biomass_src         !
+ real(kind=RKIND),dimension(:,:),allocatable:: biofuel_src         !
+ real(kind=RKIND),dimension(:,:),allocatable:: eocant1_src         !
+ real(kind=RKIND),dimension(:,:),allocatable:: eocant2_src         !
+ real(kind=RKIND),dimension(:,:),allocatable:: oc_ship_src         !
+ real(kind=RKIND),dimension(:,:),allocatable:: aviation_lto_src    !
+ real(kind=RKIND),dimension(:,:),allocatable:: aviation_cds_src    !
+ real(kind=RKIND),dimension(:,:),allocatable:: aviation_crs_src    !
+ real(kind=RKIND),dimension(:,:,:),allocatable:: aircraft_fuel_src !
 
- real(kind=RKIND),dimension(:,:),pointer:: biogvoc_src  => null() !
- real(kind=RKIND),dimension(:,:),pointer:: biomass_src_ => null() !
+ real(kind=RKIND),dimension(:,:),allocatable:: biomass_src_
+ real(kind=RKIND),dimension(:,:),allocatable:: biogvoc_src
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -182,18 +182,19 @@
 
 !--- initialize black carbon emissions: at this time, only anthropogenic surface emission is available as an
 !    input stream and put into eocant1_src. all other emission types are set to zero.
- biomass_src       => self%bc_biomass
- biofuel_src       => self%bc_biofuel
- eocant1_src       => self%bc_antebc1
- eocant2_src       => self%bc_antebc2
- oc_ship_src       => self%bc_ship
- aviation_lto_src  => self%bc_aviation_lto
- aviation_cds_src  => self%bc_aviation_cds
- aviation_crs_src  => self%bc_aviation_crs
- aircraft_fuel_src => self%bc_aircraft
+ biomass_src       = self%bc_biomass
+ biofuel_src       = self%bc_biofuel
+ eocant1_src       = self%bc_antebc1
+ eocant2_src       = self%bc_antebc2
+ oc_ship_src       = self%bc_ship
+ aviation_lto_src  = self%bc_aviation_lto
+ aviation_cds_src  = self%bc_aviation_cds
+ aviation_crs_src  = self%bc_aviation_crs
+ aircraft_fuel_src = self%bc_aircraft
 
  biomass_src(:,:)         = 0._RKIND
  biofuel_src(:,:)         = 0._RKIND
+!eocant1_src(:,:)         = 0._RKIND
  eocant2_src(:,:)         = 0._RKIND
  oc_ship_src(:,:)         = 0._RKIND
  aviation_lto_src(:,:)    = 0._RKIND
@@ -201,28 +202,28 @@
  aviation_crs_src(:,:)    = 0._RKIND
  aircraft_fuel_src(:,:,:) = 0._RKIND
 
- if(.not.associated(biogvoc_src)) allocate(biogvoc_src(its:ite,jts:jte))
+ if(.not.allocated(biogvoc_src)) allocate(biogvoc_src(its:ite,jts:jte))
  biogvoc_src(:,:) = 0._RKIND
 
 
 !--- as a safety check, all undefined values are set to zero. this may be needed when all emission types become
 !    available.
- where(1.01*biomass_src > undefval) biomass_src = 0._RKIND
- where(1.01*biogvoc_src > undefval) biogvoc_src = 0._RKIND
- where(1.01*biofuel_src > undefval) biofuel_src = 0._RKIND
-!where(1.01*eocant1_src > undefval) eocant1_src = 0._RKIND
- where(1.01*eocant2_src > undefval) eocant2_src = 0._RKIND
- where(1.01*oc_ship_src > undefval) oc_ship_src = 0._RKIND
- where(1.01*aviation_lto_src  > undefval) aviation_lto_src  = 0._RKIND
- where(1.01*aviation_cds_src  > undefval) aviation_cds_src  = 0._RKIND
- where(1.01*aviation_crs_src  > undefval) aviation_crs_src  = 0._RKIND
- where(1.01*aircraft_fuel_src > undefval) aircraft_fuel_src = 0._RKIND
+!where(1.01*biomass_src > undefval) biomass_src = 0._RKIND
+!where(1.01*biogvoc_src > undefval) biogvoc_src = 0._RKIND
+!where(1.01*biofuel_src > undefval) biofuel_src = 0._RKIND
+ where(1.01*eocant1_src > undefval) eocant1_src = 0._RKIND
+!where(1.01*eocant2_src > undefval) eocant2_src = 0._RKIND
+!where(1.01*oc_ship_src > undefval) oc_ship_src = 0._RKIND
+!where(1.01*aviation_lto_src  > undefval) aviation_lto_src  = 0._RKIND
+!where(1.01*aviation_cds_src  > undefval) aviation_cds_src  = 0._RKIND
+!where(1.01*aviation_crs_src  > undefval) aviation_crs_src  = 0._RKIND
+!where(1.01*aircraft_fuel_src > undefval) aircraft_fuel_src = 0._RKIND
 
 
 !--- apply diurnal cycle to biomass burning if needed:
  if(self_params%diurnal_bb ) then
     call mpas_log_write('--- enter subroutine Chem_BiomassDiurnal:')
-    biomass_src_ => biomass_src
+    biomass_src_      = self%bc_biomass
     call Chem_BiomassDiurnal( &
        cdt  = self_params%cdt,    &
        nhms = nhms,               &
@@ -264,13 +265,13 @@
     rhoa              = self%airdens,                &
     rh                = self%rh2,                    &
     delp              = self%delp,                   &
-    aerosolPhilic     = self%bcphobic,               &
-    aerosolPhobic     = self%bcphilic,               &
-    oc_emis           = self%bcem,                   &
-    oc_emisan         = self%bceman,                 &
-    oc_emisbb         = self%bcembb,                 &
-    oc_emisbf         = self%bcembf,                 &
-    oc_emisbg         = self%bcembg,                 &
+    aerosolPhilic     = self%bcPHOBIC,               &
+    aerosolPhobic     = self%bcPHILIC,               &
+    oc_emis           = self%bcEM,                   &
+    oc_emisan         = self%bcEMAN,                 &
+    oc_emisbb         = self%bcEMBB,                 &
+    oc_emisbf         = self%bcEMBF,                 &
+    oc_emisbg         = self%bcEMBG,                 &
     rc                = istat                        &
                 )
  if(istat /=0) then
@@ -324,9 +325,9 @@
  if(associated(self%bchyphil)) self%bchyphil(:,:) = 0._RKIND
  istat = 0
  call phobicTophilic( &
-           aerosol_phobic        = self%bcphobic   , &
-           aerosol_philic        = self%bcphilic   , &
-           aerosol_toHydrophilic = self%bchyphil   , &
+           aerosol_phobic        = self%bcPHOBIC   , &
+           aerosol_philic        = self%bcPHILIC   , &
+           aerosol_toHydrophilic = self%bcHYPHIL   , &
            km                    = self_params%km  , &
            cdt                   = self_params%cdt , &
            grav                  = grav            , &
@@ -375,7 +376,7 @@
               rh        = self%rh2                       , &
               hghte     = self%zle                       , &
               delp      = self%delp                      , &
-              fluxout   = self%bcsd                      , &
+              fluxout   = self%bcSD                      , &
               rc        = istat                            &
                       )
  enddo
@@ -428,6 +429,16 @@
  endif
 
 
+ do j = jts,jte
+    do i = its,ite
+       do k = kts,kte
+          self%bcPHOBIC(i,j,k) = qca2G(i,j,k,1)
+          self%bcPHILIC(i,j,k) = qca2G(i,j,k,2)
+       enddo
+    enddo
+ enddo
+
+
 !--- CA2G_bc large-scale wet removal (hydrophilic mode is removed):
  call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
  if(associated(self%bcWT)) self%bcWT(:,:,:) = 0._RKIND
@@ -453,7 +464,7 @@
               pfilsan   = self%pfi_lsan     , &
               precc     = self%cn_prcp      , &
               precl     = self%ncn_prcp     , &
-              fluxout   = self%bcwt         , &
+              fluxout   = self%bcWT         , &
               rc        = istat               &
                         )
  if(istat /=0) then
@@ -465,27 +476,35 @@
 
 
 !--- CA2G_bc diagnostics:
+ do j = jts,jte
+    do i = its,ite
+       do k = kts,kte
+          qca2G(i,j,k,1) = self%bcphobic(i,j,k)
+          qca2G(i,j,k,2) = self%bcphilic(i,j,k)
+       enddo
+    enddo
+ enddo
  n_profile = size(self_params%wavelengths_profile)
  n_vertint = size(self_params%wavelengths_vertint)
  call mpas_log_write('--- enter subroutine Aero_Compute_Diags:')
  call mpas_log_write('--- nbins     = $i',intArgs=(/nbins/))
  call mpas_log_write('--- n_profile = $i',intArgs=(/n_profile/))
  call mpas_log_write('--- n_vertint = $i',intArgs=(/n_vertint/))
- if(associated(self%bcsmass)   ) self%bcsmass(:,:)       = 0._RKIND
- if(associated(self%bccmass)   ) self%bccmass(:,:)       = 0._RKIND
- if(associated(self%bcmass )   ) self%bcmass(:,:,:)      = 0._RKIND
- if(associated(self%bcexttau)  ) self%bcexttau(:,:,:)    = 0._RKIND
- if(associated(self%bcstexttau)) self%bcstexttau(:,:,:)  = 0._RKIND
- if(associated(self%bcscatau)  ) self%bcscatau(:,:,:)    = 0._RKIND
- if(associated(self%bcstscatau)) self%bcstscatau(:,:,:)  = 0._RKIND
- if(associated(self%bcfluxu)   ) self%bcfluxu(:,:)       = 0._RKIND
- if(associated(self%bcfluxv)   ) self%bcfluxv(:,:)       = 0._RKIND
- if(associated(self%bcconc)    ) self%bcconc(:,:,:)      = 0._RKIND
- if(associated(self%bcextcoef) ) self%bcextcoef(:,:,:,:) = 0._RKIND
- if(associated(self%bcscacoef) ) self%bcscacoef(:,:,:,:) = 0._RKIND
- if(associated(self%bcbckcoef) ) self%bcbckcoef(:,:,:,:) = 0._RKIND
- if(associated(self%bcangstr)  ) self%bcangstr(:,:)      = 0._RKIND
- if(associated(self%bcaeridx)  ) self%bcaeridx(:,:)      = 0._RKIND
+ if(associated(self%bcsmass)   ) self%bcSMASS(:,:)       = 0._RKIND
+ if(associated(self%bccmass)   ) self%bcCMASS(:,:)       = 0._RKIND
+ if(associated(self%bcmass )   ) self%bcMASS(:,:,:)      = 0._RKIND
+ if(associated(self%bcexttau)  ) self%bcEXTTAU(:,:,:)    = 0._RKIND
+ if(associated(self%bcstexttau)) self%bcSTEXTTAU(:,:,:)  = 0._RKIND
+ if(associated(self%bcscatau)  ) self%bcSCATAU(:,:,:)    = 0._RKIND
+ if(associated(self%bcstscatau)) self%bcSTSCATAU(:,:,:)  = 0._RKIND
+ if(associated(self%bcfluxu)   ) self%bcFLUXU(:,:)       = 0._RKIND
+ if(associated(self%bcfluxv)   ) self%bcFLUXV(:,:)       = 0._RKIND
+ if(associated(self%bcconc)    ) self%bcCONC(:,:,:)      = 0._RKIND
+ if(associated(self%bcextcoef) ) self%bcEXTCOEF(:,:,:,:) = 0._RKIND
+ if(associated(self%bcscacoef) ) self%bcSCACOEF(:,:,:,:) = 0._RKIND
+ if(associated(self%bcbckcoef) ) self%bcBCKCOEF(:,:,:,:) = 0._RKIND
+ if(associated(self%bcangstr)  ) self%bcANGSTR(:,:)      = 0._RKIND
+ if(associated(self%bcaeridx)  ) self%bcAERIDX(:,:)      = 0._RKIND
  istat = 0
  call Aero_Compute_Diags( &
               mie                 = self_params%diag_Mie                   , &
@@ -505,21 +524,21 @@
               delp                = self%delp                              , &
               ple                 = self%ple                               , &
               tropp               = self%tropp                             , &
-              sfcmass             = self%bcsmass                           , &
-              colmass             = self%bccmass                           , &
-              mass                = self%bcmass                            , &
-              exttau              = self%bcexttau                          , &
-              scatau              = self%bcscatau                          , &
-!             stexttau            = self%bcstexttau                        , &
-!             stscatau            = self%bcstscatau                        , &
-              fluxu               = self%bcfluxu                           , &
-              fluxv               = self%bcfluxv                           , &
-              conc                = self%bcconc                            , &
-              extcoef             = self%bcextcoef                         , &
-              scacoef             = self%bcscacoef                         , &
-              bckcoef             = self%bcbckcoef                         , &
-              angstrom            = self%bcangstr                          , &
-              aerindx             = self%bcaeridx                          , &
+              sfcmass             = self%bcSMASS                           , &
+              colmass             = self%bcCMASS                           , &
+              mass                = self%bcMASS                            , &
+              exttau              = self%bcEXTTAU                          , &
+              scatau              = self%bcSCATAU                          , &
+!             stexttau            = self%bcSTEXTTAU                        , &
+!             stscatau            = self%bcSTSCATAU                        , &
+              fluxu               = self%bcFLUXU                           , &
+              fluxv               = self%bcFLUXV                           , &
+              conc                = self%bcCONC                            , &
+              extcoef             = self%bcEXTCOEF                         , &
+              scacoef             = self%bcSCACOEF                         , &
+              bckcoef             = self%bcBCKCOEF                         , &
+              angstrom            = self%bcANGSTR                          , &
+              aerindx             = self%bcAERIDX                          , &
               NO3nFlag            = .false.                                , &
               rc                  = istat                                    &
                         )
@@ -527,15 +546,6 @@
     call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine Aero_Compute_Diags', &
                         messageType=MPAS_LOG_CRIT)
  else
-    do j = jts,jte
-       do i = its,ite
-          do k = kts,kte
-             call mpas_log_write('$i $i $r $r $r',intArgs=(/i,k/),realArgs=(/(self%bcextcoef(i,j,k,n), &
-                       self%bcscacoef(i,j,k,n),self%bcbckcoef(i,j,k,n),n=1,n_profile)/))
-          enddo
-          call mpas_log_write(' ')
-       enddo
-    enddo
     call mpas_log_write('--- end subroutine Aero_Compute_Diags:')
  endif
 
@@ -546,8 +556,8 @@
 
  call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
  if(.not.associated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
- if(associated(self%bcextcoefrh20)) self%bcextcoefrh20(:,:,:,:) = 0._RKIND
- if(associated(self%bcscacoefrh20)) self%bcscacoefrh20(:,:,:,:) = 0._RKIND
+ if(associated(self%bcEXTCOEFRH20)) self%bcEXTCOEFRH20(:,:,:,:) = 0._RKIND
+ if(associated(self%bcSCACOEFRH20)) self%bcEXTCOEFRH20(:,:,:,:) = 0._RKIND
  rh20(:,:,:) = 0.20
  istat = 0
  call Aero_Compute_Diags( &
@@ -568,8 +578,8 @@
            delp                = self%delp                              , &
            ple                 = self%ple                               , &
            tropp               = self%tropp                             , &
-           extcoef             = self%bcextcoefrh20                     , &
-           scacoef             = self%bcscacoefrh20                     , &
+           extcoef             = self%bcEXTCOEFRH20                     , &
+           scacoef             = self%bcSCACOEFRH20                     , &
            NO3nFlag            = .false.                                , &
            rc                  = istat                                    &
                         )
@@ -583,8 +593,8 @@
 
  call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
  if(.not.associated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
- if(associated(self%bcextcoefrh80)) self%bcextcoefrh80(:,:,:,:) = 0._RKIND
- if(associated(self%bcscacoefrh80)) self%bcscacoefrh80(:,:,:,:) = 0._RKIND
+ if(associated(self%bcEXTCOEFRH80)) self%bcEXTCOEFRH80(:,:,:,:) = 0._RKIND
+ if(associated(self%bcSCACOEFRH80)) self%bcSCACOEFRH80(:,:,:,:) = 0._RKIND
  rh80(:,:,:) = 0.80
  istat = 0
  call Aero_Compute_Diags( &
@@ -605,8 +615,8 @@
            delp                = self%delp                              , &
            ple                 = self%ple                               , &
            tropp               = self%tropp                             , &
-           extcoef             = self%bcextcoefrh80                     , &
-           scacoef             = self%bcscacoefrh80                     , &
+           extcoef             = self%bcEXTCOEFRH80                     , &
+           scacoef             = self%bcSCACOEFRH80                     , &
            NO3nFlag            = .false.                                , &
            rc                  = istat                                    &
                         )
