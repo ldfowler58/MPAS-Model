@@ -112,7 +112,7 @@
      <var name="ocANGSTR" type="real" dimensions="nCells Time" units="unitless"
                description="Angstrom parameter [470nm-870nm] of organic carbon aerosols"/>
 
-     <var name="ocAERIDX" type="real" dimensions="" units="unitless"
+     <var name="ocAERIDX" type="real" dimensions="nCells Time" units="unitless"
                description="TOMS UV index of organic aerosols"/>
 
  </var_struct>
