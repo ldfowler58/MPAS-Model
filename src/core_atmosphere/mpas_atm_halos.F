@@ -179,6 +179,17 @@ module mpas_atm_halos
          call mpas_dmpar_exch_group_add_field(domain, 'physics:cuten', 'rvcuten', timeLevel=1, haloLayers=(/1,2/))
 #endif
 
+#ifdef DO_GOCART2G
+         !
+         ! Set up halo exchange groups used by chemistry
+         !
+         call mpas_dmpar_exch_group_create(domain, 'dynamics:chems')
+         call mpas_dmpar_exch_group_add_field(domain, 'dynamics:chems', 'chems', timeLevel=2, haloLayers=(/1,2/))
+
+         call mpas_dmpar_exch_group_create(domain, 'dynamics:chems_old')
+         call mpas_dmpar_exch_group_add_field(domain, 'dynamics:chems_old', 'chems', timeLevel=1, haloLayers=(/1,2/))
+#endif
+
          !
          ! Set routine to exchange a halo group
          !
@@ -312,6 +323,19 @@ module mpas_atm_halos
          call mpas_halo_exch_group_complete(domain, 'physics:cuten')
 #endif
 
+#ifdef DO_GOCART2G
+         !
+         ! Set up halo exchange groups used by chemistry
+         !
+         call mpas_halo_exch_group_create(domain, 'dynamics:chems')
+         call mpas_halo_exch_group_add_field(domain, 'dynamics:chems', 'chems', timeLevel=2, haloLayers=(/1,2/))
+         call mpas_halo_exch_group_complete(domain, 'dynamics:chems')
+
+         call mpas_halo_exch_group_create(domain, 'dynamics:chems_old')
+         call mpas_halo_exch_group_add_field(domain, 'dynamics:chems_old', 'chems', timeLevel=1, haloLayers=(/1,2/))
+         call mpas_halo_exch_group_complete(domain, 'dynamics:chems_old')
+#endif
+
          !
          ! Set routine to exchange a halo group
          !
@@ -399,6 +423,14 @@ module mpas_atm_halos
          call mpas_dmpar_exch_group_destroy(domain, 'physics:cuten')
 #endif
 
+#ifdef DO_GOCART2G
+         !
+         ! Destroy halo exchange groups used by chemistry
+         !
+         call mpas_dmpar_exch_group_destroy(domain, 'dynamics:chems')
+         call mpas_dmpar_exch_group_destroy(domain, 'dynamics:chems_old')
+#endif
+
       else if (trim(config_halo_exch_method) == 'mpas_halo') then
 
          !
@@ -433,6 +465,14 @@ module mpas_atm_halos
          !
          call mpas_halo_exch_group_destroy(domain, 'physics:blten')
          call mpas_halo_exch_group_destroy(domain, 'physics:cuten')
+#endif
+
+#ifdef DO_GOCART2G
+         !
+         ! Destroy halo exchange groups used by chemistry
+         !
+         call mpas_halo_exch_group_destroy(domain, 'dynamics:chems')
+         call mpas_halo_exch_group_destroy(domain, 'dynamics:chems_old')
 #endif
 
          call mpas_halo_finalize(domain)

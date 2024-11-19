@@ -867,6 +867,9 @@ module atm_time_integration
       type (mpas_pool_type), pointer :: tend
       type (mpas_pool_type), pointer :: tend_physics => null()
       type (mpas_pool_type), pointer :: lbc  ! regional_MPAS addition
+#ifdef DO_GOCART2G
+      type (mpas_pool_type), pointer :: tend_chems => null()
+#endif
 
       real (kind=RKIND), dimension(:,:), pointer :: w
       real (kind=RKIND), dimension(:,:), pointer :: u, uReconstructZonal, uReconstructMeridional, uReconstructX, uReconstructY, uReconstructZ
@@ -1557,6 +1560,16 @@ module atm_time_integration
             call advance_scalars('scalars', domain, rk_step, rk_timestep, config_monotonic, config_positive_definite, &
                                  config_time_integration_order, config_split_dynamics_transport, exchange_halo_group)
 
+#ifdef DO_GOCART2G
+            call mpas_log_write(' ')
+            call mpas_log_write('--- begin advance chems: rk_step = $i',intArgs=(/rk_step/))
+            call mpas_timer_start('atm_chem: adv_chems')
+            call advance_scalars('chems', domain, rk_step, rk_timestep, config_monotonic, config_positive_definite, &
+                                 config_time_integration_order, config_split_dynamics_transport, exchange_halo_group)
+            call mpas_timer_stop('atm_chem: adv_chems')
+            call mpas_log_write('--- end advance chems.')
+#endif
+
             if (config_apply_lbcs) then  ! adjust boundary tendencies for regional_MPAS scalar transport
 
                ! need to fill halo for horizontal filter
@@ -1954,6 +1967,9 @@ module atm_time_integration
       real (kind=RKIND), dimension(:,:), pointer :: theta_m_1, theta_m_2
       real (kind=RKIND), dimension(:,:), pointer :: rho_zz_1, rho_zz_2
       real (kind=RKIND), dimension(:,:,:), pointer :: scalars_1, scalars_2
+#ifdef DO_GOCART2G
+      real (kind=RKIND), dimension(:,:,:), pointer :: chems_1, chems_2
+#endif
 
       call mpas_pool_get_array(diag, 'ru', ru)
       call mpas_pool_get_array(diag, 'ru_save', ru_save)
@@ -1975,6 +1991,10 @@ module atm_time_integration
       call mpas_pool_get_array(state, 'rho_zz', rho_zz_2, 2)
       call mpas_pool_get_array(state, 'scalars', scalars_1, 1)
       call mpas_pool_get_array(state, 'scalars', scalars_2, 2)
+#ifdef DO_GOCART2G
+      call mpas_pool_get_array(state, 'chems', chems_1, 1)
+      call mpas_pool_get_array(state, 'chems', chems_2, 2)
+#endif
 
       MPAS_ACC_TIMER_START('atm_rk_integration_setup [ACC_data_xfer]')
       !$acc enter data create(ru_save, u_2, rw_save, rtheta_p_save, rho_p_save, &
