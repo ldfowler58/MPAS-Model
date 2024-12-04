@@ -167,7 +167,7 @@
 !..................................................................................................................
  if(.not.associated(self%bc_biomass)     ) allocate(self%bc_biomass(its:ite,jts:jte)             )
  if(.not.associated(self%bc_biofuel)     ) allocate(self%bc_biofuel(its:ite,jts:jte)             )
- if(.not.associated(self%bc_antebc1)     ) allocate(self%bc_antebc1(its:ite,jts:jte)             )
+!if(.not.associated(self%bc_antebc1)     ) allocate(self%bc_antebc1(its:ite,jts:jte)             )
  if(.not.associated(self%bc_antebc2)     ) allocate(self%bc_antebc2(its:ite,jts:jte)             )
  if(.not.associated(self%bc_ship)        ) allocate(self%bc_ship(its:ite,jts:jte)                )
  if(.not.associated(self%bc_aviation_lto)) allocate(self%bc_aviation_lto(its:ite,jts:jte)        )
@@ -257,7 +257,7 @@
 !..................................................................................................................
  if(associated(self%bc_biomass)     ) deallocate(self%bc_biomass     )
  if(associated(self%bc_biofuel)     ) deallocate(self%bc_biofuel     )
- if(associated(self%bc_antebc1)     ) deallocate(self%bc_antebc1     )
+!if(associated(self%bc_antebc1)     ) deallocate(self%bc_antebc1     )
  if(associated(self%bc_antebc2)     ) deallocate(self%bc_antebc2     )
  if(associated(self%bc_ship)        ) deallocate(self%bc_ship        )
  if(associated(self%bc_aviation_lto)) deallocate(self%bc_aviation_lto)
