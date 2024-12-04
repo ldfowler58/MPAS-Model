@@ -435,42 +435,42 @@
  if(associated(self%duangstr)  ) self%duangstr(:,:)      = 0._RKIND
  if(associated(self%duaeridx)  ) self%duaeridx(:,:)      = 0._RKIND
  istat = 0
- call Aero_Compute_Diags( &
-              mie                 = self_params%diag_Mie                   , &
-              km                  = self_params%km                         , &
-              klid                = self_params%klid                       , &
-              nbegin              = 1                                      , &
-              nbins               = 2                                      , &
-              wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
-              wavelengths_vertint = self_params%wavelengths_vertint*1.0e-9 , &
-              aerosol             = self%du                                , &
-              grav                = grav                                   , &
-              tmpu                = self%t                                 , &
-              rhoa                = self%airdens                           , &
-              rh                  = self%rh2                               , &
-              u                   = self%u                                 , &
-              v                   = self%v                                 , &
-              delp                = self%delp                              , &
-              ple                 = self%ple                               , &
-              tropp               = self%tropp                             , &
-              sfcmass             = self%dusmass                           , &
-              colmass             = self%ducmass                           , &
-              mass                = self%dumass                            , &
-              exttau              = self%duexttau                          , &
-              scatau              = self%duscatau                          , &
+!call Aero_Compute_Diags( &
+!             mie                 = self_params%diag_Mie                   , &
+!             km                  = self_params%km                         , &
+!             klid                = self_params%klid                       , &
+!             nbegin              = 1                                      , &
+!             nbins               = 2                                      , &
+!             wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
+!             wavelengths_vertint = self_params%wavelengths_vertint*1.0e-9 , &
+!             aerosol             = self%du                                , &
+!             grav                = grav                                   , &
+!             tmpu                = self%t                                 , &
+!             rhoa                = self%airdens                           , &
+!             rh                  = self%rh2                               , &
+!             u                   = self%u                                 , &
+!             v                   = self%v                                 , &
+!             delp                = self%delp                              , &
+!             ple                 = self%ple                               , &
+!             tropp               = self%tropp                             , &
+!             sfcmass             = self%dusmass                           , &
+!             colmass             = self%ducmass                           , &
+!             mass                = self%dumass                            , &
+!             exttau              = self%duexttau                          , &
+!             scatau              = self%duscatau                          , &
 !             stexttau            = self%dustexttau                        , &
 !             stscatau            = self%dustscatau                        , &
-              fluxu               = self%dufluxu                           , &
-              fluxv               = self%dufluxv                           , &
-              conc                = self%duconc                            , &
-              extcoef             = self%duextcoef                         , &
-              scacoef             = self%duscacoef                         , &
-              bckcoef             = self%dubckcoef                         , &
-              angstrom            = self%duangstr                          , &
-              aerindx             = self%duaeridx                          , &
-              NO3nFlag            = .false.                                , &
-              rc                  = istat                                    &
-                        )
+!             fluxu               = self%dufluxu                           , &
+!             fluxv               = self%dufluxv                           , &
+!             conc                = self%duconc                            , &
+!             extcoef             = self%duextcoef                         , &
+!             scacoef             = self%duscacoef                         , &
+!             bckcoef             = self%dubckcoef                         , &
+!             angstrom            = self%duangstr                          , &
+!             aerindx             = self%duaeridx                          , &
+!             NO3nFlag            = .false.                                , &
+!             rc                  = istat                                    &
+!                       )
  if(istat /=0) then
     call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags', &
                         messageType=MPAS_LOG_CRIT)
@@ -489,29 +489,29 @@
  if(associated(self%duscacoefrh20)) self%duscacoefrh20(:,:,:,:) = 0._RKIND
  rh20(:,:,:) = 0.20
  istat = 0
- call Aero_Compute_Diags( &
-           mie                 = self_params%diag_Mie                   , &
-           km                  = self_params%km                         , &
-           klid                = self_params%klid                       , &
-           nbegin              = 1                                      , &
-           nbins               = self_params%nbins                      , &
-           wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
-           wavelengths_vertint = self_params%wavelengths_vertint*1.0e-9 , &
-           aerosol             = self%du                                , &
-           grav                = grav                                   , &
-           tmpu                = self%t                                 , &
-           rhoa                = self%airdens                           , &
-           rh                  = rh20                                   , &
-           u                   = self%u                                 , &
-           v                   = self%v                                 , &
-           delp                = self%delp                              , &
-           ple                 = self%ple                               , &
-           tropp               = self%tropp                             , &
-           extcoef             = self%duextcoefrh20                     , &
-           scacoef             = self%duscacoefrh20                     , &
-           NO3nFlag            = .false.                                , &
-           rc                  = istat                                    &
-                        )
+!call Aero_Compute_Diags( &
+!          mie                 = self_params%diag_Mie                   , &
+!          km                  = self_params%km                         , &
+!          klid                = self_params%klid                       , &
+!          nbegin              = 1                                      , &
+!          nbins               = self_params%nbins                      , &
+!          wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
+!          wavelengths_vertint = self_params%wavelengths_vertint*1.0e-9 , &
+!          aerosol             = self%du                                , &
+!          grav                = grav                                   , &
+!          tmpu                = self%t                                 , &
+!          rhoa                = self%airdens                           , &
+!          rh                  = rh20                                   , &
+!          u                   = self%u                                 , &
+!          v                   = self%v                                 , &
+!          delp                = self%delp                              , &
+!          ple                 = self%ple                               , &
+!          tropp               = self%tropp                             , &
+!          extcoef             = self%duextcoefrh20                     , &
+!          scacoef             = self%duscacoefrh20                     , &
+!          NO3nFlag            = .false.                                , &
+!          rc                  = istat                                    &
+!                       )
  if(istat /=0) then
     call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags RH20', &
                         messageType=MPAS_LOG_CRIT)
@@ -526,29 +526,29 @@
  if(associated(self%duscacoefrh80)) self%duscacoefrh80(:,:,:,:) = 0._RKIND
  rh80(:,:,:) = 0.80
  istat = 0
- call Aero_Compute_Diags( &
-           mie                 = self_params%diag_Mie                   , &
-           km                  = self_params%km                         , &
-           klid                = self_params%klid                       , &
-           nbegin              = 1                                      , &
-           nbins               = 2                                      , &
-           wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
-           wavelengths_vertint = self_params%wavelengths_vertint*1.0e-9 , &
-           aerosol             = self%du                                , &
-           grav                = grav                                   , &
-           tmpu                = self%t                                 , &
-           rhoa                = self%airdens                           , &
-           rh                  = rh80                                   , &
-           u                   = self%u                                 , &
-           v                   = self%v                                 , &
-           delp                = self%delp                              , &
-           ple                 = self%ple                               , &
-           tropp               = self%tropp                             , &
-           extcoef             = self%duextcoefrh80                     , &
-           scacoef             = self%duscacoefrh80                     , &
-           NO3nFlag            = .false.                                , &
-           rc                  = istat                                    &
-                        )
+!call Aero_Compute_Diags( &
+!          mie                 = self_params%diag_Mie                   , &
+!          km                  = self_params%km                         , &
+!          klid                = self_params%klid                       , &
+!          nbegin              = 1                                      , &
+!          nbins               = 2                                      , &
+!          wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
+!          wavelengths_vertint = self_params%wavelengths_vertint*1.0e-9 , &
+!          aerosol             = self%du                                , &
+!          grav                = grav                                   , &
+!          tmpu                = self%t                                 , &
+!          rhoa                = self%airdens                           , &
+!          rh                  = rh80                                   , &
+!          u                   = self%u                                 , &
+!          v                   = self%v                                 , &
+!          delp                = self%delp                              , &
+!          ple                 = self%ple                               , &
+!          tropp               = self%tropp                             , &
+!          extcoef             = self%duextcoefrh80                     , &
+!          scacoef             = self%duscacoefrh80                     , &
+!          NO3nFlag            = .false.                                , &
+!          rc                  = istat                                    &
+!                       )
  if(istat /=0) then
     call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags RH80', &
                         messageType=MPAS_LOG_CRIT)
