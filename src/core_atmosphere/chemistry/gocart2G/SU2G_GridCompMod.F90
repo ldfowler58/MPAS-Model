@@ -184,18 +184,18 @@
  integer:: nVolc
 
  real(kind=RKIND):: factor
- real(kind=RKIND),dimension(:,:),pointer:: dmso_conc           ! source of DMS over oceans (nM/L).
- real(kind=RKIND),dimension(:,:),pointer:: so2biomass_src      ! source of biomass burning.
- real(kind=RKIND),dimension(:,:),pointer:: so2anthro_l1_src    ! anthropogenic source at surface.
- real(kind=RKIND),dimension(:,:),pointer:: so2anthro_l2_src    ! anthropogenic source.
- real(kind=RKIND),dimension(:,:),pointer:: so2ship_src         ! SO2 ship emissions.
- real(kind=RKIND),dimension(:,:),pointer:: so4ship_src         ! SO4 ship emissions.
- real(kind=RKIND),dimension(:,:),pointer:: aviation_lto_src    !
- real(kind=RKIND),dimension(:,:),pointer:: aviation_cds_src    !
- real(kind=RKIND),dimension(:,:),pointer:: aviation_crs_src    !
- real(kind=RKIND),dimension(:,:,:),pointer:: aircraft_fuel_src !
+ real(kind=RKIND),dimension(:,:),allocatable:: dmso_conc           ! source of DMS over oceans (nM/L).
+ real(kind=RKIND),dimension(:,:),allocatable:: so2biomass_src      ! source of biomass burning.
+ real(kind=RKIND),dimension(:,:),allocatable:: so2anthro_l1_src    ! anthropogenic source at surface.
+ real(kind=RKIND),dimension(:,:),allocatable:: so2anthro_l2_src    ! anthropogenic source.
+ real(kind=RKIND),dimension(:,:),allocatable:: so2ship_src         ! SO2 ship emissions.
+ real(kind=RKIND),dimension(:,:),allocatable:: so4ship_src         ! SO4 ship emissions.
+ real(kind=RKIND),dimension(:,:),allocatable:: aviation_lto_src    !
+ real(kind=RKIND),dimension(:,:),allocatable:: aviation_cds_src    !
+ real(kind=RKIND),dimension(:,:),allocatable:: aviation_crs_src    !
+ real(kind=RKIND),dimension(:,:,:),allocatable:: aircraft_fuel_src !
 
- real(kind=RKIND),dimension(:,:),pointer:: so2biomass_src_
+ real(kind=RKIND),dimension(:,:),allocatable:: so2biomass_src_
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -214,19 +214,20 @@
 
 
 !--- initialize sulfate emissions:
- dmso_conc         => self%su_dmso
- so2biomass_src    => self%su_biomass
- so2anthro_l1_src  => self%su_anthrol1
- so2anthro_l2_src  => self%su_anthrol2
- so2ship_src       => self%su_shipso2
- so4ship_src       => self%su_shipso4
- aviation_lto_src  => self%su_aviation_lto
- aviation_cds_src  => self%su_aviation_cds
- aviation_crs_src  => self%su_aviation_crs
- aircraft_fuel_src => self%su_aircraft 
+ dmso_conc         = self%su_dmso
+ so2biomass_src    = self%su_biomass
+ so2anthro_l1_src  = self%su_anthrol1
+ so2anthro_l2_src  = self%su_anthrol2
+ so2ship_src       = self%su_shipso2
+ so4ship_src       = self%su_shipso4
+ aviation_lto_src  = self%su_aviation_lto
+ aviation_cds_src  = self%su_aviation_cds
+ aviation_crs_src  = self%su_aviation_crs
+ aircraft_fuel_src = self%su_aircraft
 
  dmso_conc(:,:)        = 0._RKIND
  so2biomass_src(:,:)   = 0._RKIND
+!so2anthro_l1_src(:,:) = 0._RKIND
  so2anthro_l2_src(:,:) = 0._RKIND
  so2ship_src(:,:)      = 0._RKIND
  so4ship_src(:,:)      = 0._RKIND
@@ -239,7 +240,7 @@
 !--- apply diurnal cycle to biomass burning if needed:
  if(self_params%diurnal_bb ) then
     call mpas_log_write('--- enter subroutine Chem_BiomassDiurnal:')
-    so2biomass_src_ => so2biomass_src
+    so2biomass_src_ = self%su_biomass
     call Chem_BiomassDiurnal( &
        cdt  = self_params%cdt,    &
        nhms = nhms,               &
@@ -693,15 +694,6 @@
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags', &
                         messageType=MPAS_LOG_CRIT)
  else
-    do j = jts,jte
-       do i = its,ite
-          do k = kts,kte
-             call mpas_log_write('$i $i $r $r $r',intArgs=(/i,k/),realArgs=(/self%suextcoef(i,j,k,1), &
-                       self%suscacoef(i,j,k,1),self%subckcoef(i,j,k,1)/))
-          enddo
-          call mpas_log_write(' ')
-       enddo
-    enddo
     call mpas_log_write('--- end subroutine SU_Compute_Diags:')
  endif
 
