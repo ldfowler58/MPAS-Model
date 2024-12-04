@@ -78,22 +78,22 @@
      <var name="suSV_msa" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
                description="Convective scavenging of MSA"/>
 
-     <var name="supSO2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+     <var name="suPSO2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
                description="SO2 production from DMS oxidation"/>
 
-     <var name="supMSA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+     <var name="suPMSA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
                description="MSA production from DMS oxidation"/>
 
-     <var name="supSO4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+     <var name="suPSO4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
                description="SO4 production from all SO2 oxidation"/>
 
-     <var name="supSO4g" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+     <var name="suPSO4g" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
                description="SO4 production from gaseous SO2 oxidation"/>
 
-     <var name="supSO4aq" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+     <var name="suPSO4aq" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
                description="SO4 production from aqueous SO2 oxidation"/>
 
-     <var name="supSO4wt" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+     <var name="suPSO4wt" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
                description="SO4 production from aqueous SO2 oxidation (wet deposition)"/>
 
      <var name="SO2smass" type="real" dimensions="nCells Time" units=kg m^{-3}"
@@ -124,10 +124,10 @@
                description="SO4 aerosol mass minxg ratio"/>
 
      <var name="SO4sarea" type="real" dimensions="nVertLevels nCells Time" units="m2 m^{-3}"
-               description="SO4 surface area density
+               description="SO4 surface area density"/>
 
      <var name="SO4snum" type="real" dimensions="nVertLevels nCells Time" units="m^{-3}"
-               description="SO4 number density"
+               description="SO4 number density"/>
 
      <var name="pSO2" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
                description="3-dimensional SO2 production from DMS oxidation"/>
@@ -185,6 +185,9 @@
 
      <var name="suBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
                description="Monochromatic backscatter coefficient of sulfate aerosols at 550 nm"/>
+
+     <var name="suANGSTR" type="real" dimensions="nCells Time" units="unitless"
+               description="Angstrom parameter [470nm-870nm] of sulfate aerosols"/>
 
  </var_struct>
 

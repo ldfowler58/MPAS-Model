@@ -157,6 +157,12 @@
      <var name="duBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
                description="Monochromatic backscatter coefficient of dust aerosols at 550 nm"/>
 
+     <var name="duANGSTR" type="real" dimensions="nCells Time" units="unitless"
+               description="Angstrom parameter [470nm-870nm] of dust aerosols"/>
+
+     <var name="duAERIDX" type="real" dimensions="nCells Time" units="unitless"
+               description="TOMS UV index of dust aerosols"/>
+
  </var_struct>
 
 
