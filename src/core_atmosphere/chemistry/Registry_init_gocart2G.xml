@@ -1,0 +1,34 @@
+<!-- ========================================================================================================== -->
+<!-- MAIN GOCART2G INIT REGISTRY:                                                                               -->
+<!-- ========================================================================================================== -->
+
+ <dims>
+
+      <dim name="nDustErosionDim" definition="3"
+           description="The number of erosion layers in the gocart2G dust emission parameterization"/>
+
+ </dims>
+
+
+ <nml_record name="preproc_chemistry" in_defaults="true">
+
+      <nml_option name="config_gocart2G_static" type="logical" default_value="false"
+           units="-"
+           description="Whether to interpolate erod,clayfrac,and sandfrac WPS static data (case 7 only)"
+           possible_values="true or false"/>
+
+ </nml_record>
+
+
+ <var_struct name="mesh" time_levs="1">
+
+      <var name="erod" type="real" dimensions="nDustErosionDim nCells" units="fraction"
+                description="fraction of erodible surface for use in the gocart2G chemistry"/>
+
+      <var name="clayfrac" type="real" dimensions="nCells" units="fraction"
+                description="fraction of clay soil for use in the gocart2G chemistry"/>
+
+      <var name="sandfrac" type="real" dimensions="nCells" units="fraction"
+                description="fraction of sand soil fraction for use in the gocart2G chemistry"/>
+
+ </var_struct>

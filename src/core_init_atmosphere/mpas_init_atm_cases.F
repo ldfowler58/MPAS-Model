@@ -24,6 +24,9 @@ module init_atm_cases
    use mpas_atmphys_functions
    use mpas_atmphys_initialize_real
    use mpas_log, only : mpas_log_write
+#ifdef DO_GOCART2G
+   use mpas_chemistry_init_gocart2G_static,only: init_gocart2G_static
+#endif
 
    ! Added only clause to keep xlf90 from getting confused from the overloaded abs intrinsic in mpas_timekeeping
    use mpas_timekeeping !, only: MPAS_Time_type, MPAS_TimeInterval_type, MPAS_Clock_type, &
@@ -69,6 +72,9 @@ module init_atm_cases
       logical, pointer :: config_native_gwd_gsl_static
       logical, pointer :: config_met_interp
       logical, pointer :: config_blend_bdy_terrain
+#ifdef DO_GOCART2G
+      logical, pointer :: config_gocart2G_static
+#endif
       character (len=StrKIND), pointer :: config_start_time
       character (len=StrKIND), pointer :: config_met_prefix
       character (len=StrKIND), pointer :: config_specified_zeta_levels
@@ -267,6 +273,22 @@ module init_atm_cases
 
             block_ptr => block_ptr % next
          end do
+
+#ifdef DO_GOCART2G
+         block_ptr => domain % blocklist
+         do while (associated(block_ptr))
+
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_static',config_gocart2G_static)
+
+            !interpolation of static fields:
+            if(config_gocart2G_static) then
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
+               call init_gocart2G_static(block_ptr%configs,mesh)
+            endif
+
+            block_ptr => block_ptr % next
+         end do
+#endif
 
       else if (config_init_case == 8 ) then
 

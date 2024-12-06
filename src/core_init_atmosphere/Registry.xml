@@ -376,6 +376,10 @@
                 <package name="first_guess_field" description="3-d atmospheric or land-surface fields on first-guess levels"/>
                 <package name="mp_thompson_aers_in" description="initialization of GOCART-based Thompson water- and ice-friendly aerosols"/>
                 <package name="noahmp" description="Whether to process, read, and write static fields only required by Noah-MP"/>
+#ifdef DO_GOCART2G
+                <package name="gocart2G_static_in" description="Active for initialization of GOCART-2G static fields are read"/>
+                <package name="gocart2G_static_out" description="Active for initialization of GOCART-2G static fields are generated"/>
+#endif
         </packages>
 
 
@@ -483,6 +487,11 @@
                         <var name="zb" packages="met_stage_in"/>
                         <var name="zb3" packages="met_stage_in"/>
                         <var name="dss" packages="met_stage_in"/>
+#ifdef DO_GOCART2G
+                        <var name="erod" packages="gocart2G_static_in"/>
+                        <var name="clayfrac" packages="gocart2G_static_in"/>
+                        <var name="sandfrac" packages="gocart2G_static_in"/>
+#endif
 		</stream>
 
 		<stream name="output" 
@@ -625,6 +634,11 @@
                         <var name="q2" packages="met_stage_out"/>
                         <var name="rh2" packages="met_stage_out"/>
                         <var name="t2m" packages="met_stage_out"/>
+#ifdef DO_GOCART2G
+                        <var name="erod" packages="gocart2G_static_out"/>
+                        <var name="clayfrac" packages="gocart2G_static_out"/>
+                        <var name="sandfrac" packages="gocart2G_static_out"/>
+#endif
 		</stream>
 
                 <stream name="ugwp_oro_data"
@@ -1485,4 +1499,14 @@
                      description="precipitable water"
                      packages="met_stage_out"/>
         </var_struct>
+
+
+#ifdef DO_GOCART2G
+<!-- ========================================================================================================== -->
+<!-- INITIALIZATION OF GOCART-2G BULK AEROSOL PARAMETERIZATION:                                                 -->
+#include "../core_atmosphere/chemistry/Registry_init_gocart2G.xml"
+
+<!-- ========================================================================================================== -->
+#endif
+
 </registry>

@@ -1,0 +1,35 @@
+.SUFFIXES: .F90 .o
+
+
+ifeq ($(CORE),atmosphere)
+COREDEF = -Dmpas
+endif
+
+
+all: dummy core_gocart2G
+
+
+dummy:
+	echo "****** compiling initialization of gocart2G ******"
+
+
+OBJS = \
+	mpas_chemistry_init_gocart2G_static.o
+
+
+core_gocart2G: $(OBJS)
+	ar -ru ./../../core_init_atmosphere/libdycore.a $(OBJS)
+
+
+# DEPENDENCIES:
+
+
+clean:
+	$(RM) *.o *.mod libchem.a
+	@# Certain systems with intel compilers generate *.i files
+	@# This removes them during the clean process
+	$(RM) *.i
+
+
+.F90.o:
+	$(FC) $(CPPFLAGS) $(COREDEF) $(PHYSICS) $(FFLAGS) -c $*.F90 $(CPPINCLUDES) $(FCINCLUDES) -I. -I../../core_init_atmosphere -I../../framework -I../../external/esmf_time_f90  -I../../external/SMIOL
