@@ -10,6 +10,7 @@ endif
 OBJS_INIT = \
 	mpas_init_atm_hinterp.o \
 	mpas_init_atm_llxy.o \
+	mpas_init_atm_read_met.o \
 	read_geogrid.o
 
 OBJS =  \
@@ -17,7 +18,6 @@ OBJS =  \
 	mpas_init_atm_core_interface.o \
 	mpas_init_atm_cases.o \
 	mpas_atm_advection.o \
-	mpas_init_atm_read_met.o \
 	mpas_init_atm_bitarray.o \
  	mpas_init_atm_queue.o \
 	mpas_init_atm_static.o \

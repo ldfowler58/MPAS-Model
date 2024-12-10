@@ -25,6 +25,7 @@ module init_atm_cases
    use mpas_atmphys_initialize_real
    use mpas_log, only : mpas_log_write
 #ifdef DO_GOCART2G
+   use mpas_chemistry_init_gocart2G_interp,only: init_CAMS_emissions
    use mpas_chemistry_init_gocart2G_static,only: init_gocart2G_static
 #endif
 
@@ -73,7 +74,10 @@ module init_atm_cases
       logical, pointer :: config_met_interp
       logical, pointer :: config_blend_bdy_terrain
 #ifdef DO_GOCART2G
+      logical, pointer :: config_CAMS_emissions
       logical, pointer :: config_gocart2G_static
+
+      type (mpas_pool_type), pointer :: CAMS_emissions
 #endif
       character (len=StrKIND), pointer :: config_start_time
       character (len=StrKIND), pointer :: config_met_prefix
@@ -278,12 +282,21 @@ module init_atm_cases
          block_ptr => domain % blocklist
          do while (associated(block_ptr))
 
+            call mpas_pool_get_config(block_ptr%configs,'config_CAMS_emissions',config_CAMS_emissions)
             call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_static',config_gocart2G_static)
 
             !interpolation of static fields:
             if(config_gocart2G_static) then
                call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
                call init_gocart2G_static(block_ptr%configs,mesh)
+            endif
+
+            if(config_CAMS_emissions) then
+               call mpas_log_write(' ')
+               call mpas_log_write('--- read CAMS anthropogenic surface emissions:')!
+               call mpas_pool_get_subpool(block_ptr%structs,'CAMS_emissions',CAMS_emissions)
+               call init_CAMS_emissions(domain%clock,stream_manager,mesh,CAMS_emissions)
+               call mpas_log_write('--- end read CAMS anthropogenic surface emissions:')
             endif
 
             block_ptr => block_ptr % next

@@ -124,6 +124,7 @@ module init_atm_core_interface
       integer, pointer :: config_init_case
       logical, pointer :: noahmp, config_noahmp_static
 #ifdef DO_GOCART2G
+      logical, pointer :: config_CAMS_emissions
       logical, pointer :: config_gocart2G_static
 
       logical, pointer :: gocart2G_static_in
@@ -343,6 +344,7 @@ module init_atm_core_interface
          return
       end if
 
+      call mpas_pool_get_config(configs, 'config_CAMS_emissions' , config_CAMS_emissions )
       call mpas_pool_get_config(configs, 'config_gocart2G_static', config_gocart2G_static)
 
       gocart2G_static_in  = .false.
@@ -354,11 +356,14 @@ module init_atm_core_interface
             gwd_stage_out       = .true.
             vertical_stage_in   = .true.
             met_stage_in        = .true.
-         else
-            gwd_stage_in        = .true.
-            gwd_stage_out       = .true.
-            vertical_stage_in   = .true.
-            met_stage_in        = .true.
+         elseif(.not. config_gocart2G_static .and. (config_vertical_grid .or.  config_met_interp)) then
+            gocart2G_static_in  = .true.
+            gocart2G_static_out = .true.
+         endif
+
+         if(config_CAMS_emissions) then
+            gocart2G_static_in  = .true.
+            gocart2G_static_out = .true.
          endif
       end if
 
