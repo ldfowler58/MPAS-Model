@@ -379,6 +379,7 @@
 #ifdef DO_GOCART2G
                 <package name="gocart2G_static_in" description="Active for initialization of GOCART-2G static fields are read"/>
                 <package name="gocart2G_static_out" description="Active for initialization of GOCART-2G static fields are generated"/>
+                <package name="gocart2G_interp_out" description="Active for initialization of GOCART-2G chemistry fields are generated"/>
 #endif
         </packages>
 
@@ -638,6 +639,18 @@
                         <var name="erod" packages="gocart2G_static_out"/>
                         <var name="clayfrac" packages="gocart2G_static_out"/>
                         <var name="sandfrac" packages="gocart2G_static_out"/>
+                        <var name="dms_gocart2G_clim" packages="gocart2G_interp_out"/>
+                        <var name="h2o2_gocart2G_clim" packages="gocart2G_interp_out"/>
+                        <var name="oh_gocart2G_clim" packages="gocart2G_interp_out"/>
+                        <var name="no3_gocart2G_clim" packages="gocart2G_interp_out"/>
+                        <var name="pres_gocart2G_clim" packages="gocart2G_interp_out"/>
+                        <var name="dpres_gocart2G_clim" packages="gocart2G_interp_out"/>
+                        <var name="ptrop_gocart2G_clim" packages="gocart2G_interp_out"/>
+                        <var name="background_dms" packages="gocart2G_interp_out"/>
+                        <var name="background_h2o2" packages="gocart2G_interp_out"/>
+                        <var name="background_oh" packages="gocart2G_interp_out"/>
+                        <var name="background_no3" packages="gocart2G_interp_out"/>
+                        <var name="background_ptrop" packages="gocart2G_interp_out"/>
                         <var name="bc1_em_anthro" packages="gocart2G_static_out"/>
                         <var name="oc1_em_anthro" packages="gocart2G_static_out"/>
                         <var name="nh3_em_anthro" packages="gocart2G_static_out"/>

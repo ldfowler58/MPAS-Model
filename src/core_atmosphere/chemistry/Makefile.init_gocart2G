@@ -14,6 +14,7 @@ dummy:
 
 
 OBJS = \
+	mpas_chemistry_init_gocart2G_climatology.o \
 	mpas_chemistry_init_gocart2G_interp.o \
 	mpas_chemistry_init_gocart2G_static.o
 

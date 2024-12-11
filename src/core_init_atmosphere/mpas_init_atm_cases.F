@@ -26,6 +26,7 @@ module init_atm_cases
    use mpas_log, only : mpas_log_write
 #ifdef DO_GOCART2G
    use mpas_chemistry_init_gocart2G_interp,only: init_CAMS_emissions
+   use mpas_chemistry_init_gocart2G_climatology,only: init_gocart2G_climatology
    use mpas_chemistry_init_gocart2G_static,only: init_gocart2G_static
 #endif
 
@@ -75,9 +76,12 @@ module init_atm_cases
       logical, pointer :: config_blend_bdy_terrain
 #ifdef DO_GOCART2G
       logical, pointer :: config_CAMS_emissions
+      logical, pointer :: config_gocart2G_clim
       logical, pointer :: config_gocart2G_static
 
       type (mpas_pool_type), pointer :: CAMS_emissions
+      type (mpas_pool_type), pointer :: gocart2G_backgrounds
+      type (mpas_pool_type), pointer :: gocart2G_met
 #endif
       character (len=StrKIND), pointer :: config_start_time
       character (len=StrKIND), pointer :: config_met_prefix
@@ -283,7 +287,17 @@ module init_atm_cases
          do while (associated(block_ptr))
 
             call mpas_pool_get_config(block_ptr%configs,'config_CAMS_emissions',config_CAMS_emissions)
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_clim',config_gocart2G_clim)
             call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_static',config_gocart2G_static)
+
+            !interpolation of climatological fields:
+            if(config_gocart2G_clim) then
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
+               call mpas_pool_get_subpool(block_ptr%structs,'diag',diag)
+               call mpas_pool_get_subpool(block_ptr%structs,'gocart2G_met',gocart2G_met)
+               call mpas_pool_get_subpool(block_ptr%structs,'gocart2G_backgrounds',gocart2G_backgrounds)
+               call init_gocart2G_climatology(block_ptr,block_ptr%configs,mesh,diag,gocart2G_met,gocart2G_backgrounds)
+            endif
 
             !interpolation of static fields:
             if(config_gocart2G_static) then

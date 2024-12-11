@@ -7,14 +7,27 @@
       <dim name="nDustErosionDim" definition="3"
            description="The number of erosion layers in the gocart2G dust emission parameterization"/>
 
+      <dim name="nBCKLevels" definition="namelist:config_chems_bck_levels"
+           description="The number of atmospheric levels for the monthly-mean background H2O2, OH, and NO3 fields"/>
+
  </dims>
 
 
  <nml_record name="preproc_chemistry" in_defaults="true">
 
+      <nml_option name="config_chems_bck_levels" type="integer" default_value="55"
+           units="-"
+           description="The number of atmospheric levels for the monthly-mean background H2O2, OH, and NO3 fields"
+           possible_values="Positive integer values"/>
+
       <nml_option name="config_CAMS_emissions" type="logical" default_value="false"
            units="-"
            description="Whether to read the CAMS surface emissions file"
+           possible_values="true or false"/>
+
+      <nml_option name="config_gocart2G_clim" type="logical" default_value="false"
+           units="-"
+           description="Whether to interpolate climatological data to run gocart2G (case 7 only)"
            possible_values="true or false"/>
 
       <nml_option name="config_gocart2G_static" type="logical" default_value="false"
@@ -35,6 +48,52 @@
 
       <var name="sandfrac" type="real" dimensions="nCells" units="fraction"
                 description="fraction of sand soil fraction for use in the gocart2G chemistry"/>
+
+ </var_struct>
+
+
+ <var_struct name="gocart2G_backgrounds" time_levs="1">
+
+      <var name="dms_gocart2G_clim" type="real" dimensions="nMonths nCells" units="nM/L"
+           description="Monthly-mean climatological surface concentration of dimethyl sulfide (DMS) over oceans"/>
+
+      <var name="oh_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="volume mixing ratio"
+           description="Monthly-mean climatological background of hydroxide (OH)"/>
+
+      <var name="h2o2_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="volume mixing ratio"
+           description="Monthly-mean climatological background of hydrogen peroxide (H2O2)"/>
+
+      <var name="no3_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="volume mixing ratio"
+           description="Monthly-mean climatological background of nitrate (NO3)"/>
+
+      <var name="pres_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="Pa"
+           description="Monthly-mean climatological background layer pressure"/>
+
+      <var name="dpres_gocart2G_clim" type="real" dimensions="nMonths nBCKLevels nCells" units="Pa"
+           description="Monthly-mean climatological background layer thickness"/>
+
+      <var name="background_dms" type="real" dimensions="nCells Time" units="nM/L"
+           description="Surface concentration of dimethyl sulfide (DMS) over oceans"/>
+
+      <var name="background_oh" type="real" dimensions="nVertLevels nCells Time" units="volume mixing ratio"
+           description="Background of hydroxide (OH)"/>
+
+      <var name="background_h2o2" type="real" dimensions="nVertLevels nCells Time" units="volume mixing ratio"
+           description="Background of hydrogen peroxide (H2O2)"/>
+
+      <var name="background_no3" type="real" dimensions="nVertLevels nCells Time" units="volume mixing ratio"
+           description="Background of nitrate (NO3)"/>
+
+ </var_struct>
+
+
+ <var_struct name="gocart2G_met" time_levs="1">
+
+      <var name="ptrop_gocart2G_clim" type="real" dimensions="nMonths nCells" units="Pa"
+           description="Monthly-mean climatological pressure at tropopause height"/>
+
+      <var name="background_ptrop" type="real" dimensions="nCells Time" units="Pa"
+           description="Pressure at tropopause height"/>
 
  </var_struct>
 

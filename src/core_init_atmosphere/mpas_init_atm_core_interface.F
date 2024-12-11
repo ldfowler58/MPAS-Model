@@ -125,9 +125,11 @@ module init_atm_core_interface
       logical, pointer :: noahmp, config_noahmp_static
 #ifdef DO_GOCART2G
       logical, pointer :: config_CAMS_emissions
+      logical, pointer :: config_gocart2G_clim
       logical, pointer :: config_gocart2G_static
 
       logical, pointer :: gocart2G_static_in
+      logical, pointer :: gocart2G_interp_out
       logical, pointer :: gocart2G_static_out
 #endif
 
@@ -324,6 +326,17 @@ module init_atm_core_interface
       ! gocart2G chemistry package:
       !
       ierr = 0
+      nullify(gocart2G_interp_out)
+      call mpas_pool_get_package(packages, 'gocart2G_interp_outActive', gocart2G_interp_out)
+      if (.not. associated(gocart2G_interp_out)) then
+         call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
+         call mpas_log_write('* Error while setting up gocart2G_interp_out for init_atmosphere core.',           messageType=MPAS_LOG_ERR)
+         call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
+         ierr = 1
+         return
+      end if
+
+      ierr = 0
       nullify(gocart2G_static_in)
       call mpas_pool_get_package(packages, 'gocart2G_static_inActive', gocart2G_static_in)
       if (.not. associated(gocart2G_static_in)) then
@@ -334,6 +347,7 @@ module init_atm_core_interface
          return
       end if
 
+      ierr = 0
       nullify(gocart2G_static_out)
       call mpas_pool_get_package(packages, 'gocart2G_static_outActive', gocart2G_static_out)
       if (.not. associated(gocart2G_static_out)) then
@@ -345,10 +359,12 @@ module init_atm_core_interface
       end if
 
       call mpas_pool_get_config(configs, 'config_CAMS_emissions' , config_CAMS_emissions )
+      call mpas_pool_get_config(configs, 'config_gocart2G_clim'  , config_gocart2G_clim  )
       call mpas_pool_get_config(configs, 'config_gocart2G_static', config_gocart2G_static)
 
       gocart2G_static_in  = .false.
       gocart2G_static_out = .false.
+      gocart2G_interp_out = .false.
       if (config_init_case == 7) then
          if (config_gocart2G_static) then
             gocart2G_static_out = .true.
@@ -361,9 +377,10 @@ module init_atm_core_interface
             gocart2G_static_out = .true.
          endif
 
-         if(config_CAMS_emissions) then
+         if(config_CAMS_emissions .or. config_gocart2G_clim) then
             gocart2G_static_in  = .true.
             gocart2G_static_out = .true.
+            gocart2G_interp_out = .true.
          endif
       end if
 
@@ -375,6 +392,7 @@ module init_atm_core_interface
       call mpas_log_write('--- vertical_stage_out  = $l',logicArgs=(/vertical_stage_out/))
       call mpas_log_write('--- met_stage_in        = $l',logicArgs=(/met_stage_in/))
       call mpas_log_write('--- met_stage_out       = $l',logicArgs=(/met_stage_out/))
+      call mpas_log_write('--- gocart2G_interp_out = $l',logicArgs=(/gocart2g_interp_out/))
       call mpas_log_write('--- gocart2G_static_in  = $l',logicArgs=(/gocart2g_static_in/))
       call mpas_log_write('--- gocart2G_static_out = $l',logicArgs=(/gocart2g_static_out/))
       call mpas_log_write(' ')
