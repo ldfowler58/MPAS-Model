@@ -197,8 +197,8 @@
     call SS2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
 
     !create radiation Mie table for SU2G:
-    !fnm = 'opticsBands_SS.v3_3.RRTMG.nc'
-    !SS2G_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
+    fnm = 'opticsBands_SS.v3_3.RRTMG.nc'
+    SS2G_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
 
     !create diagnostics Mie table for SU2G:
     !fnm = 'optics_SS.v3_3.nc'

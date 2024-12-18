@@ -168,72 +168,81 @@
 
  <var_struct name="state" time_levs="2">
 
-      <var_array name="chems" type="real" dimensions="nVertLevels nCells Time">
-           <var name="qbc1" array_group="gocart2G" units="kg kg^{-1}"
-                description="BC1 - black carbon hydrophobic mass mixing ratio"/>
+      <var_array name="scalars" type="real" dimensions="nVertLevels nCells Time">
+           <var name="qbcphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BCPHOBIC - black carbon hydrophobic mass mixing ratio"/>
 
-           <var name="qbc2" array_group="gocart2G" units="kg kg^{-1}"
-                description="BC2 - black carbon hydrophilic mass mixing ratio"/>
+           <var name="qbcphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BCPHILIC - black carbon hydrophilic mass mixing ratio"/>
 
-           <var name="qoc1" array_group="gocart2G" units="kg kg^{-1}"
-                description="OC1 - organic carbon hydrophobic mass mixing ratio"/>
+           <var name="qbrphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BRPHOBIC - brown carbon hydrophobic mass mixing ratio"/>
 
-           <var name="qoc2" array_group="gocart2G" units="kg kg^{-1}"
-                description="OC2 - organic carbon hydrophilic mass mixing ratio"/>
+           <var name="qbrphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BRPHILIC - brown carbon hydrophilic mass mixing ratio"/>
+
+           <var name="qocphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="OCPHOBIC - organic carbon hydrophobic mass mixing ratio"/>
+
+           <var name="qocphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="OCPHILIC - organic carbon hydrophilic mass mixing ratio"/>
 
            <var name="qdust1" array_group="gocart2G" units="kg kg^{-1}"
-                description="DUST1 - dust size bin 1 mass mixing ratio (0.5um eff. radius)"/>
+                description="DU001 - mineral dust size bin 1 mass mixing ratio"/>
 
            <var name="qdust2" array_group="gocart2G" units="kg kg^{-1}"
-                description="DUST2 - dust size bin 2 mass mixing ratio (1.4um eff. radius)"/>
+                description="DU002 - mineral dust size bin 2 mass mixing ratio"/>
 
            <var name="qdust3" array_group="gocart2G" units="kg kg^{-1}"
-                description="DUST3 - dust size bin 3 mass mixing ratio (2.4um eff. radius)"/>
+                description="DU003 - mineral dust size bin 3 mass mixing ratio"/>
 
            <var name="qdust4" array_group="gocart2G" units="kg kg^{-1}"
-                description="DUST4 - dust size bin 4 mass mixing ratio (4.5um eff. radius)"/>
+                description="DU004 - mineral dust size bin 4 mass mixing ratio"/>
 
            <var name="qdust5" array_group="gocart2G" units="kg kg^{-1}"
-                description="DUST5 - dust size bin 5 mass mixing ratio (8.0um eff. radius)"/>
+                description="DU005 - mineral dust size bin 5 mass mixing ratio"/>
 
-           <var name="qseas1" array_group="gocart2G" units="kg kg^{-1}"
-                description="SEAS1 - sea-salt size bin 1 mass mixing ratio (0.3um eff. radius)"/>
+           <var name="qni1" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI001 - nitrate size bin 1 mass mixing ratio"/>
 
-           <var name="qseas2" array_group="gocart2G" units="kg kg^{-1}"
-                description="SEAS2 - sea-salt size bin 2 mass mixing ratio (1.0um eff. radius)"/>
+           <var name="qni2" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI002 - nitrate size bin 2 mass mixing ratio"/>
 
-           <var name="qseas3" array_group="gocart2G" units="kg kg^{-1}"
-                description="SEAS3 - sea-salt size bin 3 mass mixing ratio (3.2um eff. radius)"/>
+           <var name="qni3" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI003 - nitrate size bin 3 mass mixing ratio"/>
 
-           <var name="qseas4" array_group="gocart2G" units="kg kg^{-1}"
-                description="SEAS4 - sea-salt size bin 4 mass mixing ratio (7.5um eff. radius)"/>
-
-           <var name="qseas5" array_group="gocart2G" units="kg kg^{-1}"
-                description="SEAS5 - sea-salt size bin 5 mass mixing ratio (?)"/>
-
-           <var name="qsulf" array_group="gocart2G" units="kg kg^{-1}"
-                description="SULF - sulfate mass mixing ratio"/>
-
-           <var name="qdms" array_group="gocart2G" units="mole mole^{-1}"
-                description="DMS - dimethyl sulfide mass mixing ratio"/>
-
-           <var name="qmsa" array_group="gocart2G" units="mole mole^{-1}"
-                description="MSA - methanesulfonic acid mass mixing ratio"/>
-
-           <var name="qco" array_group="gocart2G"  units="mole mole^{-1}"
-                description="CO -  carbon monoxide mass mixing ratio"/>
-
-           <var name="qh2o2" array_group="gocart2G"  units="mole mole^{-1}"
-                description="H2O2 - hydrogen peroxide mass mixing ratio"/>
-
-           <var name="qoh" array_group="gocart2G"  units="mole mole^{-1}"
-                description="OH -  hydroxide mass mixing ratio"/>
-
-           <var name="qso2" array_group="gocart2G" units="mole mole^{-1}"
+           <var name="qso2" array_group="gocart2G" units="kg kg^{-1}"
                 description="SO2 - sulfur dioxide mass mixing ratio"/>
 
-           <var name="qno3" array_group="gocart2G" units="mole mole^{-1}"
-                description="NO3 - nitrate mass mixing ratio"/>
+           <var name="qso2v" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO2v - sulfur dioxide (volcanic) mass mixing ratio"/>
+
+           <var name="qso4" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO4 - sulfate mass mixing ratio"/>
+
+           <var name="qso4v" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO4v - sulfate (volcanic) mass mixing ratio"/>
+
+           <var name="qseas1" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS001 - sea-salt size bin 1 mass mixing ratio"/>
+
+           <var name="qseas2" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS002 - sea-salt size bin 2 mass mixing ratio"/>
+
+           <var name="qseas3" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS003 - sea-salt size bin 3 mass mixing ratio"/>
+
+           <var name="qseas4" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS004 - sea-salt size bin 4 mass mixing ratio"/>
+
+           <var name="qseas5" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS005 - sea-salt size bin 5 mass mixing ratio"/>
+
+           <var name="qdms" array_group="gocart2G" units="kg kg^{-1}"
+                description="DMS - dimethyl sulfide mass mixing ratio"/>
+
+           <var name="qmsa" array_group="gocart2G" units="kg kg^{-1}"
+                description="MSA - methanesulfonic acid mass mixing ratio"/>
       </var_array>
 
  </var_struct>
@@ -241,72 +250,81 @@
 
  <var_struct name="tend" time_levs="1">
 
-      <var_array name="chems_tend" type="real" dimensions="nVertLevels nCells Time">
-           <var name="tend_qbc1" name_in_code="qbc1" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="BC1 - black carbon hydrophobic mass mixing ratio"/>
+      <var_array name="scalars_tend" type="real" dimensions="nVertLevels nCells Time">
+           <var name="tend_qbcphobic" name_in_code="qbcphobic" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="BCPHOBIC - tendency of hydrophobic black carbon mass per unit volume divided by d(zeta)/dz"/>
 
-           <var name="tend_qbc2" name_in_code="qbc2" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="BC2 - black carbon hydrophilic mass mixing ratio"/>
+           <var name="tend_qbcphilic" name_in_code="qbcphilic" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="BCPHILIC - tendency of hydrophilic black carbon mass per unit volume divided by d(zeta)/dz"/>
 
-           <var name="tend_qoc1" name_in_code="qoc1" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="OC1 - organic carbon hydrophobic mass mixing ratio"/>
+           <var name="tend_qbrphobic" name_in_code="qbrphobic" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="BRPHOBIC - tendency of hydrophobic brown carbon mass per unit volume divided by d(zeta)/dz"/>
 
-           <var name="tend_qoc2" name_in_code="qoc2" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="OC2 - organic carbon hydrophilic mass mixing ratio"/>
+           <var name="tend_qbrphilic" name_in_code="qbrphilic" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="BCPHILIC - tendency of hydrophilic brown carbon mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qocphobic" name_in_code="qocphobic" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="OCPHOBIC - tendency of hydrophobic organic carbon mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qocphilic" name_in_code="qocphilic" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="OCPHILIC - tendency of hydrophilic organic carbon mass per unit volume divided by d(zeta)/dz"/>
 
            <var name="tend_qdust1" name_in_code="qdust1" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="DUST1 - dust size bin 1 mass mixing ratio (0.5um eff. radius)"/>
+                description="DU001 - tendency of mineral dust size bin 1 mass per unit volume divided by d(zeta)/dz"/>
 
            <var name="tend_qdust2" name_in_code="qdust2" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="DUST2 - dust size bin 2 mass mixing ratio (1.4um eff. radius)"/>
+                description="DU002 - tendency of mineral dust size bin 2 mass per unit volume divided by d(zeta)/dz"/>
 
            <var name="tend_qdust3" name_in_code="qdust3" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="DUST3 - dust size bin 3 mass mixing ratio (2.4um eff. radius)"/>
+                description="DU003 - tendency of mineral dust size bin 3 mass per unit volume divided by d(zeta)/dz"/>
 
            <var name="tend_qdust4" name_in_code="qdust4" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="DUST4 - dust size bin 4 mass mixing ratio (4.5um eff. radius)"/>
+                description="DU004 - tendency of mineral dust size bin 4 mass per unit volume divided by d(zeta)/dz"/>
 
            <var name="tend_qdust5" name_in_code="qdust5" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="DUST5 - dust size bin 5 mass mixing ratio (8.0um eff. radius)"/>
+                description="DU005 - tendency of mineral dust size bin 5 mass per unit volume divided by d(zeta)/dz"/>
 
-           <var name="tend_qseas1" name_in_code="qseas1" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="SEAS1 - sea-salt size bin 1 mass mixing ratio (0.3um eff. radius)"/>
+           <var name="tend_qni1" name_in_code="qni1" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="NI001 - tendency of nitrate size bin 1 mass per unit volume divided by d(zeta)/dz"/>
 
-           <var name="tend_qseas2" name_in_code="qseas2" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="SEAS2 - sea-salt size bin 2 mass mixing ratio (1.0um eff. radius)"/>
+           <var name="tend_qni2" name_in_code="qni2" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="NI002 - tendency of nitrate size bin 2 mass per unit volume divided by d(zeta)/dz"/>
 
-           <var name="tend_qseas3" name_in_code="qseas3" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="SEAS3 - sea-salt size bin 3 mass mixing ratio (3.2um eff. radius)"/>
-
-           <var name="tend_qseas4" name_in_code="qseas4" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="SEAS4 - sea-salt size bin 4 mass mixing ratio (7.5um eff. radius)"/>
-
-           <var name="tend_qseas5" name_in_code="qseas5" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="SEAS5 - sea-salt size bin 5 mass mixing ratio (?)"/>
-
-           <var name="tend_qsulf" name_in_code="qsulf" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="SULF - sulfate mass mixing ratio"/>
-
-           <var name="tend_qdms" name_in_code="qdms" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="DMS - dimethyl sulfide mass mixing ratio"/>
-
-           <var name="tend_qmsa" name_in_code="qmsa" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="MSA - methanesulfonic acid mass mixing ratio"/>
-
-           <var name="tend_qco" name_in_code="qco" array_group="gocart2G"  units="kg m^{-3} s^{-1}"
-                description="CO -  carbon monoxide mass mixing ratio"/>
-
-           <var name="tend_qh2o2" name_in_code="qh2o2" array_group="gocart2G"  units="kg m^{-3} s^{-1}"
-                description="H2O2 - hydrogen peroxide mass mixing ratio"/>
-
-           <var name="tend_qoh" name_in_code="qoh" array_group="gocart2G"  units="kg m^{-3} s^{-1}"
-                description="OH -  hydroxide mass mixing ratio"/>
+           <var name="tend_qni3" name_in_code="qni3" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="NI003 - tendency of nitrate size bin 3 mass per unit volume divided by d(zeta)/dz"/>
 
            <var name="tend_qso2" name_in_code="qso2" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="SO2 - sulfur dioxide mass mixing ratio"/>
+                description="SO2 - tendency of sulfur dioxide mass per unit volume divided by d(zeta)/dz"/>
 
-           <var name="tend_qno3" name_in_code="qno3" array_group="gocart2G" units="kg m^{-3} s^{-1}"
-                description="NO3 - nitrate mass mixing ratio"/>
+           <var name="tend_qso2v" name_in_code="qso2v" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SO2v - tendency of sulfur dioxide (volcanic) mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qso4" name_in_code="qso4" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SO4 - tendency of sulfate mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qso4v" name_in_code="qso4v" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SO4v - tendency of sulfate (volcanic) mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qseas1" name_in_code="qseas1" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SEAS1 - tendency of sea-salt size bin 1 mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qseas2" name_in_code="qseas2" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SEAS2 - tendency of sea-salt size bin 2 mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qseas3" name_in_code="qseas3" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SEAS3 - tendency of sea-salt size bin 3 mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qseas4" name_in_code="qseas4" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SEAS4 - tendency of sea-salt size bin 4 mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qseas5" name_in_code="qseas5" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SEAS5 - tendency of sea-salt size bin 5 mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qdms" name_in_code="qdms" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="DMS - tendency of dimethyl sulfide mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qmsa" name_in_code="qmsa" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="MSA - tendency of methanesulfonic acid mass per unit volume divided by d(zeta)/dz"/>
       </var_array>
 
  </var_struct>

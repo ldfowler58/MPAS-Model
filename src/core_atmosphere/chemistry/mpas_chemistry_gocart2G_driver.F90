@@ -343,9 +343,11 @@
 
        SU2G%dms         => mpas_gocart2G%qdms        ; SU2G%so2      => mpas_gocart2G%qso2
        SU2G%so4         => mpas_gocart2G%qso4        ; SU2G%msa      => mpas_gocart2G%qmsa 
+
        SU2G%su_dmso     => mpas_gocart2g%backg_dms   ; SU2G%su_no3   => mpas_gocart2G%backg_no3
        SU2G%su_oh       => mpas_gocart2G%backg_oh    ; SU2G%su_h2o2  => mpas_gocart2G%backg_h2o2
-       SU2G%su_anthrol1 => mpas_gocart2g%qso2_em
+
+       SU2G%su_anthrol1 => mpas_gocart2G%qso2_em
 
        call SU2G_params%emissions_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
        call SU2G_params%processes_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)

@@ -40,11 +40,9 @@
     real(kind=RKIND),dimension(:,:,:),pointer:: qdust4     => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qdust5     => null()
     !--- nitrate mixing ratios (kg kg-1):
-    real(kind=RKIND),dimension(:,:,:),pointer:: nitrate1   => null()
-    real(kind=RKIND),dimension(:,:,:),pointer:: nitrate2   => null()
-    real(kind=RKIND),dimension(:,:,:),pointer:: nitrate3   => null()
-    real(kind=RKIND),dimension(:,:,:),pointer:: nitrate4   => null()
-    real(kind=RKIND),dimension(:,:,:),pointer:: nitrate5   => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qni1       => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qni2       => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qni3       => null()
     !--- sea-salt mixing ratios (kg kg-1):
     real(kind=RKIND),dimension(:,:,:),pointer:: qseas1     => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qseas2     => null()
@@ -52,8 +50,10 @@
     real(kind=RKIND),dimension(:,:,:),pointer:: qseas4     => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qseas5     => null()
     !--- sulfate,sulfur dioxide,dimethyl sulfide,and methanesulfonic acid mixing ratios (kg kg-1):
-    real(kind=RKIND),dimension(:,:,:),pointer:: qso4       => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qso2       => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qso2v      => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qso4       => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qso4v      => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qdms       => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qmsa       => null()
     real(kind=RKIND),dimension(:,:,:,:),pointer:: qsu2G    => null()
@@ -214,11 +214,14 @@
  if(.not.associated(self%qdust4)     ) allocate(self%qdust4(its:ite,jts:jte,kts:kte)    )
  if(.not.associated(self%qdust5)     ) allocate(self%qdust5(its:ite,jts:jte,kts:kte)    )
 
- if(.not.associated(self%nitrate1)   ) allocate(self%nitrate1(its:ite,jts:jte,kts:kte)  )
- if(.not.associated(self%nitrate2)   ) allocate(self%nitrate2(its:ite,jts:jte,kts:kte)  )
- if(.not.associated(self%nitrate3)   ) allocate(self%nitrate3(its:ite,jts:jte,kts:kte)  )
- if(.not.associated(self%nitrate4)   ) allocate(self%nitrate4(its:ite,jts:jte,kts:kte)  )
- if(.not.associated(self%nitrate5)   ) allocate(self%nitrate5(its:ite,jts:jte,kts:kte)  )
+ if(.not.associated(self%qni1)       ) allocate(self%qni1(its:ite,jts:jte,kts:kte)      )
+ if(.not.associated(self%qni2)       ) allocate(self%qni2(its:ite,jts:jte,kts:kte)      )
+ if(.not.associated(self%qni3)       ) allocate(self%qni3(its:ite,jts:jte,kts:kte)      )
+
+ if(.not.associated(self%qso2)       ) allocate(self%qso2(its:ite,jts:jte,kts:kte)      )
+ if(.not.associated(self%qso2v)      ) allocate(self%qso2v(its:ite,jts:jte,kts:kte)     )
+ if(.not.associated(self%qso4)       ) allocate(self%qso4(its:ite,jts:jte,kts:kte)      )
+ if(.not.associated(self%qso4v)      ) allocate(self%qso4v(its:ite,jts:jte,kts:kte)     )
 
  if(.not.associated(self%qseas1)     ) allocate(self%qseas1(its:ite,jts:jte,kts:kte)    )
  if(.not.associated(self%qseas2)     ) allocate(self%qseas2(its:ite,jts:jte,kts:kte)    )
@@ -226,8 +229,6 @@
  if(.not.associated(self%qseas4)     ) allocate(self%qseas4(its:ite,jts:jte,kts:kte)    )
  if(.not.associated(self%qseas5)     ) allocate(self%qseas5(its:ite,jts:jte,kts:kte)    )
 
- if(.not.associated(self%qso4)       ) allocate(self%qso4(its:ite,jts:jte,kts:kte)      )
- if(.not.associated(self%qso2)       ) allocate(self%qso2(its:ite,jts:jte,kts:kte)      )
  if(.not.associated(self%qdms)       ) allocate(self%qdms(its:ite,jts:jte,kts:kte)      )
  if(.not.associated(self%qmsa)       ) allocate(self%qmsa(its:ite,jts:jte,kts:kte)      )
  if(.not.associated(self%qsu2G)      ) allocate(self%qsu2G(its:ite,jts:jte,kts:kte,4)   )
@@ -322,11 +323,14 @@
  if(associated(self%qdust4)     ) deallocate(self%qdust4     )
  if(associated(self%qdust5)     ) deallocate(self%qdust5     )
 
- if(associated(self%nitrate1)   ) deallocate(self%nitrate1   )
- if(associated(self%nitrate2)   ) deallocate(self%nitrate2   )
- if(associated(self%nitrate3)   ) deallocate(self%nitrate3   )
- if(associated(self%nitrate4)   ) deallocate(self%nitrate4   )
- if(associated(self%nitrate5)   ) deallocate(self%nitrate5   )
+ if(associated(self%qni1)       ) deallocate(self%qni1       )
+ if(associated(self%qni2)       ) deallocate(self%qni2       )
+ if(associated(self%qni3)       ) deallocate(self%qni3       )
+
+ if(associated(self%qso2)       ) deallocate(self%qso2       )
+ if(associated(self%qso2v)      ) deallocate(self%qso2v      )
+ if(associated(self%qso4)       ) deallocate(self%qso4       )
+ if(associated(self%qso4v)      ) deallocate(self%qso4v      )
 
  if(associated(self%qseas1)     ) deallocate(self%qseas1     )
  if(associated(self%qseas2)     ) deallocate(self%qseas2     )
@@ -334,8 +338,6 @@
  if(associated(self%qseas4)     ) deallocate(self%qseas4     )
  if(associated(self%qseas5)     ) deallocate(self%qseas5     )
 
- if(associated(self%qso4)       ) deallocate(self%qso4       )
- if(associated(self%qso2)       ) deallocate(self%qso2       )
  if(associated(self%qdms)       ) deallocate(self%qdms       )
  if(associated(self%qmsa)       ) deallocate(self%qmsa       )
  if(associated(self%qsu2G)      ) deallocate(self%qsu2G      )
@@ -427,16 +429,16 @@
  type(mpas_pool_type),intent(inout):: gocart2G_backgrounds
 
 !--- local variables and pointers for gocart2G:
- integer,pointer:: num_chems
- integer,pointer:: index_qbc1,index_qbc2
- integer,pointer:: index_qoc1,index_qoc2
+ integer,pointer:: index_qbcphobic,index_qbcphilic
+ integer,pointer:: index_qbrphobic,index_qbrphilic
+ integer,pointer:: index_qocphobic,index_qocphilic
  integer,pointer:: index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
+ integer,pointer:: index_qni1,index_qni2,index_qni3
  integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
- integer,pointer:: index_qsulf,index_qso2,index_qdms,index_qmsa
+ integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
+ integer,pointer:: index_qdms,index_qmsa
  integer:: i,its,ite,j,jts,jte,k,kts,kte,ktep1,kk,n
  integer:: nerod
-
- real(kind=RKIND),dimension(:,:,:),pointer:: chems
 
 !--- local variables and pointers for mesh, surface, and atmospheric fields:
  integer,pointer:: index_qv
@@ -479,84 +481,62 @@
 
 
 !--- initialization of gocart2G mixing ratios:
- call mpas_pool_get_dimension(state,'num_chems'   ,num_chems   )
- call mpas_pool_get_dimension(state,'index_qbc1'  ,index_qbc1  )
- call mpas_pool_get_dimension(state,'index_qbc2'  ,index_qbc2  )
- call mpas_pool_get_dimension(state,'index_qoc1'  ,index_qoc1  )
- call mpas_pool_get_dimension(state,'index_qoc2'  ,index_qoc2  )
- call mpas_pool_get_dimension(state,'index_qdust1',index_qdust1)
- call mpas_pool_get_dimension(state,'index_qdust2',index_qdust2)
- call mpas_pool_get_dimension(state,'index_qdust3',index_qdust3)
- call mpas_pool_get_dimension(state,'index_qdust4',index_qdust4)
- call mpas_pool_get_dimension(state,'index_qdust5',index_qdust5)
- call mpas_pool_get_dimension(state,'index_qseas1',index_qseas1)
- call mpas_pool_get_dimension(state,'index_qseas2',index_qseas2)
- call mpas_pool_get_dimension(state,'index_qseas3',index_qseas3)
- call mpas_pool_get_dimension(state,'index_qseas4',index_qseas4)
- call mpas_pool_get_dimension(state,'index_qseas5',index_qseas5)
- call mpas_pool_get_dimension(state,'index_qsulf' ,index_qsulf )
- call mpas_pool_get_dimension(state,'index_qso2'  ,index_qso2  )
- call mpas_pool_get_dimension(state,'index_qdms'  ,index_qdms  )
- call mpas_pool_get_dimension(state,'index_qmsa'  ,index_qmsa  )
+ call mpas_pool_get_dimension(state,'index_qbcphobic',index_qbcphobic)
+ call mpas_pool_get_dimension(state,'index_qbcphilic',index_qbcphilic)
+ call mpas_pool_get_dimension(state,'index_qbrphobic',index_qbrphobic)
+ call mpas_pool_get_dimension(state,'index_qbrphilic',index_qbrphilic)
+ call mpas_pool_get_dimension(state,'index_qocphobic',index_qocphobic)
+ call mpas_pool_get_dimension(state,'index_qocphilic',index_qocphilic)
+ call mpas_pool_get_dimension(state,'index_qdust1'   ,index_qdust1   )
+ call mpas_pool_get_dimension(state,'index_qdust2'   ,index_qdust2   )
+ call mpas_pool_get_dimension(state,'index_qdust3'   ,index_qdust3   )
+ call mpas_pool_get_dimension(state,'index_qdust4'   ,index_qdust4   )
+ call mpas_pool_get_dimension(state,'index_qdust5'   ,index_qdust5   )
+ call mpas_pool_get_dimension(state,'index_qni1'     ,index_qni1     )
+ call mpas_pool_get_dimension(state,'index_qni2'     ,index_qni2     )
+ call mpas_pool_get_dimension(state,'index_qni3'     ,index_qni3     )
+ call mpas_pool_get_dimension(state,'index_qso2'     ,index_qso2     )
+ call mpas_pool_get_dimension(state,'index_qso2v'    ,index_qso2v    )
+ call mpas_pool_get_dimension(state,'index_qso4'     ,index_qso4     )
+ call mpas_pool_get_dimension(state,'index_qso4v'    ,index_qso4v    )
+ call mpas_pool_get_dimension(state,'index_qseas1'   ,index_qseas1   )
+ call mpas_pool_get_dimension(state,'index_qseas2'   ,index_qseas2   )
+ call mpas_pool_get_dimension(state,'index_qseas3'   ,index_qseas3   )
+ call mpas_pool_get_dimension(state,'index_qseas4'   ,index_qseas4   )
+ call mpas_pool_get_dimension(state,'index_qseas5'   ,index_qseas5   )
+ call mpas_pool_get_dimension(state,'index_qdms'     ,index_qdms     )
+ call mpas_pool_get_dimension(state,'index_qmsa'     ,index_qmsa     )
 
- call mpas_log_write('--- num_chems    = $i',intArgs=(/num_chems/)   )
- call mpas_log_write('--- index_qbc1   = $i',intArgs=(/index_qbc1/)  )
- call mpas_log_write('--- index_qbc2   = $i',intArgs=(/index_qbc2/)  )
- call mpas_log_write('--- index_qoc1   = $i',intArgs=(/index_qoc1/)  )
- call mpas_log_write('--- index_qoc2   = $i',intArgs=(/index_qoc2/)  )
- call mpas_log_write('--- index_qdust1 = $i',intArgs=(/index_qdust1/))
- call mpas_log_write('--- index_qdust2 = $i',intArgs=(/index_qdust2/))
- call mpas_log_write('--- index_qdust3 = $i',intArgs=(/index_qdust3/))
- call mpas_log_write('--- index_qdust4 = $i',intArgs=(/index_qdust4/))
- call mpas_log_write('--- index_qdust5 = $i',intArgs=(/index_qdust5/))
- call mpas_log_write('--- index_qseas1 = $i',intArgs=(/index_qseas1/))
- call mpas_log_write('--- index_qseas2 = $i',intArgs=(/index_qseas2/))
- call mpas_log_write('--- index_qseas3 = $i',intArgs=(/index_qseas3/))
- call mpas_log_write('--- index_qseas4 = $i',intArgs=(/index_qseas4/))
- call mpas_log_write('--- index_qseas5 = $i',intArgs=(/index_qseas5/))
- call mpas_log_write('--- index_qsulf  = $i',intArgs=(/index_qsulf/) )
- call mpas_log_write('--- index_qso2   = $i',intArgs=(/index_qso2/)  )
- call mpas_log_write('--- index_qdms   = $i',intArgs=(/index_qdms/)  )
- call mpas_log_write('--- index_qmsa   = $i',intArgs=(/index_qmsa/)  )
-
-
- call mpas_pool_get_array(state,'chems',chems,time_lev)
+ call mpas_pool_get_array(state,'scalars',scalars,time_lev)
  do k = kts,kte
     kk = kte+1-k
     do j = jts,jte
        do i = its,ite
-          self%qbcphobic(i,j,kk) = chems(index_qbc1,k,i)
-          self%qbcphilic(i,j,kk) = chems(index_qbc2,k,i)
-          self%qocphobic(i,j,kk) = chems(index_qoc1,k,i)
-          self%qocphilic(i,j,kk) = chems(index_qoc2,k,i)
-          self%qdust1(i,j,kk)    = chems(index_qdust1,k,i)
-          self%qdust2(i,j,kk)    = chems(index_qdust2,k,i)
-          self%qdust3(i,j,kk)    = chems(index_qdust3,k,i)
-          self%qdust4(i,j,kk)    = chems(index_qdust4,k,i)
-          self%qdust5(i,j,kk)    = chems(index_qdust5,k,i)
-          self%qseas1(i,j,kk)    = chems(index_qseas1,k,i)
-          self%qseas2(i,j,kk)    = chems(index_qseas2,k,i)
-          self%qseas3(i,j,kk)    = chems(index_qseas3,k,i)
-          self%qseas4(i,j,kk)    = chems(index_qseas4,k,i)
-          self%qseas5(i,j,kk)    = chems(index_qseas5,k,i)
-          self%qso4(i,j,kk)      = chems(index_qsulf,k,i)
-          self%qso2(i,j,kk)      = chems(index_qso2,k,i)
-          self%qdms(i,j,kk)      = chems(index_qdms,k,i)
-          self%qmsa(i,j,kk)      = chems(index_qmsa,k,i)
-
-          self%qsu2G(i,j,kk,1)   = chems(index_qdms,k,i)
-          self%qsu2G(i,j,kk,2)   = chems(index_qso2,k,i)
-          self%qsu2G(i,j,kk,3)   = chems(index_qsulf,k,i)
-          self%qsu2G(i,j,kk,4)   = chems(index_qmsa,k,i)
-
-          !--- for now, set to 0._RKIND brown carbon and nitrate mixing ratios:
-          self%qbrphobic(i,j,kk) = 0._RKIND
-          self%qbrphilic(i,j,kk) = 0._RKIND
-          self%nitrate1(i,j,kk)  = 0._RKIND
-          self%nitrate2(i,j,kk)  = 0._RKIND
-          self%nitrate3(i,j,kk)  = 0._RKIND
-          self%nitrate4(i,j,kk)  = 0._RKIND
-          self%nitrate5(i,j,kk)  = 0._RKIND
+          self%qbcphobic(i,j,kk) = scalars(index_qbcphobic,k,i)
+          self%qbcphilic(i,j,kk) = scalars(index_qbcphilic,k,i)
+          self%qbrphobic(i,j,kk) = scalars(index_qbrphobic,k,i)
+          self%qbrphilic(i,j,kk) = scalars(index_qbrphilic,k,i)
+          self%qocphobic(i,j,kk) = scalars(index_qocphobic,k,i)
+          self%qocphilic(i,j,kk) = scalars(index_qocphilic,k,i)
+          self%qdust1(i,j,kk)    = scalars(index_qdust1,k,i)
+          self%qdust2(i,j,kk)    = scalars(index_qdust2,k,i)
+          self%qdust3(i,j,kk)    = scalars(index_qdust3,k,i)
+          self%qdust4(i,j,kk)    = scalars(index_qdust4,k,i)
+          self%qdust5(i,j,kk)    = scalars(index_qdust5,k,i)
+          self%qni1(i,j,kk)      = scalars(index_qni1,k,i)
+          self%qni2(i,j,kk)      = scalars(index_qni2,k,i)
+          self%qni3(i,j,kk)      = scalars(index_qni3,k,i)
+          self%qso2(i,j,kk)      = scalars(index_qso2,k,i)
+          self%qso2v(i,j,kk)     = scalars(index_qso2v,k,i)
+          self%qso4(i,j,kk)      = scalars(index_qso4,k,i)
+          self%qso4v(i,j,kk)     = scalars(index_qso4v,k,i)
+          self%qseas1(i,j,kk)    = scalars(index_qseas1,k,i)
+          self%qseas2(i,j,kk)    = scalars(index_qseas2,k,i)
+          self%qseas3(i,j,kk)    = scalars(index_qseas3,k,i)
+          self%qseas4(i,j,kk)    = scalars(index_qseas4,k,i)
+          self%qseas5(i,j,kk)    = scalars(index_qseas5,k,i)
+          self%qdms(i,j,kk)      = scalars(index_qdms,k,i)
+          self%qmsa(i,j,kk)      = scalars(index_qmsa,k,i)
        enddo
     enddo
  enddo
@@ -817,15 +797,17 @@
  class(atm_gocart2G),intent(inout):: self
 
 !--- local variables and pointers:
- integer,pointer:: num_chems
- integer,pointer:: index_qbc1,index_qbc2
- integer,pointer:: index_qoc1,index_qoc2
+ integer,pointer:: index_qbcphobic,index_qbcphilic
+ integer,pointer:: index_qbrphobic,index_qbrphilic
+ integer,pointer:: index_qocphobic,index_qocphilic
  integer,pointer:: index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
+ integer,pointer:: index_qni1,index_qni2,index_qni3
  integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
- integer,pointer:: index_qsulf,index_qdms,index_qmsa
+ integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
+ integer,pointer:: index_qdms,index_qmsa
  integer:: i,its,ite,j,jts,jte,k,kk,kts,kte
 
- real(kind=RKIND),dimension(:,:,:),pointer:: chems
+ real(kind=RKIND),dimension(:,:,:),pointer:: scalars
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -840,48 +822,62 @@
 
 
 !--- initialize gocart2G mixing ratios:
- call mpas_pool_get_dimension(state,'num_chems'   ,num_chems   )
- call mpas_pool_get_dimension(state,'index_qbc1'  ,index_qbc1  )
- call mpas_pool_get_dimension(state,'index_qbc2'  ,index_qbc2  )
- call mpas_pool_get_dimension(state,'index_qoc1'  ,index_qoc1  )
- call mpas_pool_get_dimension(state,'index_qoc2'  ,index_qoc2  )
- call mpas_pool_get_dimension(state,'index_qdust1',index_qdust1)
- call mpas_pool_get_dimension(state,'index_qdust2',index_qdust2)
- call mpas_pool_get_dimension(state,'index_qdust3',index_qdust3)
- call mpas_pool_get_dimension(state,'index_qdust4',index_qdust4)
- call mpas_pool_get_dimension(state,'index_qdust5',index_qdust5)
- call mpas_pool_get_dimension(state,'index_qseas1',index_qseas1)
- call mpas_pool_get_dimension(state,'index_qseas2',index_qseas2)
- call mpas_pool_get_dimension(state,'index_qseas3',index_qseas3)
- call mpas_pool_get_dimension(state,'index_qseas4',index_qseas4)
- call mpas_pool_get_dimension(state,'index_qseas5',index_qseas5)
- call mpas_pool_get_dimension(state,'index_qsulf' ,index_qsulf )
- call mpas_pool_get_dimension(state,'index_qdms'  ,index_qdms  )
- call mpas_pool_get_dimension(state,'index_qmsa'  ,index_qmsa  )
+ call mpas_pool_get_dimension(state,'index_qbcphobic',index_qbcphobic)
+ call mpas_pool_get_dimension(state,'index_qbcphilic',index_qbcphilic)
+ call mpas_pool_get_dimension(state,'index_qbrphobic',index_qbrphobic)
+ call mpas_pool_get_dimension(state,'index_qbrphilic',index_qbrphilic)
+ call mpas_pool_get_dimension(state,'index_qocphobic',index_qocphobic)
+ call mpas_pool_get_dimension(state,'index_qocphilic',index_qocphilic)
+ call mpas_pool_get_dimension(state,'index_qdust1'   ,index_qdust1   )
+ call mpas_pool_get_dimension(state,'index_qdust2'   ,index_qdust2   )
+ call mpas_pool_get_dimension(state,'index_qdust3'   ,index_qdust3   )
+ call mpas_pool_get_dimension(state,'index_qdust4'   ,index_qdust4   )
+ call mpas_pool_get_dimension(state,'index_qdust5'   ,index_qdust5   )
+ call mpas_pool_get_dimension(state,'index_qni1'     ,index_qni1     )
+ call mpas_pool_get_dimension(state,'index_qni2'     ,index_qni2     )
+ call mpas_pool_get_dimension(state,'index_qni3'     ,index_qni3     )
+ call mpas_pool_get_dimension(state,'index_qso2'     ,index_qso2     )
+ call mpas_pool_get_dimension(state,'index_qso2v'    ,index_qso2v    )
+ call mpas_pool_get_dimension(state,'index_qso4'     ,index_qso4     )
+ call mpas_pool_get_dimension(state,'index_qso4v'    ,index_qso4v    )
+ call mpas_pool_get_dimension(state,'index_qseas1'   ,index_qseas1   )
+ call mpas_pool_get_dimension(state,'index_qseas2'   ,index_qseas2   )
+ call mpas_pool_get_dimension(state,'index_qseas3'   ,index_qseas3   )
+ call mpas_pool_get_dimension(state,'index_qseas4'   ,index_qseas4   )
+ call mpas_pool_get_dimension(state,'index_qseas5'   ,index_qseas5   )
+ call mpas_pool_get_dimension(state,'index_qdms'     ,index_qdms     )
+ call mpas_pool_get_dimension(state,'index_qmsa'     ,index_qmsa     )
 
-
- call mpas_pool_get_array(state,'chems',chems,time_lev)
+ call mpas_pool_get_array(state,'scalars',scalars,time_lev)
  do k = kts,kte
     kk = kte+1-k
     do j = jts,jte
        do i = its,ite
-          chems(index_qbc1,kk,i)   = self%qbcphobic(i,j,k)
-          chems(index_qbc2,kk,i)   = self%qbcphilic(i,j,k)
-          chems(index_qoc1,kk,i)   = self%qbcphobic(i,j,k)
-          chems(index_qoc2,kk,i)   = self%qbcphilic(i,j,k)
-          chems(index_qdust1,kk,i) = self%qdust1(i,j,k)
-          chems(index_qdust2,kk,i) = self%qdust2(i,j,k)
-          chems(index_qdust3,kk,i) = self%qdust3(i,j,k)
-          chems(index_qdust4,kk,i) = self%qdust4(i,j,k)
-          chems(index_qdust5,kk,i) = self%qdust5(i,j,k)
-          chems(index_qseas1,kk,i) = self%qseas1(i,j,k)
-          chems(index_qseas2,kk,i) = self%qseas2(i,j,k)
-          chems(index_qseas3,kk,i) = self%qseas3(i,j,k)
-          chems(index_qseas4,kk,i) = self%qseas4(i,j,k)
-          chems(index_qseas5,kk,i) = self%qseas5(i,j,k)
-          chems(index_qsulf,kk,i)  = self%qso4(i,j,k)
-          chems(index_qdms,kk,i)   = self%qdms(i,j,k)
-          chems(index_qmsa,kk,i)   = self%qmsa(i,j,k)
+          scalars(index_qbcphobic,kk,i) = self%qbcphobic(i,j,k)
+          scalars(index_qbcphilic,kk,i) = self%qbcphilic(i,j,k)
+          scalars(index_qbrphobic,kk,i) = self%qbrphobic(i,j,k)
+          scalars(index_qbrphilic,kk,i) = self%qbrphilic(i,j,k)
+          scalars(index_qocphobic,kk,i) = self%qocphobic(i,j,k)
+          scalars(index_qocphilic,kk,i) = self%qocphilic(i,j,k)
+          scalars(index_qdust1,kk,i)    = self%qdust1(i,j,k)
+          scalars(index_qdust2,kk,i)    = self%qdust2(i,j,k)
+          scalars(index_qdust3,kk,i)    = self%qdust3(i,j,k)
+          scalars(index_qdust4,kk,i)    = self%qdust4(i,j,k)
+          scalars(index_qdust5,kk,i)    = self%qdust5(i,j,k)
+          scalars(index_qni1,kk,i)      = self%qni1(i,j,k)
+          scalars(index_qni2,kk,i)      = self%qni2(i,j,k)
+          scalars(index_qni3,kk,i)      = self%qni3(i,j,k)
+          scalars(index_qso2,kk,i)      = self%qso2(i,j,k)
+          scalars(index_qso2v,kk,i)     = self%qso2v(i,j,k)
+          scalars(index_qso4,kk,i)      = self%qso4(i,j,k)
+          scalars(index_qso4v,kk,i)     = self%qso4v(i,j,k)
+          scalars(index_qseas1,kk,i)    = self%qseas1(i,j,k)
+          scalars(index_qseas2,kk,i)    = self%qseas2(i,j,k)
+          scalars(index_qseas3,kk,i)    = self%qseas3(i,j,k)
+          scalars(index_qseas4,kk,i)    = self%qseas4(i,j,k)
+          scalars(index_qseas5,kk,i)    = self%qseas5(i,j,k)
+          scalars(index_qdms,kk,i)      = self%qdms(i,j,k)
+          scalars(index_qmsa,kk,i)      = self%qmsa(i,j,k)
        enddo
     enddo
  enddo
