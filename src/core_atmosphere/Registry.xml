@@ -598,7 +598,6 @@
 			<var name="background_oh"/>
 			<var name="background_no3"/>
 			<var name="background_ptrop"/>
-			<var_array name="chems"/>
 #endif
 		</stream>
 
@@ -889,7 +888,6 @@
 			<var name="background_oh"/>
 			<var name="background_no3"/>
 			<var name="background_ptrop"/>
-			<var_array name="chems"/>
 #endif
 		</stream>
 
