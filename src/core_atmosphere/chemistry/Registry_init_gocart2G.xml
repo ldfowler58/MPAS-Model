@@ -7,6 +7,9 @@
       <dim name="nDustErosionDim" definition="3"
            description="The number of erosion layers in the gocart2G dust emission parameterization"/>
 
+      <dim name="nAerLevels" definition="namelist:config_aerosolFG_levels"
+           description="The number of atmospheric levels in the first-guess aerosol data set"/>
+
       <dim name="nBCKLevels" definition="namelist:config_chems_bck_levels"
            description="The number of atmospheric levels for the monthly-mean background H2O2, OH, and NO3 fields"/>
 
@@ -14,6 +17,16 @@
 
 
  <nml_record name="preproc_chemistry" in_defaults="true">
+
+      <nml_option name="config_aerosolFG_prefix" type="character" default_value="MERRA2"
+           units="-"
+           description="Filename prefix of the first guess aerosol data set"
+           possible_values="Any alpha-numeric string"/>
+
+      <nml_option name="config_aerosolFG_levels" type="integer" default_value="72"
+           units="-"
+           description="The number of atmospheric levels in the first guess aerosol data set"
+           possible_values="Positive integer values"/>
 
       <nml_option name="config_chems_bck_levels" type="integer" default_value="55"
            units="-"
@@ -23,6 +36,11 @@
       <nml_option name="config_CAMS_emissions" type="logical" default_value="false"
            units="-"
            description="Whether to read the CAMS surface emissions file"
+           possible_values="true or false"/>
+
+      <nml_option name="config_gocart2G_interp" type="logical" default_value="false"
+           units="-"
+           description="Whether to interpolate first-guess aerosol species and emissions from aerosol input data"
            possible_values="true or false"/>
 
       <nml_option name="config_gocart2G_clim" type="logical" default_value="false"
@@ -97,5 +115,174 @@
 
  </var_struct>
 
+
+ <var_struct name="fg" time_levs="1">
+
+      <var_array name="scalars_fg" type="real" dimensions="nAerLevels nCells Time">
+           <var name="qbcphobic_fg" name_in_code="qbcphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BCPHOBIC - first guess hydrophobic black carbon mass mixing ratio"/>
+
+           <var name="qbcphilic_fg" name_in_code="qbcphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BCPHILIC - first guess hydrophilic black carbon mass mixing ratio"/>
+
+           <var name="qbrphobic_fg" name_in_code="qbrphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BRPHOBIC - first guess hydrophobic brown carbon mass mixing ratio"/>
+
+           <var name="qbrphilic_fg" name_in_code="qbrphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BRPHILIC - first guess hydrophilic brown carbon mass mixing ratio"/>
+
+           <var name="qocphobic_fg" name_in_code="qocphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="OCPHOBIC - first guess hydrophobic organic carbon mass mixing ratio"/>
+
+           <var name="qocphilic_fg" name_in_code="qocphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="OCPHILIC - first guess hydrophilic organic carbon mass mixing ratio"/>
+
+           <var name="qdust1_fg" name_in_code="qdust1" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU001 - first guess mineral dust size bin 1 mass mixing ratio"/>
+
+           <var name="qdust2_fg" name_in_code="qdust2" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU002 - first guess mineral dust size bin 2 mass mixing ratio"/>
+
+           <var name="qdust3_fg" name_in_code="qdust3" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU003 - first guess mineral dust size bin 3 mass mixing ratio"/>
+
+           <var name="qdust4_fg" name_in_code="qdust4" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU004 - first guess mineral dust size bin 4 mass mixing ratio"/>
+
+           <var name="qdust5_fg" name_in_code="qdust5" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU005 - first guess mineral dust size bin 5 mass mixing ratio"/>
+
+           <var name="qni1_fg" name_in_code="qni1" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI001 - first guess nitrate size bin 1 mass mixing ratio"/>
+
+           <var name="qni2_fg" name_in_code="qni2" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI002 - first guess nitrate size bin 2 mass mixing ratio"/>
+
+           <var name="qni3_fg" name_in_code="qni3" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI003 - first guess nitrate size bin 3 mass mixing ratio"/>
+
+           <var name="qso2_fg" name_in_code="qso2" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO2 - first guess sulfur dioxide mass mixing ratio"/>
+
+           <var name="qso2v_fg" name_in_code="qso2v" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO2v - first guess sulfur dioxide (volcanic) mass mixing ratio"/>
+
+           <var name="qso4_fg" name_in_code="qso4" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO4 - first guess sulfate mass mixing ratio"/>
+
+           <var name="qso4v_fg" name_in_code="qso4v" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO4v - first guess sulfate (volcanic) mass mixing ratio"/>
+
+           <var name="qseas1_fg" name_in_code="qseas1" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS001 - first guess sea-salt size bin 1 mass mixing ratio"/>
+
+           <var name="qseas2_fg" name_in_code="qseas2" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS002 - first guess sea-salt size bin 2 mass mixing ratio"/>
+
+           <var name="qseas3_fg" name_in_code="qseas3" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS003 - first guess sea-salt size bin 3 mass mixing ratio"/>
+
+           <var name="qseas4_fg" name_in_code="qseas4" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS004 - first guess sea-salt size bin 4 mass mixing ratio"/>
+
+           <var name="qseas5_fg" name_in_code="qseas5" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS005 - first guess sea-salt size bin 5 mass mixing ratio"/>
+
+           <var name="qdms_fg" name_in_code="qdms" array_group="gocart2G" units="kg kg^{-1}"
+                description="DMS - first guess dimethyl sulfide mass mixing ratio"/>
+
+           <var name="qmsa_fg" name_in_code="qmsa" array_group="gocart2G" units="kg kg^{-1}"
+                description="MSA - first guess methanesulfonic acid mass mixing ratio"/>
+      </var_array>
+
+      <var name="pgoc_fg" name_in_code="pgoc" type="real" dimensions="nAerLevels nCells Time" units="Pa"
+           description="first guess layer pressure for aerosol species"/>
+
+      <var name="dpgoc_fg" name_in_code="dpgoc" type="real" dimensions="nAerLevels nCells Time" units="Pa"
+           description="first guess pressure thickness for aerosol species"/>
+
+ </var_struct>
+
+
+ <var_struct name="state" time_levs="1">
+
+      <var_array name="scalars" type="real" dimensions="nVertLevels nCells Time">
+           <var name="qbcphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BCPHOBIC - black carbon hydrophobic mass mixing ratio"/>
+
+           <var name="qbcphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BCPHILIC - black carbon hydrophilic mass mixing ratio"/>
+
+           <var name="qbrphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BRPHOBIC - brown carbon hydrophobic mass mixing ratio"/>
+
+           <var name="qbrphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BRPHILIC - brown carbon hydrophilic mass mixing ratio"/>
+
+           <var name="qocphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="OCPHOBIC - organic carbon hydrophobic mass mixing ratio"/>
+
+           <var name="qocphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="OCPHILIC - organic carbon hydrophilic mass mixing ratio"/>
+
+           <var name="qdust1" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU001 - mineral dust size bin 1 mass mixing ratio"/>
+
+           <var name="qdust2" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU002 - mineral dust size bin 2 mass mixing ratio"/>
+
+           <var name="qdust3" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU003 - mineral dust size bin 3 mass mixing ratio"/>
+
+           <var name="qdust4" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU004 - mineral dust size bin 4 mass mixing ratio"/>
+
+           <var name="qdust5" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU005 - mineral dust size bin 5 mass mixing ratio"/>
+
+           <var name="qni1" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI001 - nitrate size bin 1 mass mixing ratio"/>
+
+           <var name="qni2" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI002 - nitrate size bin 2 mass mixing ratio"/>
+
+           <var name="qni3" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI003 - nitrate size bin 3 mass mixing ratio"/>
+
+           <var name="qso2" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO2 - sulfur dioxide mass mixing ratio"/>
+
+           <var name="qso2v" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO2v - sulfur dioxide (volcanic) mass mixing ratio"/>
+
+           <var name="qso4" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO4 - sulfate mass mixing ratio"/>
+
+           <var name="qso4v" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO4v - sulfate (volcanic) mass mixing ratio"/>
+
+           <var name="qseas1" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS001 - sea-salt size bin 1 mass mixing ratio"/>
+
+           <var name="qseas2" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS002 - sea-salt size bin 2 mass mixing ratio"/>
+
+           <var name="qseas3" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS003 - sea-salt size bin 3 mass mixing ratio"/>
+
+           <var name="qseas4" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS004 - sea-salt size bin 4 mass mixing ratio"/>
+
+           <var name="qseas5" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS005 - sea-salt size bin 5 mass mixing ratio"/>
+
+           <var name="qdms" array_group="gocart2G" units="kg kg^{-1}"
+                description="DMS - dimethyl sulfide mass mixing ratio"/>
+
+           <var name="qmsa" array_group="gocart2G" units="kg kg^{-1}"
+                description="MSA - methanesulfonic acid mass mixing ratio"/>
+      </var_array>
+
+ </var_struct>
 
 #include "Registry_init_emissions.xml"

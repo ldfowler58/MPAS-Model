@@ -21,126 +21,690 @@
 
  implicit none
  private
- public:: init_CAMS_emissions
-
-
-!initialization of CAMS emissions.
-!Laura D. Fowler (laura@ucar.edu) / 2022-02-08.
+ public:: init_gocart2G_aerosols
 
 
  contains
 
 
+!=================================================================================================================
+ subroutine init_gocart2G_aerosols(configs,mesh,fg,diag,state)
+!=================================================================================================================
+
+!input arguments:
+ type(mpas_pool_type),intent(in):: configs
+ type(mpas_pool_type),intent(in):: mesh
+ type(mpas_pool_type),intent(in):: diag
+
+!inout arguments:
+ type(mpas_pool_type),intent(inout):: fg
+ type(mpas_pool_type),intent(inout):: state
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine init_gocart2G_aerosols:')
+
+ call init_hinterp_gocart2G(configs,mesh,fg)
+ call init_vinterp_gocart2G(configs,mesh,fg,diag,state)
+
+ call mpas_log_write('--- end subroutine init_gocart2G_aerosols.')
+ call mpas_log_write(' ')
+
+ end subroutine init_gocart2G_aerosols
+
 !==================================================================================================================
- subroutine init_CAMS_emissions(clock,stream_manager,mesh,CAMS_emissions)
+ subroutine init_hinterp_gocart2G(configs,mesh,fg)
 !==================================================================================================================
 
 !input arguments:
- type(mpas_pool_type),intent(in),pointer:: mesh
- type(mpas_Clock_type),intent(in),pointer:: clock
+ type(mpas_pool_type),intent(in):: configs
+ type(mpas_pool_type),intent(in):: mesh
 
 !inout arguments:
- type(MPAS_streamManager_type),intent(inout):: stream_manager
- type(mpas_pool_type),intent(inout),pointer:: CAMS_emissions
+ type(mpas_pool_type),intent(inout):: fg
 
 !local variables and arrays:
- type(mpas_time_type):: beforeTime,afterTime,currTime
- type(mpas_timeinterval_type):: beforeDelta,afterDelta,totalDelta
+ type(met_data) :: field !real*4 meteorological data.
+ type(proj_info):: proj
 
- character(len=StrKIND):: actualTimeStamp
- integer,pointer:: nCells
- real(kind=RKIND):: total_dt,before_dt,after_dt
+ character(len=StrKIND),pointer:: prefix,start_time
 
- real(kind=RKIND),dimension(:),pointer:: bc1_before,co_before,oc1_before,nh3_before,so2_before
- real(kind=RKIND),dimension(:),pointer:: bc1,co,oc1,nh3,so2
+ logical:: have_landmask
 
-!------------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine init_atm_CAMS_emissions:')
+!First-guess gocart2G aerosol mixing ratios:
+ integer:: iCell,istatus,k,masked,nInterpPoints
+ integer,dimension(5):: interp_list
+
+ integer,pointer:: index_qbcphobic,index_qbcphilic
+ integer,pointer:: index_qbrphobic,index_qbrphilic
+ integer,pointer:: index_qocphobic,index_qocphilic
+ integer,pointer:: index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
+ integer,pointer:: index_qni1,index_qni2,index_qni3
+ integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
+ integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
+ integer,pointer:: index_qdms,index_qmsa
+
+ integer,pointer:: nCells,nAerLevels
+ integer,pointer:: num_scalars_fg
+ integer,pointer:: gocart2G_start,gocart2G_end
+ integer,dimension(:),pointer:: landmask,mask_array
+
+ real(kind=RKIND):: fillval,maskval,msgval
+ real(kind=RKIND):: lat,lon,x,y
+ real(kind=RKIND),dimension(:),pointer:: latCell,lonCell
+ real(kind=RKIND),dimension(:),pointer:: latPoints,lonPoints
+
+ real(kind=RKIND),dimension(:,:),pointer:: dpgoc,pgoc
+
+ real(kind=RKIND),dimension(:,:),pointer:: qbcphobic,qbcphilic
+ real(kind=RKIND),dimension(:,:),pointer:: qbrphobic,qbrphilic
+ real(kind=RKIND),dimension(:,:),pointer:: qocphobic,qocphilic
+ real(kind=RKIND),dimension(:,:),pointer:: qdust1,qdust2,qdust3,qdust4,qdust5
+ real(kind=RKIND),dimension(:,:),pointer:: qni1,qni2,qni3
+ real(kind=RKIND),dimension(:,:),pointer:: qseas1,qseas2,qseas3,qseas4,qseas5
+ real(kind=RKIND),dimension(:,:),pointer:: qso2,qso2v,qso4,qso4v
+ real(kind=RKIND),dimension(:,:),pointer:: qdms,qmsa
+ real(kind=RKIND),dimension(:,:,:),pointer:: scalars_fg
+
+ real(kind=RKIND),dimension(:,:),pointer:: destField2d
+ real(kind=RKIND),dimension(:,:),allocatable:: maskslab,rslab
+
+ real(kind=RKIND):: rmax
+
+!-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write('--- enter subroutine init_hinterp_gocart2G:')
+
+ call mpas_pool_get_config(configs,'config_aerosolFG_prefix',prefix)
+ call mpas_pool_get_config(configs,'config_start_time',start_time)
 
  call mpas_pool_get_dimension(mesh,'nCells',nCells)
+ call mpas_pool_get_dimension(mesh,'nAerLevels',nAerLevels)
 
- call mpas_pool_get_array(CAMS_emissions,'bc1_em_anthro',bc1)
- call mpas_pool_get_array(CAMS_emissions,'co_em_anthro' ,co )
- call mpas_pool_get_array(CAMS_emissions,'oc1_em_anthro',oc1)
- call mpas_pool_get_array(CAMS_emissions,'nh3_em_anthro',nh3)
- call mpas_pool_get_array(CAMS_emissions,'so2_em_anthro',so2)
+ call mpas_pool_get_array(mesh,'landmask',landmask)
+ call mpas_pool_get_array(mesh,'latCell' ,latCell )
+ call mpas_pool_get_array(mesh,'lonCell' ,lonCell )
 
-!read the latest time slice from the file that is before (or equal to) the current time:
- call mpas_stream_mgr_read(stream_manager,'emissions',rightNow=.true.,whence=MPAS_STREAM_LATEST_BEFORE, &
-                           actualWhen=actualTimestamp)
- call mpas_log_write('latest time before is '//trim(actualTimestamp))
- call mpas_log_write('maxval(bc1) = $r', realArgs=[maxval(bc1)])
- call mpas_log_write('maxval(co)  = $r', realArgs=[maxval(co )])
- call mpas_log_write('maxval(oc1) = $r', realArgs=[maxval(oc1)])
- call mpas_log_write('maxval(nh3) = $r', realArgs=[maxval(nh3)])
- call mpas_log_write('maxval(so2) = $r', realArgs=[maxval(so2)])
- call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
 
-!before reading the next time from the file,copy all arrays to temporary arrays for later use in interpolation:
- call mpas_pool_get_dimension(mesh,'nCells',nCells)
- if(.not.associated(bc1_before)) allocate(bc1_before(nCells+1))  !allocate the nCells+1 garbage cell,too.
- if(.not.associated(co_before) ) allocate(co_before(nCells+1) )
- if(.not.associated(oc1_before)) allocate(oc1_before(nCells+1))
- if(.not.associated(nh3_before)) allocate(nh3_before(nCells+1))
- if(.not.associated(so2_before)) allocate(so2_before(nCells+1))
- bc1_before(:) = bc1(:)
- co_before(:)  = co(:)
- oc1_before(:) = oc1(:)
- nh3_before(:) = nh3(:)
- so2_before(:) = so2(:)
+!--- list of input gocart2G aerosol species from intermediate binary file:
+ call mpas_pool_get_dimension(fg,'index_qbcphobic',index_qbcphobic)
+ call mpas_pool_get_dimension(fg,'index_qbcphilic',index_qbcphilic)
+ call mpas_pool_get_dimension(fg,'index_qbrphobic',index_qbrphobic)
+ call mpas_pool_get_dimension(fg,'index_qbrphilic',index_qbrphilic)
+ call mpas_pool_get_dimension(fg,'index_qocphobic',index_qocphobic)
+ call mpas_pool_get_dimension(fg,'index_qocphilic',index_qocphilic)
+ call mpas_pool_get_dimension(fg,'index_qdust1'   ,index_qdust1   )
+ call mpas_pool_get_dimension(fg,'index_qdust2'   ,index_qdust2   )
+ call mpas_pool_get_dimension(fg,'index_qdust3'   ,index_qdust3   )
+ call mpas_pool_get_dimension(fg,'index_qdust4'   ,index_qdust4   )
+ call mpas_pool_get_dimension(fg,'index_qdust5'   ,index_qdust5   )
+ call mpas_pool_get_dimension(fg,'index_qni1'     ,index_qni1     )
+ call mpas_pool_get_dimension(fg,'index_qni2'     ,index_qni2     )
+ call mpas_pool_get_dimension(fg,'index_qni3'     ,index_qni3     )
+ call mpas_pool_get_dimension(fg,'index_qso2'     ,index_qso2     )
+ call mpas_pool_get_dimension(fg,'index_qso2v'    ,index_qso2v    )
+ call mpas_pool_get_dimension(fg,'index_qso4'     ,index_qso4     )
+ call mpas_pool_get_dimension(fg,'index_qso4v'    ,index_qso4v    )
+ call mpas_pool_get_dimension(fg,'index_qseas1'   ,index_qseas1   )
+ call mpas_pool_get_dimension(fg,'index_qseas2'   ,index_qseas2   )
+ call mpas_pool_get_dimension(fg,'index_qseas3'   ,index_qseas3   )
+ call mpas_pool_get_dimension(fg,'index_qseas4'   ,index_qseas4   )
+ call mpas_pool_get_dimension(fg,'index_qseas5'   ,index_qseas5   )
+ call mpas_pool_get_dimension(fg,'index_qdms'     ,index_qdms     )
+ call mpas_pool_get_dimension(fg,'index_qmsa'     ,index_qmsa     )
+ call mpas_pool_get_array(fg,'scalars_fg',scalars_fg)
+ scalars_fg = 0._RKIND
 
-!read the latest time slice from the file that is after (or equal to) the current time:
- call mpas_stream_mgr_read(stream_manager,'emissions',rightNow=.true.,whence=MPAS_STREAM_EARLIEST_AFTER, &
-                           actualWhen=actualTimestamp)
- call mpas_log_write('earliest time after is '//trim(actualTimestamp))
- call mpas_log_write('maxval(bc1) = $r', realArgs=[maxval(bc1)])
- call mpas_log_write('maxval(co)  = $r', realArgs=[maxval(co )])
- call mpas_log_write('maxval(oc1) = $r', realArgs=[maxval(oc1)])
- call mpas_log_write('maxval(nh3) = $r', realArgs=[maxval(nh3)])
- call mpas_log_write('maxval(so2) = $r', realArgs=[maxval(so2)])
- call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+ call mpas_log_write('--- index_qbcphobic = $i',intArgs=(/index_qbcphobic/))
+ call mpas_log_write('--- index_qbcphilic = $i',intArgs=(/index_qbcphilic/))
+ call mpas_log_write('--- index_qbrphobic = $i',intArgs=(/index_qbrphobic/))
+ call mpas_log_write('--- index_qbrphilic = $i',intArgs=(/index_qbrphilic/))
+ call mpas_log_write('--- index_qocphobic = $i',intArgs=(/index_qocphobic/))
+ call mpas_log_write('--- index_qocphilic = $i',intArgs=(/index_qocphilic/))
+ call mpas_log_write('--- index_qdust1    = $i',intArgs=(/index_qdust1/))
+ call mpas_log_write('--- index_qdust2    = $i',intArgs=(/index_qdust2/))
+ call mpas_log_write('--- index_qdust3    = $i',intArgs=(/index_qdust3/))
+ call mpas_log_write('--- index_qdust4    = $i',intArgs=(/index_qdust4/))
+ call mpas_log_write('--- index_qdust5    = $i',intArgs=(/index_qdust5/))
+ call mpas_log_write('--- index_qni1      = $i',intArgs=(/index_qni1/))
+ call mpas_log_write('--- index_qni2      = $i',intArgs=(/index_qni2/))
+ call mpas_log_write('--- index_qni3      = $i',intArgs=(/index_qni3/))
+ call mpas_log_write('--- index_qso2      = $i',intArgs=(/index_qso2/))
+ call mpas_log_write('--- index_qso2v     = $i',intArgs=(/index_qso2v/))
+ call mpas_log_write('--- index_qso4      = $i',intArgs=(/index_qso4/))
+ call mpas_log_write('--- index_qso4v     = $i',intArgs=(/index_qso4v/))
+ call mpas_log_write('--- index_qseas1    = $i',intArgs=(/index_qseas1/))
+ call mpas_log_write('--- index_qseas2    = $i',intArgs=(/index_qseas2/))
+ call mpas_log_write('--- index_qseas3    = $i',intArgs=(/index_qseas3/))
+ call mpas_log_write('--- index_qseas4    = $i',intArgs=(/index_qseas4/))
+ call mpas_log_write('--- index_qseas5    = $i',intArgs=(/index_qseas5/))
+ call mpas_log_write('--- index_qdms      = $i',intArgs=(/index_qdms/))
+ call mpas_log_write('--- index_qmsa      = $i',intArgs=(/index_qmsa/))
 
-!get current time:
- currTime = mpas_get_clock_time(clock,MPAS_NOW)
+ qbcphobic => scalars_fg(index_qbcphobic,:,:)
+ qbcphilic => scalars_fg(index_qbcphilic,:,:)
+ qbrphobic => scalars_fg(index_qbrphobic,:,:)
+ qbrphilic => scalars_fg(index_qbrphilic,:,:)
+ qocphobic => scalars_fg(index_qocphobic,:,:)
+ qocphilic => scalars_fg(index_qocphilic,:,:)
+ qdust1    => scalars_fg(index_qdust1,:,:)
+ qdust2    => scalars_fg(index_qdust2,:,:)
+ qdust3    => scalars_fg(index_qdust3,:,:)
+ qdust4    => scalars_fg(index_qdust4,:,:)
+ qdust5    => scalars_fg(index_qdust5,:,:)
+ qni1      => scalars_fg(index_qni1,:,:)
+ qni2      => scalars_fg(index_qni2,:,:)
+ qni3      => scalars_fg(index_qni3,:,:)
+ qso2      => scalars_fg(index_qso2,:,:)
+ qso2v     => scalars_fg(index_qso2v,:,:)
+ qso4      => scalars_fg(index_qso4,:,:)
+ qso4v     => scalars_fg(index_qso4v,:,:)
+ qseas1    => scalars_fg(index_qseas1,:,:)
+ qseas2    => scalars_fg(index_qseas2,:,:)
+ qseas3    => scalars_fg(index_qseas3,:,:)
+ qseas4    => scalars_fg(index_qseas4,:,:)
+ qseas5    => scalars_fg(index_qseas5,:,:)
+ qdms      => scalars_fg(index_qdms,:,:)
+ qmsa      => scalars_fg(index_qmsa,:,:)
 
-!calculate time deltas between the times that were actually read and the current time:
- totalDelta  = sub_t_t(afterTime,beforeTime)
- beforeDelta = sub_t_t(currTime,beforeTime)
- afterDelta  = sub_t_t(afterTime,currTime)
+ call mpas_pool_get_dimension(fg,'num_scalars_fg' ,num_scalars_fg )
+ call mpas_pool_get_dimension(fg,'gocart2G_start',gocart2G_start)
+ call mpas_pool_get_dimension(fg,'gocart2G_end'  ,gocart2G_end  )
+ call mpas_log_write('--- num_scalars_fg     = $i',intArgs=(/num_scalars_fg/) )
+ call mpas_log_write('--- gocart2G_start     = $i',intArgs=(/gocart2G_start/))
+ call mpas_log_write('--- gocart2G_end       = $i',intArgs=(/gocart2G_end/)  )
 
-!retrieve time deltas as real values:
- call mpas_get_timeInterval(totalDelta ,dt=total_dt)
- call mpas_get_timeInterval(beforeDelta,dt=before_dt)
- call mpas_get_timeInterval(afterDelta , dt=after_dt)
- call mpas_log_write(' ')
- call mpas_log_write('--- totalDelta  = $r',realArgs=(/total_dt/))
- call mpas_log_write('--- beforeDelta = $r',realArgs=(/before_dt/))
- call mpas_log_write('--- afterDelta  = $r',realArgs=(/after_dt/))
+ call mpas_pool_get_array(fg,'pgoc',pgoc)
+ call mpas_pool_get_array(fg,'dpgoc',dpgoc)
 
-!interpolation of surface emissions to the current time:
- if(total_dt > 0.0_RKIND) then
-    bc1(:) = (after_dt/total_dt)*bc1_before(:) + (before_dt/total_dt)*bc1(:)
-    co(:)  = (after_dt/total_dt)*co_before(:)  + (before_dt/total_dt)*co(:)
-    oc1(:) = (after_dt/total_dt)*oc1_before(:) + (before_dt/total_dt)*oc1(:)
-    nh3(:) = (after_dt/total_dt)*nh3_before(:) + (before_dt/total_dt)*nh3(:)
-    so2(:) = (after_dt/total_dt)*so2_before(:) + (before_dt/total_dt)*so2(:)
-    call mpas_log_write(' ')
-    call mpas_log_write('maxval(bc1) = $r', realArgs=[maxval(bc1)])
-    call mpas_log_write('maxval(co)  = $r', realArgs=[maxval(co )])
-    call mpas_log_write('maxval(oc1) = $r', realArgs=[maxval(oc1)])
-    call mpas_log_write('maxval(nh3) = $r', realArgs=[maxval(nh3)])
-    call mpas_log_write('maxval(so2) = $r', realArgs=[maxval(so2)])
+
+!--- open intermediate binary file:
+ istatus = 0
+ call read_met_init(trim(prefix),.false.,start_time(1:13),istatus)
+ if(istatus /= 0) then
+    call mpas_log_write('**************************************************',messageType=MPAS_LOG_ERR)
+    call mpas_log_write('Error opening intermediate input data file ' &
+                                       //trim(prefix)//':'//start_time(1:13),messageType=MPAS_LOG_ERR)
+    call mpas_log_write('**************************************************',messageType=MPAS_LOG_CRIT)
  endif
 
- if(associated(bc1_before)) deallocate(bc1_before)  !allocate the nCells+1 garbage cell,too.
- if(associated(co_before) ) deallocate(co_before )
- if(associated(oc1_before)) deallocate(oc1_before)
- if(associated(nh3_before)) deallocate(nh3_before)
- if(associated(so2_before)) deallocate(so2_before)
 
- call mpas_log_write('--- end subroutine init_atm_CAMS_emissions.')
+!scan through all fields in the file, looking for the LANDSEA field:
+ have_landmask = .false.
+ call read_next_met_field(field,istatus)
+ do while (istatus == 0)
+    if(index(field%field, 'LANDSEA') /= 0) then
+       have_landmask = .true.
+       if(.not.allocated(maskslab)) allocate(maskslab(-2:field%nx+3,field%ny))
 
- end subroutine init_CAMS_emissions
+       maskslab(1:field%nx,1:field%ny) = field%slab(1:field%nx,1:field%ny)
+       maskslab(0 ,1:field%ny) = field%slab(field%nx  ,1:field%ny)
+       maskslab(-1,1:field%ny) = field%slab(field%nx-1,1:field%ny)
+       maskslab(-2,1:field%ny) = field%slab(field%nx-2,1:field%ny)
+       maskslab(field%nx+1,1:field%ny) = field%slab(1,1:field%ny)
+       maskslab(field%nx+2,1:field%ny) = field%slab(2,1:field%ny)
+       maskslab(field%nx+3,1:field%ny) = field%slab(3,1:field%ny)
+       call mpas_log_write('minval,maxval LANDSEA = $r $r',realArgs=(/minval(maskslab),maxval(maskslab)/))
+    endif
+    !note that field%slab is initialized in subroutine read_next_met_field but deallocated here:
+    deallocate(field%slab)
+    call read_next_met_field(field,istatus)
+ enddo
+ call read_met_close()
+
+ if(.not. have_landmask) then
+    call mpas_log_write('**************************************************')
+    call mpas_log_write('Landsea mask not available from the intermediate CAM-Chem data file ' &
+                                       //trim(prefix)//':'//start_time(1:13))
+    call mpas_log_write('**************************************************')
+    call mpas_log_write(' ')
+ endif
+
+
+!horizontally interpolate first-guess data:
+ istatus = 0
+ call read_met_init(trim(prefix),.false.,start_time(1:13),istatus)
+ if(istatus /= 0) then
+    call mpas_log_write('**************************************************',messageType=MPAS_LOG_ERR)
+    call mpas_log_write('Error opening intermediate input data file ' &
+                                       //trim(prefix)//':'//start_time(1:13),messageType=MPAS_LOG_ERR)
+    call mpas_log_write('**************************************************',messageType=MPAS_LOG_CRIT)
+ endif
+ call read_next_met_field(field,istatus)
+
+
+ do while(istatus == 0)
+
+!--- use the same values as the default values for meteorological fields in mpas_init_case_gfs:
+!   interp_list(1) = FOUR_POINT
+!   interp_list(2) = W_AVERAGE4
+!   interp_list(3) = W_AVERAGE16
+!   interp_list(4) = SEARCH
+!   interp_list(5) = 0
+    interp_list(1) = FOUR_POINT
+    interp_list(2) = SEARCH
+    interp_list(3) = 0
+!--- end use.
+
+    maskval = -1.0
+    masked  = -1
+    fillval = 0.0
+    msgval  = 1.e15
+
+    mask_array => landmask
+
+    if(trim(field%field) == 'BCPHOBIC' .or. &
+       trim(field%field) == 'BCPHILIC' .or. &
+       trim(field%field) == 'BRPHOBIC' .or. &
+       trim(field%field) == 'BRPHILIC' .or. &
+       trim(field%field) == 'OCPHOBIC' .or. &
+       trim(field%field) == 'OCPHILIC' .or. &
+       trim(field%field) == 'DU001'    .or. &
+       trim(field%field) == 'DU002'    .or. &
+       trim(field%field) == 'DU003'    .or. &
+       trim(field%field) == 'DU004'    .or. &
+       trim(field%field) == 'DU005'    .or. &
+       trim(field%field) == 'NI001'    .or. &
+       trim(field%field) == 'NI002'    .or. &
+       trim(field%field) == 'NI003'    .or. &
+       trim(field%field) == 'SO2'      .or. &
+       trim(field%field) == 'SO2V'     .or. &
+       trim(field%field) == 'SO4'      .or. &
+       trim(field%field) == 'SO4V'     .or. &
+       trim(field%field) == 'SS001'    .or. &
+       trim(field%field) == 'SS002'    .or. &
+       trim(field%field) == 'SS003'    .or. &
+       trim(field%field) == 'SS004'    .or. &
+       trim(field%field) == 'SS005'    .or. &
+       trim(field%field) == 'DMS'      .or. &
+       trim(field%field) == 'MSA'      .or. &
+       trim(field%field) == 'AIRDENS'  .or. &
+       trim(field%field) == 'RH'       .or. &
+       trim(field%field) == 'DPRES'    .or. &
+       trim(field%field) == 'PRES'    ) then
+
+       !
+       !set up projection:
+       !
+       call map_init(proj)
+
+       if(field%iproj == PROJ_LATLON) then
+          call map_set(PROJ_LATLON,proj, &
+                       latinc = real(field%deltalat,RKIND), &
+                       loninc = real(field%deltalon,RKIND), &
+                       knowni = 1.0_RKIND, &
+                       knownj = 1.0_RKIND, &
+                       lat1   = real(field%startlat,RKIND), &
+                       lon1   = real(field%startlon,RKIND))
+       elseif(field%iproj == PROJ_GAUSS) then
+          call map_set(PROJ_GAUSS,proj, &
+                       nlat = nint(field%deltalat), &
+                       loninc = 360.0_RKIND / real(field%nx,RKIND), &
+                       lat1 = real(field%startlat,RKIND), &
+                       lon1 = real(field%startlon,RKIND))
+       endif
+
+       !
+       !horizontally interpolate field at level k:
+       !
+       if(trim(field%field) == 'BCPHOBIC') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating BCPHOBIC at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qbcphobic
+       elseif(trim(field%field) == 'BCPHILIC') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating BCPHILIC at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qbcphilic
+       elseif(trim(field%field) == 'BRPHOBIC') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating BRPHOBIC at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qbrphobic
+       elseif(trim(field%field) == 'BRPHILIC') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating BRPHILIC at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qbrphilic
+       elseif(trim(field%field) == 'OCPHOBIC') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating OCPHOBIC at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qocphobic
+       elseif(trim(field%field) == 'OCPHILIC') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating OCPHILIC at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qocphilic
+       elseif(trim(field%field) == 'DU001') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating DU001 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qdust1
+       elseif(trim(field%field) == 'DU002') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating DU002 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qdust2
+       elseif(trim(field%field) == 'DU003') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating DU003 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qdust3
+       elseif(trim(field%field) == 'DU004') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating DU004 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qdust4
+       elseif(trim(field%field) == 'DU005') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating DU005 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qdust5
+       elseif(trim(field%field) == 'NI001') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating NI001 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qni1
+       elseif(trim(field%field) == 'NI002') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating NI002 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qni2
+       elseif(trim(field%field) == 'NI003') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating NI003 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qni3
+       elseif(trim(field%field) == 'SO2') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating SO2 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qso2
+       elseif(trim(field%field) == 'SO2V') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating SO2V at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qso2v
+       elseif(trim(field%field) == 'SO4') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating SO4 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qso4
+       elseif(trim(field%field) == 'SO4V') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating SO4V at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qso4v
+       elseif(trim(field%field) == 'SS001') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating SS001 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qseas1
+       elseif(trim(field%field) == 'SS002') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating SS002 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qseas2
+       elseif(trim(field%field) == 'SS003') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating SS003 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qseas3
+       elseif(trim(field%field) == 'SS004') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating SS004 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qseas4
+       elseif(trim(field%field) == 'SS005') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating SS005 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qseas5
+       elseif(trim(field%field) == 'DMS') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating DMS at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qdms
+       elseif(trim(field%field) == 'MSA') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating MSA at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qmsa
+       elseif(trim(field%field) == 'DPRES') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating DPRES at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => dpgoc
+       elseif(trim(field%field) == 'PRES') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating PRES at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => pgoc
+       endif
+
+       allocate(rslab(-2:field%nx+3,field%ny))
+       rslab(1:field%nx,1:field%ny) = field%slab(1:field%nx,1:field%ny)
+       rslab(0,1:field%ny)  = field%slab(field%nx  ,1:field%ny)
+       rslab(-1,1:field%ny) = field%slab(field%nx-1,1:field%ny)
+       rslab(-2,1:field%ny) = field%slab(field%nx-2,1:field%ny)
+       rslab(field%nx+1,1:field%ny) = field%slab(1,1:field%ny)
+       rslab(field%nx+2,1:field%ny) = field%slab(2,1:field%ny)
+       rslab(field%nx+3,1:field%ny) = field%slab(3,1:field%ny)
+
+       do iCell = 1, nInterpPoints
+          if(mask_array(iCell) /= masked) then
+             lat = latPoints(iCell)*DEG_PER_RAD
+             lon = lonPoints(iCell)*DEG_PER_RAD
+             call latlon_to_ij(proj,lat,lon,x,y)
+             if(x < 0.5) then
+                lon = lon + 360.0
+                call latlon_to_ij(proj,lat,lon,x,y)
+             elseif(x > real(field%nx,kind=RKIND)+ 0.5) then
+                lon = lon - 360.0
+                call latlon_to_ij(proj,lat,lon,x,y)
+             endif
+
+             if(maskval /= -1.0) then
+                destField2d(k,iCell) = interp_sequence(x,y,1,rslab,-2,field%nx+3,1,field%ny,1,1,msgval, \
+                                              interp_list,1,maskval=maskval,mask_array=maskslab)
+             else
+                destField2d(k,iCell) = interp_sequence(x,y,1,rslab,-2,field%nx+3,1,field%ny,1,1,msgval, \
+                                              interp_list,1)
+             endif
+          else
+             destField2d(k,iCell) = fillval
+          endif
+       enddo
+       deallocate(rslab)
+
+    endif
+    deallocate(field%slab)
+    call read_next_met_field(field,istatus)
+
+ enddo
+ call read_met_close()
+
+
+ call mpas_log_write('--- end subroutine init_hinterp_gocart2G.')
+
+ end subroutine init_hinterp_gocart2G
+
+!==================================================================================================================
+ subroutine init_vinterp_gocart2G(configs,mesh,fg,diag,state)
+!==================================================================================================================
+
+!input arguments:
+ type(mpas_pool_type),intent(in):: configs
+ type(mpas_pool_type),intent(in):: mesh
+ type(mpas_pool_type),intent(in):: fg
+ type(mpas_pool_type),intent(in):: diag
+
+!inout arguments:
+ type(mpas_pool_type),intent(inout):: state
+
+!local variables and arrays:
+ integer:: k,iCell,n,nn
+ integer,pointer:: nCells,nAerLevels,nVertLevels
+ integer,pointer:: num_scalars,gocart2G_start,gocart2G_end
+ integer,pointer:: num_scalars_fg,gocart2G_fg_start,gocart2G_fg_end
+
+ real(kind=RKIND),dimension(:,:),pointer:: pgoc,pressure
+ real(kind=RKIND),dimension(:,:,:),pointer:: scalars_fg
+ real(kind=RKIND),dimension(:,:,:),pointer:: scalars
+
+ real(kind=RKIND):: target_p
+ real(kind=RKIND),dimension(:,:),allocatable:: sorted_arr
+
+!------------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine init_vinterp_gocart2G:')
+
+ call mpas_pool_get_dimension(mesh,'nCells',nCells)
+ call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
+ call mpas_pool_get_dimension(mesh,'nAerLevels' ,nAerLevels )
+
+ call mpas_pool_get_array(diag,'pressure',pressure)
+
+ call mpas_pool_get_dimension(fg,'num_scalars_fg',num_scalars_fg   )
+ call mpas_pool_get_dimension(fg,'gocart2G_start',gocart2G_fg_start)
+ call mpas_pool_get_dimension(fg,'gocart2G_end'  ,gocart2G_fg_end  )
+ call mpas_log_write('--- num_scalars_fg     = $i',intArgs=(/num_scalars_fg/)   )
+ call mpas_log_write('--- gocart2G_fg_start  = $i',intArgs=(/gocart2G_fg_start/))
+ call mpas_log_write('--- gocart2G_fg_end    = $i',intArgs=(/gocart2G_fg_end/)  )
+ call mpas_log_write(' ')
+
+ call mpas_pool_get_dimension(state,'num_scalars',num_scalars)
+ call mpas_pool_get_dimension(state,'gocart2G_start',gocart2G_start)
+ call mpas_pool_get_dimension(state,'gocart2G_end'  ,gocart2G_end  )
+ call mpas_log_write('--- num_scalars    = $i',intArgs=(/num_scalars/)   )
+ call mpas_log_write('--- gocart2G_start = $i',intArgs=(/gocart2G_start/))
+ call mpas_log_write('--- gocart2G_end   = $i',intArgs=(/gocart2G_end/)  )
+ call mpas_log_write(' ')
+
+ call mpas_pool_get_array(fg,'pgoc',pgoc)
+ call mpas_pool_get_array(fg,'scalars_fg',scalars_fg)
+ call mpas_pool_get_array(state,'scalars',scalars)
+ do nn = gocart2G_start,gocart2G_end
+    scalars(nn,:,:) = 0._RKIND
+ enddo
+
+
+ if(.not.allocated(sorted_arr)) allocate(sorted_arr(2,nAerLevels))
+ n = 0
+ do nn = gocart2G_start,gocart2G_end
+    n = n+1
+    do iCell = 1,nCells
+       sorted_arr(1,1:nAerLevels) = 0._RKIND
+       sorted_arr(2,1:nAerLevels) = 0._RKIND
+       do k = 1,nAerLevels
+          sorted_arr(1,k) = pgoc(k,iCell)
+          sorted_arr(2,k) = scalars_fg(n,k,iCell)
+       enddo
+       do k = nVertLevels,1,-1
+          target_p = pressure(k,iCell)
+          scalars(nn,k,iCell) = pressure_interp(iCell,k,target_p,nAerLevels,sorted_arr(:,1:nAerLevels))
+          if(target_p.gt.sorted_arr(1,1)) scalars(nn,k,iCell) = scalars(nn,k+1,iCell)
+       enddo
+    enddo
+ enddo
+ if(allocated(sorted_arr)) deallocate(sorted_arr)
+
+
+ call mpas_log_write('--- end subroutine init_vinterp_gocart2G.')
+
+ end subroutine init_vinterp_gocart2G
+
+!=================================================================================================================
+ real(kind=RKIND) function pressure_interp(ii,kk,target_z,nz,zf)
+!=================================================================================================================
+
+!input arguments:
+ integer,intent(in):: ii,kk
+ integer,intent(in):: nz
+
+ real(kind=RKIND),intent(in):: target_z
+ real(kind=RKIND),intent(in),dimension(2,nz):: zf
+
+!local variables:
+ integer:: k,lm,lp
+ real(kind=RKIND):: wm,wp
+
+!-----------------------------------------------------------------------------------------------------------------
+
+ do k = 1,nz-1
+    if(target_z <= zf(1,k) .and. target_z > zf(1,k+1)) then
+       lm = k
+       lp = k+1
+       wm = (zf(1,k+1) - target_z)/(zf(1,k+1) - zf(1,k))
+       wp = (target_z - zf(1,k))/(zf(1,k+1) - zf(1,k))
+       exit
+    else
+       lm = nz-1
+       lp = nz
+       wm = 0.
+       wp = 0.
+    endif
+ enddo
+ pressure_interp = wm*zf(2,lm) + wp*zf(2,lp)
+
+ return
+
+ end function pressure_interp
 
 !==================================================================================================================
  end module mpas_chemistry_init_gocart2G_interp
