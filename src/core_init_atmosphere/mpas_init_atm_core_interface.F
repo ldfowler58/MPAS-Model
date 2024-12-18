@@ -126,6 +126,7 @@ module init_atm_core_interface
 #ifdef DO_GOCART2G
       logical, pointer :: config_CAMS_emissions
       logical, pointer :: config_gocart2G_clim
+      logical, pointer :: config_gocart2G_interp
       logical, pointer :: config_gocart2G_static
 
       logical, pointer :: gocart2G_static_in
@@ -360,6 +361,7 @@ module init_atm_core_interface
 
       call mpas_pool_get_config(configs, 'config_CAMS_emissions' , config_CAMS_emissions )
       call mpas_pool_get_config(configs, 'config_gocart2G_clim'  , config_gocart2G_clim  )
+      call mpas_pool_get_config(configs, 'config_gocart2G_interp', config_gocart2G_interp)
       call mpas_pool_get_config(configs, 'config_gocart2G_static', config_gocart2G_static)
 
       gocart2G_static_in  = .false.
@@ -377,7 +379,7 @@ module init_atm_core_interface
             gocart2G_static_out = .true.
          endif
 
-         if(config_CAMS_emissions .or. config_gocart2G_clim) then
+         if(config_CAMS_emissions .or. config_gocart2G_clim .or. config_gocart2G_interp) then
             gocart2G_static_in  = .true.
             gocart2G_static_out = .true.
             gocart2G_interp_out = .true.
