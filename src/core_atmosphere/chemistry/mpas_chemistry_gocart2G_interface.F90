@@ -629,20 +629,6 @@
  call mpas_pool_get_array(sfc_input,'xland'   ,xland   )
  call mpas_pool_get_array(sfc_input,'smois'   ,smois   )
 
- if(associated(raincv)) then
-    do j = jts,jte
-       do i = its,ite
-          self%cn_prcp(i,j)  = raincv(i)
-       enddo
-    enddo
- else
-    do j = jts,jte
-       do i = its,ite
-          self%cn_prcp(i,j)  = 0._RKIND
-       enddo
-    enddo
- endif
-
  do j = jts,jte
     do i = its,ite
        self%coszr(i,j)    = coszr(i)
@@ -654,9 +640,13 @@
        self%ustar(i,j)    = ust(i)
        self%sh(i,j)       = hfx(i)
        self%z0h(i,j)      = z0h(i)
-!      self%cn_prcp(i,j)  = raincv(i)
+       self%cn_prcp(i,j)  = raincv(i)
        self%ncn_prcp(i,j) = rainncv(i)
        self%wet1(i,j)     = smois(1,i)/porosity(i)
+!      if(raincv(i) .gt. 0._RKIND) then
+!         call mpas_log_write('--- cn_prcp $i $r $r',intArgs=(/i/),realArgs= &
+!                            (/self%cn_prcp(i,j),self%ncn_prcp(i,j)/))
+!      endif
     enddo 
  enddo
 
