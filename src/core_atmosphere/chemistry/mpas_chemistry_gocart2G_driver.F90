@@ -246,18 +246,7 @@
        DU2G%zpbl       => mpas_gocart2G%zpbl     ; DU2G%sh        => mpas_gocart2G%sh
        DU2G%z0h        => mpas_gocart2G%z0h      ; DU2G%u10m      => mpas_gocart2G%u10m
        DU2G%v10m       => mpas_gocart2G%v10m     ; DU2G%cn_prcp   => mpas_gocart2G%cn_prcp
-       DU2G%ncn_prcp   => mpas_gocart2G%cn_prcp  ; DU2G%tropp     => mpas_gocart2G%backg_ptrop
-
-!      DU2G%DU_Z0      => null()                 ; DU2G%DU_GVF    => null()
-!      DU2G%DU_SAND    => null()                 ; DU2G%DU_SILT   => null()
-!      DU2G%DU_CLAY    => null()                 ; DU2G%DU_RDRAG  => null()
-!      DU2G%DU_SSM     => null()                 ; DU2G%DU_UTHRES => null()
-!      DU2G%FRSNOW     => null()                 ; DU2G%SLC       => null()
-!      DU2G%DU_TEXTURE => null()                 ; DU2G%DU_VEG    => null()
-!      DU2G%FRLAND     => null()                 ; DU2G%ASNOW     => null()
-!      DU2G%U10N       => null()                 ; DU2G%V10N      => null()
-!      DU2G%WCSF       => null()                 ; DU2G%TSOIL1    => null()
-!      DU2G%RHOS       => null()
+       DU2G%ncn_prcp   => mpas_gocart2G%ncn_prcp ; DU2G%tropp     => mpas_gocart2G%backg_ptrop
 
        DU2G%airdens    => mpas_gocart2G%airdens  ; DU2G%delp     => mpas_gocart2G%delp
        DU2G%delz       => mpas_gocart2G%delz     ; DU2G%t        => mpas_gocart2G%t
