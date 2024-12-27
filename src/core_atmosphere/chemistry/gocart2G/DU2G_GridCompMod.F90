@@ -224,6 +224,7 @@
 
  select case(self_params%emission_scheme)
     case('ginoux')
+
        call DustEmissionGOCART2G_revised(               &
           radius    = self_params%radius*1.e-6,         &
           rhop      = self_params%rhop,                 &
@@ -270,6 +271,12 @@
     self%duem(:,:,n) = emissions(:,:,self_params%km,n)
  enddo
   
+
+!--- deallocates local arrays:
+ if(allocated(emissions_point)  ) deallocate(emissions_point  )
+ if(allocated(emissions_surface)) deallocate(emissions_surface)
+ if(allocated(emissions)        ) deallocate(emissions        )
+
 
  call mpas_log_write('--- end subroutine emissions_DU2G_GridComp:')
 
@@ -576,11 +583,18 @@
  real(kind=RKIND),intent(in),dimension(:):: radius
  real(kind=RKIND),intent(in),dimension(:):: rhop
  real(kind=RKIND),intent(in),dimension(:):: sfra
- real(kind=RKIND),intent(in),dimension(:,:):: frlake
- real(kind=RKIND),intent(in),dimension(:,:):: dz,gwet,oro
- real(kind=RKIND),intent(in),dimension(:,:):: u10m,v10m
- real(kind=RKIND),intent(in),dimension(:,:):: rhoa,u,v
- real(kind=RKIND),intent(in),dimension(:,:,:):: du_src
+!real(kind=RKIND),intent(in),dimension(:,:):: frlake
+!real(kind=RKIND),intent(in),dimension(:,:):: dz,gwet,oro
+!real(kind=RKIND),intent(in),dimension(:,:):: u10m,v10m
+!real(kind=RKIND),intent(in),dimension(:,:):: rhoa,u,v
+!real(kind=RKIND),intent(in),dimension(:,:,:):: du_src
+
+ real(kind=RKIND),intent(in),dimension(:,:),pointer:: oro
+ real(kind=RKIND),intent(in),dimension(:,:),pointer:: frlake
+ real(kind=RKIND),intent(in),dimension(:,:),pointer:: u10m,v10m
+ real(kind=RKIND),intent(in),dimension(:,:),pointer:: gwet
+ real(kind=RKIND),intent(in),dimension(:,:,:),pointer:: du_src
+ real(kind=RKIND),intent(in),dimension(:,:):: dz,rhoa,u,v
 
 !--- inout arguments:
  real(kind=RKIND),intent(inout),dimension(:,:,:):: emissions
