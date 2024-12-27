@@ -5,7 +5,7 @@
 ! Additional copyright and license information can be found in the LICENSE file
 ! distributed with this code, or at http://mpas-dev.github.com/license.html
 !
-!=================================================================================================================
+!==================================================================================================================
  module gocart2G_MieMod_smiol
  use mpas_kind_types, only: R4KIND,RKIND
  use mpas_derived_types
@@ -77,14 +77,15 @@
     module procedure GOCART2G_MieCreate
  end interface GOCART2G_Mie
 
+
  contains
 
 
-!=================================================================================================================
+!==================================================================================================================
  type(GOCART2G_Mie) function GOCART2G_MieCreate(dminfo,MieFile,wavelengths) result(self)
  use SMIOLf
 #include "smiol_codes.inc"
-!=================================================================================================================
+!==================================================================================================================
 
 !--- input arguments:
  type(dm_info),intent(in):: dminfo
@@ -122,9 +123,9 @@
 !arrays needed to call subroutine polint:
  real(kind=RKIND),dimension(:),allocatable:: lambda_r,input_r
 
-!-----------------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
- call mpas_log_write('--- enter function GOCART2G_MieCreate_smiol:')
+ call mpas_log_write('--- enter function GOCART2G_MieCreate:')
 
 
 !
@@ -147,7 +148,7 @@
 !
  stat = SMIOLf_open_file(context,trim(MieFile),SMIOL_FILE_READ,aop_file)
  if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error opening file opticsBands_SU.v1_3.RRTMG.nc', messageType=MPAS_LOG_ERR)
+    call mpas_log_write('Error opening file '//trim(MieFile), messageType=MPAS_LOG_ERR)
     call mpas_log_write(trim(SMIOLf_error_string(stat)), messageType=MPAS_LOG_ERR)
     stat = SMIOLf_finalize(context)
     return
@@ -635,14 +636,38 @@
  enddo
 
 
- call mpas_log_write('--- end function GOCART2G_MieCreate_smiol:')
+!
+!--- deallocate arrays in netCDF files:
+!
+ if(associated(rh)     ) deallocate(rh     )
+ if(associated(lambda) ) deallocate(lambda )
+ if(associated(radius) ) deallocate(radius )
+ if(associated(rLow)   ) deallocate(rLow   )
+ if(associated(rUp)    ) deallocate(rUp    )
+ if(associated(rEff)   ) deallocate(rEff   )
+ if(associated(rMass)  ) deallocate(rMass  )
+ if(associated(gf)     ) deallocate(gf     )
+ if(associated(rhop)   ) deallocate(rhop   )
+ if(associated(rhod)   ) deallocate(rhod   )
+ if(associated(area)   ) deallocate(area   )
+ if(associated(vol)    ) deallocate(vol    )
+ if(associated(qsca)   ) deallocate(qsca   )
+ if(associated(qext)   ) deallocate(qext   )
+ if(associated(bsca)   ) deallocate(bsca   )
+ if(associated(bext)   ) deallocate(bext   )
+ if(associated(g)      ) deallocate(g      )
+ if(associated(bbck)   ) deallocate(bbck   )
+ if(associated(refreal)) deallocate(refreal)
+ if(associated(refimag)) deallocate(refimag)
+ if(associated(pback)  ) deallocate(pback  )
+
+
+ call mpas_log_write('--- end function GOCART2G_MieCreate:')
  return
 
+ end function GOCART2G_MieCreate
 
- contains
-
-
-!-----------------------------------------------------------------------------------------------------------------
+!==================================================================================================================
  subroutine polint(x,y,n,xWant,yWant,yErr)
  integer,intent(in):: n
 !recall, table hard-wired single precision
@@ -685,11 +710,8 @@
  yErr = 0.
 
  end subroutine polint
-!-----------------------------------------------------------------------------------------------------------------
 
- end function GOCART2G_MieCreate
-
-!=================================================================================================================
+!==================================================================================================================
 !--- Query subroutines:
 #define RANK_ 1
 #include "MieQuery.H"
@@ -703,7 +725,7 @@
 #include "MieQuery.H"
 #undef RANK_
 
-!=================================================================================================================
+!==================================================================================================================
  integer function getChannel(this, wavelength, rc) result (ch)
  class (GOCART2G_Mie), intent(in) :: this
  real, intent(in) :: wavelength
@@ -730,7 +752,7 @@
 
  end function getChannel
 
-!=================================================================================================================
+!==================================================================================================================
  real function getWavelength(this, ith_channel, rc) result (wavelength)
  class (GOCART2G_Mie), intent(in) :: this
  integer, intent(in) :: ith_channel
@@ -753,6 +775,6 @@
 
   end function getWavelength
 
-!=================================================================================================================
+!==================================================================================================================
  end module gocart2G_MieMod_smiol
-!=================================================================================================================
+!==================================================================================================================
