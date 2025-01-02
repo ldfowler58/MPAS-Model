@@ -39,9 +39,9 @@
  real(kind=RKIND),parameter:: Avogadro = 6.02214076e23
  real(kind=RKIND),parameter:: undefval = 1.0e15
 
- real(kind=RKIND),parameter:: OCEAN   = 0._RKIND
+ real(kind=RKIND),parameter:: OCEAN   = 2._RKIND
  real(kind=RKIND),parameter:: LAND    = 1._RKIND
- real(kind=RKIND),parameter:: SEA_ICE = 2._RKIND
+ real(kind=RKIND),parameter:: SEA_ICE = 1._RKIND
 
 !--- types needed to define DU2G:
  type:: ThreadWorkspace
