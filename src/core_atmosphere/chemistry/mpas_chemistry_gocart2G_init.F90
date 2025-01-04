@@ -159,8 +159,8 @@
     DU2G_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
 
     !create diagnostics Mie table for DU2G:
-    !fnm = 'optics_DU.v15_3.nc'
-    !DU2G_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
+    fnm = 'optics_DU.v15_3.nc'
+    DU2G_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
 
     call mpas_log_write('--- end initialization of DU2G:')
     call mpas_log_write(' ')
@@ -201,8 +201,8 @@
     SS2G_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
 
     !create diagnostics Mie table for SU2G:
-    !fnm = 'optics_SS.v3_3.nc'
-    !SS2G_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
+    fnm = 'optics_SS.v3_3.nc'
+    SS2G_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
 
     call mpas_log_write('--- end initialization of SS2G:')
     call mpas_log_write(' ')

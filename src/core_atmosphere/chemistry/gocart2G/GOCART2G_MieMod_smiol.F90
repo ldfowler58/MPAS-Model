@@ -221,168 +221,54 @@
 !    i.e., every MPI tasks reads the full variable:
 !
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'rh',decomp,rh)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable rh',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
- 
+ call read_real_1d(aop_file,decomp,'rh',rh)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'lambda',decomp,lambda)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable lambda',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_1d(aop_file,decomp,'lambda',lambda)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'radius',decomp,radius)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable radius',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_1d(aop_file,decomp,'radius',radius)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'rLow',decomp,rLow)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable rLow',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_1d(aop_file,decomp,'rLow',rLow)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'rUp',decomp,rUp)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable rUp',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_1d(aop_file,decomp,'rUp',rUp)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'rEff',decomp,rEff)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable rEff',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_2d(aop_file,decomp,'rEff',rEff)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'rMass',decomp,rMass)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable rMass',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_2d(aop_file,decomp,'rMass',rMass)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'qsca',decomp,qsca)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable qsca',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_3d(aop_file,decomp,'qsca',qsca)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'qext',decomp,qext)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable qext',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_3d(aop_file,decomp,'qext',qext)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'bsca',decomp,bsca)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable bsca',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_3d(aop_file,decomp,'bsca',bsca)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'bext',decomp,bext)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable bext',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_3d(aop_file,decomp,'bext',bext)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'g',decomp,g)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable g',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_3d(aop_file,decomp,'g',g)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'bbck',decomp,bbck)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable bbck',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_3d(aop_file,decomp,'bbck',bbck)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'refreal',decomp,refreal)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable refreal',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_3d(aop_file,decomp,'refreal',refreal)
 
  nullify(decomp)
- stat = SMIOLf_get_var(aop_file,'refimag',decomp,refimag)
- if(stat /= SMIOL_SUCCESS) then
-    call mpas_log_write('Error reading variable refimag',messageType=MPAS_LOG_ERR)
-    call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-    stat = SMIOLf_close_file(aop_file)
-    stat = SMIOLf_finalize(context)
-    return
- endif
+ call read_real_3d(aop_file,decomp,'refimag',refimag)
 
  if(present(wavelengths)) then
-    if(.not.associated(pmom)   ) allocate(pmom(lambda_size,rh_size,radius_size,nMom,nPol_size))
-
+    if(.not.associated(pmom)) allocate(pmom(lambda_size,rh_size,radius_size,nMom,nPol_size))
     nullify(decomp)
-    stat = SMIOLf_get_var(aop_file,'pmom',decomp,pmom)
-    if(stat /= SMIOL_SUCCESS) then
-       call mpas_log_write('Error reading variable pmom',messageType=MPAS_LOG_ERR)
-       call mpas_log_write(trim(SMIOLf_error_string(stat)),messageType=MPAS_LOG_ERR)
-       stat = SMIOLf_close_file(aop_file)
-       stat = SMIOLf_finalize(context)
-       return
-    endif
+    call read_real_5d(aop_file,decomp,'pmom',pmom)
  endif
 
 
@@ -395,7 +281,7 @@
        gf(:,:) = missing
 !      call mpas_log_write('--- GROWTH FACTOR GF is not available in input file',messageType=MPAS_LOG_OUT)
     else
-       stat = SMIOLf_get_var(aop_file,'growth_factor',decomp,gf)
+       call read_real_2d(aop_file,decomp,'growth_factor',gf)
     endif
 
     !wet particle density:
@@ -405,17 +291,17 @@
        rhop(:,:) = missing
 !      call mpas_log_write('--- WET PARTICLE DENSITY not available in input file',messageType=MPAS_LOG_OUT)
     else
-       stat = SMIOLf_get_var(aop_file,'rhop',decomp,rhop)
+       call read_real_2d(aop_file,decomp,'rhop',rhop)
     endif
 
     !dry particle density (pulled from wet particle radius):
     nullify(decomp)
-    stat = SMIOLf_inquire_var(aop_file,'rhop',ndims=ndims)
+    stat = SMIOLf_inquire_var(aop_file,'rhod',ndims=ndims)
     if(stat /= SMIOL_SUCCESS) then
        rhod(:,:) = missing
 !      call mpas_log_write('--- DRY PARTICLE DENSITY not available in input file',messageType=MPAS_LOG_OUT)
     else
-       stat = SMIOLf_get_var(aop_file,'rhop',decomp,rhod)
+       call read_real_2d(aop_file,decomp,'rhod',rhod)
        do n = 1, rh_size
           rhod(n,:) = rhod(1,:)
        enddo
@@ -428,7 +314,7 @@
        pback(:,:,:,:) = 1._RKIND
 !      call mpas_log_write('--- BACKSCATTER PHASE FUNCTION not available in input file',messageType=MPAS_LOG_OUT)
     else
-       stat = SMIOLf_get_var(aop_file,'pback',decomp,pback)
+       call read_real_4d(aop_file,decomp,'pback',pback)
     endif
 
     !--- wet particle volume [m3 kg-1]. the ratio of wet to dry volume is gf^3, hence the following
@@ -661,9 +547,353 @@
  if(associated(refimag)) deallocate(refimag)
  if(associated(pback)  ) deallocate(pback  )
 
-
  call mpas_log_write('--- end function GOCART2G_MieCreate:')
- return
+
+ contains
+
+
+   !-----------------------------------------------------------------------
+   !  read_real_1d
+   !
+   !  Given:
+   !     - file : an opened SMIOL file
+   !     - decomp : a valid SMIOL decomposition, or an unassociated pointer
+   !     - varname : the name of a 1-d real or double precision variable in
+   !                 the file
+   !
+   !  Upon success:
+   !     - the 'var' argument will be allocated according to the number of
+   !       elements of the variable in the file, and the contents of 'var'
+   !       will either match those in the file or be a real
+   !       (single-precision) representation of the contents of those in
+   !       the file.
+   !
+   !  Upon failure:
+   !     - the 'var' argument will be an unassociated pointer.
+   !
+   !-----------------------------------------------------------------------
+   subroutine read_real_1d(file, decomp, varname, var)
+
+      implicit none
+
+      ! Arguments
+      type (SMIOLf_file), intent(inout) :: file
+      type (SMIOLf_decomp), pointer :: decomp
+      character(len=*), intent(in) :: varname
+      real, dimension(:), pointer :: var
+
+      ! Local variables
+      double precision, dimension(:), pointer :: var_dbl
+      integer :: vartype, ndims
+      character(len=256), dimension(1) :: dimname
+      integer(kind=SMIOL_offset_kind) :: dimsize
+
+      integer :: ierr
+
+
+      nullify(var)
+
+      ierr = SMIOLf_inquire_var(file, varname, vartype=vartype, ndims=ndims)
+      if (ierr /= SMIOL_SUCCESS .or. ndims /= 1) then
+         ! Either we could not inquire about the variable, or the variable
+         ! is not a 1-d variable as expected by this routine
+         return
+      end if
+
+      ierr = SMIOLf_inquire_var(file, varname, dimnames=dimname)
+
+      ierr = SMIOLf_inquire_dim(file, dimname(1), dimsize=dimsize)
+
+      if (vartype == SMIOL_REAL32) then
+         allocate(var(dimsize))
+         ierr = SMIOLf_get_var(file, varname, decomp, var)
+
+      else if (vartype == SMIOL_REAL64) then
+         allocate(var(dimsize))
+         allocate(var_dbl(dimsize))
+         ierr = SMIOLf_get_var(file, varname, decomp, var_dbl)
+         var(:) = var_dbl(:)
+         deallocate(var_dbl)
+      end if
+
+   end subroutine read_real_1d
+
+
+   !-----------------------------------------------------------------------
+   !  read_real_2d
+   !
+   !  Given:
+   !     - file : an opened SMIOL file
+   !     - decomp : a valid SMIOL decomposition, or an unassociated pointer
+   !     - varname : the name of a 2-d real or double precision variable in
+   !                 the file
+   !
+   !  Upon success:
+   !     - the 'var' argument will be allocated according to the number of
+   !       elements of the variable in the file, and the contents of 'var'
+   !       will either match those in the file or be a real
+   !       (single-precision) representation of the contents of those in
+   !       the file.
+   !
+   !  Upon failure:
+   !     - the 'var' argument will be an unassociated pointer.
+   !
+   !-----------------------------------------------------------------------
+   subroutine read_real_2d(file, decomp, varname, var)
+
+      implicit none
+
+      ! Arguments
+      type (SMIOLf_file), intent(inout) :: file
+      type (SMIOLf_decomp), pointer :: decomp
+      character(len=*), intent(in) :: varname
+      real, dimension(:,:), pointer :: var
+
+      ! Local variables
+      double precision, dimension(:,:), pointer :: var_dbl
+      integer :: n
+      integer :: vartype, ndims
+      character(len=256), dimension(2) :: dimname
+      integer(kind=SMIOL_offset_kind), dimension(2) :: dimsize
+
+      integer :: ierr
+
+      nullify(var)
+
+      ierr = SMIOLf_inquire_var(file, varname, vartype=vartype, ndims=ndims)
+      if (ierr /= SMIOL_SUCCESS .or. ndims /= 2) then
+         ! Either we could not inquire about the variable, or the variable
+         ! is not a 2-d variable as expected by this routine
+         return
+      end if
+
+      ierr = SMIOLf_inquire_var(file, varname, dimnames=dimname)
+
+      do n = 1, 2
+         ierr = SMIOLf_inquire_dim(file, dimname(n), dimsize=dimsize(n))
+      enddo
+
+      if (vartype == SMIOL_REAL32) then
+         allocate(var(dimsize(1),dimsize(2)))
+         ierr = SMIOLf_get_var(file, varname, decomp, var)
+
+      else if (vartype == SMIOL_REAL64) then
+         allocate(var(dimsize(1),dimsize(2)))
+         allocate(var_dbl(dimsize(1),dimsize(2)))
+         ierr = SMIOLf_get_var(file, varname, decomp, var_dbl)
+         var(:,:) = var_dbl(:,:)
+         deallocate(var_dbl)
+      end if
+
+   end subroutine read_real_2d
+
+
+   !-----------------------------------------------------------------------
+   !  read_real_3d
+   !
+   !  Given:
+   !     - file : an opened SMIOL file
+   !     - decomp : a valid SMIOL decomposition, or an unassociated pointer
+   !     - varname : the name of a 3-d real or double precision variable in
+   !                 the file
+   !
+   !  Upon success:
+   !     - the 'var' argument will be allocated according to the number of
+   !       elements of the variable in the file, and the contents of 'var'
+   !       will either match those in the file or be a real
+   !       (single-precision) representation of the contents of those in
+   !       the file.
+   !
+   !  Upon failure:
+   !     - the 'var' argument will be an unassociated pointer.
+   !
+   !-----------------------------------------------------------------------
+   subroutine read_real_3d(file, decomp, varname, var)
+
+      implicit none
+
+      ! Arguments
+      type (SMIOLf_file), intent(inout) :: file
+      type (SMIOLf_decomp), pointer :: decomp
+      character(len=*), intent(in) :: varname
+      real, dimension(:,:,:), pointer :: var
+
+      ! Local variables
+      double precision, dimension(:,:,:), pointer :: var_dbl
+      integer :: n
+      integer :: vartype, ndims
+      character(len=256), dimension(3) :: dimname
+      integer(kind=SMIOL_offset_kind), dimension(3) :: dimsize
+
+      integer :: ierr
+
+      nullify(var)
+
+      ierr = SMIOLf_inquire_var(file, varname, vartype=vartype, ndims=ndims)
+      if (ierr /= SMIOL_SUCCESS .or. ndims /= 3) then
+         ! Either we could not inquire about the variable, or the variable
+         ! is not a 3-d variable as expected by this routine
+         return
+      end if
+
+      ierr = SMIOLf_inquire_var(file, varname, dimnames=dimname)
+
+      do n = 1, 3
+         ierr = SMIOLf_inquire_dim(file, dimname(n), dimsize=dimsize(n))
+      enddo
+
+      if (vartype == SMIOL_REAL32) then
+         allocate(var(dimsize(1),dimsize(2),dimsize(3)))
+         ierr = SMIOLf_get_var(file, varname, decomp, var)
+
+      else if (vartype == SMIOL_REAL64) then
+         allocate(var(dimsize(1),dimsize(2),dimsize(3)))
+         allocate(var_dbl(dimsize(1),dimsize(2),dimsize(3)))
+         ierr = SMIOLf_get_var(file, varname, decomp, var_dbl)
+         var(:,:,:) = var_dbl(:,:,:)
+         deallocate(var_dbl)
+      end if
+
+   end subroutine read_real_3d
+
+
+   !-----------------------------------------------------------------------
+   !  read_real_4d
+   !
+   !  Given:
+   !     - file : an opened SMIOL file
+   !     - decomp : a valid SMIOL decomposition, or an unassociated pointer
+   !     - varname : the name of a 4-d real or double precision variable in
+   !                 the file
+   !
+   !  Upon success:
+   !     - the 'var' argument will be allocated according to the number of
+   !       elements of the variable in the file, and the contents of 'var'
+   !       will either match those in the file or be a real
+   !       (single-precision) representation of the contents of those in
+   !       the file.
+   !
+   !  Upon failure:
+   !     - the 'var' argument will be an unassociated pointer.
+   !
+   !-----------------------------------------------------------------------
+   subroutine read_real_4d(file, decomp, varname, var)
+
+      implicit none
+
+      ! Arguments
+      type (SMIOLf_file), intent(inout) :: file
+      type (SMIOLf_decomp), pointer :: decomp
+      character(len=*), intent(in) :: varname
+      real, dimension(:,:,:,:), pointer :: var
+
+      ! Local variables
+      double precision, dimension(:,:,:,:), pointer :: var_dbl
+      integer :: n
+      integer :: vartype, ndims
+      character(len=256), dimension(4) :: dimname
+      integer(kind=SMIOL_offset_kind), dimension(4) :: dimsize
+
+      integer :: ierr
+
+      nullify(var)
+
+      ierr = SMIOLf_inquire_var(file, varname, vartype=vartype, ndims=ndims)
+      if (ierr /= SMIOL_SUCCESS .or. ndims /= 4) then
+         ! Either we could not inquire about the variable, or the variable
+         ! is not a 4-d variable as expected by this routine
+         return
+      end if
+
+      ierr = SMIOLf_inquire_var(file, varname, dimnames=dimname)
+
+      do n = 1, 4
+         ierr = SMIOLf_inquire_dim(file, dimname(n), dimsize=dimsize(n))
+      enddo
+
+      if (vartype == SMIOL_REAL32) then
+         allocate(var(dimsize(1),dimsize(2),dimsize(3),dimsize(4)))
+         ierr = SMIOLf_get_var(file, varname, decomp, var)
+
+      else if (vartype == SMIOL_REAL64) then
+         allocate(var(dimsize(1),dimsize(2),dimsize(3),dimsize(4)))
+         allocate(var_dbl(dimsize(1),dimsize(2),dimsize(3),dimsize(4)))
+         ierr = SMIOLf_get_var(file, varname, decomp, var_dbl)
+         var(:,:,:,:) = var_dbl(:,:,:,:)
+         deallocate(var_dbl)
+      end if
+
+   end subroutine read_real_4d
+
+
+   !-----------------------------------------------------------------------
+   !  read_real_5d
+   !
+   !  Given:
+   !     - file : an opened SMIOL file
+   !     - decomp : a valid SMIOL decomposition, or an unassociated pointer
+   !     - varname : the name of a 5-d real or double precision variable in
+   !                 the file
+   !
+   !  Upon success:
+   !     - the 'var' argument will be allocated according to the number of
+   !       elements of the variable in the file, and the contents of 'var'
+   !       will either match those in the file or be a real
+   !       (single-precision) representation of the contents of those in
+   !       the file.
+   !
+   !  Upon failure:
+   !     - the 'var' argument will be an unassociated pointer.
+   !
+   !-----------------------------------------------------------------------
+   subroutine read_real_5d(file, decomp, varname, var)
+
+      implicit none
+
+      ! Arguments
+      type (SMIOLf_file), intent(inout) :: file
+      type (SMIOLf_decomp), pointer :: decomp
+      character(len=*), intent(in) :: varname
+      real, dimension(:,:,:,:,:), pointer :: var
+
+      ! Local variables
+      double precision, dimension(:,:,:,:,:), pointer :: var_dbl
+      integer :: n
+      integer :: vartype, ndims
+      character(len=256), dimension(5) :: dimname
+      integer(kind=SMIOL_offset_kind), dimension(5) :: dimsize
+
+      integer :: ierr
+
+      nullify(var)
+
+      ierr = SMIOLf_inquire_var(file, varname, vartype=vartype, ndims=ndims)
+      if (ierr /= SMIOL_SUCCESS .or. ndims /= 5) then
+         ! Either we could not inquire about the variable, or the variable
+         ! is not a 5-d variable as expected by this routine
+         return
+      end if
+
+      ierr = SMIOLf_inquire_var(file, varname, dimnames=dimname)
+
+      do n = 1, 5
+         ierr = SMIOLf_inquire_dim(file, dimname(n), dimsize=dimsize(n))
+         call mpas_log_write(dimname(n))
+      enddo
+
+      if (vartype == SMIOL_REAL32) then
+         allocate(var(dimsize(1),dimsize(2),dimsize(3),dimsize(4),dimsize(5)))
+         ierr = SMIOLf_get_var(file, varname, decomp, var)
+
+      else if (vartype == SMIOL_REAL64) then
+         allocate(var(dimsize(1),dimsize(2),dimsize(3),dimsize(4),dimsize(5)))
+         allocate(var_dbl(dimsize(1),dimsize(2),dimsize(3),dimsize(4),dimsize(5)))
+         ierr = SMIOLf_get_var(file, varname, decomp, var_dbl)
+         var(:,:,:,:,:) = var_dbl(:,:,:,:,:)
+         deallocate(var_dbl)
+      end if
+
+   end subroutine read_real_5d
 
  end function GOCART2G_MieCreate
 
