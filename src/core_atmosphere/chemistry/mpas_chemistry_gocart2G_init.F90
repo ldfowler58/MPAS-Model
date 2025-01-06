@@ -35,8 +35,11 @@
  type(mpas_pool_type),intent(in):: mesh
 
 !--- local variables:
- character(len=StrKIND):: fnm
+ character(len=StrKIND):: fnm,message
+ character(len=StrKIND),pointer:: fCA2G_bc,fCA2G_bc_RRTMG,fCA2G_br,fCA2G_br_RRTMG,fCA2G_oc,fCA2G_oc_RRTMG, &
+                                  fDU2G,fDU2G_RRTMG,fNI2G,fNI2G_RRTMG,fSS2G,fSS2G_RRTMG,fSU2G,fSU2G_RRTMG
 
+ logical:: l_exist
  logical,pointer:: do_CA2Gbc,do_CA2Gbr,do_CA2Goc
  logical,pointer:: do_NI2G,do_DU2G,do_SS2G,do_SU2G
 
@@ -47,6 +50,21 @@
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine init_gocart2G_chemistry:')
+
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsBC',fCA2G_bc)
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsBR',fCA2G_br)
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsOC',fCA2G_oc)
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsDU',fDU2G   )
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsNI',fNI2G   )
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsSS',fSS2G   )
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsSU',fSU2G   )
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsBC_RRTMG',fCA2G_bc_RRTMG)
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsBR_RRTMG',fCA2G_br_RRTMG)
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsOC_RRTMG',fCA2G_oc_RRTMG)
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsDU_RRTMG',fDU2G_RRTMG   )
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsNI_RRTMG',fNI2G_RRTMG   )
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsSS_RRTMG',fSS2G_RRTMG   )
+ call mpas_pool_get_config(configs,'config_gocart2G_opticsSU_RRTMG',fSU2G_RRTMG   )
 
  call mpas_pool_get_config(configs,'config_gocart2G_do_CA2Gbc',do_CA2Gbc)
  call mpas_pool_get_config(configs,'config_gocart2G_do_CA2Gbr',do_CA2Gbr)
@@ -92,12 +110,26 @@
     call CA2G_bc%gocart2G_allocate(its,ite,jts,jte,kts,kte)
 
     !creates radiation Mie table for CA2G:
-    fnm = 'opticsBands_BC.v1_3.RRTMG.nc'
-    CA2G_bc_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
+    l_exist = .false.
+    fnm = trim(fCA2G_bc_RRTMG)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       CA2G_bc_params%rad_Mie = GOCART2G_Mie(dminfo,fnm)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     !create diagnostics Mie table for CA2G:
-    fnm = 'optics_BC.v1_3.nc'
-    CA2G_bc_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
+    l_exist = .false.
+    fnm = trim(fCA2G_bc)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       CA2G_bc_params%diag_Mie = GOCART2G_Mie(dminfo,fnm,channels)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     call mpas_log_write('--- end initialization of CA2G_bc:')
     call mpas_log_write(' ')
@@ -113,12 +145,26 @@
     call CA2G_br%gocart2G_allocate(its,ite,jts,jte,kts,kte)
 
     !creates radiation Mie table for CA2G_br:
-    fnm = 'opticsBands_BRC.v1_5.RRTMG.nc'
-    CA2G_br_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
+    l_exist = .false.
+    fnm = trim(fCA2G_br_RRTMG)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       CA2G_br_params%rad_Mie = GOCART2G_Mie(dminfo,fnm)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     !create diagnostics Mie table for CA2G_br:
-    fnm = 'optics_BRC.v1_5.nc'
-    CA2G_br_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
+    l_exist = .false.
+    fnm = trim(fCA2G_br)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       CA2G_br_params%diag_Mie = GOCART2G_Mie(dminfo,fnm,channels)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     call mpas_log_write('--- end initialization of CA2G_br:')
     call mpas_log_write(' ')
@@ -134,12 +180,26 @@
     call CA2G_oc%gocart2G_allocate(its,ite,jts,jte,kts,kte)
 
     !creates radiation Mie table for CA2G_oc:
-    fnm = 'opticsBands_OC.v1_3.RRTMG.nc'
-    CA2G_oc_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
+    l_exist = .false.
+    fnm = trim(fCA2G_oc_RRTMG)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       CA2G_oc_params%rad_Mie = GOCART2G_Mie(dminfo,fnm)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     !create diagnostics Mie table for CA2G_oc:
-    fnm = 'optics_OC.v1_3.nc'
-    CA2G_oc_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
+    l_exist = .false.
+    fnm = trim(fCA2G_oc)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       CA2G_oc_params%diag_Mie = GOCART2G_Mie(dminfo,fnm,channels)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     call mpas_log_write('--- end initialization of CA2G_oc:')
     call mpas_log_write(' ')
@@ -155,12 +215,26 @@
     call DU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nerod)
 
     !create radiation Mie table for DU2G:
-    fnm = 'opticsBands_DU.v15_3.RRTMG.nc'
-    DU2G_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
+    l_exist = .false.
+    fnm = trim(fDU2G_RRTMG)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       DU2G_params%rad_Mie = GOCART2G_Mie(dminfo,fnm)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     !create diagnostics Mie table for DU2G:
-    fnm = 'optics_DU.v15_3.nc'
-    DU2G_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
+    l_exist = .false.
+    fnm = trim(fDU2G)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       DU2G_params%diag_Mie = GOCART2G_Mie(dminfo,fnm,channels)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     call mpas_log_write('--- end initialization of DU2G:')
     call mpas_log_write(' ')
@@ -176,12 +250,26 @@
     call NI2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
 
     !create radiation Mie table for SU2G:
-    fnm = 'opticsBands_NI.v2_5.RRTMG.nc'
-    NI2G_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
+    l_exist = .false.
+    fnm = trim(fNI2G_RRTMG)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       NI2G_params%rad_Mie = GOCART2G_Mie(dminfo,fnm)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     !create diagnostics Mie table for SU2G:
-    fnm = 'optics_NI.v2_5.nc'
-    NI2G_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
+    l_exist = .false.
+    fnm = trim(fNI2G)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       NI2G_params%diag_Mie = GOCART2G_Mie(dminfo,fnm,channels)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     call mpas_log_write('--- end initialization of NI2G:')
     call mpas_log_write(' ')
@@ -197,12 +285,26 @@
     call SS2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
 
     !create radiation Mie table for SU2G:
-    fnm = 'opticsBands_SS.v3_3.RRTMG.nc'
-    SS2G_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
+    l_exist = .false.
+    fnm = trim(fSS2G_RRTMG)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       SS2G_params%rad_Mie = GOCART2G_Mie(dminfo,fnm)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     !create diagnostics Mie table for SU2G:
-    fnm = 'optics_SS.v3_3.nc'
-    SS2G_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
+    l_exist = .false.
+    fnm = trim(fSS2G)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       SS2G_params%diag_Mie = GOCART2G_Mie(dminfo,fnm,channels)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     call mpas_log_write('--- end initialization of SS2G:')
     call mpas_log_write(' ')
@@ -218,12 +320,26 @@
     call SU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
 
     !create radiation Mie table for SU2G:
-    fnm = 'opticsBands_SU.v1_3.RRTMG.nc'
-    SU2G_params%rad_Mie = GOCART2G_Mie(dminfo,trim(fnm))
+    l_exist = .false.
+    fnm = trim(fSU2G_RRTMG)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       SU2G_params%rad_Mie = GOCART2G_Mie(dminfo,fnm)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     !create diagnostics Mie table for SU2G:
-    fnm = 'optics_SU.v1_3.nc'
-    SU2G_params%diag_Mie = GOCART2G_Mie(dminfo,trim(fnm),channels)
+    l_exist = .false.
+    fnm = trim(fSU2G)
+    inquire(file=fnm,exist=l_exist)
+    if(l_exist) then
+       SU2G_params%diag_Mie = GOCART2G_Mie(dminfo,fnm,channels)
+    else
+       message = '--- file ''' //trim(fnm) //''' not in run directory.'
+       call mpas_log_write(message,messageType=MPAS_LOG_CRIT)
+    endif
 
     call mpas_log_write('--- end initialization of SU2G:')
     call mpas_log_write(' ')

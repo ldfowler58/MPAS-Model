@@ -68,6 +68,76 @@
            description="set to true to apply gocart2G chemistry processes for sulfate; false otherwise"
            possible_values="True,False"/>
 
+      <nml_option name="config_gocart2G_opticsBC" type="character" default_value="optics_BC.v1_3.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for black carbon"
+           possible_values="`optics_BC.v1_3.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsBC_RRTMG" type="character" default_value="opticsBands_BC.v1_3.RRTMG.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for black carbon (RRTMG)"
+           possible_values="`opticsBands_BC.v1_3.RRTMG.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsBR" type="character" default_value="optics_BRC.v1_5.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for brown carbon"
+           possible_values="`optics_BRC.v1_5.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsBR_RRTMG" type="character" default_value="opticsBands_BRC.v1_5.RRTMG.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for brown carbon (RRTMG)"
+           possible_values="`opticsBands_BRC.v1_5.RRTMG.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsOC" type="character" default_value="optics_OC.v1_3.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for organic carbon"
+           possible_values="`optics_OC.v1_3.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsOC_RRTMG" type="character" default_value="opticsBands_OC.v1_3.RRTMG.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for organic carbon (RRTMG)"
+           possible_values="`opticsBands_OC.v1_3.RRTMG.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsDU" type="character" default_value="optics_DU.v15_3.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for mineral dust"
+           possible_values="`optics_DU.v15_3.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsDU_RRTMG" type="character" default_value="opticsBands_DU.v15_3.RRTMG.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for mineral dust (RRTMG)"
+           possible_values="`opticsBands_DU.v15_3.RRTMG.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsNI" type="character" default_value="optics_NI.v2_5.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for nitrate"
+           possible_values="`optics_NI.v2_5.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsNI_RRTMG" type="character" default_value="opticsBands_NI.v2_5.RRTMG.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for nitrate (RRTMG)"
+           possible_values="`opticsBands_NI.v2_5.RRTMG.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsSS" type="character" default_value="optics_SS.v3_3.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for sea salt"
+           possible_values="`optics_SS.v3_3.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsSS_RRTMG" type="character" default_value="opticsBands_SS.v3_3.RRTMG.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for sea salt (RRTMG)"
+           possible_values="`opticsBands_SS.v3_3.RRTMG.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsSU" type="character" default_value="optics_SU.v1_3.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for sulfate"
+           possible_values="`optics_SU.v1_3.nc'"/>
+
+      <nml_option name="config_gocart2G_opticsSU_RRTMG" type="character" default_value="opticsBands_SU.v1_3.RRTMG.nc"
+           in_defaults="false" units="-"
+           description="filename of optics-related variables needed to compute AOPs for sulfate (RRTMG)"
+           possible_values="`opticsBands_SU.v1_3.RRTMG.nc'"/>
+
  </nml_record>
 
 
