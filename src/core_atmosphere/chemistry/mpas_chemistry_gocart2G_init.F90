@@ -42,6 +42,7 @@
  logical:: l_exist
  logical,pointer:: do_CA2Gbc,do_CA2Gbr,do_CA2Goc
  logical,pointer:: do_NI2G,do_DU2G,do_SS2G,do_SU2G
+ logical:: do_GOCART2G
 
  integer:: its,ite,jts,jte,kts,kte,nerod
  integer:: ic,ch_size
@@ -343,6 +344,15 @@
 
     call mpas_log_write('--- end initialization of SU2G:')
     call mpas_log_write(' ')
+ endif
+
+
+!--- GOCART2G:
+ do_GOCART2G = .false.
+ if(do_CA2Gbc .or. do_CA2Gbr .or. do_CA2Goc .or. do_DU2G .or. &
+    do_NI2G .or. do_NI2G .or. do_SS2G .or. do_SU2G) do_GOCART2G = .true.
+ if(do_GOCART2G) then
+    call GOCART2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
  endif
 
 

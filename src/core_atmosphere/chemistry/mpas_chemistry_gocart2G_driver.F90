@@ -1,4 +1,4 @@
-!=================================================================================================================
+!==================================================================================================================
  module mpas_chemistry_gocart2G_driver
  use mpas_log
  use mpas_kind_types
@@ -11,17 +11,19 @@
                                                DU2G_diagnostics,    &
                                                NI2G_diagnostics,    &
                                                SS2G_diagnostics,    &
-                                               SU2G_diagnostics
+                                               SU2G_diagnostics,    &
+                                               GOCART2G_diagnostics
  use mpas_chemistry_gocart2G_interface
  use mpas_chemistry_gocart2G_manager,only: iyear,imonth,iday,ihour,iminute,isecond
- use mpas_chemistry_gocart2G_vars,only: mpas_gocart2G,          &
-                                        CA2G_bc,CA2G_bc_params, &
-                                        CA2G_br,CA2G_br_params, &
-                                        CA2G_oc,CA2G_oc_params, &
-                                        DU2G,DU2G_params,       &
-                                        NI2G,NI2G_params,       &
-                                        SS2G,SS2G_params,       &
-                                        SU2G,SU2G_params
+ use mpas_chemistry_gocart2G_vars,only: mpas_gocart2G,           &
+                                        CA2G_bc,CA2G_bc_params,  &
+                                        CA2G_br,CA2G_br_params,  &
+                                        CA2G_oc,CA2G_oc_params,  &
+                                        DU2G,DU2G_params,        &
+                                        NI2G,NI2G_params,        &
+                                        SS2G,SS2G_params,        &
+                                        SU2G,SU2G_params,        &
+                                        GOCART2G,GOCART2G_params
 
 
  implicit none
@@ -32,9 +34,9 @@
  contains
 
 
-!=================================================================================================================
+!==================================================================================================================
  subroutine gocart2G_driver(domain,itimestep,xtime_s)
-!=================================================================================================================
+!==================================================================================================================
 
 !inout arguments:
  type(domain_type),intent(inout):: domain
@@ -58,6 +60,7 @@
  type(mpas_pool_type),pointer:: NI2G_diags
  type(mpas_pool_type),pointer:: SS2G_diags
  type(mpas_pool_type),pointer:: SU2G_diags
+ type(mpas_pool_type),pointer:: GOCART2G_diags
 
  type(mpas_pool_type),pointer:: CA2G_bc_aops
  type(mpas_pool_type),pointer:: CA2G_br_aops
@@ -66,11 +69,13 @@
  type(mpas_pool_type),pointer:: NI2G_aops
  type(mpas_pool_type),pointer:: SS2G_aops
  type(mpas_pool_type),pointer:: SU2G_aops
+ type(mpas_pool_type),pointer:: GOCART2G_aops
 
  type(block_type),pointer:: block
 
  logical,pointer:: do_CA2Gbc,do_CA2Gbr,do_CA2Goc
  logical,pointer:: do_NI2G,do_DU2G,do_SS2G,do_SU2G
+ logical:: do_GOCART2G
 
  integer:: time_lev
  integer:: i,its,ite,j,jts,jte,k,kts,kte,n,nerod
@@ -102,21 +107,23 @@
     call mpas_pool_get_subpool(block%structs,'gocart2G_backgrounds',gocart2G_backgrounds)
     call mpas_pool_get_subpool(block%structs,'gocart2G_met'        ,gocart2G_met        )
 
-    call mpas_pool_get_subpool(block%structs,'CA2G_bc_diags',CA2G_bc_diags)
-    call mpas_pool_get_subpool(block%structs,'CA2G_br_diags',CA2G_br_diags)
-    call mpas_pool_get_subpool(block%structs,'CA2G_oc_diags',CA2G_oc_diags)
-    call mpas_pool_get_subpool(block%structs,'DU2G_diags'   ,DU2G_diags   )
-    call mpas_pool_get_subpool(block%structs,'NI2G_diags'   ,NI2G_diags   )
-    call mpas_pool_get_subpool(block%structs,'SS2G_diags'   ,SS2G_diags   )
-    call mpas_pool_get_subpool(block%structs,'SU2G_diags'   ,SU2G_diags   )
+    call mpas_pool_get_subpool(block%structs,'CA2G_bc_diags' ,CA2G_bc_diags )
+    call mpas_pool_get_subpool(block%structs,'CA2G_br_diags' ,CA2G_br_diags )
+    call mpas_pool_get_subpool(block%structs,'CA2G_oc_diags' ,CA2G_oc_diags )
+    call mpas_pool_get_subpool(block%structs,'DU2G_diags'    ,DU2G_diags    )
+    call mpas_pool_get_subpool(block%structs,'NI2G_diags'    ,NI2G_diags    )
+    call mpas_pool_get_subpool(block%structs,'SS2G_diags'    ,SS2G_diags    )
+    call mpas_pool_get_subpool(block%structs,'SU2G_diags'    ,SU2G_diags    )
+    call mpas_pool_get_subpool(block%structs,'GOCART2G_diags',GOCART2G_diags)
 
-    call mpas_pool_get_subpool(block%structs,'CA2G_bc_aops',CA2G_bc_aops)
-    call mpas_pool_get_subpool(block%structs,'CA2G_br_aops',CA2G_br_aops)
-    call mpas_pool_get_subpool(block%structs,'CA2G_oc_aops',CA2G_oc_aops)
-    call mpas_pool_get_subpool(block%structs,'DU2G_aops'   ,DU2G_aops   )
-    call mpas_pool_get_subpool(block%structs,'NI2G_aops'   ,NI2G_aops   )
-    call mpas_pool_get_subpool(block%structs,'SS2G_aops'   ,SS2G_aops   )
-    call mpas_pool_get_subpool(block%structs,'SU2G_aops'   ,SU2G_aops   )
+    call mpas_pool_get_subpool(block%structs,'CA2G_bc_aops' ,CA2G_bc_aops )
+    call mpas_pool_get_subpool(block%structs,'CA2G_br_aops' ,CA2G_br_aops )
+    call mpas_pool_get_subpool(block%structs,'CA2G_oc_aops' ,CA2G_oc_aops )
+    call mpas_pool_get_subpool(block%structs,'DU2G_aops'    ,DU2G_aops    )
+    call mpas_pool_get_subpool(block%structs,'NI2G_aops'    ,NI2G_aops    )
+    call mpas_pool_get_subpool(block%structs,'SS2G_aops'    ,SS2G_aops    )
+    call mpas_pool_get_subpool(block%structs,'SU2G_aops'    ,SU2G_aops    )
+    call mpas_pool_get_subpool(block%structs,'GOCART2G_aops',GOCART2G_aops)
 
 
     !--- defines dimensions and allocate local arrays from MPAS needed to run GOCART2G:
@@ -349,6 +356,17 @@
     endif
 
 
+    !--- GOCART2G:
+    do_GOCART2G = .false.
+    if(do_CA2Gbc .or. do_CA2Gbr .or. do_CA2Goc .or. do_DU2G .or. &
+       do_NI2G .or. do_NI2G .or. do_SS2G .or. do_SU2G) do_GOCART2G = .true.
+    if(do_GOCART2G) then
+       call GOCART2G_params%processes_GridComp(GOCART2G,CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G, &
+                                               its,ite,jts,jte,kts,kte)
+       call GOCART2G_diagnostics(mesh,GOCART2G,GOCART2G_diags,GOCART2G_aops,its,ite,jts,jte,kts,kte)
+    endif
+
+
     !--- fills global chemistry arrays with local chemistry arrays:
     call mpas_gocart2G%gocart2G_toMPAS(state,time_lev)
 
@@ -361,7 +379,7 @@
 
  end subroutine gocart2G_driver
 
-!=================================================================================================================
+!==================================================================================================================
  end module mpas_chemistry_gocart2G_driver
-!=================================================================================================================
+!==================================================================================================================
 

@@ -12,6 +12,7 @@
  use NI2G_StateSpecs,only: NI2G_State
  use SS2G_StateSpecs,only: SS2G_State
  use SU2G_StateSpecs,only: SU2G_State
+ use GOCART2G_StateSpecs,only: GOCART2G_State
 
 
  implicit none
@@ -22,7 +23,8 @@
           DU2G_diagnostics,    &
           NI2G_diagnostics,    &
           SS2G_diagnostics,    &
-          SU2G_diagnostics
+          SU2G_diagnostics,    &
+          GOCART2G_diagnostics
 
 
  contains
@@ -1193,6 +1195,128 @@
  call mpas_log_write('--- end subroutine SU2G_diagnostics.')
 
  end subroutine SU2G_diagnostics
+
+!==================================================================================================================
+ subroutine GOCART2G_diagnostics(mesh,GOCART2G,GOCART2G_diags,GOCART2G_aops,its,ite,jts,jte,kts,kte)
+!==================================================================================================================
+
+!input arguments:
+ integer:: its,ite,jts,jte,kts,kte
+ type(mpas_pool_type),intent(in):: mesh
+ type(GOCART2G_State),intent(in):: GOCART2G
+
+!inout arguments:
+ type(mpas_pool_type),intent(inout):: GOCART2G_diags
+ type(mpas_pool_type),intent(inout):: GOCART2G_aops
+
+!local arguments and arrays:
+ integer:: i,j,k,kk,n
+ integer,pointer:: npAOPs,nvAOPs
+
+ real(kind=RKIND),dimension(:),pointer:: totPM,totPMRH35,totPMRH50
+ real(kind=RKIND),dimension(:),pointer:: totPM25,totPM25RH35,totPM25RH50
+
+ real(kind=RKIND),dimension(:),pointer:: totANGSTR
+ real(kind=RKIND),dimension(:,:),pointer:: totEXTTAU,totSTEXTTAU,totEXTT25,totEXTTFM
+ real(kind=RKIND),dimension(:,:),pointer:: totSCATAU,totSTSCATAU,totSCAT25,totSCATFM
+ real(kind=RKIND),dimension(:,:),pointer:: totABCKTOA,totABCKSFC
+ real(kind=RKIND),dimension(:,:,:),pointer:: totEXTCOEF,totEXTCOEFRH20,totEXTCOEFRH80,totSCACOEF,totSCACOEFRH20, &
+                                             totSCACOEFRH80,totBCKCOEF
+!------------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine GOCART2G_diagnostics:')
+
+ call mpas_pool_get_array(GOCART2G_diags,'totPM'      ,totPM      )
+ call mpas_pool_get_array(GOCART2G_diags,'totPMRH35'  ,totPMRH35  )
+ call mpas_pool_get_array(GOCART2G_diags,'totPMRH50'  ,totPMRH50  )
+ call mpas_pool_get_array(GOCART2G_diags,'totPM25'    ,totPM25    )
+ call mpas_pool_get_array(GOCART2G_diags,'totPM25RH35',totPM25RH35)
+ call mpas_pool_get_array(GOCART2G_diags,'totPM25RH50',totPM25RH50)
+
+ do j = jts,jte
+    do i = its,ite
+       totPM(i)       = GOCART2G%pm(i,j)
+       totPMRH35(i)   = GOCART2G%pm_rh35(i,j)
+       totPMRH50(i)   = GOCART2G%pm_rh50(i,j)
+       totPM25(i)     = GOCART2G%pm(i,j)
+       totPM25RH35(i) = GOCART2G%pm25_rh35(i,j)
+       totPM25RH50(i) = GOCART2G%pm25_rh50(i,j)
+    enddo
+ enddo
+
+
+!--- total aerosol optical properties:
+ call mpas_pool_get_dimension(mesh,'npAOPs',npAOPs)
+ call mpas_pool_get_dimension(mesh,'nvAOPs',nvAOPs)
+
+ call mpas_pool_get_array(GOCART2G_aops,'totANGSTR'  ,totANGSTR  )
+
+ call mpas_pool_get_array(GOCART2G_aops,'totEXTTAU'  ,totEXTTAU  )
+ call mpas_pool_get_array(GOCART2G_aops,'totSTEXTTAU',totSTEXTTAU)
+ call mpas_pool_get_array(GOCART2G_aops,'totEXTT25'  ,totEXTT25  )
+ call mpas_pool_get_array(GOCART2G_aops,'totEXTTFM'  ,totEXTTFM  )
+ call mpas_pool_get_array(GOCART2G_aops,'totSCATAU'  ,totSCATAU  )
+ call mpas_pool_get_array(GOCART2G_aops,'totSTSCATAU',totSTSCATAU)
+ call mpas_pool_get_array(GOCART2G_aops,'totSCAT25'  ,totSCAT25  )
+ call mpas_pool_get_array(GOCART2G_aops,'totSCATFM'  ,totSCATFM  )
+
+ call mpas_pool_get_array(GOCART2G_aops,'totEXTCOEF'    ,totEXTCOEF    )
+ call mpas_pool_get_array(GOCART2G_aops,'totEXTCOEFRH20',totEXTCOEFRH20)
+ call mpas_pool_get_array(GOCART2G_aops,'totEXTCOEFRH80',totEXTCOEFRH80)
+ call mpas_pool_get_array(GOCART2G_aops,'totSCACOEF'    ,totSCACOEF    )
+ call mpas_pool_get_array(GOCART2G_aops,'totSCACOEFRH20',totSCACOEFRH20)
+ call mpas_pool_get_array(GOCART2G_aops,'totSCACOEFRH80',totSCACOEFRH80)
+ call mpas_pool_get_array(GOCART2G_aops,'totBCKCOEF'    ,totBCKCOEF    )
+ call mpas_pool_get_array(GOCART2G_aops,'totABCKTOA'    ,totABCKTOA    )
+ call mpas_pool_get_array(GOCART2G_aops,'totABCKSFC'    ,totABCKSFC    )
+
+
+ do j = jts,jte
+    do i = its,ite
+       totANGSTR(i) = GOCART2G%totangstr(i,j)
+    enddo
+
+    do n = 1,nvAOPs
+       do i = its,ite
+          totEXTTAU(n,i)   = GOCART2G%totexttau(i,j,n)
+          totSTEXTTAU(n,i) = GOCART2G%totstexttau(i,j,n)
+          totEXTT25(n,i)   = GOCART2G%totextt25(i,j,n)
+          totEXTTFM(n,i)   = GOCART2G%totexttfm(i,j,n)
+          totSCATAU(n,i)   = GOCART2G%totscatau(i,j,n)
+          totSTSCATAU(n,i) = GOCART2G%totstscatau(i,j,n)
+          totSCAT25(n,i)   = GOCART2G%totscat25(i,j,n)
+          totSCATFM(n,i)   = GOCART2G%totscatfm(i,j,n)
+       enddo
+    enddo
+
+    do n = 1,npAOPs
+       do k = kts,kte
+          kk = kte+1-k
+          do i = its,ite
+             totEXTCOEF(n,kk,i)     = GOCART2G%totextcoef(i,j,k,n)
+             totEXTCOEFRH20(n,kk,i) = GOCART2G%totextcoefrh20(i,j,k,n)
+             totEXTCOEFRH80(n,kk,i) = GOCART2G%totextcoefrh80(i,j,k,n)
+             totSCACOEF(n,kk,i)     = GOCART2G%totscacoef(i,j,k,n)
+             totSCACOEFRH20(n,kk,i) = GOCART2G%totscacoefrh20(i,j,k,n)
+             totSCACOEFRH80(n,kk,i) = GOCART2G%totscacoefrh80(i,j,k,n)
+             totBCKCOEF(n,kk,i)     = GOCART2G%totbckcoef(i,j,k,n)
+          enddo
+       enddo
+    enddo
+
+    do k = kts,kte
+       kk = kte+1-k
+       do i = its,ite
+          totABCKTOA(kk,i) = GOCART2G%totabcktoa(i,j,k)
+          totABCKSFC(kk,i) = GOCART2G%totabcksfc(i,j,k)
+       enddo
+    enddo
+ enddo
+
+
+ call mpas_log_write('--- end subroutine GOCART2G_diagnostics.')
+
+ end subroutine GOCART2G_diagnostics
 
 !==================================================================================================================
  end module mpas_chemistry_gocart2G_diagnostics

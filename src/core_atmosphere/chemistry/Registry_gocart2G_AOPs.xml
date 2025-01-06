@@ -12,4 +12,87 @@
 
  </dims>
 
+<!-- ========================================================================================================== -->
+
+ <var_struct name="GOCART2G_diags" time_levs="1">
+
+    <var name="totPM" type="real" dimensions="nCells Time" units="kg m^{-3}"
+              description="total reconstructed PM"/>
+
+    <var name="totPMRH35" type="real" dimensions="nCells Time" units="kg m^{-3}"
+              description="total reconstructed PM (RH=35%)"/>
+
+    <var name="totPMRH50" type="real" dimensions="nCells Time" units="kg m^{-3}"
+              description="total reconstructed PM (RH=50%)"/>
+
+    <var name="totPM25" type="real" dimensions="nCells Time" units="kg m^{-3}"
+              description="total reconstructed PM 2.5"/>
+
+    <var name="totPM25RH35" type="real" dimensions="nCells Time" units="kg m^{-3}"
+              description="total reconstructed PM 2.5 (RH=35%)"/>
+
+    <var name="totPM25RH50" type="real" dimensions="nCells Time" units="kg m^{-3}"
+              description="total reconstructed PM 2.5 (RH=50%)"/>
+
+ </var_struct>
+
+<!-- ========================================================================================================== -->
+
+ <var_struct name="GOCART2G_aops" time_levs="1">
+
+     <var name="totEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Total extinction AOT of aerosols at 550 nm"/>
+
+     <var name="totSTEXTTAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Total extinction AOT of aerosols in stratosphere at 550 nm"/>
+
+     <var name="totEXTT25" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Total extinction AOT of aerosols at 550 nm (PM2.5)"/>
+
+     <var name="totEXTTFM" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Total extinction AOT of aerosols at 550 nm (PM1.0)"/>
+
+     <var name="totSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Total scattering AOT of aerosols at 550 nm"/>
+
+     <var name="totSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Total scattering AOT of aerosols in stratosphere at 550 nm"/>
+
+     <var name="totSCAT25" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Total scattering AOT of aerosols at 550 nm (PM2.5)"/>
+
+     <var name="totSCATFM" type="real" dimensions="nvAOPs nCells Time" units="unitless"
+               description="Total scattering AOT of aerosols at 550 nm (PM1.0)"/>
+
+     <var name="totEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Total monochromatic extinction coefficient of aerosols at 550 nm"/>
+
+     <var name="totEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Total monochromatic extinction coefficient of aerosols at 550 nm (RH=20%)"/>
+
+     <var name="totEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Total monochromatic extinction coefficient of aerosols at 550 nm (RH=80%)"/>
+
+     <var name="totSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Total monochromatic scattering coefficient of aerosols at 550 nm"/>
+
+     <var name="totSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Total monochromatic scattering coefficient of aerosols at 550 nm (RH=20%)"/>
+
+     <var name="totSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+               description="Total monochromatic scattering coefficient of aerosols at 550 nm (RH=80%)"/>
+
+     <var name="totBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+               description="Total monochromatic backscatter coefficient of aerosols at 550 nm"/>
+
+     <var name="totANGSTR" type="real" dimensions="nCells Time" units="unitless"
+               description="Total angstrom parameter [470nm-870nm] of aerosols"/>
+
+     <var name="totABCKTOA" type="real" dimensions="nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+               description="Total attenuated backscatter coefficient from top-of-the-atmosphere at 532 nm"/>
+
+     <var name="totABCKSFC" type="real" dimensions="nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+               description="Total attenuated backscatter coefficient from surface at 532 nm"/>
+
+ </var_struct>
 

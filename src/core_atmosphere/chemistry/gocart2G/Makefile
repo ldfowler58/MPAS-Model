@@ -27,14 +27,15 @@ OBJS = \
 	CA2G_br_StateSpecs.o \
 	CA2G_oc_StateSpecs.o \
 	DU2G_StateSpecs.o \
-	GOCART2G_StateSpecs.o \
 	NI2G_StateSpecs.o \
 	SS2G_StateSpecs.o \
 	SU2G_StateSpecs.o \
 	GA_EnvironmentMod.o \
 	GOCART2G_instance.o \
+	GOCART2G_GridCompMod.o \
 	GOCART2G_MieMod_smiol.o \
 	GOCART2G_Process.o \
+	GOCART2G_StateSpecs.o \
 	MAPL.o
 
 
@@ -75,6 +76,18 @@ DU2G_GridCompMod.o: \
 	GOCART2G_AeroGeneric.o \
 	GOCART2G_MieMod_smiol.o \
 	GOCART2G_Process.o
+
+GOCART2G_GridCompMod.o: \
+	GA_EnvironmentMod.o \
+	GOCART2G_instance.o \
+	GOCART2G_StateSpecs.o \
+	CA2G_bc_StateSpecs.o \
+	CA2G_br_StateSpecs.o \
+	CA2G_oc_StateSpecs.o \
+	DU2G_StateSpecs.o \
+	NI2G_StateSpecs.o \
+	SS2G_StateSpecs.o \
+	SU2G_StateSpecs.o
 
 NI2G_GridCompMod.o: \
 	NI2G_instance.o \
@@ -148,4 +161,9 @@ clean:
 
 
 .F90.o:
+ifeq "$(GEN_F90)" "true"
+	$(CPP) $(CPPFLAGS) $(COREDEF) $(CPPINCLUDES) $< > $*.f90 -I../../../external/SMIOL
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90 -I../../../external/SMIOL
+else
 	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F90 $(CPPINCLUDES) $(FCINCLUDES) -I.. -I../../../framework -I../../../external/esmf_time_f90 -I../../../external/SMIOL
+endif
