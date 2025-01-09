@@ -71,4 +71,9 @@ clean:
 
 
 .F90.o:
+ifeq "$(GEN_F90)" "true"
+	$(CPP) $(CPPFLAGS) $(COREDEF) $(CPPINCLUDES) $< > $*.f90
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I. -I./gocart2G -I.. -I../dynamics -I../physics -I../../framework -I../../external/esmf_time_f90 -I../../external/SMIOL
+else
 	$(FC) $(CPPFLAGS) $(COREDEF) $(HYDROSTATIC) $(PHYSICS) $(FFLAGS) -c $*.F90 $(CPPINCLUDES) $(FCINCLUDES) -I. -I./gocart2G -I.. -I../dynamics -I../physics -I../../framework -I../../external/esmf_time_f90  -I../../external/SMIOL
+endif
