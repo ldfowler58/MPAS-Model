@@ -63,7 +63,7 @@ mpas_chemistry_gocart2G_vars.o: \
 
 
 clean:
-	$(RM) *.o *.mod libchem.a
+	$(RM) *.f90 *.o *.mod libchem.a
 	( cd gocart2G; $(MAKE) clean )
 	@# Certain systems with intel compilers generate *.i files
 	@# This removes them during the clean process
