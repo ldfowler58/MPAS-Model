@@ -85,25 +85,25 @@
      <var name="brSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
                description="Scattering AOT of brown carbon aerosols in stratosphere"/>
 
-     <var name="brEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="brEXTCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of brown carbon aerosols at 550 nm"/>
 
-     <var name="brEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="brEXTCOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of brown carbon aerosols at 550 nm (Rh=20%)"/>
 
-     <var name="brEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="brEXTCOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of brown carbon aerosols at 550 nm (RH=80%)"/>
 
-     <var name="brSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="brSCACOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of brown carbon aerosols at 550 nm"/>
 
-     <var name="brSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="brSCACOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of brown carbon aerosols at 550 nm (RH=20%)"/>
 
-     <var name="brSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="brSCACOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of brown carbon aerosols at 550 nm (RH=20%)"/>
 
-     <var name="brbrKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+     <var name="brbrKCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1} sr^{-1}"
                description="Monochromatic backscatter coefficient of brown carbon aerosols at 550 nm"/>
 
      <var name="brPSOA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"

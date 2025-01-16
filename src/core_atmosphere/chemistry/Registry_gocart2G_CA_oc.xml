@@ -85,25 +85,25 @@
      <var name="ocSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitless"
                description="Scattering AOT of organic carbon aerosols in stratosphere"/>
 
-     <var name="ocEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="ocEXTCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of organic carbon aerosols at 550 nm"/>
 
-     <var name="ocEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="ocEXTCOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of organic carbon aerosols at 550 nm (Rh=20%)"/>
 
-     <var name="ocEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="ocEXTCOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of organic carbon aerosols at 550 nm (RH=80%)"/>
 
-     <var name="ocSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="ocSCACOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of organic carbon aerosols at 550 nm"/>
 
-     <var name="ocSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="ocSCACOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of organic carbon aerosols at 550 nm (RH=20%)"/>
 
-     <var name="ocSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="ocSCACOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of organic carbon aerosols at 550 nm (RH=20%)"/>
 
-     <var name="ocBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+     <var name="ocBCKCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1} sr^{-1}"
                description="Monochromatic backscatter coefficient of organic carbon aerosols at 550 nm"/>
 
      <var name="ocPSOA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"

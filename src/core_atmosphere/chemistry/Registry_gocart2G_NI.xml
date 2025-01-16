@@ -19,10 +19,10 @@
      <var name="hno3CONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
                description="Nitrate acid mass concentration"/>
 
-     <var name="hn3CONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+     <var name="nh3CONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
                description="Ammonia aerosol mass concentration"/>
 
-     <var name="hn4CONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
+     <var name="nh4CONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
                description="Ammonium aerosol mass concentration"/>
 
      <var name="niCONC" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-3}"
@@ -36,6 +36,114 @@
 
      <var name="niFLUXV" type="real" dimensions="nCells Time" units="kg m^{-1} s^{-1}"
                description="Column v-wind mass flux of nitrate aerosols"/>
+
+     <var name="niHT_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Production from heterogeneous chemistry of nitrate in size bin 1 []"/>
+
+     <var name="niHT_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Production from heterogeneous chemistry of nitrate in size bin 2 []"/>
+
+     <var name="niHT_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Production from heterogeneous chemistry of nitrate in size bin 3 []"/>
+
+     <var name="niSD_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of nitrate in size bin 1 []"/>
+
+     <var name="niSD_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of nitrate in size bin 2 []"/>
+
+     <var name="niSD_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Sedimentation of nitrate in size bin 3 []"/>
+
+     <var name="niDP_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of nitrate in size bin 1 []"/>
+
+     <var name="niDP_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of nitrate in size bin 2 []"/>
+
+     <var name="niDP_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of nitrate in size bin 3 []"/>
+
+     <var name="niWT_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of nitrate in size bin 1 []"/>
+
+     <var name="niWT_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of nitrate in size bin 2 []"/>
+
+     <var name="niWT_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of nitrate in size bin 3 []"/>
+
+     <var name="niSV_bin1" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of nitrate in size bin 1 []"/>
+
+     <var name="niSV_bin2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of nitrate in size bin 2 []"/>
+
+     <var name="niSV_bin3" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of nitrate in size bin 3 []"/>
+
+     <var name="nh3EM" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Emission of ammonia"/>
+
+     <var name="nh3DP" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of ammonia"/>
+
+     <var name="nh3WT" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of ammonia"/>
+
+     <var name="nh3SV" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of ammonia"/>
+
+     <var name="nh4SD" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Chemical settling of ammonium"/>
+
+     <var name="nh4DP" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Dry deposition of ammonium"/>
+
+     <var name="nh4WT" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Wet deposition of ammonium"/>
+
+     <var name="nh4SV" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Convective scavenging of ammonium"/>
+
+     <var name="niPNO3AQ" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Production of nitrate from aqueous chemistry"/>
+
+     <var name="niPNH4AQ" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Production of ammonium from aqueous chemistry"/>
+
+     <var name="niPNH3AQ" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+               description="Change of ammmonia from aqueous chemistry"/>
+
+     <var name="hno3SMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of nitric acid"/>
+
+     <var name="nh3SMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of ammonia"/>
+
+     <var name="nh4SMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of ammonium"/>
+
+     <var name="niSMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of nitrate"/>
+
+     <var name="niSMASS25" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Surface mass concentration of nitrate (PM 2.5)"/>
+
+     <var name="hno3CMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Column mass density of nitric acid"/>
+
+     <var name="nh3CMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Column mass density of ammonia"/>
+
+     <var name="nh4CMASS" type="real" dimensions="nCells Time" units="kg m^{-3}"
+               description="Column mass density of ammonium"/>
+
+     <var name="niCMASS" type="real" dimensions="nCells Time" units="kg m^{-2}"
+               description="Column mass density of nitrate"/>
+
+     <var name="niCMASS25" type="real" dimensions="nCells Time" units="kg m^{-2}"
+               description="Column mass density of nitrate (PM 2.5)"/>
 
  </var_struct>
 
@@ -67,25 +175,25 @@
      <var name="niSCATFM" type="real" dimensions="nvAOPs nCells Time" units="unitless"
                description="Scattering AOT of nitrate aerosols - PM1.0"/>
 
-     <var name="niEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="niEXTCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of nitrate aerosols at 550 nm"/>
 
-     <var name="niEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="niEXTCOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of nitrate aerosols at 550 nm (Rh=20%)"/>
 
-     <var name="niEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="niEXTCOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of nitrate aerosols at 550 nm (RH=80%)"/>
 
-     <var name="niSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="niSCACOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of nitrate aerosols at 550 nm"/>
 
-     <var name="niSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="niSCACOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of nitrate aerosols at 550 nm (RH=20%)"/>
 
-     <var name="niSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="niSCACOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of nitrate aerosols at 550 nm (RH=20%)"/>
 
-     <var name="niBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+     <var name="niBCKCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1} sr^{-1}"
                description="Monochromatic backscatter coefficient of nitrate aerosols at 550 nm"/>
 
      <var name="niANGSTR" type="real" dimensions="nCells Time" units="unitless"

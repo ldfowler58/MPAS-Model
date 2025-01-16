@@ -64,25 +64,25 @@
      <var name="totSCATFM" type="real" dimensions="nvAOPs nCells Time" units="unitless"
                description="Total scattering AOT of aerosols at 550 nm (PM1.0)"/>
 
-     <var name="totEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="totEXTCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Total monochromatic extinction coefficient of aerosols at 550 nm"/>
 
-     <var name="totEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="totEXTCOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Total monochromatic extinction coefficient of aerosols at 550 nm (RH=20%)"/>
 
-     <var name="totEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="totEXTCOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Total monochromatic extinction coefficient of aerosols at 550 nm (RH=80%)"/>
 
-     <var name="totSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="totSCACOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Total monochromatic scattering coefficient of aerosols at 550 nm"/>
 
-     <var name="totSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="totSCACOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Total monochromatic scattering coefficient of aerosols at 550 nm (RH=20%)"/>
 
-     <var name="totSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="totSCACOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Total monochromatic scattering coefficient of aerosols at 550 nm (RH=80%)"/>
 
-     <var name="totBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+     <var name="totBCKCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1} sr^{-1}"
                description="Total monochromatic backscatter coefficient of aerosols at 550 nm"/>
 
      <var name="totANGSTR" type="real" dimensions="nCells Time" units="unitless"

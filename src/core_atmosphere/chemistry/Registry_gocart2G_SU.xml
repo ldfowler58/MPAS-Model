@@ -165,25 +165,25 @@
      <var name="suSTSCATAU" type="real" dimensions="nvAOPs nCells Time" units="unitlesu"
                description="Scattering AOT of sulfate aerosols in stratosphere"/>
 
-     <var name="suEXTCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="suEXTCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of sulfate aerosols at 550 nm"/>
 
-     <var name="suEXTCOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="suEXTCOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of sulfate aerosols at 550 nm (Rh=20%)"/>
 
-     <var name="suEXTCOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="suEXTCOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic extinction coefficient of sulfate aerosols at 550 nm (RH=80%)"/>
 
-     <var name="suSCACOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="suSCACOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of sulfate aerosols at 550 nm"/>
 
-     <var name="suSCACOEFRH20" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="suSCACOEFRH20" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of sulfate aerosols at 550 nm (RH=20%)"/>
 
-     <var name="suSCACOEFRH80" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1}"
+     <var name="suSCACOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of sulfate aerosols at 550 nm (RH=20%)"/>
 
-     <var name="suBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+     <var name="suBCKCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1} sr^{-1}"
                description="Monochromatic backscatter coefficient of sulfate aerosols at 550 nm"/>
 
      <var name="suANGSTR" type="real" dimensions="nCells Time" units="unitless"

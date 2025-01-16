@@ -160,17 +160,17 @@
        enddo
     enddo
 
-    do n = 1,npAOPs
-       do k = kts,kte
-          kk = kte+1-k
+    do k = kts,kte
+       kk = kte+1-k
+       do n = 1,npAOPs
           do i = its,ite
-             bcEXTCOEF(n,kk,i)     = CA2G_bc%bcextcoef(i,j,k,n)
-             bcEXTCOEFRH20(n,kk,i) = CA2G_bc%bcextcoefrh20(i,j,k,n)
-             bcEXTCOEFRH80(n,kk,i) = CA2G_bc%bcextcoefrh80(i,j,k,n)
-             bcSCACOEF(n,kk,i)     = CA2G_bc%bcscacoef(i,j,k,n)
-             bcSCACOEFRH20(n,kk,i) = CA2G_bc%bcscacoefrh20(i,j,k,n)
-             bcSCACOEFRH80(n,kk,i) = CA2G_bc%bcscacoefrh80(i,j,k,n)
-             bcBCKCOEF(n,kk,i)     = CA2G_bc%bcbckcoef(i,j,k,n)
+             bcEXTCOEF(kk,n,i)     = CA2G_bc%bcextcoef(i,j,k,n)
+             bcEXTCOEFRH20(kk,n,i) = CA2G_bc%bcextcoefrh20(i,j,k,n)
+             bcEXTCOEFRH80(kk,n,i) = CA2G_bc%bcextcoefrh80(i,j,k,n)
+             bcSCACOEF(kk,n,i)     = CA2G_bc%bcscacoef(i,j,k,n)
+             bcSCACOEFRH20(kk,n,i) = CA2G_bc%bcscacoefrh20(i,j,k,n)
+             bcSCACOEFRH80(kk,n,i) = CA2G_bc%bcscacoefrh80(i,j,k,n)
+             bcBCKCOEF(kk,n,i)     = CA2G_bc%bcbckcoef(i,j,k,n)
           enddo
        enddo
     enddo
@@ -311,17 +311,17 @@
        enddo
     enddo
 
-    do n = 1,npAOPs
-       do k = kts,kte
-          kk = kte+1-k
+    do k = kts,kte
+       kk = kte+1-k
+       do n = 1,npAOPs
           do i = its,ite
-             brEXTCOEF(n,kk,i)     = CA2G_br%brextcoef(i,j,k,n)
-             brEXTCOEFRH20(n,kk,i) = CA2G_br%brextcoefrh20(i,j,k,n)
-             brEXTCOEFRH80(n,kk,i) = CA2G_br%brextcoefrh80(i,j,k,n)
-             brSCACOEF(n,kk,i)     = CA2G_br%brscacoef(i,j,k,n)
-             brSCACOEFRH20(n,kk,i) = CA2G_br%brscacoefrh20(i,j,k,n)
-             brSCACOEFRH80(n,kk,i) = CA2G_br%brscacoefrh80(i,j,k,n)
-             brBCKCOEF(n,kk,i)     = CA2G_br%brbckcoef(i,j,k,n)
+             brEXTCOEF(kk,n,i)     = CA2G_br%brextcoef(i,j,k,n)
+             brEXTCOEFRH20(kk,n,i) = CA2G_br%brextcoefrh20(i,j,k,n)
+             brEXTCOEFRH80(kk,n,i) = CA2G_br%brextcoefrh80(i,j,k,n)
+             brSCACOEF(kk,n,i)     = CA2G_br%brscacoef(i,j,k,n)
+             brSCACOEFRH20(kk,n,i) = CA2G_br%brscacoefrh20(i,j,k,n)
+             brSCACOEFRH80(kk,n,i) = CA2G_br%brscacoefrh80(i,j,k,n)
+             brBCKCOEF(kk,n,i)     = CA2G_br%brbckcoef(i,j,k,n)
           enddo
        enddo
     enddo
@@ -462,17 +462,17 @@
        enddo
     enddo
 
-    do n = 1,npAOPs
-       do k = kts,kte
-          kk = kte+1-k
+    do k = kts,kte
+       kk = kte+1-k
+       do n = 1,npAOPs
           do i = its,ite
-             ocEXTCOEF(n,kk,i)     = CA2G_oc%ocextcoef(i,j,k,n)
-             ocEXTCOEFRH20(n,kk,i) = CA2G_oc%ocextcoefrh20(i,j,k,n)
-             ocEXTCOEFRH80(n,kk,i) = CA2G_oc%ocextcoefrh80(i,j,k,n)
-             ocSCACOEF(n,kk,i)     = CA2G_oc%ocscacoef(i,j,k,n)
-             ocSCACOEFRH20(n,kk,i) = CA2G_oc%ocscacoefrh20(i,j,k,n)
-             ocSCACOEFRH80(n,kk,i) = CA2G_oc%ocscacoefrh80(i,j,k,n)
-             ocBCKCOEF(n,kk,i)     = CA2G_oc%ocbckcoef(i,j,k,n)
+             ocEXTCOEF(kk,n,i)     = CA2G_oc%ocextcoef(i,j,k,n)
+             ocEXTCOEFRH20(kk,n,i) = CA2G_oc%ocextcoefrh20(i,j,k,n)
+             ocEXTCOEFRH80(kk,n,i) = CA2G_oc%ocextcoefrh80(i,j,k,n)
+             ocSCACOEF(kk,n,i)     = CA2G_oc%ocscacoef(i,j,k,n)
+             ocSCACOEFRH20(kk,n,i) = CA2G_oc%ocscacoefrh20(i,j,k,n)
+             ocSCACOEFRH80(kk,n,i) = CA2G_oc%ocscacoefrh80(i,j,k,n)
+             ocBCKCOEF(kk,n,i)     = CA2G_oc%ocbckcoef(i,j,k,n)
           enddo
        enddo
     enddo
@@ -648,17 +648,17 @@
        enddo
     enddo
 
-    do n = 1,npAOPs
-       do k = kts,kte
-          kk = kte+1-k
+    do k = kts,kte
+       kk = kte+1-k
+       do n = 1,npAOPs
           do i = its,ite
-             duEXTCOEF(n,kk,i)     = DU2G%duextcoef(i,j,k,n)
-             duEXTCOEFRH20(n,kk,i) = DU2G%duextcoefrh20(i,j,k,n)
-             duEXTCOEFRH80(n,kk,i) = DU2G%duextcoefrh80(i,j,k,n)
-             duSCACOEF(n,kk,i)     = DU2G%duscacoef(i,j,k,n)
-             duSCACOEFRH20(n,kk,i) = DU2G%duscacoefrh20(i,j,k,n)
-             duSCACOEFRH80(n,kk,i) = DU2G%duscacoefrh80(i,j,k,n)
-             duBCKCOEF(n,kk,i)     = DU2G%dubckcoef(i,j,k,n)
+             duEXTCOEF(kk,n,i)     = DU2G%duextcoef(i,j,k,n)
+             duEXTCOEFRH20(kk,n,i) = DU2G%duextcoefrh20(i,j,k,n)
+             duEXTCOEFRH80(kk,n,i) = DU2G%duextcoefrh80(i,j,k,n)
+             duSCACOEF(kk,n,i)     = DU2G%duscacoef(i,j,k,n)
+             duSCACOEFRH20(kk,n,i) = DU2G%duscacoefrh20(i,j,k,n)
+             duSCACOEFRH80(kk,n,i) = DU2G%duscacoefrh80(i,j,k,n)
+             duBCKCOEF(kk,n,i)     = DU2G%dubckcoef(i,j,k,n)
           enddo
        enddo
     enddo
@@ -686,6 +686,18 @@
  integer:: i,j,k,kk,n
  integer,pointer:: npAOPs,nvAOPs
 
+ real(kind=RKIND),dimension(:),pointer:: niHT_bin1,niHT_bin2,niHT_bin3
+ real(kind=RKIND),dimension(:),pointer:: niSD_bin1,niSD_bin2,niSD_bin3
+ real(kind=RKIND),dimension(:),pointer:: niDP_bin1,niDP_bin2,niDP_bin3
+ real(kind=RKIND),dimension(:),pointer:: niWT_bin1,niWT_bin2,niWT_bin3
+ real(kind=RKIND),dimension(:),pointer:: niSV_bin1,niSV_bin2,niSV_bin3
+
+ real(kind=RKIND),dimension(:),pointer:: nh3EM,nh3DP,nh3WT,nh3SV
+ real(kind=RKIND),dimension(:),pointer:: nh4SD,nh4DP,nh4WT,nh4SV
+ real(kind=RKIND),dimension(:),pointer:: niPNO3AQ,niPNH4AQ,niPNH3AQ
+ real(kind=RKIND),dimension(:),pointer:: hno3SMASS,nh3SMASS,nh4SMASS,niSMASS,niSMASS25
+ real(kind=RKIND),dimension(:),pointer:: hno3CMASS,nh3CMASS,nh4CMASS,niCMASS,niCMASS25
+
  real(kind=RKIND),dimension(:),pointer:: niFLUXU,niFLUXV
  real(kind=RKIND),dimension(:,:),pointer:: niCONC,niCONC25
  real(kind=RKIND),dimension(:,:),pointer:: nh3MASS,nh4MASS,niMASS,niMASS25,hno3CONC,nh3CONC,nh4CONC
@@ -699,6 +711,46 @@
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine NI2G_diagnostics:')
+
+ call mpas_pool_get_array(NI2G_diags,'niHT_bin1',niHT_bin1)
+ call mpas_pool_get_array(NI2G_diags,'niHT_bin2',niHT_bin2)
+ call mpas_pool_get_array(NI2G_diags,'niHT_bin3',niHT_bin3)
+ call mpas_pool_get_array(NI2G_diags,'niSD_bin1',niSD_bin1)
+ call mpas_pool_get_array(NI2G_diags,'niSD_bin2',niSD_bin2)
+ call mpas_pool_get_array(NI2G_diags,'niSD_bin3',niSD_bin3)
+ call mpas_pool_get_array(NI2G_diags,'niDP_bin1',niDP_bin1)
+ call mpas_pool_get_array(NI2G_diags,'niDP_bin2',niDP_bin2)
+ call mpas_pool_get_array(NI2G_diags,'niDP_bin3',niDP_bin3)
+ call mpas_pool_get_array(NI2G_diags,'niWT_bin1',niWT_bin1)
+ call mpas_pool_get_array(NI2G_diags,'niWT_bin2',niWT_bin2)
+ call mpas_pool_get_array(NI2G_diags,'niWT_bin3',niWT_bin3)
+ call mpas_pool_get_array(NI2G_diags,'niSV_bin1',niSV_bin1)
+ call mpas_pool_get_array(NI2G_diags,'niSV_bin2',niSV_bin2)
+ call mpas_pool_get_array(NI2G_diags,'niSV_bin3',niSV_bin3)
+
+ call mpas_pool_get_array(NI2G_diags,'nh3EM',nh3EM)
+ call mpas_pool_get_array(NI2G_diags,'nh3DP',nh3DP)
+ call mpas_pool_get_array(NI2G_diags,'nh3WT',nh3WT)
+ call mpas_pool_get_array(NI2G_diags,'nh3SV',nh3SV)
+ call mpas_pool_get_array(NI2G_diags,'nh4SD',nh4SD)
+ call mpas_pool_get_array(NI2G_diags,'nh4DP',nh4DP)
+ call mpas_pool_get_array(NI2G_diags,'nh4WT',nh4WT)
+ call mpas_pool_get_array(NI2G_diags,'nh4SV',nh4SV)
+
+ call mpas_pool_get_array(NI2G_diags,'hno3SMASS',hno3SMASS)
+ call mpas_pool_get_array(NI2G_diags,'hno3CMASS',hno3CMASS)
+ call mpas_pool_get_array(NI2G_diags,'nh3SMASS' ,nh3SMASS )
+ call mpas_pool_get_array(NI2G_diags,'nh3CMASS' ,nh3CMASS )
+ call mpas_pool_get_array(NI2G_diags,'nh4SMASS' ,nh4SMASS )
+ call mpas_pool_get_array(NI2G_diags,'nh4CMASS' ,nh4CMASS )
+ call mpas_pool_get_array(NI2G_diags,'niSMASS'  ,niSMASS  )
+ call mpas_pool_get_array(NI2G_diags,'niCMASS'  ,niCMASS  )
+ call mpas_pool_get_array(NI2G_diags,'niSMASS25',niSMASS25)
+ call mpas_pool_get_array(NI2G_diags,'niCMASS25',niCMASS25)
+
+ call mpas_pool_get_array(NI2G_diags,'niPNO3AQ',niPNO3AQ)
+ call mpas_pool_get_array(NI2G_diags,'niPNH4AQ',niPNH4AQ)
+ call mpas_pool_get_array(NI2G_diags,'niPNH3AQ',niPNH3AQ)
 
  call mpas_pool_get_array(NI2G_diags,'niFLUXU',niFLUXU)
  call mpas_pool_get_array(NI2G_diags,'niFLUXV',niFLUXV)
@@ -715,6 +767,46 @@
 
  do j = jts,jte
     do i = its,ite
+       niHT_bin1(i) = NI2G%niht(i,j,1)
+       niHT_bin2(i) = NI2G%niht(i,j,2)
+       niHT_bin3(i) = NI2G%niht(i,j,3)
+       niSD_bin1(i) = NI2G%nisd(i,j,1)
+       niSD_bin2(i) = NI2G%nisd(i,j,2)
+       niSD_bin3(i) = NI2G%nisd(i,j,3)
+       niDP_bin1(i) = NI2G%nidp(i,j,1)
+       niDP_bin2(i) = NI2G%nidp(i,j,2)
+       niDP_bin3(i) = NI2G%nidp(i,j,3)
+       niWT_bin1(i) = NI2G%niwt(i,j,1)
+       niWT_bin2(i) = NI2G%niwt(i,j,2)
+       niWT_bin3(i) = NI2G%niwt(i,j,3)
+       niSV_bin1(i) = NI2G%nisv(i,j,1)
+       niSV_bin2(i) = NI2G%nisv(i,j,2)
+       niSV_bin3(i) = NI2G%nisv(i,j,3)
+
+       nh3EM(i) = NI2G%nh3em(i,j)
+       nh3DP(i) = NI2G%nh3dp(i,j)
+       nh3WT(i) = NI2G%nh3wt(i,j)
+       nh3SV(i) = NI2G%nh3sv(i,j)
+       nh4SD(i) = NI2G%nh4sd(i,j)
+       nh4DP(i) = NI2G%nh4dp(i,j)
+       nh4WT(i) = NI2G%nh4wt(i,j)
+       nh4SV(i) = NI2G%nh4sv(i,j)
+
+       hno3SMASS(i) = NI2G%hno3smass(i,j)
+       hno3CMASS(i) = NI2G%hno3cmass(i,j)
+       nh3SMASS(i)  = NI2G%nh3smass(i,j)
+       nh3CMASS(i)  = NI2G%nh3cmass(i,j)
+       nh4SMASS(i)  = NI2G%nh4smass(i,j)
+       nh4CMASS(i)  = NI2G%nh4cmass(i,j)
+       niSMASS(i)   = NI2G%nismass(i,j)
+       niCMASS(i)   = NI2G%nicmass(i,j)
+       niSMASS25(i) = NI2G%nismass25(i,j)
+       niCMASS25(i) = NI2G%nicmass25(i,j)
+
+       niPNO3AQ(i) = NI2G%nipno3aq(i,j)
+       niPNH4AQ(i) = NI2G%nipnh4aq(i,j)
+       niPNH3AQ(i) = NI2G%nipnh3aq(i,j)
+
        niFLUXU(i) = NI2G%nifluxu(i,j)
        niFLUXV(i) = NI2G%nifluxv(i,j)
     enddo
@@ -776,17 +868,17 @@
        enddo
     enddo
 
-    do n = 1,npAOPs
-       do k = kts,kte
-          kk = kte+1-k
+    do k = kts,kte
+       kk = kte+1-k
+       do n = 1,npAOPs
           do i = its,ite
-             niEXTCOEF(n,kk,i)     = NI2G%niextcoef(i,j,k,n)
-             niEXTCOEFRH20(n,kk,i) = NI2G%niextcoefrh20(i,j,k,n)
-             niEXTCOEFRH80(n,kk,i) = NI2G%niextcoefrh80(i,j,k,n)
-             niSCACOEF(n,kk,i)     = NI2G%niscacoef(i,j,k,n)
-             niSCACOEFRH20(n,kk,i) = NI2G%niscacoefrh20(i,j,k,n)
-             niSCACOEFRH80(n,kk,i) = NI2G%niscacoefrh80(i,j,k,n)
-             niBCKCOEF(n,kk,i)     = NI2G%nibckcoef(i,j,k,n)
+             niEXTCOEF(kk,n,i)     = NI2G%niextcoef(i,j,k,n)
+             niEXTCOEFRH20(kk,n,i) = NI2G%niextcoefrh20(i,j,k,n)
+             niEXTCOEFRH80(kk,n,i) = NI2G%niextcoefrh80(i,j,k,n)
+             niSCACOEF(kk,n,i)     = NI2G%niscacoef(i,j,k,n)
+             niSCACOEFRH20(kk,n,i) = NI2G%niscacoefrh20(i,j,k,n)
+             niSCACOEFRH80(kk,n,i) = NI2G%niscacoefrh80(i,j,k,n)
+             niBCKCOEF(kk,n,i)     = NI2G%nibckcoef(i,j,k,n)
           enddo
        enddo
     enddo
@@ -962,17 +1054,17 @@
        enddo
     enddo
 
-    do n = 1,npAOPs
-       do k = kts,kte
-          kk = kte+1-k
+    do k = kts,kte
+       kk = kte+1-k
+       do n = 1,npAOPs
           do i = its,ite
-             ssEXTCOEF(n,kk,i)     = SS2G%ssextcoef(i,j,k,n)
-             ssEXTCOEFRH20(n,kk,i) = SS2G%ssextcoefrh20(i,j,k,n)
-             ssEXTCOEFRH80(n,kk,i) = SS2G%ssextcoefrh80(i,j,k,n)
-             ssSCACOEF(n,kk,i)     = SS2G%ssscacoef(i,j,k,n)
-             ssSCACOEFRH20(n,kk,i) = SS2G%ssscacoefrh20(i,j,k,n)
-             ssSCACOEFRH80(n,kk,i) = SS2G%ssscacoefrh80(i,j,k,n)
-             ssBCKCOEF(n,kk,i)     = SS2G%ssbckcoef(i,j,k,n)
+             ssEXTCOEF(kk,n,i)     = SS2G%ssextcoef(i,j,k,n)
+             ssEXTCOEFRH20(kk,n,i) = SS2G%ssextcoefrh20(i,j,k,n)
+             ssEXTCOEFRH80(kk,n,i) = SS2G%ssextcoefrh80(i,j,k,n)
+             ssSCACOEF(kk,n,i)     = SS2G%ssscacoef(i,j,k,n)
+             ssSCACOEFRH20(kk,n,i) = SS2G%ssscacoefrh20(i,j,k,n)
+             ssSCACOEFRH80(kk,n,i) = SS2G%ssscacoefrh80(i,j,k,n)
+             ssBCKCOEF(kk,n,i)     = SS2G%ssbckcoef(i,j,k,n)
           enddo
        enddo
     enddo
@@ -1175,17 +1267,17 @@
        enddo
     enddo
 
-    do n = 1,npAOPs
-       do k = kts,kte
-          kk = kte+1-k
+    do k = kts,kte
+       kk = kte+1-k
+       do n = 1,npAOPs
           do i = its,ite
-             suEXTCOEF(n,kk,i)     = SU2G%suextcoef(i,j,k,n)
-             suEXTCOEFRH20(n,kk,i) = SU2G%suextcoefrh20(i,j,k,n)
-             suEXTCOEFRH80(n,kk,i) = SU2G%suextcoefrh80(i,j,k,n)
-             suSCACOEF(n,kk,i)     = SU2G%suscacoef(i,j,k,n)
-             suSCACOEFRH20(n,kk,i) = SU2G%suscacoefrh20(i,j,k,n)
-             suSCACOEFRH80(n,kk,i) = SU2G%suscacoefrh80(i,j,k,n)
-             suBCKCOEF(n,kk,i)     = SU2G%subckcoef(i,j,k,n)
+             suEXTCOEF(kk,n,i)     = SU2G%suextcoef(i,j,k,n)
+             suEXTCOEFRH20(kk,n,i) = SU2G%suextcoefrh20(i,j,k,n)
+             suEXTCOEFRH80(kk,n,i) = SU2G%suextcoefrh80(i,j,k,n)
+             suSCACOEF(kk,n,i)     = SU2G%suscacoef(i,j,k,n)
+             suSCACOEFRH20(kk,n,i) = SU2G%suscacoefrh20(i,j,k,n)
+             suSCACOEFRH80(kk,n,i) = SU2G%suscacoefrh80(i,j,k,n)
+             suBCKCOEF(kk,n,i)     = SU2G%subckcoef(i,j,k,n)
           enddo
        enddo
     enddo
@@ -1289,17 +1381,17 @@
        enddo
     enddo
 
-    do n = 1,npAOPs
-       do k = kts,kte
-          kk = kte+1-k
+    do k = kts,kte
+       kk = kte+1-k
+       do n = 1,npAOPs
           do i = its,ite
-             totEXTCOEF(n,kk,i)     = GOCART2G%totextcoef(i,j,k,n)
-             totEXTCOEFRH20(n,kk,i) = GOCART2G%totextcoefrh20(i,j,k,n)
-             totEXTCOEFRH80(n,kk,i) = GOCART2G%totextcoefrh80(i,j,k,n)
-             totSCACOEF(n,kk,i)     = GOCART2G%totscacoef(i,j,k,n)
-             totSCACOEFRH20(n,kk,i) = GOCART2G%totscacoefrh20(i,j,k,n)
-             totSCACOEFRH80(n,kk,i) = GOCART2G%totscacoefrh80(i,j,k,n)
-             totBCKCOEF(n,kk,i)     = GOCART2G%totbckcoef(i,j,k,n)
+             totEXTCOEF(kk,n,i)     = GOCART2G%totextcoef(i,j,k,n)
+             totEXTCOEFRH20(kk,n,i) = GOCART2G%totextcoefrh20(i,j,k,n)
+             totEXTCOEFRH80(kk,n,i) = GOCART2G%totextcoefrh80(i,j,k,n)
+             totSCACOEF(kk,n,i)     = GOCART2G%totscacoef(i,j,k,n)
+             totSCACOEFRH20(kk,n,i) = GOCART2G%totscacoefrh20(i,j,k,n)
+             totSCACOEFRH80(kk,n,i) = GOCART2G%totscacoefrh80(i,j,k,n)
+             totBCKCOEF(kk,n,i)     = GOCART2G%totbckcoef(i,j,k,n)
           enddo
        enddo
     enddo
