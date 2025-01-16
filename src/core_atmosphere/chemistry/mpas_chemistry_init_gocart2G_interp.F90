@@ -28,7 +28,7 @@
 
 
 !=================================================================================================================
- subroutine init_gocart2G_aerosols(configs,mesh,fg,diag,state)
+ subroutine init_gocart2G_aerosols(configs,mesh,fg,diag,state,gocart2G_backgrounds)
 !=================================================================================================================
 
 !input arguments:
@@ -39,6 +39,7 @@
 !inout arguments:
  type(mpas_pool_type),intent(inout):: fg
  type(mpas_pool_type),intent(inout):: state
+ type(mpas_pool_type),intent(inout):: gocart2G_backgrounds
 
 !-----------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -46,6 +47,7 @@
 
  call init_hinterp_gocart2G(configs,mesh,fg)
  call init_vinterp_gocart2G(configs,mesh,fg,diag,state)
+ call init_vinterp_gocart2G_hno3(configs,mesh,fg,diag,gocart2G_backgrounds)
 
  call mpas_log_write('--- end subroutine init_gocart2G_aerosols.')
  call mpas_log_write(' ')
@@ -83,6 +85,7 @@
  integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
  integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
  integer,pointer:: index_qdms,index_qmsa
+ integer,pointer:: index_qnh3,index_qnh4a,index_qhno3
 
  integer,pointer:: nCells,nAerLevels
  integer,pointer:: num_scalars_fg
@@ -104,6 +107,7 @@
  real(kind=RKIND),dimension(:,:),pointer:: qseas1,qseas2,qseas3,qseas4,qseas5
  real(kind=RKIND),dimension(:,:),pointer:: qso2,qso2v,qso4,qso4v
  real(kind=RKIND),dimension(:,:),pointer:: qdms,qmsa
+ real(kind=RKIND),dimension(:,:),pointer:: qnh3,qnh4a,qhno3
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars_fg
 
  real(kind=RKIND),dimension(:,:),pointer:: destField2d
@@ -151,6 +155,9 @@
  call mpas_pool_get_dimension(fg,'index_qseas5'   ,index_qseas5   )
  call mpas_pool_get_dimension(fg,'index_qdms'     ,index_qdms     )
  call mpas_pool_get_dimension(fg,'index_qmsa'     ,index_qmsa     )
+ call mpas_pool_get_dimension(fg,'index_qnh3'     ,index_qnh3     )
+ call mpas_pool_get_dimension(fg,'index_qnh4a'    ,index_qnh4a    )
+ call mpas_pool_get_dimension(fg,'index_qhno3'    ,index_qhno3    )
  call mpas_pool_get_array(fg,'scalars_fg',scalars_fg)
  scalars_fg = 0._RKIND
 
@@ -179,6 +186,9 @@
  call mpas_log_write('--- index_qseas5    = $i',intArgs=(/index_qseas5/))
  call mpas_log_write('--- index_qdms      = $i',intArgs=(/index_qdms/))
  call mpas_log_write('--- index_qmsa      = $i',intArgs=(/index_qmsa/))
+ call mpas_log_write('--- index_qnh3      = $i',intArgs=(/index_qnh3/))
+ call mpas_log_write('--- index_qnh4a     = $i',intArgs=(/index_qnh4a/))
+ call mpas_log_write('--- index_qhno3     = $i',intArgs=(/index_qhno3/))
 
  qbcphobic => scalars_fg(index_qbcphobic,:,:)
  qbcphilic => scalars_fg(index_qbcphilic,:,:)
@@ -205,6 +215,9 @@
  qseas5    => scalars_fg(index_qseas5,:,:)
  qdms      => scalars_fg(index_qdms,:,:)
  qmsa      => scalars_fg(index_qmsa,:,:)
+ qnh3      => scalars_fg(index_qnh3,:,:)
+ qnh4a     => scalars_fg(index_qnh4a,:,:)
+ qhno3     => scalars_fg(index_qhno3,:,:)
 
  call mpas_pool_get_dimension(fg,'num_scalars_fg' ,num_scalars_fg )
  call mpas_pool_get_dimension(fg,'gocart2G_start',gocart2G_start)
@@ -317,6 +330,8 @@
        trim(field%field) == 'SS005'    .or. &
        trim(field%field) == 'DMS'      .or. &
        trim(field%field) == 'MSA'      .or. &
+       trim(field%field) == 'HNO3'     .or. &
+       trim(field%field) == 'NH3'      .or. &
        trim(field%field) == 'AIRDENS'  .or. &
        trim(field%field) == 'RH'       .or. &
        trim(field%field) == 'DPRES'    .or. &
@@ -521,6 +536,20 @@
           latPoints => latCell
           lonPoints => lonCell
           destField2d => qmsa
+       elseif(trim(field%field) == 'HNO3') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating HNO3 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qhno3
+       elseif(trim(field%field) == 'NH3') then
+          k = field%xlvl
+          call mpas_log_write('Interpolating HN3 at $i',intArgs=(/k/))
+          nInterpPoints = nCells
+          latPoints => latCell
+          lonPoints => lonCell
+          destField2d => qnh3
        elseif(trim(field%field) == 'DPRES') then
           k = field%xlvl
           call mpas_log_write('Interpolating DPRES at $i',intArgs=(/k/))
@@ -602,11 +631,13 @@
  integer,pointer:: nCells,nAerLevels,nVertLevels
  integer,pointer:: num_scalars,gocart2G_start,gocart2G_end
  integer,pointer:: num_scalars_fg,gocart2G_fg_start,gocart2G_fg_end
+ integer,pointer:: index_qnh3,index_qnh4a,index_qso4
 
  real(kind=RKIND),dimension(:,:),pointer:: pgoc,pressure
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars_fg
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars
 
+ real(kind=RKIND):: fMassAir,fMassNH3,fMassNH4a,fMassSO4,fmult
  real(kind=RKIND):: target_p
  real(kind=RKIND),dimension(:,:),allocatable:: sorted_arr
 
@@ -665,9 +696,91 @@
  if(allocated(sorted_arr)) deallocate(sorted_arr)
 
 
+!--- convert qnh3 from mole per mole to kg per kg. initialize qnh4a as a function of qso4 (we assume
+!    that the number of moles of NH4a is equal to the number of moles of SO4, and then convert mole
+!    per mole to kg per kg:
+ fMassNH3  = 62._RKIND   ! as defined in NI2G_GridCompMod.F90
+ fMassNH4a = 18._RKIND   ! as defined in NI2G_GridCompMod.F90
+ fMassAir  = 28.97_RKIND ! as defined in NI2G_GridCompMod.F90
+ fMassSO4  = 96._RKIND   ! as defined in SU2G_GridCompMod.F90
+
+ call mpas_pool_get_dimension(state,'index_qnh3' ,index_qnh3 )
+ call mpas_pool_get_dimension(state,'index_qnh4a',index_qnh4a)
+ call mpas_pool_get_dimension(state,'index_qso4' ,index_qso4 )
+
+ fmult = fMassNH3/fMassAir
+ scalars(index_qnh3,:,:) = fmult*scalars(index_qnh3,:,:)
+
+ fmult = fMassNH4a/fMassSO4
+ scalars(index_qnh4a,:,:) = fmult*scalars(index_qso4,:,:)
+
+
  call mpas_log_write('--- end subroutine init_vinterp_gocart2G.')
 
  end subroutine init_vinterp_gocart2G
+
+!==================================================================================================================
+ subroutine init_vinterp_gocart2G_hno3(configs,mesh,fg,diag,gocart2G_backgrounds)
+!==================================================================================================================
+
+!input arguments:
+ type(mpas_pool_type),intent(in):: configs
+ type(mpas_pool_type),intent(in):: mesh
+ type(mpas_pool_type),intent(in):: fg
+ type(mpas_pool_type),intent(in):: diag
+
+!inout arguments:
+ type(mpas_pool_type),intent(inout):: gocart2G_backgrounds
+
+!local variables and arrays:
+ integer:: k,iCell,n,nn
+ integer,pointer:: nCells,nAerLevels,nVertLevels
+ integer,pointer:: index_qhno3
+
+ real(kind=RKIND),dimension(:,:),pointer:: background_hno3
+ real(kind=RKIND),dimension(:,:),pointer:: pgoc,pressure
+ real(kind=RKIND),dimension(:,:),pointer:: qhno3_fg
+ real(kind=RKIND),dimension(:,:,:),pointer:: scalars_fg
+
+ real(kind=RKIND):: target_p
+ real(kind=RKIND),dimension(:,:),allocatable:: sorted_arr
+
+!------------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine init_vinterp_gocart2G_hno3:')
+
+ call mpas_pool_get_dimension(mesh,'nCells',nCells)
+ call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
+ call mpas_pool_get_dimension(mesh,'nAerLevels' ,nAerLevels )
+
+ call mpas_pool_get_array(diag,'pressure',pressure)
+
+ call mpas_pool_get_dimension(fg,'index_qhno3',index_qhno3)
+ call mpas_pool_get_array(fg,'pgoc',pgoc)
+ call mpas_pool_get_array(fg,'scalars_fg',scalars_fg)
+ qhno3_fg => scalars_fg(index_qhno3,:,:)
+
+ call mpas_pool_get_array(gocart2G_backgrounds,'background_hno3',background_hno3)
+
+ if(.not.allocated(sorted_arr)) allocate(sorted_arr(2,nAerLevels))
+ do iCell = 1,nCells
+    sorted_arr(1,1:nAerLevels) = 0._RKIND
+    sorted_arr(2,1:nAerLevels) = 0._RKIND
+    do k = 1,nAerLevels
+       sorted_arr(1,k) = pgoc(k,iCell)
+       sorted_arr(2,k) = qhno3_fg(k,iCell)
+    enddo
+    do k = nVertLevels,1,-1
+       target_p = pressure(k,iCell)
+       background_hno3(k,iCell) = pressure_interp(iCell,k,target_p,nAerLevels,sorted_arr(:,1:nAerLevels))
+       if(target_p.gt.sorted_arr(1,1)) background_hno3(k,iCell) = background_hno3(k+1,iCell)
+    enddo
+ enddo
+ if(allocated(sorted_arr)) deallocate(sorted_arr)
+
+ call mpas_log_write('--- end subroutine init_vinterp_gocart2G_hno3:')
+
+ end subroutine init_vinterp_gocart2G_hno3
 
 !=================================================================================================================
  real(kind=RKIND) function pressure_interp(ii,kk,target_z,nz,zf)

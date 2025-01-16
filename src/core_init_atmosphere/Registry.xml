@@ -650,6 +650,7 @@
                         <var name="background_h2o2" packages="gocart2G_interp_out"/>
                         <var name="background_oh" packages="gocart2G_interp_out"/>
                         <var name="background_no3" packages="gocart2G_interp_out"/>
+                        <var name="background_hno3" packages="gocart2G_interp_out"/>
                         <var name="background_ptrop" packages="gocart2G_interp_out"/>
                         <var name="pgoc_fg" packages="gocart2G_interp_out"/>
                         <var name="dpgoc_fg" packages="gocart2G_interp_out"/>

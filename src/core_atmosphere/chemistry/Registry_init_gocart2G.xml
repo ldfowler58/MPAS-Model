@@ -102,6 +102,9 @@
       <var name="background_no3" type="real" dimensions="nVertLevels nCells Time" units="volume mixing ratio"
            description="Background of nitrate (NO3)"/>
 
+      <var name="background_hno3" type="real" dimensions="nVertLevels nCells Time" units="volume mixing ratio"
+           description="background of nitric acid (HNO3)"/>
+
  </var_struct>
 
 
@@ -193,6 +196,15 @@
 
            <var name="qmsa_fg" name_in_code="qmsa" array_group="gocart2G" units="kg kg^{-1}"
                 description="MSA - first guess methanesulfonic acid mass mixing ratio"/>
+
+           <var name="qnh3_fg" name_in_code="qnh3" array_group="gocart2G" units="mole mole^{-1}"
+                description="NH3 - first guess ammonia volume mixing ratio"/>
+
+           <var name="qnh4a_fg" name_in_code="qnh4a" array_group="gocart2G" units="mole mole^{-1}"
+                description="NH4a - first guess ammonium ion volume mixing ratio"/>
+
+           <var name="qhno3_fg" name_in_code="qhno3" array_group="gocart2G" units="mole mole^{-1}"
+                description="HNO3 - first guess nitric acid volume mixing ratio"/>
       </var_array>
 
       <var name="pgoc_fg" name_in_code="pgoc" type="real" dimensions="nAerLevels nCells Time" units="Pa"
@@ -281,6 +293,12 @@
 
            <var name="qmsa" array_group="gocart2G" units="kg kg^{-1}"
                 description="MSA - methanesulfonic acid mass mixing ratio"/>
+
+           <var name="qnh3" array_group="gocart2G" units="kg kg^{-1}"
+                description="NH3 - ammonia mass mixing ratio"/>
+
+           <var name="qnh4a" array_group="gocart2G" units="kg kg^{-1}"
+                description="NH4a - ammonium ion mass mixing ratio"/>
       </var_array>
 
  </var_struct>

@@ -308,7 +308,8 @@ module init_atm_cases
                call mpas_pool_get_subpool(block_ptr%structs,'fg'   ,fg   )
                call mpas_pool_get_subpool(block_ptr%structs,'diag' ,diag )
                call mpas_pool_get_subpool(block_ptr%structs,'state',state)
-               call init_gocart2G_aerosols(block_ptr%configs,mesh,fg,diag,state)
+               call mpas_pool_get_subpool(block_ptr%structs,'gocart2G_backgrounds',gocart2G_backgrounds)
+               call init_gocart2G_aerosols(block_ptr%configs,mesh,fg,diag,state,gocart2G_backgrounds)
             endif
 
             !interpolation of static fields:
