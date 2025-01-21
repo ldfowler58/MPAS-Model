@@ -25,7 +25,6 @@
     integer:: nMom ! number of moments of phase function
     integer:: nPol ! number of elements of scattering phase matrix
 
-    !c=channel, r=rh, b=bin, m=moments, p=nPol
     !--- pointers available in all netCDF files:
     real,dimension(:),pointer        :: rh          => null() ! (r) RH values   [fraction]
     real,dimension(:,:),pointer      :: reff        => null() ! (r,b) effective radius [m]
@@ -94,14 +93,17 @@
  real,intent(in),dimension(:), optional:: wavelengths
 
 !--- local variables:
+ logical:: l_gf,l_rhop
+
  integer:: i,imom,ip1,ipol,j,n,nn,nMom,nPol
+ integer:: nb,nc,np,nr
  integer:: stat,ndims
  type(SMIOLf_context),pointer :: context
  type(SMIOLf_file),pointer    :: aop_file
  type(SMIOLf_decomp),pointer  :: decomp   ! not used for non-decomposed variables
 
  real(kind=RKIND):: yerr
- real(kind=R4KIND),parameter:: missing = -999.
+ real(kind=RKIND),parameter:: undefval = 1.0e15
 
  integer(kind=I8KIND):: radius_size,rh_size,lambda_size,nMom_size,nPol_size
 !the arrays below are available in all the opticsBands_*.nc and optics_*.nc files for BC,BR,DU,NI,OC,SS,and SU:
@@ -109,12 +111,17 @@
  real(kind=R4KIND),dimension(:,:),pointer:: rEff,rMass
  real(kind=R4KIND),dimension(:,:,:),pointer:: qsca,qext,bsca,bext,g,bbck,refreal,refimag
 
+ real(kind=RKIND),dimension(:,:,:),allocatable:: bext_r,bsca_r,bbck_r,g_r,refreal_r,refimag_r
+
 !in addition to the arrays above,the arrays pback and pmom are available in all the optics_*.nc files for BC,
 !BR,DU,NI,OC,SS,and SU:
  real(kind=R4KIND),dimension(:,:,:,:),pointer:: pback
  real(kind=R4KIND),dimension(:,:,:,:,:),pointer:: pmom
 
-!in addition to the arrays above the arrays gf and rhop are available in the optics_*.nc files for BR and NI:
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: pback_r
+ real(kind=RKIND),dimension(:,:,:,:,:),allocatable:: pmom_r
+
+!in addition to the arrays above, the arrays gf and rhop are available in the optics_*.nc files for NI:
  real(kind=R4KIND),dimension(:,:),pointer:: gf,rhop
 
 !extra arrays not always available in netCDF files:
@@ -125,7 +132,7 @@
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
- call mpas_log_write('--- enter function GOCART2G_MieCreate:')
+ call mpas_log_write('--- enter function GOCART2G_MieCreate:  '//MieFile)
 
 
 !
@@ -156,7 +163,7 @@
 
 
 !
-!--- inquire about the size of dimensions:
+!--- inquire about the size of dimensions and initialize dimensions needed in GOCART2G_Mie:
 !
  stat = SMIOLf_inquire_dim(aop_file,'radius',dimsize=radius_size)
  stat = SMIOLf_inquire_dim(aop_file,'rh',dimsize=rh_size)
@@ -178,109 +185,87 @@
     nPol_size = nPol
  endif
 
- call mpas_log_write('radius    = $i',intArgs=[int(radius_size)])
- call mpas_log_write('rh        = $i',intArgs=[int(rh_size)])
- call mpas_log_write('lambda    = $i',intArgs=[int(lambda_size)])
- call mpas_log_write('nMom      = $i',intArgs=(/nMom/))
- call mpas_log_write('nPol      = $i',intArgs=(/nPol/))
- call mpas_log_write('nMom_size = $i',intArgs=(/int(nMom_size)/))
- call mpas_log_write('nPol_size = $i',intArgs=(/int(nPol_size)/))
+ call mpas_log_write('radius_size = $i',intArgs=[int(radius_size)])
+ call mpas_log_write('rh_size     = $i',intArgs=[int(rh_size)])
+ call mpas_log_write('lambda_size = $i',intArgs=[int(lambda_size)])
+ call mpas_log_write('nMom_size   = $i',intArgs=(/int(nMom_size)/))
+ call mpas_log_write('nPol_size   = $i',intArgs=(/int(nPol_size)/))
+ call mpas_log_write(' ')
+ call mpas_log_write('nMom        = $i',intArgs=(/nMom/))
+ call mpas_log_write('nPol        = $i',intArgs=(/nPol/))
+
+ self%nrh  = rh_size
+ self%nbin = radius_size
+ self%nMom = nMom
+ self%nPol = nPol
+
+ if(present(wavelengths)) then
+    self%nch = size(wavelengths)
+ else
+    self%nch = lambda_size
+ endif
+
+ call mpas_log_write(' ')
+ call mpas_log_write('self%nbin   = $i',intArgs=(/self%nbin/))
+ call mpas_log_write('self%nrh    = $i',intArgs=(/self%nrh/))
+ call mpas_log_write('self%nch    = $i',intArgs=(/self%nch/))
+ call mpas_log_write('self%nMom   = $i',intArgs=(/self%nMom/))
+ call mpas_log_write('self%nPol   = $i',intArgs=(/self%nPol/))
 
 
 !
-!--- allocate arrays in netCDF files:
-!
- if(.not.associated(rh)     ) allocate(rh(rh_size)        )
- if(.not.associated(lambda) ) allocate(lambda(lambda_size))
- if(.not.associated(radius) ) allocate(radius(radius_size))
- if(.not.associated(rLow)   ) allocate(rLow(radius_size)  )
- if(.not.associated(rUp)    ) allocate(rUp(radius_size)   )
-
- if(.not.associated(rEff)   ) allocate(rEff(rh_size,radius_size) )
- if(.not.associated(rMass)  ) allocate(rMass(rh_size,radius_size))
- if(.not.associated(gf)     ) allocate(gf(rh_size,radius_size)   )
- if(.not.associated(rhop)   ) allocate(rhop(rh_size,radius_size) )
- if(.not.associated(rhod)   ) allocate(rhod(rh_size,radius_size) )
- if(.not.associated(area)   ) allocate(area(rh_size,radius_size) )
- if(.not.associated(vol)    ) allocate(vol(rh_size,radius_size)  )
-
- if(.not.associated(qsca)   ) allocate(qsca(lambda_size,rh_size,radius_size))
- if(.not.associated(qext)   ) allocate(qext(lambda_size,rh_size,radius_size))
- if(.not.associated(bsca)   ) allocate(bsca(lambda_size,rh_size,radius_size))
- if(.not.associated(bext)   ) allocate(bext(lambda_size,rh_size,radius_size))
- if(.not.associated(g)      ) allocate(g(lambda_size,rh_size,radius_size)   )
- if(.not.associated(bbck)   ) allocate(bbck(lambda_size,rh_size,radius_size))
- if(.not.associated(refreal)) allocate(refreal(lambda_size,rh_size,radius_size))
- if(.not.associated(refimag)) allocate(refimag(lambda_size,rh_size,radius_size))
-
- if(.not.associated(pback)  ) allocate(pback(lambda_size,rh_size,radius_size,nPol_size))
-
-
-!
-!--- read variable as a non-decomposed variable
+!--- read variables as non-decomposed variables in the input netCDF files:
 !    i.e., every MPI tasks reads the full variable:
 !
+ l_gf   = .false.
+ l_rhop = .false.
+
  nullify(decomp)
  call read_real_1d(aop_file,decomp,'rh',rh)
-
  nullify(decomp)
  call read_real_1d(aop_file,decomp,'lambda',lambda)
-
  nullify(decomp)
  call read_real_1d(aop_file,decomp,'radius',radius)
-
  nullify(decomp)
  call read_real_1d(aop_file,decomp,'rLow',rLow)
-
  nullify(decomp)
  call read_real_1d(aop_file,decomp,'rUp',rUp)
 
  nullify(decomp)
  call read_real_2d(aop_file,decomp,'rEff',rEff)
-
  nullify(decomp)
  call read_real_2d(aop_file,decomp,'rMass',rMass)
 
  nullify(decomp)
  call read_real_3d(aop_file,decomp,'qsca',qsca)
-
  nullify(decomp)
  call read_real_3d(aop_file,decomp,'qext',qext)
-
  nullify(decomp)
  call read_real_3d(aop_file,decomp,'bsca',bsca)
-
  nullify(decomp)
  call read_real_3d(aop_file,decomp,'bext',bext)
-
  nullify(decomp)
  call read_real_3d(aop_file,decomp,'g',g)
-
  nullify(decomp)
  call read_real_3d(aop_file,decomp,'bbck',bbck)
-
  nullify(decomp)
  call read_real_3d(aop_file,decomp,'refreal',refreal)
-
  nullify(decomp)
  call read_real_3d(aop_file,decomp,'refimag',refimag)
 
  if(present(wavelengths)) then
-    if(.not.associated(pmom)) allocate(pmom(lambda_size,rh_size,radius_size,nMom,nPol_size))
+    nullify(decomp)
+    call read_real_4d(aop_file,decomp,'pback',pback)
     nullify(decomp)
     call read_real_5d(aop_file,decomp,'pmom',pmom)
- endif
 
-
-!--- AOPs not necessarily stored in all versions of netCDF files:
- if(present(wavelengths)) then
-    !particle growth factor:
+    !growth factor:
     nullify(decomp)
     stat = SMIOLf_inquire_var(aop_file,'growth_factor',ndims=ndims)
     if(stat /= SMIOL_SUCCESS) then
-       gf(:,:) = missing
-!      call mpas_log_write('--- GROWTH FACTOR GF is not available in input file',messageType=MPAS_LOG_OUT)
+       call mpas_log_write('--- GROWTH FACTOR GF is not available in input file',messageType=MPAS_LOG_OUT)
     else
+       l_gf = .true.
        call read_real_2d(aop_file,decomp,'growth_factor',gf)
     endif
 
@@ -288,58 +273,12 @@
     nullify(decomp)
     stat = SMIOLf_inquire_var(aop_file,'rhop',ndims=ndims)
     if(stat /= SMIOL_SUCCESS) then
-       rhop(:,:) = missing
-!      call mpas_log_write('--- WET PARTICLE DENSITY not available in input file',messageType=MPAS_LOG_OUT)
+       call mpas_log_write('--- WET PARTICLE DENSITY not available in input file',messageType=MPAS_LOG_OUT)
     else
+       l_rhop = .true.
        call read_real_2d(aop_file,decomp,'rhop',rhop)
     endif
-
-    !dry particle density (pulled from wet particle radius):
-    nullify(decomp)
-    stat = SMIOLf_inquire_var(aop_file,'rhod',ndims=ndims)
-    if(stat /= SMIOL_SUCCESS) then
-       rhod(:,:) = missing
-!      call mpas_log_write('--- DRY PARTICLE DENSITY not available in input file',messageType=MPAS_LOG_OUT)
-    else
-       call read_real_2d(aop_file,decomp,'rhod',rhod)
-       do n = 1, rh_size
-          rhod(n,:) = rhod(1,:)
-       enddo
-    endif
-
-    !--- backscatter phase function:
-    nullify(decomp)
-    stat = SMIOLf_inquire_var(aop_file,'pback',ndims=ndims)
-    if(stat /= SMIOL_SUCCESS) then
-       pback(:,:,:,:) = 1._RKIND
-!      call mpas_log_write('--- BACKSCATTER PHASE FUNCTION not available in input file',messageType=MPAS_LOG_OUT)
-    else
-       call read_real_4d(aop_file,decomp,'pback',pback)
-    endif
-
-    !--- wet particle volume [m3 kg-1]. the ratio of wet to dry volume is gf^3, hence the following
-    do n = 1, rh_size
-       do nn = 1, radius_size
-          if(rhod(n,nn) == missing .or. gf(n,nn) == missing) then
-             vol(n,nn) = missing
-          else
-             vol(n,nn) = gf(n,nn)**3/rhod(n,nn)
-          endif
-       enddo
-    enddo
-
-    !--- wet particle cross sectional area [m2 kg-1]. assume area is volume divided by (4./3.*reff)
-    do n = 1, rh_size
-       do nn = 1, radius_size
-          if(rhod(n,nn) == missing) then
-             area(n,nn) = missing
-          else
-             area(n,nn) = vol(n,nn)/(4./3.*rEff(n,nn))
-          endif
-       enddo
-    enddo
  endif
-
 
 !--- close netCDF file:
  stat = SMIOLf_close_file(aop_file)
@@ -355,19 +294,12 @@
     call mpas_log_write(trim(SMIOLf_error_string(stat)), messageType=MPAS_LOG_ERR)
     return
  endif
+ call mpas_log_write('--- end read input netCDF file:')
 
 
-!--- output data to GOCART2G_Mie:
- self%nrh  = rh_size
- self%nbin = radius_size
- self%nMom = nMom
- self%nPol = nPol
-
- if(present(wavelengths)) then
-    self%nch = size(wavelengths)
- else
-    self%nch = lambda_size
- endif
+!
+!--- initialize arrays needed in GOCART2G_Mie:
+!
  if(.not.associated(self%wavelengths)) allocate(self%wavelengths(self%nch))
  if(present(wavelengths)) then
     self%wavelengths = wavelengths
@@ -375,133 +307,137 @@
     self%wavelengths = lambda
  endif
 
- call mpas_log_write(' ')
- call mpas_log_write('self%nbin = $i',intArgs=(/self%nbin/))
- call mpas_log_write('self%nrh  = $i',intArgs=(/self%nrh/))
- call mpas_log_write('self%nch  = $i',intArgs=(/self%nch/))
- call mpas_log_write('self%nMom = $i',intArgs=(/self%nMom/))
- call mpas_log_write('self%nPol = $i',intArgs=(/self%nPol/))
-
  if(.not.associated(self%rh)   ) allocate(self%rh(self%nrh))
  if(.not.associated(self%reff) ) allocate(self%reff(self%nrh,self%nbin))
- if(.not.associated(self%gf)   ) allocate(self%gf(self%nrh,self%nbin)  )
- if(.not.associated(self%rhop) ) allocate(self%rhop(self%nrh,self%nbin))
- if(.not.associated(self%rhod) ) allocate(self%rhod(self%nrh,self%nbin))
- if(.not.associated(self%vol)  ) allocate(self%vol(self%nrh,self%nbin) )
- if(.not.associated(self%area) ) allocate(self%area(self%nrh,self%nbin))
  if(.not.associated(self%bext) ) allocate(self%bext(self%nrh,self%nch,self%nbin))
  if(.not.associated(self%bsca) ) allocate(self%bsca(self%nrh,self%nch,self%nbin))
  if(.not.associated(self%bbck) ) allocate(self%bbck(self%nrh,self%nch,self%nbin))
+ if(.not.associated(self%g)    ) allocate(self%g(self%nrh,self%nch,self%nbin)   )
  if(.not.associated(self%refr) ) allocate(self%refr(self%nrh,self%nch,self%nbin))
  if(.not.associated(self%refi) ) allocate(self%refi(self%nrh,self%nch,self%nbin))
- if(.not.associated(self%g)    ) allocate(self%g(self%nrh,self%nch,self%nbin)   )
  if(.not.associated(self%p11)  ) allocate(self%p11(self%nrh,self%nch,self%nbin) )
  if(.not.associated(self%p22)  ) allocate(self%p22(self%nrh,self%nch,self%nbin) )
- if(.not.associated(self%pback)) allocate(self%pback(self%nrh,self%nch,self%nbin,self%nPol))
- if(nMom_size > 0) then
-    if(.not.associated(self%pmom)) allocate(self%pmom(self%nrh,self%nch,self%nbin,self%nMom,self%nPol))
+ if(present(wavelengths)) then
+    if(.not.associated(self%gf)  ) allocate(self%gf(self%nrh,self%nbin)  )
+    if(.not.associated(self%rhop)) allocate(self%rhop(self%nrh,self%nbin))
+    if(.not.associated(self%rhod)) allocate(self%rhod(self%nrh,self%nbin))
+    if(.not.associated(self%vol) ) allocate(self%vol(self%nrh,self%nbin) )
+    if(.not.associated(self%area)) allocate(self%area(self%nrh,self%nbin))
+
+    if(.not.associated(self%pback)) allocate(self%pback(self%nrh,self%nch,self%nbin,self%nPol))
+    if(.not.associated(self%pmom) ) allocate(self%pmom(self%nrh,self%nch,self%nbin,self%nMom,self%nPol))
+ endif
+
+ if(.not.allocated(bext_r)   ) allocate(bext_r(int(lambda_size),self%nrh,self%nbin)   )
+ if(.not.allocated(bsca_r)   ) allocate(bsca_r(int(lambda_size),self%nrh,self%nbin)   )
+ if(.not.allocated(bbck_r)   ) allocate(bbck_r(int(lambda_size),self%nrh,self%nbin)   )
+ if(.not.allocated(g_r)      ) allocate(g_r(int(lambda_size),self%nrh,self%nbin)      )
+ if(.not.allocated(refreal_r)) allocate(refreal_r(int(lambda_size),self%nrh,self%nbin))
+ if(.not.allocated(refimag_r)) allocate(refimag_r(int(lambda_size),self%nrh,self%nbin))
+ if(present(wavelengths)) then
+    if(.not.allocated(pback_r)) allocate(pback_r(int(lambda_size),self%nrh,self%nbin,self%nPol))
+    if(.not.allocated(pmom_r) ) allocate(pmom_r(int(lambda_size),self%nrh,self%nbin,self%nMom,self%nPol))
  endif
 
  self%rh   = real(rh,kind=RKIND)   ! relative humidity (fraction).
  self%reff = real(rEff,kind=RKIND) ! effective radius of bin (m).
- self%gf   = real(gf,kind=RKIND)   ! growth factor.
- self%rhop = real(rhop,kind=RKIND) ! wet particle density (kg m^-3).
- self%rhod = real(rhod,kind=RKIND) ! dry particle density (kg m^-3).
- self%vol  = real(vol,kind=RKIND)  ! volume (m^3 kg^-1).
- self%area = real(area,kind=RKIND) ! area (m^2 kg^-1).
+ if(present(wavelengths)) then
+    if(l_gf .or. l_rhop) then
+       self%gf   = real(gf,kind=RKIND)
+       self%rhop = real(rhop,kind=RKIND)
+       self%rhod = undefval
+       self%vol  = undefval
+       self%area = undefval
+    else
+       self%gf   = undefval
+       self%rhop = undefval
+       self%rhod = undefval
+       self%vol  = undefval
+       self%area = undefval
+    endif
+ endif
+
+ bext_r    = real(bext,kind=RKIND)
+ bsca_r    = real(bsca,kind=RKIND)
+ bbck_r    = real(bbck,kind=RKIND)
+ g_r       = real(g,kind=RKIND)
+ refreal_r = real(refreal,kind=RKIND)
+ refimag_r = real(refimag,kind=RKIND)
+ if(present(wavelengths)) then
+    pback_r = real(pback,kind=RKIND)
+    pmom_r  = real(pmom,kind=RKIND)
+ endif
 
  if(present(wavelengths)) then
     if(.not.allocated(input_r) ) allocate(input_r(int(lambda_size)) )
     if(.not.allocated(lambda_r)) allocate(lambda_r(int(lambda_size)))
     do nn = 1,int(lambda_size)
+       input_r(nn)  = 0._RKIND
        lambda_r(nn) = real(lambda(nn),kind=RKIND)
     enddo
     do j = 1,self%nbin
        do i = 1,self%nrh
           do n = 1,self%nch
-             input_r(:) = real(bext(:,i,j),kind=RKIND)
+             input_r(:) = bext_r(:,i,j)
              call polint(lambda_r,input_r,int(lambda_size),self%wavelengths(n),self%bext(i,n,j),yerr)
-             input_r(:) = real(bsca(:,i,j),kind=RKIND)
+             input_r(:) = bsca_r(:,i,j)
              call polint(lambda_r,input_r,int(lambda_size),self%wavelengths(n),self%bsca(i,n,j),yerr)
-             input_r(:) = real(bbck(:,i,j),kind=RKIND)
+             input_r(:) = bbck_r(:,i,j)
              call polint(lambda_r,input_r,int(lambda_size),self%wavelengths(n),self%bbck(i,n,j),yerr)
-             input_r(:) = real(g(:,i,j),kind=RKIND)
+             input_r(:) = g_r(:,i,j)
              call polint(lambda_r,input_r,int(lambda_size),self%wavelengths(n),self%g(i,n,j)   ,yerr)
-             input_r(:) = real(refreal(:,i,j),kind=RKIND)
+             input_r(:) = refreal_r(:,i,j)
              call polint(lambda_r,input_r,int(lambda_size),self%wavelengths(n),self%refr(i,n,j),yerr)
-             input_r(:) = real(refimag(:,i,j),kind=RKIND)
+             input_r(:) = refimag_r(:,i,j)
              call polint(lambda_r,input_r,int(lambda_size),self%wavelengths(n),self%refi(i,n,j),yerr)
 
              do ipol = 1,self%nPol
-                input_r(:) = real(pback(:,i,j,ipol),kind=RKIND)
-                call polint(lambda_r,input_r,int(lambda_size),self%wavelengths(n),pback(i,n,j,ipol),yerr)
+                input_r(:) = pback_r(:,i,j,ipol)
+                call polint(lambda_r,input_r,int(lambda_size),self%wavelengths(n),self%pback(i,n,j,ipol),yerr)
              enddo
 
              if(nMom > 0) then
                 do imom = 1,self%nMom
                    do ipol = 1,self%nPol
-                      input_r(:) = real(pmom(:,i,j,imom,ipol),kind=RKIND)
+                      input_r(:) = pmom_r(:,i,j,imom,ipol)
                       call polint(lambda_r,input_r,int(lambda_size),self%wavelengths(n), &
                                   self%pmom(i,n,j,imom,ipol),yerr)
                    enddo
                 enddo
              endif
 
-!--- originally written sourcecode:
-!            call polint(lambda,bext(:,i,j)   ,lambda_size,self%wavelengths(n),self%bext(i,n,j),yerr)
-!            call polint(lambda,bsca(:,i,j)   ,lambda_size,self%wavelengths(n),self%bsca(i,n,j),yerr)
-!            call polint(lambda,bbck(:,i,j)   ,lambda_size,self%wavelengths(n),self%bbck(i,n,j),yerr)
-!            call polint(lambda,g(:,i,j)      ,lambda_size,self%wavelengths(n),self%g(i,n,j)   ,yerr)
-!            call polint(lambda,refreal(:,i,j),lambda_size,self%wavelengths(n),self%refr(i,n,j),yerr)
-!            call polint(lambda,refimag(:,i,j),lambda_size,self%wavelengths(n),self%refi(i,n,j),yerr)
-!            do ipol = 1,self%nPol
-!               call polint(lambda,pback(:,i,j,ipol),lambda_size,self%wavelengths(n),pback(i,n,j,ipol),yerr)
-!            enddo
-
-!            if(nMom > 0) then
-!               do imom = 1,self%nMom
-!                  do ipol = 1,self%nPol
-!                     call polint(lambda,pmom(:,i,j,imom,ipol),lambda_size,self%wavelengths(n), &
-!                                 self%pmom(i,n,j,imom,ipol),yerr)
-!                  enddo
-!               enddo
-!            endif
-
           enddo
        enddo
     enddo
-    if(allocated(lambda_r)) deallocate(lambda_r)
     if(allocated(input_r) ) deallocate(input_r )
+    if(allocated(lambda_r)) deallocate(lambda_r)
  else
-    !--- swap the order:
-    self%bext  = reshape(real(bext,kind=RKIND)   ,[int(rh_size),int(lambda_size),int(radius_size)],order =[2,1,3])
-    self%bsca  = reshape(real(bsca,kind=RKIND)   ,[int(rh_size),int(lambda_size),int(radius_size)],order =[2,1,3])
-    self%bbck  = reshape(real(bbck,kind=RKIND)   ,[int(rh_size),int(lambda_size),int(radius_size)],order =[2,1,3])
-    self%g     = reshape(real(g,kind=RKIND)      ,[int(rh_size),int(lambda_size),int(radius_size)],order =[2,1,3])
-    self%refr  = reshape(real(refreal,kind=RKIND),[int(rh_size),int(lambda_size),int(radius_size)],order =[2,1,3])
-    self%refi  = reshape(real(refimag,kind=RKIND),[int(rh_size),int(lambda_size),int(radius_size)],order =[2,1,3])
-    self%pback = reshape(real(pback,kind=RKIND)  , &
-                 [int(rh_size),int(lambda_size),int(radius_size),int(nPol_size)],order =[2,1,3,4])
-    if(nMom_size > 0 ) then
-       self%pmom = reshape(real(pmom,kind=RKIND),[int(rh_size),int(lambda_size),int(radius_size), &
-                   int(nMom_size),int(nPol_size)],order = [2,1,3,4,5])
-    endif
-
-!--- originally written sourcecode:
-!   self%bext  = reshape(bext   ,[rh_size,lambda_size,radius_size],order =[2,1,3])
-!   self%bsca  = reshape(bsca   ,[rh_size,lambda_size,radius_size],order =[2,1,3])
-!   self%bbck  = reshape(bbck   ,[rh_size,lambda_size,radius_size],order =[2,1,3])
-!   self%g     = reshape(g      ,[rh_size,lambda_size,radius_size],order =[2,1,3])
-!   self%refr  = reshape(refreal,[rh_size,lambda_size,radius_size],order =[2,1,3])
-!   self%refi  = reshape(refimag,[rh_size,lambda_size,radius_size],order =[2,1,3])
-!   self%pback = reshape(pback,[rh_size,lambda_size,radius_size,nPol_size],order =[2,1,3,4])
-!   if(nMom_size > 0 ) then
-!      self%pmom = reshape(pmom,[rh_size,lambda_size,radius_size,nMom_size,nPol_size],order = [2,1,3,4,5])
-!   endif
+    self%bext = reshape(bext_r   ,[self%nrh,int(lambda_size),self%nbin],order =[2,1,3])
+    self%bsca = reshape(bsca_r   ,[self%nrh,int(lambda_size),self%nbin],order =[2,1,3])
+    self%bbck = reshape(bbck_r   ,[self%nrh,int(lambda_size),self%nbin],order =[2,1,3])
+    self%g    = reshape(g_r      ,[self%nrh,int(lambda_size),self%nbin],order =[2,1,3])
+    self%refr = reshape(refreal_r,[self%nrh,int(lambda_size),self%nbin],order =[2,1,3])
+    self%refi = reshape(refimag_r,[self%nrh,int(lambda_size),self%nbin],order =[2,1,3])
  endif
 
- self%p11 = self%pback(:,:,:,1)
- self%p22 = self%pback(:,:,:,5)
+ if(allocated(bext_r)   ) deallocate(bext_r   )
+ if(allocated(bsca_r)   ) deallocate(bsca_r   )
+ if(allocated(bbck_r)   ) deallocate(bbck_r   )
+ if(allocated(g_r)      ) deallocate(g_r      )
+ if(allocated(refreal_r)) deallocate(refreal_r)
+ if(allocated(refimag_r)) deallocate(refimag_r)
+ if(present(wavelengths)) then
+    if(allocated(pback_r)  ) deallocate(pback_r  )
+    if(allocated(pmom_r)   ) deallocate(pmom_r   )
+ endif
+
+ if(present(wavelengths)) then
+    self%p11 = self%pback(:,:,:,1)
+    self%p22 = self%pback(:,:,:,5)
+ else
+    self%p11 = 1._RKIND
+    self%p22 = 2._RKIND
+ endif
 
 
 !--- remapping of RH to some high resolution representation for later use. RH input is scaled 0 - 0.99.
@@ -521,31 +457,6 @@
     enddo
  enddo
 
-
-!
-!--- deallocate arrays in netCDF files:
-!
- if(associated(rh)     ) deallocate(rh     )
- if(associated(lambda) ) deallocate(lambda )
- if(associated(radius) ) deallocate(radius )
- if(associated(rLow)   ) deallocate(rLow   )
- if(associated(rUp)    ) deallocate(rUp    )
- if(associated(rEff)   ) deallocate(rEff   )
- if(associated(rMass)  ) deallocate(rMass  )
- if(associated(gf)     ) deallocate(gf     )
- if(associated(rhop)   ) deallocate(rhop   )
- if(associated(rhod)   ) deallocate(rhod   )
- if(associated(area)   ) deallocate(area   )
- if(associated(vol)    ) deallocate(vol    )
- if(associated(qsca)   ) deallocate(qsca   )
- if(associated(qext)   ) deallocate(qext   )
- if(associated(bsca)   ) deallocate(bsca   )
- if(associated(bext)   ) deallocate(bext   )
- if(associated(g)      ) deallocate(g      )
- if(associated(bbck)   ) deallocate(bbck   )
- if(associated(refreal)) deallocate(refreal)
- if(associated(refimag)) deallocate(refimag)
- if(associated(pback)  ) deallocate(pback  )
 
  call mpas_log_write('--- end function GOCART2G_MieCreate:')
 
@@ -878,7 +789,7 @@
 
       do n = 1, 5
          ierr = SMIOLf_inquire_dim(file, dimname(n), dimsize=dimsize(n))
-         call mpas_log_write(dimname(n))
+!        call mpas_log_write(dimname(n))
       enddo
 
       if (vartype == SMIOL_REAL32) then
