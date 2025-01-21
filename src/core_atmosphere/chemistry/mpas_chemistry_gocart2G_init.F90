@@ -104,6 +104,7 @@
 
 !--- CA2G_bc:
  if(do_CA2Gbc) then
+    call mpas_log_write(' ')
     call mpas_log_write('--- begin initialization of CA2G_bc:')
 
     !initializes and allocates all parameters and arrays related to CA2G_bc:
@@ -247,7 +248,10 @@
     call mpas_log_write('--- begin initialization of NI2G:')
 
     !initializes and allocates all parameters and arrays related to NI2G:
-    call NI2G_params%load_GridComp(kts,kte)
+    call DU2G_params%load_GridComp(kts,kte)
+    call SS2G_params%load_GridComp(kts,kte)
+
+    call NI2G_params%load_GridComp(DU2G_params,SS2G_params,kts,kte)
     call NI2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
 
     !create radiation Mie table for SU2G:

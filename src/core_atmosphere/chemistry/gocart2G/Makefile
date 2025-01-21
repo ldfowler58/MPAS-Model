@@ -93,6 +93,8 @@ NI2G_GridCompMod.o: \
 	NI2G_instance.o \
 	NI2G_StateSpecs.o \
 	GA_EnvironmentMod.o \
+	DU2G_GridCompMod.o \
+	SS2G_GridCompMod.o \
 	GOCART2G_AeroGeneric.o \
 	GOCART2G_MieMod_smiol.o \
 	GOCART2G_Process.o

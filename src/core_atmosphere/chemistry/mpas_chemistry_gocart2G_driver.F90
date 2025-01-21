@@ -280,10 +280,55 @@
     endif
 
 
+    !--- NI2G:
+    if(do_NI2G) then
+       NI2G_params%cdt = mpas_gocart2G%dt
+
+       !--- meteorological fields:
+       NI2G%lwi      => mpas_gocart2G%lwi      ; NI2G%ustar    => mpas_gocart2G%ustar
+       NI2G%zpbl     => mpas_gocart2G%zpbl     ; NI2G%sh       => mpas_gocart2G%sh
+       NI2G%z0h      => mpas_gocart2G%z0h      ; NI2G%tropp    => mpas_gocart2G%backg_ptrop
+       NI2G%cn_prcp  => mpas_gocart2G%cn_prcp  ; NI2G%ncn_prcp => mpas_gocart2G%ncn_prcp
+
+       NI2G%airdens  => mpas_gocart2G%airdens  ; NI2G%delp     => mpas_gocart2G%delp
+       NI2G%t        => mpas_gocart2G%t        ; NI2G%rh2      => mpas_gocart2G%rh2
+       NI2G%u        => mpas_gocart2g%u        ; NI2G%v        => mpas_gocart2G%v
+       NI2G%ple      => mpas_gocart2G%ple      ; NI2G%zle      => mpas_gocart2G%zle
+       NI2G%pfl_lsan => mpas_gocart2G%pfl_lsan ; NI2G%pfi_lsan => mpas_gocart2G%pfi_lsan
+
+       !--- emissions:
+       NI2G%emi_nh3_sum => mpas_gocart2G%qnh3_em
+
+       !--- chemistry fields:
+       NI2G%so4    => mpas_gocart2G%qso4  ; NI2G%nh3    => mpas_gocart2g%qnh3
+       NI2G%nh4a   => mpas_gocart2G%qnh4a ; NI2G%no3an1 => mpas_gocart2G%qni1
+       NI2G%no3an2 => mpas_gocart2g%qni2  ; NI2G%no3an3 => mpas_gocart2G%qni3
+
+       NI2G%xhno3  => mpas_gocart2G%backg_hno3
+
+       NI2G%du(:,:,:,1) = mpas_gocart2G%qdust1(:,:,:)
+       NI2G%du(:,:,:,2) = mpas_gocart2G%qdust2(:,:,:)
+       NI2G%du(:,:,:,3) = mpas_gocart2G%qdust3(:,:,:)
+       NI2G%du(:,:,:,4) = mpas_gocart2G%qdust4(:,:,:)
+       NI2G%du(:,:,:,5) = mpas_gocart2G%qdust5(:,:,:)
+
+       NI2G%ss(:,:,:,1) = mpas_gocart2G%qseas1(:,:,:)
+       NI2G%ss(:,:,:,2) = mpas_gocart2G%qseas2(:,:,:)
+       NI2G%ss(:,:,:,3) = mpas_gocart2G%qseas3(:,:,:)
+       NI2G%ss(:,:,:,4) = mpas_gocart2G%qseas4(:,:,:)
+       NI2G%ss(:,:,:,5) = mpas_gocart2G%qseas5(:,:,:)
+
+       call NI2G_params%emissions_GridComp(NI2G,its,ite,jts,jte,kts,kte)
+       call NI2G_params%processes_GridComp(NI2G,its,ite,jts,jte,kts,kte)
+       call NI2G_diagnostics(mesh,NI2G,NI2G_diags,NI2G_aops,its,ite,jts,jte,kts,kte)
+    endif
+
+
     !--- SS2G:
     if(do_SS2G) then
        SS2G_params%cdt = mpas_gocart2G%dt
 
+       !--- meteorological fields:
        SS2G%frocean         => mpas_gocart2G%frocean     ; SS2G%fraci    => mpas_gocart2G%frice
        SS2G%frlake          => mpas_gocart2G%frlake      ; SS2G%area     => mpas_gocart2G%area
        SS2G%lwi             => mpas_gocart2G%lwi         ; SS2G%u10m     => mpas_gocart2G%u10m
@@ -300,6 +345,7 @@
        SS2G%pfi_lsan => mpas_gocart2G%pfi_lsan ; SS2G%u        => mpas_gocart2G%u
        SS2G%v        => mpas_gocart2G%v
 
+       !--- chemistry fields:
        SS2G%ss(:,:,:,1) = mpas_gocart2G%qseas1(:,:,:)
        SS2G%ss(:,:,:,2) = mpas_gocart2G%qseas2(:,:,:)
        SS2G%ss(:,:,:,3) = mpas_gocart2G%qseas3(:,:,:)

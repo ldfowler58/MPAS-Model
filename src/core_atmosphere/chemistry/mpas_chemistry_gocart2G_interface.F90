@@ -43,6 +43,8 @@
     real(kind=RKIND),dimension(:,:,:),pointer:: qni1       => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qni2       => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qni3       => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qnh3       => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qnh4a      => null()
     !--- sea-salt mixing ratios (kg kg-1):
     real(kind=RKIND),dimension(:,:,:),pointer:: qseas1     => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qseas2     => null()
@@ -64,6 +66,7 @@
     real(kind=RKIND),dimension(:,:,:),pointer:: backg_oh   => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: backg_h2o2 => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: backg_no3  => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: backg_hno3 => null()
 
 
     !--- background pressure at tropopause height:
@@ -217,6 +220,8 @@
  if(.not.associated(self%qni1)       ) allocate(self%qni1(its:ite,jts:jte,kts:kte)      )
  if(.not.associated(self%qni2)       ) allocate(self%qni2(its:ite,jts:jte,kts:kte)      )
  if(.not.associated(self%qni3)       ) allocate(self%qni3(its:ite,jts:jte,kts:kte)      )
+ if(.not.associated(self%qnh3)       ) allocate(self%qnh3(its:ite,jts:jte,kts:kte)      )
+ if(.not.associated(self%qnh4a)      ) allocate(self%qnh4a(its:ite,jts:jte,kts:kte)     )
 
  if(.not.associated(self%qso2)       ) allocate(self%qso2(its:ite,jts:jte,kts:kte)      )
  if(.not.associated(self%qso2v)      ) allocate(self%qso2v(its:ite,jts:jte,kts:kte)     )
@@ -246,6 +251,7 @@
  if(.not.associated(self%backg_oh)   ) allocate(self%backg_oh(its:ite,jts:jte,kts:kte)  )
  if(.not.associated(self%backg_h2o2) ) allocate(self%backg_h2o2(its:ite,jts:jte,kts:kte))
  if(.not.associated(self%backg_no3)  ) allocate(self%backg_no3(its:ite,jts:jte,kts:kte) )
+ if(.not.associated(self%backg_hno3) ) allocate(self%backg_hno3(its:ite,jts:jte,kts:kte))
 
  if(.not.associated(self%backg_ptrop)) allocate(self%backg_ptrop(its:ite,jts:jte)       )
 
@@ -326,6 +332,8 @@
  if(associated(self%qni1)       ) deallocate(self%qni1       )
  if(associated(self%qni2)       ) deallocate(self%qni2       )
  if(associated(self%qni3)       ) deallocate(self%qni3       )
+ if(associated(self%qnh3)       ) deallocate(self%qnh3       )
+ if(associated(self%qnh4a)      ) deallocate(self%qnh4a      )
 
  if(associated(self%qso2)       ) deallocate(self%qso2       )
  if(associated(self%qso2v)      ) deallocate(self%qso2v      )
@@ -355,6 +363,7 @@
  if(associated(self%backg_oh)   ) deallocate(self%backg_oh   )
  if(associated(self%backg_h2o2) ) deallocate(self%backg_h2o2 )
  if(associated(self%backg_no3)  ) deallocate(self%backg_no3  )
+ if(associated(self%backg_hno3) ) deallocate(self%backg_hno3 )
 
  if(associated(self%backg_ptrop)) deallocate(self%backg_ptrop)
 
@@ -434,6 +443,7 @@
  integer,pointer:: index_qocphobic,index_qocphilic
  integer,pointer:: index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
  integer,pointer:: index_qni1,index_qni2,index_qni3
+ integer,pointer:: index_qnh3,index_qnh4a
  integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
  integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
  integer,pointer:: index_qdms,index_qmsa
@@ -447,6 +457,7 @@
  real(kind=RKIND),dimension(:),pointer:: background_ptrop
  real(kind=RKIND),dimension(:),pointer:: background_dms
  real(kind=RKIND),dimension(:,:),pointer:: background_h2o2,background_oh,background_no3
+ real(kind=RKIND),dimension(:,:),pointer:: background_hno3
 
  real(kind=RKIND),pointer:: dt
  real(kind=RKIND),dimension(:),pointer:: hfx,hpbl,raincv,rainncv,u10,v10,ust,z0h
@@ -495,6 +506,8 @@
  call mpas_pool_get_dimension(state,'index_qni1'     ,index_qni1     )
  call mpas_pool_get_dimension(state,'index_qni2'     ,index_qni2     )
  call mpas_pool_get_dimension(state,'index_qni3'     ,index_qni3     )
+ call mpas_pool_get_dimension(state,'index_qnh3'     ,index_qnh3     )
+ call mpas_pool_get_dimension(state,'index_qnh4a'    ,index_qnh4a    )
  call mpas_pool_get_dimension(state,'index_qso2'     ,index_qso2     )
  call mpas_pool_get_dimension(state,'index_qso2v'    ,index_qso2v    )
  call mpas_pool_get_dimension(state,'index_qso4'     ,index_qso4     )
@@ -526,6 +539,8 @@
           self%qni1(i,j,kk)      = scalars(index_qni1,k,i)
           self%qni2(i,j,kk)      = scalars(index_qni2,k,i)
           self%qni3(i,j,kk)      = scalars(index_qni3,k,i)
+          self%qnh3(i,j,kk)      = scalars(index_qnh3,k,i)
+          self%qnh4a(i,j,kk)     = scalars(index_qnh4a,k,i)
           self%qso2(i,j,kk)      = scalars(index_qso2,k,i)
           self%qso2v(i,j,kk)     = scalars(index_qso2v,k,i)
           self%qso4(i,j,kk)      = scalars(index_qso4,k,i)
@@ -567,6 +582,7 @@
  call mpas_pool_get_array(gocart2G_backgrounds,'background_h2o2',background_h2o2)
  call mpas_pool_get_array(gocart2G_backgrounds,'background_oh'  ,background_oh  )
  call mpas_pool_get_array(gocart2G_backgrounds,'background_no3' ,background_no3 )
+ call mpas_pool_get_array(gocart2G_backgrounds,'background_hno3',background_hno3)
 
  do j = jts,jte
     do i = its,ite
@@ -578,6 +594,7 @@
           self%backg_h2o2(i,j,kk) = background_h2o2(k,i)
           self%backg_oh(i,j,kk)   = background_oh(k,i)
           self%backg_no3(i,j,kk)  = background_no3(k,i)
+          self%backg_hno3(i,j,kk) = background_hno3(k,i)
        enddo
     enddo
  enddo
@@ -792,6 +809,7 @@
  integer,pointer:: index_qocphobic,index_qocphilic
  integer,pointer:: index_qdust1,index_qdust2,index_qdust3,index_qdust4,index_qdust5
  integer,pointer:: index_qni1,index_qni2,index_qni3
+ integer,pointer:: index_qnh3,index_qnh4a
  integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
  integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
  integer,pointer:: index_qdms,index_qmsa
@@ -826,6 +844,8 @@
  call mpas_pool_get_dimension(state,'index_qni1'     ,index_qni1     )
  call mpas_pool_get_dimension(state,'index_qni2'     ,index_qni2     )
  call mpas_pool_get_dimension(state,'index_qni3'     ,index_qni3     )
+ call mpas_pool_get_dimension(state,'index_qnh3'     ,index_qnh3     )
+ call mpas_pool_get_dimension(state,'index_qnh4a'    ,index_qnh4a    )
  call mpas_pool_get_dimension(state,'index_qso2'     ,index_qso2     )
  call mpas_pool_get_dimension(state,'index_qso2v'    ,index_qso2v    )
  call mpas_pool_get_dimension(state,'index_qso4'     ,index_qso4     )
@@ -857,6 +877,8 @@
           scalars(index_qni1,kk,i)      = self%qni1(i,j,k)
           scalars(index_qni2,kk,i)      = self%qni2(i,j,k)
           scalars(index_qni3,kk,i)      = self%qni3(i,j,k)
+          scalars(index_qnh3,kk,i)      = self%qnh3(i,j,k)
+          scalars(index_qnh4a,kk,i)     = self%qnh4a(i,j,k)
           scalars(index_qso2,kk,i)      = self%qso2(i,j,k)
           scalars(index_qso2v,kk,i)     = self%qso2v(i,j,k)
           scalars(index_qso4,kk,i)      = self%qso4(i,j,k)
