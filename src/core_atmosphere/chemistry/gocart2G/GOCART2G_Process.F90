@@ -2849,8 +2849,6 @@ CONTAINS
 !EOP
 !-----------------------------------------------------------------------------
 !  Begin...
-!  call mpas_log_write(' ')
-!  call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
 
    dims = shape(rhoa)
    i2 = dims(1); j2 = dims(2)
