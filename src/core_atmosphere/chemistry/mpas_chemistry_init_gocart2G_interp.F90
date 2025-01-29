@@ -609,6 +609,12 @@
  call read_met_close()
 
 
+!--- initialization of first-guess hydrophobic and hydrophilic mixing ratios of brown carbon as 20% of first-guess
+!    hydrophobic and hydrophilic mixing ratios of organic carbon:
+ scalars_fg(index_qbrphobic,:,:) = 0.2_RKIND*scalars_fg(index_qocphobic,:,:)
+ scalars_fg(index_qbrphilic,:,:) = 0.2_RKIND*scalars_fg(index_qocphilic,:,:)
+
+
  call mpas_log_write('--- end subroutine init_hinterp_gocart2G.')
 
  end subroutine init_hinterp_gocart2G
