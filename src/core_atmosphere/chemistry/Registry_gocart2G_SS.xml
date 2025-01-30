@@ -154,7 +154,7 @@
      <var name="ssSCACOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of sea-salt aerosols at 550 nm (RH=20%)"/>
 
-     <var name="ssBCKCOEF" type="real" dimensions="npAOPs nVertLevels nCells Time" units="m^{-1} sr^{-1}"
+     <var name="ssBCKCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1} sr^{-1}"
                description="Monochromatic backscatter coefficient of sea-salt aerosols at 550 nm"/>
 
      <var name="ssANGSTR" type="real" dimensions="nCells Time" units="unitless"

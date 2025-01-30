@@ -103,7 +103,7 @@
      <var name="brSCACOEFRH80" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1}"
                description="Monochromatic scattering coefficient of brown carbon aerosols at 550 nm (RH=20%)"/>
 
-     <var name="brbrKCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1} sr^{-1}"
+     <var name="brBCKCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1} sr^{-1}"
                description="Monochromatic backscatter coefficient of brown carbon aerosols at 550 nm"/>
 
      <var name="brPSOA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
