@@ -3400,11 +3400,9 @@ CONTAINS
 !  Get the wavelength indices
 !  --------------------------
 
-   call mpas_log_write('--- enter ilam470:')
    ilam470 = mie%getChannel(4.70e-7)
    if(ilam470 <= 0) ilam470 = 0
 
-   call mpas_log_write('--- enter ilam870:')
    ilam870 = mie%getChannel(8.70e-7)
    if(ilam870 <= 0) ilam870 = 0
 
@@ -4758,7 +4756,7 @@ K_LOOP: do k = km, 1, -1
    integer, intent(in)   :: km   ! total model level
    real(kind=RKIND), intent(in)      :: cdt  ! chemistry model time-step [sec]
    real(kind=RKIND), intent(in)      :: grav ! [m/sec^2]
-   real(kind=RKIND), dimension(:,:,:), intent(in)  :: delp  ! pressure thickness [Pa]
+   real(kind=RKIND), pointer, dimension(:,:,:), intent(in) :: delp     ! pressure level thickness [Pa]
 
 ! !INOUTPUT PARAMETERS:
    real(kind=RKIND), dimension(:,:,:), intent(inout)  :: aerosol_phobic   ! OCphobic [kg kg-1]
@@ -4776,15 +4774,9 @@ K_LOOP: do k = km, 1, -1
 !------------------------------------------------------------------------------------
 !  Begin...
 
-!  call mpas_log_write(' ')
-!  call mpas_log_write('--- enter subroutine phobicTophilic.')
-!  call mpas_log_write('--- ubound(delp,2) = $i',intArgs=(/ubound(delp,2)/))
-!  call mpas_log_write('--- ubound(delp,1) = $i',intArgs=(/ubound(delp,1)/))
-!  call mpas_log_write('--- km             = $i',intArgs=(/km/))
    if(associated(aerosol_toHydrophilic)) aerosol_toHydrophilic = 0.0
 
    do k = 1, km
-!   aerosol_toHydrophilic = 0._RKIND
     do j = 1, ubound(delp, 2)
      do i = 1, ubound(delp, 1)
       qUpdate = aerosol_phobic(i,j,k)*exp(-4.63e-6*cdt)
@@ -4797,18 +4789,6 @@ K_LOOP: do k = km, 1, -1
      end do
     end do
    end do
-! do j = 1,ubound(delp, 2)
-!    do i = 1,10
-!       do k = 1,km
-!          call mpas_log_write('$i $i $i $r $r $r $r',intArgs=(/i,j,k/),realArgs=(/aerosol_toHydrophilic(i,j), &
-!                   delp(i,j,k),aerosol_phobic(i,j,k),aerosol_philic(i,j,k)/))
-!       enddo
-!       call mpas_log_write(' ')
-!    enddo
-! enddo
-
-!  call mpas_log_write('--- end subroutine phobicTophilic.')
-!  call mpas_log_write(' ')
 
    __RETURN__(__SUCCESS__)
   end subroutine phobicTophilic
