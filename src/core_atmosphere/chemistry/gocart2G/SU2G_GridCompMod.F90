@@ -359,12 +359,14 @@
  integer:: nymd_last
  integer:: nw_profile,nw_vertint
 
- real(kind=RKIND),dimension(:,:,:),pointer:: rh20,rh80
+!real(kind=RKIND),dimension(:,:,:),pointer:: rh20,rh80
  real(kind=RKIND),dimension(:,:),allocatable:: drydepf
  real(kind=RKIND),dimension(:,:,:),allocatable:: h2o2_init
  real(kind=RKIND),dimension(:,:,:),allocatable:: xh2o2,xoh,xno3
  real(kind=RKIND),dimension(:,:,:),allocatable:: dms_init,so2_init,so4_init,msa_init
  real(kind=RKIND),dimension(:,:,:,:),allocatable:: qsu2G
+
+ real(kind=RKIND),allocatable,dimension(:,:,:),target:: rh20,rh80
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -703,9 +705,10 @@
  km = ubound(self%rh2,3)                      
 
  call mpas_log_write('--- enter subroutine SU_Compute_Diags RH20:')
- if(.not.associated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
+!if(.not.associated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
  if(associated(self%suextcoefrh20)) self%suextcoefrh20(:,:,:,:) = 0._RKIND
  if(associated(self%suscacoefrh20)) self%suscacoefrh20(:,:,:,:) = 0._RKIND
+ if(.not.allocated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
  rh20(:,:,:) = 0.20
  call SU_Compute_Diags( &
               km                  = self_params%km,                         &
@@ -744,9 +747,10 @@
 
 
  call mpas_log_write('--- enter subroutine SU_Compute_Diags RH80:')
- if(.not.associated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
+!if(.not.associated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
  if(associated(self%suextcoefrh80)) self%suextcoefrh80(:,:,:,:) = 0._RKIND
  if(associated(self%suscacoefrh80)) self%suscacoefrh80(:,:,:,:) = 0._RKIND
+ if(.not.allocated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
  rh80(:,:,:) = 0.80
  call SU_Compute_Diags( &
               km                  = self_params%km,                         &
@@ -782,8 +786,10 @@
  else
     call mpas_log_write('--- end subroutine SU_Compute_Diags RH80:')
  endif
- if(associated(rh20)) deallocate(rh20)
- if(associated(rh80)) deallocate(rh80)
+!if(associated(rh20)) deallocate(rh20)
+!if(associated(rh80)) deallocate(rh80)
+ if(allocated(rh20)) deallocate(rh20)
+ if(allocated(rh80)) deallocate(rh80)
 
 
 !--- deallocate SU2G oxidants:

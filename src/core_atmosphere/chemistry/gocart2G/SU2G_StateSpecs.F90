@@ -253,10 +253,10 @@
  if(.not.associated(self%so4snum)        ) allocate(self%so4snum(its:ite,jts:jte,kts:kte)                 )
 
 !category: INTERNAL
- if(.not.associated(self%dms)            ) allocate(self%dms(its:ite,jts:jte,kts:kte)                     )
- if(.not.associated(self%so2)            ) allocate(self%so2(its:ite,jts:jte,kts:kte)                     )
- if(.not.associated(self%so4)            ) allocate(self%so4(its:ite,jts:jte,kts:kte)                     )
- if(.not.associated(self%msa)            ) allocate(self%msa(its:ite,jts:jte,kts:kte)                     )
+!if(.not.associated(self%dms)            ) allocate(self%dms(its:ite,jts:jte,kts:kte)                     )
+!if(.not.associated(self%so2)            ) allocate(self%so2(its:ite,jts:jte,kts:kte)                     )
+!if(.not.associated(self%so4)            ) allocate(self%so4(its:ite,jts:jte,kts:kte)                     )
+!if(.not.associated(self%msa)            ) allocate(self%msa(its:ite,jts:jte,kts:kte)                     )
  if(.not.associated(self%h2o2_init)      ) allocate(self%h2o2_init(its:ite,jts:jte,kts:kte)               )
 
  end subroutine SU2G_StateSpecsInit
@@ -367,10 +367,10 @@
  if(associated(self%so4snum)        ) deallocate(self%so4snum        )
 
 !category: INTERNAL
- if(associated(self%dms)            ) deallocate(self%dms            )
- if(associated(self%so2)            ) deallocate(self%so2            )
- if(associated(self%so4)            ) deallocate(self%so4            )
- if(associated(self%msa)            ) deallocate(self%msa            )
+!if(associated(self%dms)            ) deallocate(self%dms            )
+!if(associated(self%so2)            ) deallocate(self%so2            )
+!if(associated(self%so4)            ) deallocate(self%so4            )
+!if(associated(self%msa)            ) deallocate(self%msa            )
  if(associated(self%h2o2_init)      ) deallocate(self%h2o2_init      )
 
  end subroutine SU2G_StateSpecsFinalize
