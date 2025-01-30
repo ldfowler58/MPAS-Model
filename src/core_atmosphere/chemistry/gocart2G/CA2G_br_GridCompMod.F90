@@ -208,16 +208,16 @@
 
 !--- as a safety check, all undefined values are set to zero. this may be needed when all emission types become
 !    available.
- where(1.01*biomass_src > undefval) biomass_src = 0._RKIND
- where(1.01*biogvoc_src > undefval) biogvoc_src = 0._RKIND
- where(1.01*biofuel_src > undefval) biofuel_src = 0._RKIND
- where(1.01*eocant1_src > undefval) eocant1_src = 0._RKIND
- where(1.01*eocant2_src > undefval) eocant2_src = 0._RKIND
- where(1.01*oc_ship_src > undefval) oc_ship_src = 0._RKIND
- where(1.01*aviation_lto_src  > undefval) aviation_lto_src  = 0._RKIND
- where(1.01*aviation_cds_src  > undefval) aviation_cds_src  = 0._RKIND
- where(1.01*aviation_crs_src  > undefval) aviation_crs_src  = 0._RKIND
- where(1.01*aircraft_fuel_src > undefval) aircraft_fuel_src = 0._RKIND
+!where(1.01*biomass_src > undefval) biomass_src = 0._RKIND
+!where(1.01*biogvoc_src > undefval) biogvoc_src = 0._RKIND
+!where(1.01*biofuel_src > undefval) biofuel_src = 0._RKIND
+!where(1.01*eocant1_src > undefval) eocant1_src = 0._RKIND
+!where(1.01*eocant2_src > undefval) eocant2_src = 0._RKIND
+!where(1.01*oc_ship_src > undefval) oc_ship_src = 0._RKIND
+!where(1.01*aviation_lto_src  > undefval) aviation_lto_src  = 0._RKIND
+!where(1.01*aviation_cds_src  > undefval) aviation_cds_src  = 0._RKIND
+!where(1.01*aviation_crs_src  > undefval) aviation_crs_src  = 0._RKIND
+!where(1.01*aircraft_fuel_src > undefval) aircraft_fuel_src = 0._RKIND
 
 
 !--- apply diurnal cycle to biomass burning if needed:
@@ -292,17 +292,341 @@
 !==================================================================================================================
  subroutine processes_CA2G_br_GridComp(self_params,self,its,ite,jts,jte,kts,kte)
 !==================================================================================================================
-!--- input arguments:
 
+!--- input arguments:
  integer,intent(in):: its,ite,jts,jte,kts,kte
+ class(CA2G_br_GridComp),intent(in):: self_params
 
 !--- inout arguments:
- class(CA2G_br_GridComp),intent(inout):: self_params
  class(CA2G_br_State),intent(inout):: self
+
+!--- local variables and arrays:
+ logical:: KIN
+
+ integer:: i,i1,i2,j,j1,j2,k,km,ibin,n
+ integer:: istat
+ integer:: n_profile,n_vertint
+
+ real(kind=RKIND):: fwet
+ real(kind=RKIND),dimension(:,:),allocatable:: drydepf,dqa
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: qca2G
+
+ real(kind=RKIND),allocatable,dimension(:,:,:),target:: rh20,rh80
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine processes_CA2G_br_GridComp:')
+
+
+!--- add hoc transfer of hydrophobic to hydrophilic aerosols following Chin's parameterization:
+!    the rate constant is k = 4.63e-6 s-1 (.4 day-1; e-folding time = 2.5 days)
+ call mpas_log_write('--- enter subroutine phobicTophilic:')
+ if(associated(self%brhyphil)) self%brhyphil(:,:) = 0._RKIND
+ istat = 0
+ call phobicTophilic( &
+           aerosol_phobic        = self%brphobic   , &
+           aerosol_philic        = self%brphilic   , &
+           aerosol_toHydrophilic = self%brhyphil   , &
+           km                    = self_params%km  , &
+           cdt                   = self_params%cdt , &
+           grav                  = grav            , &
+           delp                  = self%delp       , &
+           rc = istat                                &
+                    )
+ if(istat /=0) then
+    call mpas_log_write('--- CA2G_br_GridComp: error in subroutine phobicTophilic', &
+                        messageType=MPAS_LOG_CRIT)
+ else
+    call mpas_log_write('--- end subroutine phobicTophilic:')
+ endif
+
+
+!--- CA2G_br settling:
+ call mpas_log_write('--- enter subroutine Chem_Settling:')
+ if(.not.allocated(qca2G)) allocate(qca2G(its:ite,jts:jte,kts:kte,self_params%nbins))
+ do j = jts,jte
+    do i = its,ite
+       do k = kts,kte
+          qca2G(i,j,k,1) = self%brphobic(i,j,k)
+          qca2G(i,j,k,2) = self%brphilic(i,j,k)
+       enddo
+    enddo
+ enddo
+
+ do ibin = 1, self_params%nbins
+    !if radius == 0, then we're dealing with a gas which has no settling losses:
+    if(self_params%radius(ibin) == 0.0) cycle
+    if(associated(self%brsd)) self%brsd(:,:,ibin) = 0._RKIND
+    istat = 0
+    call Chem_Settling( &
+              km        = self_params%km                 , &
+              klid      = self_params%klid               , &
+              bin       = ibin                           , &
+              flag      = self_params%rhFlag             , &
+              cdt       = self_params%cdt                , &
+              grav      = grav                           , &
+              radiusInp = self_params%radius(ibin)*1.e-6 , &
+              rhopInp   = self_params%rhop(ibin)         , &
+              int_qa    = qca2G(:,:,:,ibin)              , &
+              tmpu      = self%t                         , &
+              rhoa      = self%airdens                   , &
+              rh        = self%rh2                       , &
+              hghte     = self%zle                       , &
+              delp      = self%delp                      , &
+              fluxout   = self%brsd                      , &
+              rc        = istat                            &
+                      )
+ enddo
+ if(istat /=0) then
+    call mpas_log_write('--- CA2G_br_GridComp: error in subroutine Chem_Settling', &
+                        messageType=MPAS_LOG_CRIT)
+ else
+    call mpas_log_write('--- end subroutine Chem_Settling:')
+ endif
+
+
+!--- CA2G_br dry deposition:
+ call mpas_log_write('--- enter subroutine DryDeposition:')
+ if(associated(self%brdp)  ) self%brdp(:,:,:) = 0._RKIND
+ if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
+ if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
+ drydepf = 0.
+ istat   = 0
+ call DryDeposition( &
+              km         = self_params%km , &
+              tmpu       = self%t         , &
+              rhoa       = self%airdens   , &
+              hghte      = self%zle       , &
+              oro        = self%lwi       , &
+              ustar      = self%ustar     , &
+              pblh       = self%zpbl      , &
+              shflux     = self%sh        , &
+              von_karman = karman         , &
+              cpd        = cpd            , &
+              grav       = grav           , &
+              z0h        = self%z0h       , &
+              drydepf    = drydepf        , &
+              rc         = istat            &
+                   )
+ do ibin = 1, self_params%nbins
+    dqa = 0.
+    dqa = max(0.0,qca2G(:,:,self_params%km,ibin)*(1.-exp(-drydepf*self_params%cdt)))
+    qca2G(:,:,self_params%km,ibin) = qca2G(:,:,self_params%km,ibin) - dqa
+    if(associated(self%brDP)) then
+       self%brdp(:,:,ibin) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
+    end if
+ enddo
+ if(istat /=0) then
+    call mpas_log_write('--- CA2G_br_GridComp: error in subroutine DryDeposition', &
+                        messageType=MPAS_LOG_CRIT)
+ else
+    if(allocated(dqa)    ) deallocate(dqa    )
+    if(allocated(drydepf)) deallocate(drydepf)
+    call mpas_log_write('--- end subroutine DryDeposition:')
+ endif
+
+
+ do j = jts,jte
+    do i = its,ite
+       do k = kts,kte
+          self%brphobic(i,j,k) = qca2G(i,j,k,1)
+          self%brphobic(i,j,k) = qca2G(i,j,k,2)
+       enddo
+    enddo
+ enddo
+
+
+!--- CA2G_br large-scale wet removal (hydrophilic mode is removed):
+ call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
+ if(associated(self%brwt)) self%brwt(:,:,:) = 0._RKIND
+ KIN   = .true.
+ fwet  = 1._RKIND
+ istat = 0
+ call WetRemovalGOCART2G( &
+              km        = self_params%km    , &
+              klid      = self_params%klid  , &
+              n1        = self_params%nbins , &
+              n2        = self_params%nbins , &
+              bin_ind   = 2                 , &
+              cdt       = self_params%cdt   , &
+              aero_type = 'BR'              , &
+              kin       = KIN               , &
+              grav      = grav              , &
+              fwet      = fwet              , &
+              aerosol   = self%brphilic     , &
+              ple       = self%ple          , &
+              tmpu      = self%t            , &
+              rhoa      = self%airdens      , &
+              pfllsan   = self%pfl_lsan     , &
+              pfilsan   = self%pfi_lsan     , &
+              precc     = self%cn_prcp      , &
+              precl     = self%ncn_prcp     , &
+              fluxout   = self%brwt         , &
+              rc        = istat               &
+                        )
+ if(istat /=0) then
+    call mpas_log_write('--- CA2G_br_GridComp: error in subroutine WetRemovalGOCART2G', &
+                        messageType=MPAS_LOG_CRIT)
+ else
+    call mpas_log_write('--- end subroutine WetRemovalGOCART2G:')
+ endif
+
+
+!--- CA2G_bc diagnostics:
+ do j = jts,jte
+    do i = its,ite
+       do k = kts,kte
+          qca2G(i,j,k,1) = self%brphobic(i,j,k)
+          qca2G(i,j,k,2) = self%brphilic(i,j,k)
+       enddo
+    enddo
+ enddo
+ n_profile = size(self_params%wavelengths_profile)
+ n_vertint = size(self_params%wavelengths_vertint)
+ call mpas_log_write('--- enter subroutine Aero_Compute_Diags:')
+ call mpas_log_write('--- nbins     = $i',intArgs=(/nbins/))
+ call mpas_log_write('--- n_profile = $i',intArgs=(/n_profile/))
+ call mpas_log_write('--- n_vertint = $i',intArgs=(/n_vertint/))
+ if(associated(self%brsmass)   ) self%brsmass(:,:)       = 0._RKIND
+ if(associated(self%brcmass)   ) self%brcmass(:,:)       = 0._RKIND
+ if(associated(self%brmass )   ) self%brmass(:,:,:)      = 0._RKIND
+ if(associated(self%brexttau)  ) self%brexttau(:,:,:)    = 0._RKIND
+ if(associated(self%brstexttau)) self%brstexttau(:,:,:)  = 0._RKIND
+ if(associated(self%brscatau)  ) self%brscatau(:,:,:)    = 0._RKIND
+ if(associated(self%brstscatau)) self%brstscatau(:,:,:)  = 0._RKIND
+ if(associated(self%brfluxu)   ) self%brfluxu(:,:)       = 0._RKIND
+ if(associated(self%brfluxv)   ) self%brfluxv(:,:)       = 0._RKIND
+ if(associated(self%brconc)    ) self%brconc(:,:,:)      = 0._RKIND
+ if(associated(self%brextcoef) ) self%brextcoef(:,:,:,:) = 0._RKIND
+ if(associated(self%brscacoef) ) self%brscacoef(:,:,:,:) = 0._RKIND
+ if(associated(self%brbckcoef) ) self%brbckcoef(:,:,:,:) = 0._RKIND
+ if(associated(self%brangstr)  ) self%brangstr(:,:)      = 0._RKIND
+ if(associated(self%braeridx)  ) self%braeridx(:,:)      = 0._RKIND
+ istat = 0
+ call Aero_Compute_Diags( &
+              mie                 = self_params%diag_Mie                   , &
+              km                  = self_params%km                         , &
+              klid                = self_params%klid                       , &
+              nbegin              = 1                                      , &
+              nbins               = 2                                      , &
+              wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
+              wavelengths_vertint = self_params%wavelengths_vertint*1.0e-9 , &
+              aerosol             = qca2G                                  , &
+              grav                = grav                                   , &
+              tmpu                = self%t                                 , &
+              rhoa                = self%airdens                           , &
+              rh                  = self%rh2                               , &
+              u                   = self%u                                 , &
+              v                   = self%v                                 , &
+              delp                = self%delp                              , &
+              ple                 = self%ple                               , &
+              tropp               = self%tropp                             , &
+              sfcmass             = self%brsmass                           , &
+              colmass             = self%brcmass                           , &
+              mass                = self%brmass                            , &
+              exttau              = self%brexttau                          , &
+              scatau              = self%brscatau                          , &
+!             stexttau            = self%brstexttau                        , &
+!             stscatau            = self%brstscatau                        , &
+              fluxu               = self%brfluxu                           , &
+              fluxv               = self%brfluxv                           , &
+              conc                = self%brconc                            , &
+              extcoef             = self%brextcoef                         , &
+              scacoef             = self%brscacoef                         , &
+              bckcoef             = self%brbckcoef                         , &
+              angstrom            = self%brangstr                          , &
+              aerindx             = self%braeridx                          , &
+              NO3nFlag            = .false.                                , &
+              rc                  = istat                                    &
+                        )
+ if(istat /=0) then
+    call mpas_log_write('--- CA2G_br_GridComp: error in subroutine Aero_Compute_Diags', &
+                        messageType=MPAS_LOG_CRIT)
+ else
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags:')
+ endif
+
+
+ i1 = lbound(self%rh2,1); i2 = ubound(self%rh2,1)
+ j1 = lbound(self%rh2,2); j2 = ubound(self%rh2,2)
+ km = ubound(self%rh2,3)
+
+ call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
+ if(associated(self%brextcoefrh20)) self%brextcoefrh20(:,:,:,:) = 0._RKIND
+ if(associated(self%brscacoefrh20)) self%brscacoefrh20(:,:,:,:) = 0._RKIND
+ if(.not.allocated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
+ rh20(:,:,:) = 0.20
+ istat = 0
+ call Aero_Compute_Diags( &
+           mie                 = self_params%diag_Mie                   , &
+           km                  = self_params%km                         , &
+           klid                = self_params%klid                       , &
+           nbegin              = 1                                      , &
+           nbins               = self_params%nbins                      , &
+           wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
+           wavelengths_vertint = self_params%wavelengths_vertint*1.0e-9 , &
+           aerosol             = qca2G                                  , &
+           grav                = grav                                   , &
+           tmpu                = self%t                                 , &
+           rhoa                = self%airdens                           , &
+           rh                  = rh20                                   , &
+           u                   = self%u                                 , &
+           v                   = self%v                                 , &
+           delp                = self%delp                              , &
+           ple                 = self%ple                               , &
+           tropp               = self%tropp                             , &
+           extcoef             = self%brextcoefrh20                     , &
+           scacoef             = self%brscacoefrh20                     , &
+           NO3nFlag            = .false.                                , &
+           rc                  = istat                                    &
+                        )
+ if(istat /=0) then
+    call mpas_log_write('--- CA2G_br_GridComp: error in subroutine Aero_Compute_Diags RH20', &
+                        messageType=MPAS_LOG_CRIT)
+ else
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20:')
+ endif
+
+
+ call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
+ if(associated(self%brextcoefrh80)) self%brextcoefrh80(:,:,:,:) = 0._RKIND
+ if(associated(self%brscacoefrh80)) self%brscacoefrh80(:,:,:,:) = 0._RKIND
+ if(.not.allocated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
+ rh80(:,:,:) = 0.80
+ istat = 0
+ call Aero_Compute_Diags( &
+           mie                 = self_params%diag_Mie                   , &
+           km                  = self_params%km                         , &
+           klid                = self_params%klid                       , &
+           nbegin              = 1                                      , &
+           nbins               = 2                                      , &
+           wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
+           wavelengths_vertint = self_params%wavelengths_vertint*1.0e-9 , &
+           aerosol             = qca2G                                  , &
+           grav                = grav                                   , &
+           tmpu                = self%t                                 , &
+           rhoa                = self%airdens                           , &
+           rh                  = rh80                                   , &
+           u                   = self%u                                 , &
+           v                   = self%v                                 , &
+           delp                = self%delp                              , &
+           ple                 = self%ple                               , &
+           tropp               = self%tropp                             , &
+           extcoef             = self%brextcoefrh80                     , &
+           scacoef             = self%brscacoefrh80                     , &
+           NO3nFlag            = .false.                                , &
+           rc                  = istat                                    &
+                        )
+ if(istat /=0) then
+    call mpas_log_write('--- CA2G_br_GridComp: error in subroutine Aero_Compute_Diags RH80', &
+                        messageType=MPAS_LOG_CRIT)
+ else
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80:')
+ endif
+ if(allocated(rh20)) deallocate(rh20)
+ if(allocated(rh80)) deallocate(rh80)
+
+ if(allocated(qca2G)) deallocate(qca2G)
 
 
  call mpas_log_write('--- end subroutine processes_CA2G_br_GridComp:')
