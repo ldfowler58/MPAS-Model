@@ -672,8 +672,11 @@
  radToDeg = 1._RKIND/degrad
  do j = jts,jte
     do i = its,ite
-       if((xland(i)-1.5.ge.0._RKIND) .or. (xland(i)-1.5.lt.0._RKIND .and. xice(i).ge.xice_threshold)) &
+       if((xland(i)-1.5.ge.0._RKIND) .or. (xland(i)-1.5.lt.0._RKIND .and. xice(i).ge.xice_threshold)) then
           self%frocean(i,j) = 1._RKIND
+       else
+          self%frocean(i,j) = 0._RKIND
+       endif
        self%frice(i,j)  = xice(i)
        self%frlake(i,j) = 0._RKIND
     enddo
