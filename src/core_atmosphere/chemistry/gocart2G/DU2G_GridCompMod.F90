@@ -301,8 +301,10 @@
  integer:: n_profile,n_vertint
 
  real(kind=RKIND):: fwet
- real(kind=RKIND),dimension(:,:,:),pointer:: rh20,rh80
+!real(kind=RKIND),dimension(:,:,:),pointer:: rh20,rh80
  real(kind=RKIND),dimension(:,:),allocatable:: drydepf,dqa
+
+ real(kind=RKIND),allocatable,dimension(:,:,:),target:: rh20,rh80
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -344,8 +346,8 @@
  call mpas_log_write('--- enter subroutine DryDeposition:')
  if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
- drydepf(:,:) = 0._RKIND
- istat = 0
+ drydepf = 0._RKIND
+ istat   = 0
  call DryDeposition( &
               km         = self_params%km , &
               tmpu       = self%t         , &
@@ -441,11 +443,18 @@
  if(associated(self%dubckcoef) ) self%dubckcoef(:,:,:,:) = 0._RKIND
  if(associated(self%duangstr)  ) self%duangstr(:,:)      = 0._RKIND
  if(associated(self%duaeridx)  ) self%duaeridx(:,:)      = 0._RKIND
+ if(associated(self%dusmass25) ) self%dusmass25(:,:)     = 0._RKIND
+ if(associated(self%ducmass25) ) self%ducmass25(:,:)     = 0._RKIND
+ if(associated(self%dumass25)  ) self%dumass25(:,:,:)    = 0._RKIND
+ if(associated(self%duextt25)  ) self%duextt25(:,:,:)    = 0._RKIND
+ if(associated(self%duscat25)  ) self%duscat25(:,:,:)    = 0._RKIND
  istat = 0
  call Aero_Compute_Diags( &
               mie                 = self_params%diag_Mie                   , &
               km                  = self_params%km                         , &
               klid                = self_params%klid                       , &
+              rlow                = self_params%rlow                       , &
+              rup                 = self_params%rup                        , &
               nbegin              = 1                                      , &
               nbins               = self_params%nbins                      , &
               wavelengths_profile = self_params%wavelengths_profile*1.0e-9 , &
@@ -475,6 +484,11 @@
               bckcoef             = self%dubckcoef                         , &
               angstrom            = self%duangstr                          , &
               aerindx             = self%duaeridx                          , &
+              sfcmass25           = self%dusmass25                         , &
+              colmass25           = self%ducmass25                         , &
+              mass25              = self%dumass25                          , &
+              exttau25            = self%duextt25                          , &
+              scatau25            = self%duscat25                          , &
               NO3nFlag            = .false.                                , &
               rc                  = istat                                    &
                         )
@@ -491,9 +505,9 @@
  km = ubound(self%rh2,3)
 
  call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
- if(.not.associated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
  if(associated(self%duextcoefrh20)) self%duextcoefrh20(:,:,:,:) = 0._RKIND
  if(associated(self%duscacoefrh20)) self%duscacoefrh20(:,:,:,:) = 0._RKIND
+ if(.not.allocated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
  rh20(:,:,:) = 0.20
  istat = 0
  call Aero_Compute_Diags( &
@@ -528,9 +542,9 @@
 
 
  call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
- if(.not.associated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
  if(associated(self%duextcoefrh80)) self%duextcoefrh80(:,:,:,:) = 0._RKIND
  if(associated(self%duscacoefrh80)) self%duscacoefrh80(:,:,:,:) = 0._RKIND
+ if(.not.allocated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
  rh80(:,:,:) = 0.80
  istat = 0
  call Aero_Compute_Diags( &
@@ -562,8 +576,8 @@
  else
     call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80:')
  endif
- if(associated(rh20)) deallocate(rh20)
- if(associated(rh80)) deallocate(rh80)
+ if(allocated(rh20)) deallocate(rh20)
+ if(allocated(rh80)) deallocate(rh80)
 
 
  call mpas_log_write('--- end subroutine processes_DU2G_GridComp:')
