@@ -147,6 +147,8 @@
     !--- CA2G_bc:
     if(do_CA2Gbc) then
        CA2G_bc_params%cdt = mpas_gocart2G%dt
+
+       !--- meteorological fields:
        CA2G_bc%lats     => mpas_gocart2G%xlat      ; CA2G_bc%lons     => mpas_gocart2G%xlon
        CA2G_bc%area     => mpas_gocart2G%area      ; CA2G_bc%frocean  => mpas_gocart2G%frocean
        CA2G_bc%fraci    => mpas_gocart2G%frice     ; CA2G_bc%frlake   => mpas_gocart2G%frlake
@@ -163,24 +165,28 @@
        CA2G_bc%pfi_lsan => mpas_gocart2G%pfi_lsan  ; CA2G_bc%u        => mpas_gocart2G%u
        CA2G_bc%v        => mpas_gocart2G%v
 
-       CA2G_bc%bc_ANTEBC1 => mpas_gocart2G%qbc1_em
+       !--- emissions:
+!      CA2G_bc%bc_antebc1 => mpas_gocart2G%qbc1_em
 
-       CA2G_bc%bcPHOBIC => mpas_gocart2G%qbcphobic
-       CA2G_bc%bcPHILIC => mpas_gocart2G%qbcphilic
+       !--- chemistry fields:
+       CA2G_bc%bcphobic => mpas_gocart2G%qbcphobic
+       CA2G_bc%bcphilic => mpas_gocart2G%qbcphilic
 
-       call CA2G_bc_params%emissions_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte, &
-                                     iyear,imonth,iday,ihour,iminute,isecond)
+       !--- gocart2G processes:
+!      call CA2G_bc_params%emissions_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte, &
+!                                    iyear,imonth,iday,ihour,iminute,isecond)
        call CA2G_bc_params%processes_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte)
-       call CA2G_bc_diagnostics(mesh,CA2G_bc,CA2G_bc_diags,CA2G_bc_aops,its,ite,jts,jte,kts,kte)
 
-       mpas_gocart2G%qbcphobic => CA2G_bc%bcPHOBIC
-       mpas_gocart2G%qbcphilic => CA2G_bc%bcPHILIC
+       !--- global diagnostics:
+       call CA2G_bc_diagnostics(mesh,CA2G_bc,CA2G_bc_diags,CA2G_bc_aops,its,ite,jts,jte,kts,kte)
     endif
 
 
     !--- CA2G_br:
     if(do_CA2Gbr) then
        CA2G_br_params%cdt = mpas_gocart2G%dt
+
+       !--- meteorological fields:
        CA2G_br%lats     => mpas_gocart2G%xlat     ; CA2G_br%lons     => mpas_gocart2G%xlon
        CA2G_br%area     => mpas_gocart2G%area     ; CA2G_br%frocean  => mpas_gocart2G%frocean
        CA2G_br%fraci    => mpas_gocart2G%frice    ; CA2G_br%lwi      => mpas_gocart2G%lwi
@@ -197,22 +203,25 @@
        CA2G_br%pfi_lsan => mpas_gocart2G%pfi_lsan ; CA2G_br%u        => mpas_gocart2G%u
        CA2G_br%v        => mpas_gocart2G%v
 
-       CA2G_br%brPHOBIC => mpas_gocart2G%qbrphobic
-       CA2G_br%brPHILIC => mpas_gocart2G%qbrphilic
+       !--- chemistry fields:
+       CA2G_br%brphobic => mpas_gocart2G%qbrphobic
+       CA2G_br%brphilic => mpas_gocart2G%qbrphilic
 
-       call CA2G_br_params%emissions_GridComp(CA2G_br,its,ite,jts,jte,kts,kte, &
-                                     iyear,imonth,iday,ihour,iminute,isecond)
+       !--- gocart2G processes:
+!      call CA2G_br_params%emissions_GridComp(CA2G_br,its,ite,jts,jte,kts,kte, &
+!                                    iyear,imonth,iday,ihour,iminute,isecond)
        call CA2G_br_params%processes_GridComp(CA2G_br,its,ite,jts,jte,kts,kte)
-       call CA2G_br_diagnostics(mesh,CA2G_br,CA2G_br_diags,CA2G_br_aops,its,ite,jts,jte,kts,kte)
 
-       mpas_gocart2G%qbrphobic => CA2G_br%brPHOBIC
-       mpas_gocart2G%qbrphilic => CA2G_br%brPHILIC
+       !--- global diagnostics:
+       call CA2G_br_diagnostics(mesh,CA2G_br,CA2G_br_diags,CA2G_br_aops,its,ite,jts,jte,kts,kte)
     endif
 
 
     !--- CA2G_oc:
     if(do_CA2Goc) then
        CA2G_oc_params%cdt = mpas_gocart2G%dt
+
+       !--- meteorological fields:
        CA2G_oc%lats     => mpas_gocart2G%xlat     ; CA2G_oc%lons     => mpas_gocart2G%xlon
        CA2G_oc%area     => mpas_gocart2G%area     ; CA2G_oc%frocean  => mpas_gocart2G%frocean
        CA2G_oc%fraci    => mpas_gocart2G%frice    ; CA2G_oc%frlake   => mpas_gocart2G%frlake
@@ -229,24 +238,28 @@
        CA2G_oc%pfi_lsan => mpas_gocart2G%pfi_lsan ; CA2G_oc%u        => mpas_gocart2G%u
        CA2G_oc%v        => mpas_gocart2G%v
 
-       CA2G_oc%ocPHOBIC => mpas_gocart2G%qocphobic
-       CA2G_oc%ocPHILIC => mpas_gocart2G%qocphilic
+       !--- emissions:
+!      CA2G_oc%oc_ANTEOC1 => mpas_gocart2G%qoc1_em
 
-       CA2G_oc%oc_ANTEOC1 => mpas_gocart2G%qoc1_em
+       !--- chemistry fields:
+       CA2G_oc%ocphobic => mpas_gocart2G%qocphobic
+       CA2G_oc%ocphilic => mpas_gocart2G%qocphilic
 
-       call CA2G_oc_params%emissions_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte, &
-                                      iyear,imonth,iday,ihour,iminute,isecond)
+       !--- gocart2G processes:
+!      call CA2G_oc_params%emissions_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte, &
+!                                     iyear,imonth,iday,ihour,iminute,isecond)
        call CA2G_oc_params%processes_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte)
-       call CA2G_oc_diagnostics(mesh,CA2G_oc,CA2G_oc_diags,CA2G_oc_aops,its,ite,jts,jte,kts,kte)
 
-       mpas_gocart2G%qocphobic => CA2G_oc%ocPHOBIC
-       mpas_gocart2G%qocphilic => CA2G_oc%ocPHILIC
+       !--- global diagnostics:
+       call CA2G_oc_diagnostics(mesh,CA2G_oc,CA2G_oc_diags,CA2G_oc_aops,its,ite,jts,jte,kts,kte)
     endif
 
 
     !--- DU2G:
     if(do_DU2G) then
        DU2G_params%cdt = mpas_gocart2G%dt
+
+       !--- meteorological fields:
        DU2G%du_src     => mpas_gocart2G%erod     ; DU2G%frlake    => mpas_gocart2G%frlake
        DU2G%wet1       => mpas_gocart2G%wet1     ; DU2G%lwi       => mpas_gocart2G%lwi
        DU2G%area       => mpas_gocart2G%area     ; DU2G%ustar     => mpas_gocart2G%ustar
@@ -262,14 +275,18 @@
        DU2G%pfi_lsan   => mpas_gocart2G%pfi_lsan ; DU2G%u        => mpas_gocart2G%u
        DU2G%v          => mpas_gocart2G%v
 
+       !--- chemistry fields:
        DU2G%du(:,:,:,1) = mpas_gocart2G%qdust1(:,:,:)
        DU2G%du(:,:,:,2) = mpas_gocart2G%qdust2(:,:,:)
        DU2G%du(:,:,:,3) = mpas_gocart2G%qdust3(:,:,:)
        DU2G%du(:,:,:,4) = mpas_gocart2G%qdust4(:,:,:)
        DU2G%du(:,:,:,5) = mpas_gocart2G%qdust5(:,:,:)
 
+       !--- gocart2G processes:
        call DU2G_params%emissions_GridComp(DU2G,its,ite,jts,jte,kts,kte,nerod)
        call DU2G_params%processes_GridComp(DU2G,its,ite,jts,jte,kts,kte)
+
+       !--- global diagnostics:
        call DU2G_diagnostics(mesh,DU2G,DU2G_diags,DU2G_aops,its,ite,jts,jte,kts,kte)
 
        mpas_gocart2G%qdust1(:,:,:) = DU2G%du(:,:,:,1)
@@ -297,7 +314,7 @@
        NI2G%pfl_lsan => mpas_gocart2G%pfl_lsan ; NI2G%pfi_lsan => mpas_gocart2G%pfi_lsan
 
        !--- emissions:
-       NI2G%emi_nh3_sum => mpas_gocart2G%qnh3_em
+!       NI2G%emi_nh3_sum => mpas_gocart2G%qnh3_em
 
        !--- chemistry fields:
        NI2G%so4    => mpas_gocart2G%qso4  ; NI2G%nh3    => mpas_gocart2g%qnh3
@@ -318,8 +335,11 @@
        NI2G%ss(:,:,:,4) = mpas_gocart2G%qseas4(:,:,:)
        NI2G%ss(:,:,:,5) = mpas_gocart2G%qseas5(:,:,:)
 
-       call NI2G_params%emissions_GridComp(NI2G,its,ite,jts,jte,kts,kte)
+       !--- gocart2G processes:
+!      call NI2G_params%emissions_GridComp(NI2G,its,ite,jts,jte,kts,kte)
        call NI2G_params%processes_GridComp(NI2G,its,ite,jts,jte,kts,kte)
+
+       !--- global diagnostics:
        call NI2G_diagnostics(mesh,NI2G,NI2G_diags,NI2G_aops,its,ite,jts,jte,kts,kte)
     endif
 
@@ -352,8 +372,11 @@
        SS2G%ss(:,:,:,4) = mpas_gocart2G%qseas4(:,:,:)
        SS2G%ss(:,:,:,5) = mpas_gocart2G%qseas5(:,:,:)
 
+       !--- gocart2G processes:
        call SS2G_params%emissions_GridComp(SS2G,its,ite,jts,jte,kts,kte)
        call SS2G_params%processes_GridComp(SS2G,its,ite,jts,jte,kts,kte)
+
+       !--- global diagnostics:
        call SS2G_diagnostics(mesh,SS2G,SS2G_diags,SS2G_aops,its,ite,jts,jte,kts,kte)
 
        mpas_gocart2G%qseas1(:,:,:) = SS2G%ss(:,:,:,1)
@@ -367,42 +390,44 @@
     !--- SU2G:
     if(do_SU2G) then
        SU2G_params%cdt = mpas_gocart2G%dt
-       SU2G%lats        => mpas_gocart2G%xlat        ; SU2G%lons     => mpas_gocart2G%xlon
-       SU2G%area        => mpas_gocart2G%area        ; SU2G%coszr    => mpas_gocart2G%coszr
-       SU2G%frocean     => mpas_gocart2G%frocean     ; SU2G%lwi      => mpas_gocart2G%lwi
-       SU2G%u10m        => mpas_gocart2G%u10m        ; SU2G%v10m     => mpas_gocart2G%v10m
-       SU2G%zpbl        => mpas_gocart2G%zpbl        ; SU2G%ustar    => mpas_gocart2G%ustar
-       SU2G%sh          => mpas_gocart2G%sh          ; SU2G%z0h      => mpas_gocart2G%z0h
-       SU2G%cn_prcp     => mpas_gocart2G%cn_prcp     ; SU2G%ncn_prcp => mpas_gocart2G%ncn_prcp
-       SU2G%tropp       => mpas_gocart2G%backg_ptrop
 
-       SU2G%airdens     => mpas_gocart2G%airdens     ; SU2G%delp     => mpas_gocart2G%delp
-       SU2G%delz        => mpas_gocart2G%delz        ; SU2G%t        => mpas_gocart2G%t
-       SU2G%rh2         => mpas_gocart2G%rh2         ; SU2G%zle      => mpas_gocart2G%zle
-       SU2G%ple         => mpas_gocart2G%ple         ; SU2G%pfl_lsan => mpas_gocart2G%pfl_lsan
-       SU2G%pfi_lsan    => mpas_gocart2G%pfi_lsan    ; SU2G%u        => mpas_gocart2G%u
-       SU2G%v           => mpas_gocart2G%v           ; SU2G%fcld     => mpas_gocart2G%fcld
+       !--- meteorological fields:
+       SU2G%lats    => mpas_gocart2G%xlat        ; SU2G%lons     => mpas_gocart2G%xlon
+       SU2G%area    => mpas_gocart2G%area        ; SU2G%coszr    => mpas_gocart2G%coszr
+       SU2G%frocean => mpas_gocart2G%frocean     ; SU2G%lwi      => mpas_gocart2G%lwi
+       SU2G%u10m    => mpas_gocart2G%u10m        ; SU2G%v10m     => mpas_gocart2G%v10m
+       SU2G%zpbl    => mpas_gocart2G%zpbl        ; SU2G%ustar    => mpas_gocart2G%ustar
+       SU2G%sh      => mpas_gocart2G%sh          ; SU2G%z0h      => mpas_gocart2G%z0h
+       SU2G%cn_prcp => mpas_gocart2G%cn_prcp     ; SU2G%ncn_prcp => mpas_gocart2G%ncn_prcp
+       SU2G%tropp   => mpas_gocart2G%backg_ptrop
 
-       SU2G%dms         => mpas_gocart2G%qdms        ; SU2G%so2      => mpas_gocart2G%qso2
-       SU2G%so4         => mpas_gocart2G%qso4        ; SU2G%msa      => mpas_gocart2G%qmsa 
+       SU2G%airdens  => mpas_gocart2G%airdens  ; SU2G%delp     => mpas_gocart2G%delp
+       SU2G%delz     => mpas_gocart2G%delz     ; SU2G%t        => mpas_gocart2G%t
+       SU2G%rh2      => mpas_gocart2G%rh2      ; SU2G%zle      => mpas_gocart2G%zle
+       SU2G%ple      => mpas_gocart2G%ple      ; SU2G%pfl_lsan => mpas_gocart2G%pfl_lsan
+       SU2G%pfi_lsan => mpas_gocart2G%pfi_lsan ; SU2G%u        => mpas_gocart2G%u
+       SU2G%v        => mpas_gocart2G%v        ; SU2G%fcld     => mpas_gocart2G%fcld
 
-       SU2G%su_dmso     => mpas_gocart2g%backg_dms   ; SU2G%su_no3   => mpas_gocart2G%backg_no3
-       SU2G%su_oh       => mpas_gocart2G%backg_oh    ; SU2G%su_h2o2  => mpas_gocart2G%backg_h2o2
+       !--- emissions:
+!      SU2G%su_anthrol1 => mpas_gocart2G%qso2_em
 
-       SU2G%su_anthrol1 => mpas_gocart2G%qso2_em
+       !--- chemistry fields and climatological background fields:
+       SU2G%dms     => mpas_gocart2G%qdms      ; SU2G%so2     => mpas_gocart2G%qso2
+       SU2G%so4     => mpas_gocart2G%qso4      ; SU2G%msa     => mpas_gocart2G%qmsa
+       SU2G%su_dmso => mpas_gocart2g%backg_dms ; SU2G%su_no3  => mpas_gocart2G%backg_no3
+       SU2G%su_oh   => mpas_gocart2G%backg_oh  ; SU2G%su_h2o2 => mpas_gocart2G%backg_h2o2
 
-       call SU2G_params%emissions_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
+       !--- gocart2G processes:
+!      call SU2G_params%emissions_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
        call SU2G_params%processes_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
+
+       !--- global diagnostics:
        call SU2G_diagnostics(mesh,SU2G,SU2G_diags,SU2G_aops,its,ite,jts,jte,kts,kte)
 
-       mpas_gocart2G%qdms => SU2G%DMS
-       mpas_gocart2G%qso2 => SU2G%SO2
-       mpas_gocart2G%qso4 => SU2G%SO4
-       mpas_gocart2G%qmsa => SU2G%MSA
     endif
 
 
-    !--- GOCART2G:
+    !--- GOCART2G global diagnostics:
     do_GOCART2G = .false.
     if(do_CA2Gbc .or. do_CA2Gbr .or. do_CA2Goc .or. do_DU2G .or. &
        do_NI2G .or. do_NI2G .or. do_SS2G .or. do_SU2G) do_GOCART2G = .true.
