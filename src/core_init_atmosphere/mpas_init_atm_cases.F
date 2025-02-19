@@ -26,7 +26,11 @@ module init_atm_cases
    use mpas_log, only : mpas_log_write
 #ifdef DO_GOCART2G
    use mpas_chemistry_init_gocart2G_climatology,only: init_gocart2G_climatology
-   use mpas_chemistry_init_gocart2G_emissions,only: init_CAMS_emissions
+   use mpas_chemistry_init_gocart2G_emissions,only: init_anth_emissions_bc,         &
+                                                    init_anth_emissions_oc,         &
+                                                    init_anth_emissions_nh3,        &
+                                                    init_anth_emissions_su,         &
+                                                    init_biomass_burning_emissions
    use mpas_chemistry_init_gocart2G_interp,only: init_gocart2G_aerosols
    use mpas_chemistry_init_gocart2G_static,only: init_gocart2G_static
 #endif
@@ -76,12 +80,17 @@ module init_atm_cases
       logical, pointer :: config_met_interp
       logical, pointer :: config_blend_bdy_terrain
 #ifdef DO_GOCART2G
-      logical, pointer :: config_CAMS_emissions
+      logical, pointer :: config_gocart2G_ANTHemis
+      logical, pointer :: config_gocart2G_BIOBemis
+      logical, pointer :: config_gocart2G_BIOGemis
       logical, pointer :: config_gocart2G_clim
       logical, pointer :: config_gocart2G_interp
       logical, pointer :: config_gocart2G_static
 
-      type (mpas_pool_type), pointer :: CAMS_emissions
+      type (mpas_pool_type), pointer :: CAMS_anth_emissions
+      type (mpas_pool_type), pointer :: FINN_biob_emissions
+      type (mpas_pool_type), pointer :: anth_emissions
+      type (mpas_pool_type), pointer :: biob_emissions
       type (mpas_pool_type), pointer :: gocart2G_backgrounds
       type (mpas_pool_type), pointer :: gocart2G_met
 #endif
@@ -288,10 +297,12 @@ module init_atm_cases
          block_ptr => domain % blocklist
          do while (associated(block_ptr))
 
-            call mpas_pool_get_config(block_ptr%configs,'config_CAMS_emissions',config_CAMS_emissions)
-            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_clim',config_gocart2G_clim)
-            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_interp',config_gocart2G_interp)
-            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_static',config_gocart2G_static)
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_ANTHemis',config_gocart2G_ANTHemis)
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_BIOBemis',config_gocart2G_BIOBemis)
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_BIOGemis',config_gocart2G_BIOGemis)
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_clim'    ,config_gocart2G_clim)
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_interp'  ,config_gocart2G_interp)
+            call mpas_pool_get_config(block_ptr%configs,'config_gocart2G_static'  ,config_gocart2G_static)
 
             !interpolation of climatological fields:
             if(config_gocart2G_clim) then
@@ -318,12 +329,21 @@ module init_atm_cases
                call init_gocart2G_static(block_ptr%configs,mesh)
             endif
 
-            if(config_CAMS_emissions) then
-               call mpas_log_write(' ')
-               call mpas_log_write('--- read CAMS anthropogenic surface emissions:')!
-               call mpas_pool_get_subpool(block_ptr%structs,'CAMS_emissions',CAMS_emissions)
-               call init_CAMS_emissions(domain%clock,stream_manager,mesh,CAMS_emissions)
-               call mpas_log_write('--- end read CAMS anthropogenic surface emissions:')
+            if(config_gocart2G_ANTHemis) then
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
+               call mpas_pool_get_subpool(block_ptr%structs,'CAMS_anth_emissions',CAMS_anth_emissions)
+               call mpas_pool_get_subpool(block_ptr%structs,'anth_emissions',anth_emissions)
+               call init_anth_emissions_bc(domain%clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+               call init_anth_emissions_oc(domain%clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+               call init_anth_emissions_nh3(domain%clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+               call init_anth_emissions_su(domain%clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+            endif
+
+            if(config_gocart2G_BIOBemis) then
+               call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
+               call mpas_pool_get_subpool(block_ptr%structs,'FINN_biob_emissions',FINN_biob_emissions)
+               call mpas_pool_get_subpool(block_ptr%structs,'biob_emissions',biob_emissions)
+               call init_biomass_burning_emissions(domain%clock,stream_manager,mesh,FINN_biob_emissions,biob_emissions)
             endif
 
             block_ptr => block_ptr % next

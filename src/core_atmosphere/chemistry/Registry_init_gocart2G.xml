@@ -33,9 +33,19 @@
            description="The number of atmospheric levels for the monthly-mean background H2O2, OH, and NO3 fields"
            possible_values="Positive integer values"/>
 
-      <nml_option name="config_CAMS_emissions" type="logical" default_value="false"
+      <nml_option name="config_gocart2G_ANTHemis" type="logical" default_value="false"
            units="-"
-           description="Whether to read the CAMS surface emissions file"
+           description="Whether to read the anthropogenic surface emissions file"
+           possible_values="true or false"/>
+
+      <nml_option name="config_gocart2G_BIOBemis" type="logical" default_value="false"
+           units="-"
+           description="Whether to read the biomass biurning surface emissions file"
+           possible_values="true or false"/>
+
+      <nml_option name="config_gocart2G_BIOGemis" type="logical" default_value="false"
+           units="-"
+           description="Whether to read the biogenic surface emissions file"
            possible_values="true or false"/>
 
       <nml_option name="config_gocart2G_interp" type="logical" default_value="false"

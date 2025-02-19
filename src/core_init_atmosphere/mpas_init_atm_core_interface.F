@@ -124,7 +124,9 @@ module init_atm_core_interface
       integer, pointer :: config_init_case
       logical, pointer :: noahmp, config_noahmp_static
 #ifdef DO_GOCART2G
-      logical, pointer :: config_CAMS_emissions
+      logical, pointer :: config_gocart2G_ANTHemis
+      logical, pointer :: config_gocart2G_BIOBemis
+      logical, pointer :: config_gocart2G_BIOGemis
       logical, pointer :: config_gocart2G_clim
       logical, pointer :: config_gocart2G_interp
       logical, pointer :: config_gocart2G_static
@@ -359,10 +361,12 @@ module init_atm_core_interface
          return
       end if
 
-      call mpas_pool_get_config(configs, 'config_CAMS_emissions' , config_CAMS_emissions )
-      call mpas_pool_get_config(configs, 'config_gocart2G_clim'  , config_gocart2G_clim  )
-      call mpas_pool_get_config(configs, 'config_gocart2G_interp', config_gocart2G_interp)
-      call mpas_pool_get_config(configs, 'config_gocart2G_static', config_gocart2G_static)
+      call mpas_pool_get_config(configs,'config_gocart2G_ANTHemis' , config_gocart2G_ANTHemis)
+      call mpas_pool_get_config(configs,'config_gocart2G_BIOBemis' , config_gocart2G_BIOBemis)
+      call mpas_pool_get_config(configs,'config_gocart2G_BIOGemis' , config_gocart2G_BIOGemis)
+      call mpas_pool_get_config(configs, 'config_gocart2G_clim'    , config_gocart2G_clim    )
+      call mpas_pool_get_config(configs, 'config_gocart2G_interp'  , config_gocart2G_interp  )
+      call mpas_pool_get_config(configs, 'config_gocart2G_static'  , config_gocart2G_static  )
 
       gocart2G_static_in  = .false.
       gocart2G_static_out = .false.
@@ -379,7 +383,8 @@ module init_atm_core_interface
             gocart2G_static_out = .true.
          endif
 
-         if(config_CAMS_emissions .or. config_gocart2G_clim .or. config_gocart2G_interp) then
+         if(config_gocart2G_ANTHemis .or. config_gocart2G_BIOBemis .or. config_gocart2G_BIOGemis .or. &
+            config_gocart2G_clim .or. config_gocart2G_interp) then
             gocart2G_static_in  = .true.
             gocart2G_static_out = .true.
             gocart2G_interp_out = .true.
