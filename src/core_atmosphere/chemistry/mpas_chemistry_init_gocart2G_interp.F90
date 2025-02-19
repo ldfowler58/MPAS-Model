@@ -671,7 +671,6 @@
  call mpas_log_write('--- num_scalars    = $i',intArgs=(/num_scalars/)   )
  call mpas_log_write('--- gocart2G_start = $i',intArgs=(/gocart2G_start/))
  call mpas_log_write('--- gocart2G_end   = $i',intArgs=(/gocart2G_end/)  )
- call mpas_log_write(' ')
 
  call mpas_pool_get_array(fg,'pgoc',pgoc)
  call mpas_pool_get_array(fg,'scalars_fg',scalars_fg)
@@ -752,7 +751,6 @@
  real(kind=RKIND),dimension(:,:),allocatable:: sorted_arr
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine init_vinterp_gocart2G_hno3:')
 
  call mpas_pool_get_dimension(mesh,'nCells',nCells)
@@ -784,7 +782,7 @@
  enddo
  if(allocated(sorted_arr)) deallocate(sorted_arr)
 
- call mpas_log_write('--- end subroutine init_vinterp_gocart2G_hno3:')
+ call mpas_log_write('--- end subroutine init_vinterp_gocart2G_hno3.')
 
  end subroutine init_vinterp_gocart2G_hno3
 

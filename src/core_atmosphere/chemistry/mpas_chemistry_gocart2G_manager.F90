@@ -87,7 +87,7 @@
  end do
 
 
- call mpas_log_write('--- end subroutine gocart2G_timetracker:')
+ call mpas_log_write('--- end subroutine gocart2G_timetracker.')
  call mpas_log_write(' ')
 
  end subroutine gocart2G_timetracker
@@ -145,7 +145,7 @@
                            messageType=MPAS_LOG_CRIT)
 
 
- call mpas_log_write('--- end subroutine gocart2G_timetracker_init:')
+ call mpas_log_write('--- end subroutine gocart2G_timetracker_init.')
 
  end subroutine init_gocart2G_timetracker
 

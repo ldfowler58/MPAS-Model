@@ -56,7 +56,7 @@
  call update_tinterp_backgrounds(current_date,mesh,gocart2G_backgrounds)
 
 
- call mpas_log_write('--- end subroutine update_gocart2G_climatology:')
+ call mpas_log_write('--- end subroutine update_gocart2G_climatology.')
 
  end subroutine update_gocart2G_climatology
 
@@ -177,7 +177,7 @@
  real(kind=RKIND),dimension(:,:),allocatable:: dummy1
 
 !-----------------------------------------------------------------------------------------------------------------
-!call mpas_log_write('--- enter subroutine update_tinterp_backgrounds: '//trim(current_date))
+ call mpas_log_write('--- enter subroutine update_tinterp_backgrounds: '//trim(current_date))
 
  call mpas_pool_get_dimension(mesh,'nCells'     ,nCells     )
  call mpas_pool_get_dimension(mesh,'nBCKLevels' ,nBCKLevels )
@@ -231,7 +231,7 @@
  if(allocated(dummy1)) deallocate(dummy1)
 
 
-!call mpas_log_write('--- end subroutine update_tinterp_backgrounds:')
+ call mpas_log_write('--- end subroutine update_tinterp_backgrounds.')
 
  end subroutine update_tinterp_backgrounds
 

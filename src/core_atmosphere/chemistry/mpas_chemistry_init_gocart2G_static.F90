@@ -333,7 +333,7 @@
  call mpas_log_write('--- end interpolate SANDFRAC.')
 
 
- call mpas_log_write('--- end subroutine init_gocart2G_static:')
+ call mpas_log_write('--- end subroutine init_gocart2G_static.')
 
  end subroutine init_gocart2G_static
 
