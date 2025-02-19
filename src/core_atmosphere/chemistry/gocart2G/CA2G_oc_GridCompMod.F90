@@ -158,16 +158,6 @@
  integer:: nymd,nhms
  integer:: i,j,istat
 
- real(kind=RKIND),dimension(:,:),allocatable:: biomass_src         !
- real(kind=RKIND),dimension(:,:),allocatable:: biofuel_src         !
- real(kind=RKIND),dimension(:,:),allocatable:: eocant1_src         ! 
- real(kind=RKIND),dimension(:,:),allocatable:: eocant2_src         !
- real(kind=RKIND),dimension(:,:),allocatable:: oc_ship_src         !
- real(kind=RKIND),dimension(:,:),allocatable:: aviation_lto_src    !
- real(kind=RKIND),dimension(:,:),allocatable:: aviation_cds_src    !
- real(kind=RKIND),dimension(:,:),allocatable:: aviation_crs_src    !
- real(kind=RKIND),dimension(:,:,:),allocatable:: aircraft_fuel_src !
-
  real(kind=RKIND),dimension(:,:),allocatable:: biomass_src_
  real(kind=RKIND),dimension(:,:),allocatable:: biogvoc_src
 
@@ -183,61 +173,25 @@
  call mpas_log_write('--- nhms = $i',intArgs=(/nhms/))
 
 
-!--- initialize organic carbon emissions: at this time, only anthropogenic surface emission is available as an
-!    input stream and put into eocant1_src. all other emission types are set to zero. 
- biomass_src       = self%oc_biomass
- biofuel_src       = self%oc_biofuel
- eocant1_src       = self%oc_anteoc1
- eocant2_src       = self%oc_anteoc2
- oc_ship_src       = self%oc_ship
- aviation_lto_src  = self%oc_aviation_lto
- aviation_cds_src  = self%oc_aviation_cds
- aviation_crs_src  = self%oc_aviation_crs
- aircraft_fuel_src = self%oc_aircraft
-
- biomass_src(:,:)         = 0._RKIND
- biofuel_src(:,:)         = 0._RKIND
-!oecant1_src(:,:)         = 0._RKIND
- eocant2_src(:,:)         = 0._RKIND
- oc_ship_src(:,:)         = 0._RKIND
- aviation_lto_src(:,:)    = 0._RKIND
- aviation_cds_src(:,:)    = 0._RKIND
- aviation_crs_src(:,:)    = 0._RKIND
- aircraft_fuel_src(:,:,:) = 0._RKIND
-
  if(.not.allocated(biogvoc_src)) allocate(biogvoc_src(its:ite,jts:jte))
  biogvoc_src(:,:) = 0._RKIND
 !biogvoc_src(:,:) = (self%oc_mtpa+self%oc_mtpo+self%oc_limo)*self_params%fMonoterpenes &
 !                 + self%oc_isoprene*self_params%fIsoprene
 
 
-!--- as a safety check, all undefined values are set to zero. this may be needed when all emission types become
-!    available.
-!where(1.01*biomass_src > undefval) biomass_src = 0._RKIND
-!where(1.01*biogvoc_src > undefval) biogvoc_src = 0._RKIND
-!where(1.01*biofuel_src > undefval) biofuel_src = 0._RKIND
- where(1.01*eocant1_src > undefval) eocant1_src = 0._RKIND
-!where(1.01*eocant2_src > undefval) eocant2_src = 0._RKIND
-!where(1.01*oc_ship_src > undefval) oc_ship_src = 0._RKIND
-!where(1.01*aviation_lto_src  > undefval) aviation_lto_src  = 0._RKIND
-!where(1.01*aviation_cds_src  > undefval) aviation_cds_src  = 0._RKIND
-!where(1.01*aviation_crs_src  > undefval) aviation_crs_src  = 0._RKIND
-!where(1.01*aircraft_fuel_src > undefval) aircraft_fuel_src = 0._RKIND
-
-
 !--- apply diurnal cycle to biomass burning if needed:
- if(self_params%diurnal_bb ) then
+ if(self_params%diurnal_bb) then
     call mpas_log_write('--- enter subroutine Chem_Biomass Diurnal:')
-    biomass_src_ = biomass_src
+    biomass_src_ = self%oc_biomass
     call Chem_BiomassDiurnal( &
        cdt  = self_params%cdt,    &
        nhms = nhms,               &
-       eout = biomass_src,        &
+       eout = self%oc_biomass,    &
        ein  = biomass_src_,       &
        lons = self%lons*radTodeg, &
        lats = self%lats*radTodeg  &
                             )
-    call mpas_log_write('--- end subroutine Chem_Biomass Diurnal:')
+    call mpas_log_write('--- end subroutine Chem_Biomass Diurnal.')
  endif
 
 
@@ -255,16 +209,16 @@
     nbins             = self_params%nbins,           &
     grav              = grav,                        &
     prefix            = 'OC',                        &
-    biomass_src       = biomass_src,                 &
-    biofuel_src       = biofuel_src,                 &
     terpene_src       = biogvoc_src,                 &
-    eocant1_src       = eocant1_src,                 &
-    eocant2_src       = eocant2_src,                 &
-    oc_ship_src       = oc_ship_src,                 &
-    aircraft_fuel_src = aircraft_fuel_src,           &
-    aviation_lto_src  = aviation_lto_src,            &
-    aviation_cds_src  = aviation_cds_src,            &
-    aviation_crs_src  = aviation_crs_src,            &
+    biomass_src       = self%oc_biomass,             &
+    biofuel_src       = self%oc_biofuel,             &
+    eocant1_src       = self%oc_anteoc1,             &
+    eocant2_src       = self%oc_anteoc2,             &
+    oc_ship_src       = self%oc_ship,                &
+    aircraft_fuel_src = self%oc_aircraft,            &
+    aviation_lto_src  = self%oc_aviation_lto,        &
+    aviation_cds_src  = self%oc_aviation_cds,        &
+    aviation_crs_src  = self%oc_aviation_crs,        &
     pblh              = self%zpbl,                   &
     tmpu              = self%t,                      &
     rhoa              = self%airdens,                &
@@ -280,17 +234,17 @@
     rc                = istat                        &
                 )
  if(istat /=0) then
-    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine CAEmission', &
+    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine CAEmission.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine CAEmission:')
+    call mpas_log_write('--- end subroutine CAEmission.')
  endif
 
 
 !--- for now, we do not support point emissions:
 
 
- call mpas_log_write('--- end subroutine emissions_CA2G_oc_GridComp:')
+ call mpas_log_write('--- end subroutine emissions_CA2G_oc_GridComp.')
 
  end subroutine emissions_CA2G_oc_GridComp
 
@@ -339,10 +293,10 @@
            rc = istat                                &
                     )
  if(istat /=0) then
-    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine phobicTophilic', &
+    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine phobicTophilic.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine phobicTophilic:')
+    call mpas_log_write('--- end subroutine phobicTophilic.')
  endif
 
 
@@ -383,10 +337,10 @@
                       )
  enddo
  if(istat /=0) then
-    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine Chem_Settling', &
+    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine Chem_Settling.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_Settling:')
+    call mpas_log_write('--- end subroutine Chem_Settling.')
  endif
 
 
@@ -422,11 +376,11 @@
     end if
  enddo
  if(istat /=0) then
-    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine DryDeposition', &
+    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine DryDeposition.', &
                         messageType=MPAS_LOG_CRIT)
  else
     if(allocated(drydepf)) deallocate(drydepf)
-    call mpas_log_write('--- end subroutine DryDeposition:')
+    call mpas_log_write('--- end subroutine DryDeposition.')
  endif
 
 
@@ -469,10 +423,10 @@
            rc        = istat               &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine WetRemovalGOCART2G', &
+    call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine WetRemovalGOCART2G.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G')
+    call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
  endif
 !return
 
@@ -545,10 +499,10 @@
               rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine Aero_Compute_Diags', &
+    call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine Aero_Compute_Diags.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags.')
  endif
  if(allocated(qca2G)) deallocate(qca2G)
  return
@@ -588,10 +542,10 @@
            rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine Aero_Compute_Diags RH20', &
+    call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine Aero_Compute_Diags RH20.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
  endif
 
 
@@ -628,7 +582,7 @@
     call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine Aero_Compute_Diags RH80', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
  endif
  if(allocated(rh20)) deallocate(rh20)
  if(allocated(rh80)) deallocate(rh80)
@@ -636,7 +590,7 @@
  if(allocated(qca2G)) deallocate(qca2G)
 
 
- call mpas_log_write('--- end subroutine processes_CA2G_oc_GridComp:')
+ call mpas_log_write('--- end subroutine processes_CA2G_oc_GridComp.')
 
  end subroutine processes_CA2G_oc_GridComp
 
