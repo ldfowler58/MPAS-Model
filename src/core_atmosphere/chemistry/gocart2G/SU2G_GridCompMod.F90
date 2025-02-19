@@ -137,7 +137,8 @@
 
 
 !--- initialization using parameters defined in SU2G_instance_SU:
- self%diurnal_bb = .false.
+!self%diurnal_bb = .false.
+ self%diurnal_bb = .true.
 
  call self%load_from_config(nbins,particle_radius_microns,particle_density,fscav,molecular_weight,fnum, &
                             rhFlag,pressure_lid_in_hPa)
@@ -160,7 +161,7 @@
  enddo
 
 
- call mpas_log_write('--- end subroutine load_SU2G_GridCOMP:')
+ call mpas_log_write('--- end subroutine load_SU2G_GridCOMP.')
 
  end subroutine load_SU2G_GridComp
 
@@ -183,18 +184,6 @@
  integer:: istat
  integer:: nVolc
 
- real(kind=RKIND):: factor
- real(kind=RKIND),dimension(:,:),allocatable:: dmso_conc           ! source of DMS over oceans (nM/L).
- real(kind=RKIND),dimension(:,:),allocatable:: so2biomass_src      ! source of biomass burning.
- real(kind=RKIND),dimension(:,:),allocatable:: so2anthro_l1_src    ! anthropogenic source at surface.
- real(kind=RKIND),dimension(:,:),allocatable:: so2anthro_l2_src    ! anthropogenic source.
- real(kind=RKIND),dimension(:,:),allocatable:: so2ship_src         ! SO2 ship emissions.
- real(kind=RKIND),dimension(:,:),allocatable:: so4ship_src         ! SO4 ship emissions.
- real(kind=RKIND),dimension(:,:),allocatable:: aviation_lto_src    !
- real(kind=RKIND),dimension(:,:),allocatable:: aviation_cds_src    !
- real(kind=RKIND),dimension(:,:),allocatable:: aviation_crs_src    !
- real(kind=RKIND),dimension(:,:,:),allocatable:: aircraft_fuel_src !
-
  real(kind=RKIND),dimension(:,:),allocatable:: so2biomass_src_
 
 !------------------------------------------------------------------------------------------------------------------
@@ -213,30 +202,6 @@
  nVolc = 0
 
 
-!--- initialize sulfate emissions:
- dmso_conc         = self%su_dmso
- so2biomass_src    = self%su_biomass
- so2anthro_l1_src  = self%su_anthrol1
- so2anthro_l2_src  = self%su_anthrol2
- so2ship_src       = self%su_shipso2
- so4ship_src       = self%su_shipso4
- aviation_lto_src  = self%su_aviation_lto
- aviation_cds_src  = self%su_aviation_cds
- aviation_crs_src  = self%su_aviation_crs
- aircraft_fuel_src = self%su_aircraft
-
- dmso_conc(:,:)        = 0._RKIND
- so2biomass_src(:,:)   = 0._RKIND
-!so2anthro_l1_src(:,:) = 0._RKIND
- so2anthro_l2_src(:,:) = 0._RKIND
- so2ship_src(:,:)      = 0._RKIND
- so4ship_src(:,:)      = 0._RKIND
- aviation_lto_src(:,:) = 0._RKIND
- aviation_cds_src(:,:) = 0._RKIND
- aviation_crs_src(:,:) = 0._RKIND
- aircraft_fuel_src(:,:,:) = 0._RKIND
-
-
 !--- apply diurnal cycle to biomass burning if needed:
  if(self_params%diurnal_bb ) then
     call mpas_log_write('--- enter subroutine Chem_BiomassDiurnal:')
@@ -244,12 +209,12 @@
     call Chem_BiomassDiurnal( &
        cdt  = self_params%cdt,    &
        nhms = nhms,               &
-       eout = so2biomass_src,     &
+       eout = self%su_biomass,    &
        ein  = so2biomass_src_,    &
        lons = self%lons*radTodeg, &
        lats = self%lats*radTodeg  &
                             )
-    call mpas_log_write('--- end subroutine Chem_BiomassDiurnal:')
+    call mpas_log_write('--- end subroutine Chem_BiomassDiurnal.')
  endif
 
 
@@ -270,16 +235,15 @@
     fMassSO4          = fMassSO4,                    &
     nSO2              = nSO2,                        &
     nSO4              = nSO4,                        &
-    so2anthro_l1_src  = so2anthro_l1_src,            &
-    so2anthro_l2_src  = so2anthro_l2_src,            &
-    so2biomass_src    = so2biomass_src,              &
-    dmso_conc         = dmso_conc,                   &
-    so2ship_src       = so2ship_src,                 &
-    so4ship_src       = so4ship_src,                 &
-    aircraft_fuel_src = aircraft_fuel_src,           &
-    aviation_lto_src  = aviation_lto_src,            &
-    aviation_cds_src  = aviation_cds_src,            &
-    aviation_crs_src  = aviation_crs_src,            &
+    so2biomass_src    = self%su_biomass,             &
+    so2anthro_l1_src  = self%su_anthrol1,            &
+    so2anthro_l2_src  = self%su_anthrol2,            &
+    so2ship_src       = self%su_shipso2,             &
+    so4ship_src       = self%su_shipso4,             &
+    aviation_lto_src  = self%su_aviation_lto,        &
+    aviation_cds_src  = self%su_aviation_cds,        &
+    aviation_crs_src  = self%su_aviation_crs,        &
+    aircraft_fuel_src = self%su_aircraft,            &
     SO2               = self%so2,                    &
     SO4               = self%so4,                    &
     oro               = self%lwi,                    &
@@ -298,10 +262,10 @@
     rc                = istat                        &
                                 )
  if(istat /=0) then
-    call mpas_log_write('--- SU2G_bc_GridComp: error in subroutine SulfateDistributeEmissions:', &
+    call mpas_log_write('--- SU2G_bc_GridComp: error in subroutine SulfateDistributeEmissions.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SulfateDistributionEmissions:')
+    call mpas_log_write('--- end subroutine SulfateDistributionEmissions.')
  endif
 
 
@@ -325,15 +289,15 @@
        rc        = istat            &
                     )
     if(istat /=0) then
-       call mpas_log_write('--- SU2G_bc_GridComp: error in subroutine DMSEmission:', &
+       call mpas_log_write('--- SU2G_bc_GridComp: error in subroutine DMSEmission.', &
                            messageType=MPAS_LOG_CRIT)
     else
-       call mpas_log_write('--- end subroutine DMSEmission:')
+       call mpas_log_write('--- end subroutine DMSEmission.')
     endif
  endif
 
 
- call mpas_log_write('--- end subroutine emissions_SU2G_GridComp:')
+ call mpas_log_write('--- end subroutine emissions_SU2G_GridComp.')
 
  end subroutine emissions_SU2G_GridComp
 
@@ -436,10 +400,10 @@
               rc             = istat             &
                            )
  if(istat /=0) then
-    call mpas_log_write('--- SU2G_GridComp: error in subroutine SulfateUpdateOxidants', &
+    call mpas_log_write('--- SU2G_GridComp: error in subroutine SulfateUpdateOxidants.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SulfateChemOxidants:')
+    call mpas_log_write('--- end subroutine SulfateChemOxidants.')
  endif
 
 
@@ -562,11 +526,11 @@
               rc             = istat              &
                        )
  if(istat /=0) then
-    call mpas_log_write('--- SU2G_GridComp: error in subroutine SulfateChemDriver', &
+    call mpas_log_write('--- SU2G_GridComp: error in subroutine SulfateChemDriver.', &
                         messageType=MPAS_LOG_CRIT)
  else
  !   if(allocated(drydepf)) deallocate(drydepf)
-    call mpas_log_write('--- end subroutine SulfateChemDriver:')
+    call mpas_log_write('--- end subroutine SulfateChemDriver.')
  endif
 
 
@@ -609,10 +573,10 @@
               rc              = istat               &
                     )
  if(istat /=0) then
-    call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Wet_Removal', &
+    call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Wet_Removal.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SU_Wet_Removal:')
+    call mpas_log_write('--- end subroutine SU_Wet_Removal.')
  endif
 
 
@@ -693,10 +657,10 @@
               rc         = istat                                             &
                       )
  if(istat /=0) then
-    call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags', &
+    call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SU_Compute_Diags:')
+    call mpas_log_write('--- end subroutine SU_Compute_Diags.')
  endif
 
 
@@ -705,7 +669,6 @@
  km = ubound(self%rh2,3)                      
 
  call mpas_log_write('--- enter subroutine SU_Compute_Diags RH20:')
-!if(.not.associated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
  if(associated(self%suextcoefrh20)) self%suextcoefrh20(:,:,:,:) = 0._RKIND
  if(associated(self%suscacoefrh20)) self%suscacoefrh20(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
@@ -739,15 +702,14 @@
               rc = istat                                                    &
                       )
  if(istat /=0) then
-    call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags RH20', &
+    call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags RH20.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SU_Compute_Diags RH20:')
+    call mpas_log_write('--- end subroutine SU_Compute_Diags RH20.')
  endif
 
 
  call mpas_log_write('--- enter subroutine SU_Compute_Diags RH80:')
-!if(.not.associated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
  if(associated(self%suextcoefrh80)) self%suextcoefrh80(:,:,:,:) = 0._RKIND
  if(associated(self%suscacoefrh80)) self%suscacoefrh80(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
@@ -781,13 +743,11 @@
               rc = istat                                                    &
                       )
  if(istat /=0) then
-    call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags RH80', &
+    call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags RH80.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SU_Compute_Diags RH80:')
+    call mpas_log_write('--- end subroutine SU_Compute_Diags RH80.')
  endif
-!if(associated(rh20)) deallocate(rh20)
-!if(associated(rh80)) deallocate(rh80)
  if(allocated(rh20)) deallocate(rh20)
  if(allocated(rh80)) deallocate(rh80)
 
@@ -803,7 +763,7 @@
  if(allocated(so4_init)) deallocate(so4_init)
  if(allocated(msa_init)) deallocate(msa_init)
 
- call mpas_log_write('--- end subroutine processes_SU2G_GridComp:')
+ call mpas_log_write('--- end subroutine processes_SU2G_GridComp.')
  call mpas_log_write(' ')
 
  end subroutine processes_SU2G_GridComp
