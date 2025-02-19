@@ -655,10 +655,8 @@
                         <var name="pgoc_fg" packages="gocart2G_interp_out"/>
                         <var name="dpgoc_fg" packages="gocart2G_interp_out"/>
                         <var_array name="scalars_fg" packages="gocart2G_interp_out"/>
-                        <var name="bc1_em_anthro" packages="gocart2G_static_out"/>
-                        <var name="oc1_em_anthro" packages="gocart2G_static_out"/>
-                        <var name="nh3_em_anthro" packages="gocart2G_static_out"/>
-                        <var name="so2_em_anthro" packages="gocart2G_static_out"/>
+                        <var_struct name="anth_emissions" packages="gocart2G_interp_out"/>
+                        <var_struct name="biob_emissions" packages="gocart2G_interp_out"/>
 #endif
 		</stream>
 

@@ -1,0 +1,181 @@
+<!-- ========================================================================================================== -->
+<!-- MAIN GOCART2G INIT REGISTRY FOR INPUT EMISSIONS:                                                           -->
+<!-- ========================================================================================================== -->
+
+ <var_struct name="CAMS_anth_emissions" time_levs="1">
+
+      <var name="bc_anth_agl" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector AGL"/>
+
+      <var name="bc_anth_ags" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector AGS"/>
+
+      <var name="bc_anth_awb" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector AWB"/>
+
+      <var name="bc_anth_ene" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector ENE"/>
+
+      <var name="bc_anth_fef" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector FEF"/>
+
+      <var name="bc_anth_ind" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector IND"/>
+
+      <var name="bc_anth_res" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector RES"/>
+
+      <var name="bc_anth_shp" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector SHP"/>
+
+      <var name="bc_anth_slv" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector SLV"/>
+
+      <var name="bc_anth_sum" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector SUM"/>
+
+      <var name="bc_anth_swd" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector SWD"/>
+
+      <var name="bc_anth_tnr" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector TNR"/>
+
+      <var name="bc_anth_tro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic surface emission - sector TRO"/>
+
+      <var name="oc_anth_agl" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector AGL"/>
+
+      <var name="oc_anth_ags" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector AGS"/>
+
+      <var name="oc_anth_awb" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector AWB"/>
+
+      <var name="oc_anth_ene" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector ENE"/>
+
+      <var name="oc_anth_fef" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector FEF"/>
+
+      <var name="oc_anth_ind" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector IND"/>
+
+      <var name="oc_anth_res" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector RES"/>
+
+      <var name="oc_anth_shp" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector SHP"/>
+
+      <var name="oc_anth_slv" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector SLV"/>
+
+      <var name="oc_anth_sum" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector SUM"/>
+
+      <var name="oc_anth_swd" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector SWD"/>
+
+      <var name="oc_anth_tnr" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector TNR"/>
+
+      <var name="oc_anth_tro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic surface emission - sector TRO"/>
+
+      <var name="nh3_anth_agl" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector AGL"/>
+
+      <var name="nh3_anth_ags" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector AGS"/>
+
+      <var name="nh3_anth_awb" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector AWB"/>
+
+      <var name="nh3_anth_ene" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector ENE"/>
+
+      <var name="nh3_anth_fef" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector FEF"/>
+
+      <var name="nh3_anth_ind" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector IND"/>
+
+      <var name="nh3_anth_res" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector RES"/>
+
+      <var name="nh3_anth_shp" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector SHP"/>
+
+      <var name="nh3_anth_slv" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector SLV"/>
+
+      <var name="nh3_anth_sum" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector SUM"/>
+
+      <var name="nh3_anth_swd" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector SWD"/>
+
+      <var name="nh3_anth_tnr" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector TNR"/>
+
+      <var name="nh3_anth_tro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia surface emission - sector TRO"/>
+
+      <var name="so2_anth_agl" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector AGL"/>
+
+      <var name="so2_anth_ags" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector AGS"/>
+
+      <var name="so2_anth_awb" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector AWB"/>
+
+      <var name="so2_anth_ene" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector ENE"/>
+
+      <var name="so2_anth_fef" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector FEF"/>
+
+      <var name="so2_anth_ind" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector IND"/>
+
+      <var name="so2_anth_res" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector RES"/>
+
+      <var name="so2_anth_shp" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector SHP"/>
+
+      <var name="so2_anth_slv" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector SLV"/>
+
+      <var name="so2_anth_sum" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector SUM"/>
+
+      <var name="so2_anth_swd" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector SWD"/>
+
+      <var name="so2_anth_tnr" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector TNR"/>
+
+      <var name="so2_anth_tro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulphur dioxide surface emission - sector TRO"/>
+
+ </var_struct>
+
+
+ <var_struct name="FINN_biob_emissions" time_levs="1">
+
+      <var name="bc_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Black carbon biomass burning emission"/>
+
+      <var name="oc_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Organic carbon biomass burning emission"/>
+
+      <var name="nh3_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Nitrate biomass burning emission"/>
+
+      <var name="so2_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Sulphur dioxide biomass burning emission"/>
+
+ </var_struct>
+

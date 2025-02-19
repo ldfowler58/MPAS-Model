@@ -303,4 +303,5 @@
 
  </var_struct>
 
-#include "Registry_init_emissions.xml"
+#include "Registry_init_gocart2G_emissions.xml"
+#include "Registry_gocart2G_emissions.xml"

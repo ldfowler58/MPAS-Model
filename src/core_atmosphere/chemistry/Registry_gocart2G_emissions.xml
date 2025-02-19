@@ -1,0 +1,152 @@
+<!-- ========================================================================================================== -->
+<!-- MAIN GOCART2G REGISTRY FOR ANTHROPOGENIC, BIOMASS BURNING, AND BIOGENIC EMISSIONS                          -->
+<!-- ========================================================================================================== -->
+
+ <var_struct name="anth_emissions" time_levs="1">
+
+      <var name="bc_anth_less100m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic emission in levels less than 100 m from non-energy sectors"/>
+
+      <var name="bc_anth_less500m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic emission in levels less 500 m from energy sectors"/>
+
+      <var name="bc_anth_ship" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic emission from ships"/>
+
+      <var name="bc_anth_aviation_lto" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic emission from landing/take off of aircrafts"/>
+
+      <var name="bc_anth_aviation_cds" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic emission from clim/descent of aircrafts"/>
+
+      <var name="bc_anth_aviation_crs" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic emission from cruising altitude of aircrafts"/>
+
+      <var name="bc_anth_aircraft" type="real" dimensions="nVertLevels nCells Time"  units="kg m^{-2} s^{-1}"
+           description="Black carbon anthropogenic emission from aircrafts"/>
+
+      <var name="br_anth_less100m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Brown carbon anthropogenic emission in levels less than 100 m from non-energy sectors"/>
+
+      <var name="br_anth_less500m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Brown carbon anthropogenic emission in levels less 500 m from energy sectors"/>
+
+      <var name="br_anth_ship" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Brown carbon anthropogenic emission from ships"/>
+
+      <var name="br_anth_aviation_lto" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Brown carbon anthropogenic emission from landing/take off of aircrafts"/>
+
+      <var name="br_anth_aviation_cds" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Brown carbon anthropogenic emission from clim/descent of aircrafts"/>
+
+      <var name="br_anth_aviation_crs" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Brown carbon anthropogenic emission from cruising altitude of aircrafts"/>
+
+      <var name="br_anth_aircraft" type="real" dimensions="nVertLevels nCells Time"  units="kg m^{-2} s^{-1}"
+           description="Brown carbon anthropogenic emission from aircrafts"/>
+
+      <var name="oc_anth_less100m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic emission in levels less than 100 m from non-energy sectors"/>
+
+      <var name="oc_anth_less500m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic emission in levels less 500 m from energy sectors"/>
+
+      <var name="oc_anth_ship" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic emission from ships"/>
+
+      <var name="oc_anth_aviation_lto" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic emission from landing/take off of aircrafts"/>
+
+      <var name="oc_anth_aviation_cds" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic emission from clim/descent of aircrafts"/>
+
+      <var name="oc_anth_aviation_crs" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic emission from cruising altitude of aircrafts"/>
+
+      <var name="oc_anth_aircraft" type="real" dimensions="nVertLevels nCells Time"  units="kg m^{-2} s^{-1}"
+           description="Organic carbon anthropogenic emission from aircrafts"/>
+
+      <var name="nh3_anth_ag" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia anthropogenic emission from agriculture sector"/>
+
+      <var name="nh3_anth_bb" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia anthropogenic emission from biomass burning"/>
+
+      <var name="nh3_anth_en" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia anthropogenic emission from energy sector"/>
+
+      <var name="nh3_anth_in" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia anthropogenic emission from industry sector"/>
+
+      <var name="nh3_anth_oc" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia anthropogenic emission from oceans"/>
+
+      <var name="nh3_anth_re" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia anthropogenic emission from residential sector"/>
+
+      <var name="nh3_anth_tr" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Ammonia anthropogenic emission from transportation sector"/>
+
+      <var name="su_anth_less100m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulfate anthropogenic emission in levels less than 100 m from non-energy sectors"/>
+
+      <var name="su_anth_less500m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulfate anthropogenic emission in levels less 500 m from energy sectors"/>
+
+      <var name="su_anth_shipso2" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulfur dioxide anthropogenic emission from ships"/>
+
+      <var name="su_anth_shipso4" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulfate anthropogenic emission from ships"/>
+
+      <var name="su_anth_aviation_lto" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulfate anthropogenic emission from landing/take off of aircrafts"/>
+
+      <var name="su_anth_aviation_cds" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulfate anthropogenic emission from clim/descent of aircrafts"/>
+
+      <var name="su_anth_aviation_crs" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulfate anthropogenic emission from cruising altitude of aircrafts"/>
+
+      <var name="su_anth_aircraft" type="real" dimensions="nVertLevels nCells Time"  units="kg m^{-2} s^{-1}"
+           description="Sulfate anthropogenic emission from aircrafts"/>
+
+      <var name="su_dmso_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Dimethyl sulfide emission over oceans"/>
+
+ </var_struct>
+
+
+ <var_struct name="biob_emissions" time_levs="1">
+
+      <var name="bc_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon hydrophobic biomass burning emission"/>
+
+      <var name="br_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Brown carbon hydrophobic biomass burning emission"/>
+
+      <var name="oc_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon hydrophobic biomass burning emission"/>
+
+      <var name="ni_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Nitrate biomass burning emission"/>
+
+      <var name="su_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Sulfate biomass burning emission"/>
+
+ </var_struct>
+
+ <var_struct name="BIOG_emissions" time_levs="1">
+
+      <var name="bc_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Black carbon hydrophobic biogenic emission"/>
+
+      <var name="br_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Brown carbon hydrophobic biogenic emission"/>
+
+      <var name="oc_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Organic carbon hydrophobic biogenic emission"/>
+
+ </var_struct>
+

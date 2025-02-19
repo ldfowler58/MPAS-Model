@@ -415,6 +415,7 @@
  </var_struct>
 
 
+#include "Registry_gocart2G_emissions.xml"
 #include "Registry_gocart2G_AOPs.xml"
 #include "Registry_gocart2G_CA_bc.xml"
 #include "Registry_gocart2G_CA_br.xml"
