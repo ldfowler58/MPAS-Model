@@ -380,6 +380,7 @@ module atm_core
 #endif
 #ifdef DO_GOCART2G
       use mpas_chemistry_gocart2G_init
+      use mpas_chemistry_gocart2G_emissions_init
       use mpas_chemistry_gocart2G_manager
 #endif
 
@@ -400,6 +401,11 @@ module atm_core
       type (mpas_pool_type), pointer :: ngw_input
       type (mpas_pool_type), pointer :: atm_input
       type (mpas_pool_type), pointer :: output_noahmp
+#ifdef DO_GOCART2G
+      type (mpas_pool_type), pointer :: anth_emissions
+      type (mpas_pool_type), pointer :: biob_emissions
+      type (mpas_pool_type), pointer :: biog_emissions
+#endif
 
       integer :: iCell,iEdge,iVertex,k
       
@@ -585,7 +591,12 @@ module atm_core
       endif
 #endif
 #ifdef DO_GOCART2G
+      call mpas_pool_get_subpool(block % structs, 'anth_emissions', anth_emissions)
+      call mpas_pool_get_subpool(block % structs, 'biob_emissions', biob_emissions)
+      call mpas_pool_get_subpool(block % structs, 'BIOG_emissions', BIOG_emissions)
+
       call init_gocart2G_timetracker(block % configs, clock)
+      call init_gocart2G_emissions(mesh, anth_emissions, biob_emissions, biog_emissions)
       call init_gocart2G_chemistry(dminfo, block % configs, mesh)
 #endif
 

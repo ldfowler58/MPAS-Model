@@ -27,6 +27,8 @@
  use GOCART2G_StateSpecs,only: GOCART2G_State
 
  use mpas_chemistry_gocart2G_interface,only: atm_gocart2G
+ use mpas_chemistry_gocart2G_emissions,only: emis_gocart2G
+
 
  type(CA2G_bc_GridComp):: CA2G_bc_params
  type(CA2G_br_GridComp):: CA2G_br_params
@@ -47,6 +49,7 @@
  type(GOCART2G_State):: GOCART2G
 
  type(atm_gocart2G):: mpas_gocart2G
+ type(emis_gocart2G):: mpas_emis_gocart2G
 
 !==================================================================================================================
  end module mpas_chemistry_gocart2G_vars

@@ -167,6 +167,7 @@
  integer:: i,j
 
 !------------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine emissions_NI2G_GridComp:')
 
 

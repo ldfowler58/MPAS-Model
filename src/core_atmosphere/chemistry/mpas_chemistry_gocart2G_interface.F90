@@ -174,7 +174,7 @@
  call mpas_log_write('NEROD = $i',intArgs=(/self%nerod/))
 
 
- call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_dims:')
+ call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_dims.')
 
  end subroutine mpas_chemistry_gocart2G_dims
 
@@ -565,10 +565,14 @@
 
  do j = jts,jte
     do i = its,ite
-       self%qbc1_em(i,j) = bc1_em_anthro(i)
-       self%qoc1_em(i,j) = oc1_em_anthro(i)
-       self%qnh3_em(i,j) = nh3_em_anthro(i)
-       self%qso2_em(i,j) = so2_em_anthro(i)
+!      self%qbc1_em(i,j) = bc1_em_anthro(i)
+!      self%qoc1_em(i,j) = oc1_em_anthro(i)
+!      self%qnh3_em(i,j) = nh3_em_anthro(i)
+!      self%qso2_em(i,j) = so2_em_anthro(i)
+       self%qbc1_em(i,j) = 0._RKIND
+       self%qoc1_em(i,j) = 0._RKIND
+       self%qnh3_em(i,j) = 0._RKIND
+       self%qso2_em(i,j) = 0._RKIND
     enddo
  enddo
 
@@ -791,7 +795,7 @@
  if(allocated(presl2)) deallocate(presl2)
 
 
- call mpas_log_write('--- end subroutine mpas_chemistry_from_gocart2G.')
+ call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_fromMPAS.')
 
  end subroutine mpas_chemistry_gocart2G_fromMPAS
 
@@ -898,7 +902,7 @@
  enddo
 
 
- call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_toMPAS:')
+ call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_toMPAS.')
 
  end subroutine mpas_chemistry_gocart2G_toMPAS
 

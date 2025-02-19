@@ -16,6 +16,7 @@
  use mpas_chemistry_gocart2G_interface
  use mpas_chemistry_gocart2G_manager,only: iyear,imonth,iday,ihour,iminute,isecond
  use mpas_chemistry_gocart2G_vars,only: mpas_gocart2G,           &
+                                        mpas_emis_gocart2G,      &
                                         CA2G_bc,CA2G_bc_params,  &
                                         CA2G_br,CA2G_br_params,  &
                                         CA2G_oc,CA2G_oc_params,  &
@@ -165,16 +166,28 @@
        CA2G_bc%pfi_lsan => mpas_gocart2G%pfi_lsan  ; CA2G_bc%u        => mpas_gocart2G%u
        CA2G_bc%v        => mpas_gocart2G%v
 
-       !--- emissions:
-!      CA2G_bc%bc_antebc1 => mpas_gocart2G%qbc1_em
+       !--- anthropogenic emissions:
+        CA2G_bc%bc_antebc1      => mpas_emis_gocart2G%bc_antebc1
+        CA2G_bc%bc_antebc2      => mpas_emis_gocart2G%bc_antebc2
+        CA2G_bc%bc_ship         => mpas_emis_gocart2G%bc_ship
+        CA2G_bc%bc_aviation_lto => mpas_emis_gocart2G%bc_aviation_lto
+        CA2G_bc%bc_aviation_cds => mpas_emis_gocart2G%bc_aviation_cds
+        CA2G_bc%bc_aviation_crs => mpas_emis_gocart2G%bc_aviation_crs
+        CA2G_bc%bc_aircraft     => mpas_emis_gocart2G%bc_aircraft
+
+       !--- biomass burning emissions:
+       CA2G_bc%bc_biomass => mpas_emis_gocart2G%bc_biomass
+
+       !--- biofuel emissions:
+       CA2G_bc%bc_biofuel => mpas_emis_gocart2G%bc_biofuel
 
        !--- chemistry fields:
        CA2G_bc%bcphobic => mpas_gocart2G%qbcphobic
        CA2G_bc%bcphilic => mpas_gocart2G%qbcphilic
 
        !--- gocart2G processes:
-!      call CA2G_bc_params%emissions_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte, &
-!                                    iyear,imonth,iday,ihour,iminute,isecond)
+       call CA2G_bc_params%emissions_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte, &
+                                     iyear,imonth,iday,ihour,iminute,isecond)
        call CA2G_bc_params%processes_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
@@ -203,13 +216,29 @@
        CA2G_br%pfi_lsan => mpas_gocart2G%pfi_lsan ; CA2G_br%u        => mpas_gocart2G%u
        CA2G_br%v        => mpas_gocart2G%v
 
+       !--- anthropogenic emissions:
+        CA2G_br%br_antebr1      => mpas_emis_gocart2G%br_antebr1
+        CA2G_br%br_antebr2      => mpas_emis_gocart2G%br_antebr2
+        CA2G_br%br_ship         => mpas_emis_gocart2G%br_ship
+        CA2G_br%br_aviation_lto => mpas_emis_gocart2G%br_aviation_lto
+        CA2G_br%br_aviation_cds => mpas_emis_gocart2G%br_aviation_cds
+        CA2G_br%br_aviation_crs => mpas_emis_gocart2G%br_aviation_crs
+        CA2G_br%br_aircraft     => mpas_emis_gocart2G%br_aircraft
+
+       !--- biomass burning emissions:
+       CA2G_br%br_biomass => mpas_emis_gocart2G%br_biomass
+
+       !--- biofuel emissions:
+       CA2G_br%br_biofuel => mpas_emis_gocart2G%br_biofuel
+       CA2G_br%br_terpene => mpas_emis_gocart2G%br_terpene
+
        !--- chemistry fields:
        CA2G_br%brphobic => mpas_gocart2G%qbrphobic
        CA2G_br%brphilic => mpas_gocart2G%qbrphilic
 
        !--- gocart2G processes:
-!      call CA2G_br_params%emissions_GridComp(CA2G_br,its,ite,jts,jte,kts,kte, &
-!                                    iyear,imonth,iday,ihour,iminute,isecond)
+       call CA2G_br_params%emissions_GridComp(CA2G_br,its,ite,jts,jte,kts,kte, &
+                                     iyear,imonth,iday,ihour,iminute,isecond)
        call CA2G_br_params%processes_GridComp(CA2G_br,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
@@ -238,16 +267,32 @@
        CA2G_oc%pfi_lsan => mpas_gocart2G%pfi_lsan ; CA2G_oc%u        => mpas_gocart2G%u
        CA2G_oc%v        => mpas_gocart2G%v
 
-       !--- emissions:
-!      CA2G_oc%oc_ANTEOC1 => mpas_gocart2G%qoc1_em
+       !--- anthropogenic emissions:
+        CA2G_oc%oc_anteoc1      => mpas_emis_gocart2G%oc_anteoc1
+        CA2G_oc%oc_anteoc2      => mpas_emis_gocart2G%oc_anteoc2
+        CA2G_oc%oc_ship         => mpas_emis_gocart2G%oc_ship
+        CA2G_oc%oc_aviation_lto => mpas_emis_gocart2G%oc_aviation_lto
+        CA2G_oc%oc_aviation_cds => mpas_emis_gocart2G%oc_aviation_cds
+        CA2G_oc%oc_aviation_crs => mpas_emis_gocart2G%oc_aviation_crs
+        CA2G_oc%oc_aircraft     => mpas_emis_gocart2G%oc_aircraft
+
+       !--- biomass burning emissions:
+       CA2G_oc%oc_biomass => mpas_emis_gocart2G%oc_biomass
+
+       !--- biofuel emissions:
+       CA2G_oc%oc_biofuel  => mpas_emis_gocart2G%oc_biofuel
+       CA2G_oc%oc_isoprene => mpas_emis_gocart2G%oc_isoprene
+       CA2G_oc%oc_mtpa     => mpas_emis_gocart2G%oc_mtpa
+       CA2G_oc%oc_mtpo     => mpas_emis_gocart2G%oc_mtpo
+       CA2G_oc%oc_limo     => mpas_emis_gocart2G%oc_limo
 
        !--- chemistry fields:
        CA2G_oc%ocphobic => mpas_gocart2G%qocphobic
        CA2G_oc%ocphilic => mpas_gocart2G%qocphilic
 
        !--- gocart2G processes:
-!      call CA2G_oc_params%emissions_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte, &
-!                                     iyear,imonth,iday,ihour,iminute,isecond)
+       call CA2G_oc_params%emissions_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte, &
+                                      iyear,imonth,iday,ihour,iminute,isecond)
        call CA2G_oc_params%processes_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
@@ -313,8 +358,16 @@
        NI2G%ple      => mpas_gocart2G%ple      ; NI2G%zle      => mpas_gocart2G%zle
        NI2G%pfl_lsan => mpas_gocart2G%pfl_lsan ; NI2G%pfi_lsan => mpas_gocart2G%pfi_lsan
 
-       !--- emissions:
-!       NI2G%emi_nh3_sum => mpas_gocart2G%qnh3_em
+       !--- anthropogenic emissions:
+       NI2G%emi_nh3_ag  => mpas_emis_gocart2G%nh3_ag
+       NI2G%emi_nh3_en  => mpas_emis_gocart2G%nh3_en
+       NI2G%emi_nh3_in  => mpas_emis_gocart2G%nh3_in
+       NI2G%emi_nh3_oc  => mpas_emis_gocart2G%nh3_oc
+       NI2G%emi_nh3_re  => mpas_emis_gocart2G%nh3_re
+       NI2G%emi_nh3_tr  => mpas_emis_gocart2G%nh3_tr
+
+       !--- biomass burning emissions:
+       NI2G%emi_nh3_bb  => mpas_emis_gocart2G%nh3_bb
 
        !--- chemistry fields:
        NI2G%so4    => mpas_gocart2G%qso4  ; NI2G%nh3    => mpas_gocart2g%qnh3
@@ -336,7 +389,7 @@
        NI2G%ss(:,:,:,5) = mpas_gocart2G%qseas5(:,:,:)
 
        !--- gocart2G processes:
-!      call NI2G_params%emissions_GridComp(NI2G,its,ite,jts,jte,kts,kte)
+       call NI2G_params%emissions_GridComp(NI2G,its,ite,jts,jte,kts,kte)
        call NI2G_params%processes_GridComp(NI2G,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
@@ -408,8 +461,19 @@
        SU2G%pfi_lsan => mpas_gocart2G%pfi_lsan ; SU2G%u        => mpas_gocart2G%u
        SU2G%v        => mpas_gocart2G%v        ; SU2G%fcld     => mpas_gocart2G%fcld
 
-       !--- emissions:
-!      SU2G%su_anthrol1 => mpas_gocart2G%qso2_em
+       !--- anthropogenic emissions:
+       SU2G%su_anthrol1     => mpas_emis_gocart2G%su_anthrol1
+       SU2G%su_anthrol2     => mpas_emis_gocart2G%su_anthrol2
+       SU2G%su_shipso2      => mpas_emis_gocart2G%su_shipso2
+       SU2G%su_shipso4      => mpas_emis_gocart2G%su_shipso4
+       SU2G%su_aviation_lto => mpas_emis_gocart2G%su_aviation_lto
+       SU2G%su_aviation_cds => mpas_emis_gocart2G%su_aviation_cds
+       SU2G%su_aviation_crs => mpas_emis_gocart2G%su_aviation_crs
+       SU2G%su_aircraft     => mpas_emis_gocart2G%su_aircraft
+!      SU2G%su_dmso         => mpas_emis_gocart2G%su_dmso
+
+       !--- biomass burning emissions:
+       SU2G%su_biomass => mpas_emis_gocart2G%su_biomass
 
        !--- chemistry fields and climatological background fields:
        SU2G%dms     => mpas_gocart2G%qdms      ; SU2G%so2     => mpas_gocart2G%qso2
@@ -418,12 +482,11 @@
        SU2G%su_oh   => mpas_gocart2G%backg_oh  ; SU2G%su_h2o2 => mpas_gocart2G%backg_h2o2
 
        !--- gocart2G processes:
-!      call SU2G_params%emissions_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
+       call SU2G_params%emissions_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
        call SU2G_params%processes_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
 
        !--- global diagnostics:
        call SU2G_diagnostics(mesh,SU2G,SU2G_diags,SU2G_aops,its,ite,jts,jte,kts,kte)
-
     endif
 
 
@@ -445,7 +508,7 @@
  end do
 
 
- call mpas_log_write('--- end subroutine gocart2G_driver:')
+ call mpas_log_write('--- end subroutine gocart2G_driver.')
  call mpas_log_write(' ')
 
  end subroutine gocart2G_driver
