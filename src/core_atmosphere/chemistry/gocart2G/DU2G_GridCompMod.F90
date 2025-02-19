@@ -164,7 +164,7 @@
  self%Ch_DU = 0.8e-09
 
 
- call mpas_log_write('--- end subroutine load_DU2G_GridCOMP:')
+ call mpas_log_write('--- end subroutine load_DU2G_GridCOMP.')
 
  end subroutine load_DU2G_GridComp
 
@@ -278,7 +278,7 @@
  if(allocated(emissions)        ) deallocate(emissions        )
 
 
- call mpas_log_write('--- end subroutine emissions_DU2G_GridComp:')
+ call mpas_log_write('--- end subroutine emissions_DU2G_GridComp.')
 
  end subroutine emissions_DU2G_GridComp
 
@@ -335,10 +335,10 @@
                       )
  enddo
  if(istat /=0) then
-    call mpas_log_write('--- DU2G_GridComp: error in subroutine Chem_Settling', &
+    call mpas_log_write('--- DU2G_GridComp: error in subroutine Chem_Settling.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_Settling:')
+    call mpas_log_write('--- end subroutine Chem_Settling.')
  endif
 
 
@@ -374,12 +374,12 @@
     end if
  enddo
  if(istat /=0) then
-    call mpas_log_write('--- DU2G_bc_GridComp: error in subroutine DryDeposition', &
+    call mpas_log_write('--- DU2G_bc_GridComp: error in subroutine DryDeposition.', &
                         messageType=MPAS_LOG_CRIT)
  else
     if(allocated(dqa)    ) deallocate(dqa    )
     if(allocated(drydepf)) deallocate(drydepf)
-    call mpas_log_write('--- end subroutine DryDeposition:')
+    call mpas_log_write('--- end subroutine DryDeposition.')
  endif
 
 
@@ -414,10 +414,10 @@
                         )
  enddo
  if(istat /=0) then
-    call mpas_log_write('--- DU2G_GridComp: error in subroutine WetRemovalGOCART2G', &
+    call mpas_log_write('--- DU2G_GridComp: error in subroutine WetRemovalGOCART2G.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G:')
+    call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
  endif
 
 
@@ -493,10 +493,10 @@
               rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags', &
+    call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags.')
  endif
 
 
@@ -534,10 +534,10 @@
            rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags RH20', &
+    call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags RH20.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
  endif
 
 
@@ -571,16 +571,16 @@
            rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags RH80', &
+    call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags RH80.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
  endif
  if(allocated(rh20)) deallocate(rh20)
  if(allocated(rh80)) deallocate(rh80)
 
 
- call mpas_log_write('--- end subroutine processes_DU2G_GridComp:')
+ call mpas_log_write('--- end subroutine processes_DU2G_GridComp.')
 
  end subroutine processes_DU2G_GridComp
 

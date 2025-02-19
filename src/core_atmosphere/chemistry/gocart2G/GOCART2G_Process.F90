@@ -5342,7 +5342,7 @@ K_LOOP: do k = km, 1, -1
                                           fMassSO4, fMassSO2, fSO4ant, eAircraftFuel, &
                                           nSO2, nSO4, &
                                           so2anthro_l1_src, so2anthro_l2_src, &
-                                          so2biomass_src, dmso_conc, &
+                                          so2biomass_src, &
                                           so2ship_src, so4ship_src, &
                                           aircraft_fuel_src, &
                                           so2, so4, &
@@ -5371,7 +5371,6 @@ K_LOOP: do k = km, 1, -1
    real(kind=RKIND), dimension(:,:), intent(in) :: so2anthro_l1_src ! anthropogenic source surface[1]
    real(kind=RKIND), dimension(:,:), intent(in) :: so2anthro_l2_src ! anthropogenic source [1]
    real(kind=RKIND), dimension(:,:), intent(in) :: so2biomass_src ! biomass burning source [1]
-   real(kind=RKIND), dimension(:,:), intent(in) :: dmso_conc ! DMS source [1]
    real(kind=RKIND), dimension(:,:), intent(in) :: so2ship_src ! SO2 ship emissions [1]
    real(kind=RKIND), dimension(:,:), intent(in) :: so4ship_src ! SO4 ship emissions [1]
    real(kind=RKIND), dimension(:,:,:), intent(in) :: aircraft_fuel_src ! aircraft fuel source [1]
@@ -5422,7 +5421,7 @@ K_LOOP: do k = km, 1, -1
    integer  ::  i, j, k
    integer  :: i1=1, j1=1, i2, j2
 
-   real(kind=RKIND), dimension(:,:), allocatable :: srcSO2, srcSO4, srcDMS, srcSO4anthro, &
+   real(kind=RKIND), dimension(:,:), allocatable :: srcSO2, srcSO4, srcSO4anthro, &
                                         srcSO2anthro, srcSO2bioburn
    real(kind=RKIND), allocatable, dimension(:,:)    :: hsurf
 
@@ -5446,14 +5445,13 @@ K_LOOP: do k = km, 1, -1
    allocate(hsurf(i1:i2,j1:j2))
    hsurf = hghte(i1:i2,j1:j2,km)
 
-   allocate(srcSO2(i2,j2), srcSO4(i2,j2), srcDMS(i2,j2), srcSO4anthro(i2,j2), &
+   allocate(srcSO2(i2,j2), srcSO4(i2,j2), srcSO4anthro(i2,j2), &
             srcSO2anthro(i2,j2), srcSO2bioburn(i2,j2), source=0.0)
 
 !  Initialize local variables
 !  --------------------------
    srcSO2 = 0.0
    srcSO4 = 0.0
-   srcDMS = 0.0
 !AOO initialization
    srcSO4anthro=0.;srcSO2anthro=0.;srcSO2bioburn=0.
 !AOO end initialization

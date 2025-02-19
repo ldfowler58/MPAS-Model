@@ -519,7 +519,7 @@
  if(allocated(self_params%wavelengths_vertint)) deallocate(self_params%wavelengths_vertint)
 
 
- call mpas_log_write('--- end subroutine processes_GOCART2G_GridComp:')
+ call mpas_log_write('--- end subroutine processes_GOCART2G_GridComp.')
 
  end subroutine processes_GOCART2G_GridComp
 

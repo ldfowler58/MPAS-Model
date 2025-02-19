@@ -125,8 +125,7 @@
     call mpas_log_write('$r',realArgs=(/self%wavelengths_vertint(n)/))
  enddo
 
- call mpas_log_write('--- end subroutine load_from_config:')
-!call mpas_log_write(' ')
+ call mpas_log_write('--- end subroutine load_from_config.')
 
  end subroutine load_from_config
 

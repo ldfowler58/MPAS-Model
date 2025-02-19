@@ -458,7 +458,7 @@
  enddo
 
 
- call mpas_log_write('--- end function GOCART2G_MieCreate:')
+ call mpas_log_write('--- end function GOCART2G_MieCreate.')
 
  contains
 
