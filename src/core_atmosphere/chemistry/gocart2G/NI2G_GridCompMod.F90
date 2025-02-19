@@ -148,7 +148,7 @@
  if(.not.allocated(du_radius)) deallocate(du_radius)
  if(.not.allocated(du_radius)) deallocate(ss_radius)
 
- call mpas_log_write('--- end subroutine load_NI2G_GridCOMP:')
+ call mpas_log_write('--- end subroutine load_NI2G_GridCOMP.')
 
  end subroutine load_NI2G_GridComp
 
@@ -170,12 +170,6 @@
  call mpas_log_write('--- enter subroutine emissions_NI2G_GridComp:')
 
 
-!--- in its original parameterization of gocart2G, anthropogenic emissions of NH3 distinguishes between emissions
-!    due to agriculture, biomass burning, energy, industry, ocean, residential, and transport emissions. although
-!    CAMS anthropogenic data are also available by sectors (agriculture livestock, agriculture soils, agriculture
-!    waste burning, pwoer generation, industry, oil refineries and transformation industry, residential, solvents,
-!    solid waste and waste water, off road transportation, and road transportation), we interpolated the sum of
-!    all sectors to MPAS meshes: 
  if(associated(self%nh3em)) then
     self%nh3em = 0.
     if(associated(self%emi_nh3_bb) ) self%nh3em = self%nh3em + self%emi_nh3_bb
@@ -185,37 +179,25 @@
     if(associated(self%emi_nh3_re) ) self%nh3em = self%nh3em + self%emi_nh3_re
     if(associated(self%emi_nh3_in) ) self%nh3em = self%nh3em + self%emi_nh3_in
     if(associated(self%emi_nh3_oc) ) self%nh3em = self%nh3em + self%emi_nh3_oc
-
-    if(associated(self%emi_nh3_sum)) self%nh3em = self%nh3em + self%emi_nh3_sum
  endif
-
 
  if(associated(self%emi_nh3_bb)) self%nh3(:,:,self_params%km) = &
     self%nh3(:,:,self_params%km) + self_params%cdt*grav/self%delp(:,:,self_params%km)*self%emi_nh3_bb
-
  if(associated(self%emi_nh3_ag)) self%nh3(:,:,self_params%km) = &
     self%nh3(:,:,self_params%km) + self_params%cdt*grav/self%delp(:,:,self_params%km)*self%emi_nh3_ag
-
  if(associated(self%emi_nh3_en)) self%nh3(:,:,self_params%km) = &
     self%nh3(:,:,self_params%km) + self_params%cdt*grav/self%delp(:,:,self_params%km)*self%emi_nh3_en
-
  if(associated(self%emi_nh3_in)) self%nh3(:,:,self_params%km) = &
     self%nh3(:,:,self_params%km) + self_params%cdt*grav/self%delp(:,:,self_params%km)*self%emi_nh3_in
-
  if(associated(self%emi_nh3_re)) self%nh3(:,:,self_params%km) = &
     self%nh3(:,:,self_params%km) + self_params%cdt*grav/self%delp(:,:,self_params%km)*self%emi_nh3_re
-
  if(associated(self%emi_nh3_tr)) self%nh3(:,:,self_params%km) = &
     self%nh3(:,:,self_params%km) + self_params%cdt*grav/self%delp(:,:,self_params%km)*self%emi_nh3_tr
-
  if(associated(self%emi_nh3_oc)) self%nh3(:,:,self_params%km) = &
     self%nh3(:,:,self_params%km) + self_params%cdt*grav/self%delp(:,:,self_params%km)*self%emi_nh3_oc
 
- if(associated(self%emi_nh3_sum)) self%nh3(:,:,self_params%km) = &
-    self%nh3(:,:,self_params%km) + self_params%cdt*grav/self%delp(:,:,self_params%km)*self%emi_nh3_sum
 
-
- call mpas_log_write('--- end subroutine emissions_NI2G_GridComp:')
+ call mpas_log_write('--- end subroutine emissions_NI2G_GridComp.')
 
  end subroutine emissions_NI2G_GridComp
 
@@ -270,9 +252,9 @@
            rc        = istat                                                                          &
               )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine NIthermo',messageType=MPAS_LOG_CRIT)
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine NIthermo.',messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine NIthermo:')
+    call mpas_log_write('--- end subroutine NIthermo.')
  endif
 
 
@@ -301,9 +283,9 @@
            ni_phet      = self%niht                , rc           = istat                      &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine NIheterogenousChem',messageType=MPAS_LOG_CRIT)
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine NIheterogenousChem.',messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine NIheterogenousChem:')
+    call mpas_log_write('--- end subroutine NIheterogenousChem.')
  endif
 
 
@@ -328,10 +310,10 @@
            rc      = istat                                                                   &
                          )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NH4a', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NH4a.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_SettlingSimple NH4a:')
+    call mpas_log_write('--- end subroutine Chem_SettlingSimple NH4a.')
  endif
 
 
@@ -355,10 +337,10 @@
            rc      = istat                                                                       &
                          )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NO3AN1', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NO3AN1.', &
            messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN1:')
+    call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN1.')
  endif
 
 
@@ -382,10 +364,10 @@
            rc      = istat                                                                       &
                          )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NO3AN2', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NO3AN2.', &
            messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN2:')
+    call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN2.')
  endif
 
 
@@ -409,10 +391,10 @@
            rc      = istat                                                                       &
                          )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NO3AN3', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NO3AN3.', &
            messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN3:')
+    call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN3.')
  endif
 
 
@@ -476,10 +458,10 @@
  if(associated(self%nidp)) self%nidp(:,:,3) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
 
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine DryDeposition', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine DryDeposition.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine DryDeposition:')
+    call mpas_log_write('--- end subroutine DryDeposition.')
  endif
 
 
@@ -504,10 +486,10 @@
                         )
  if (associated(self%nh3wt)) self%nh3wt = fluxWT_ptr(:,:,1)
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NH3', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NH3.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH3:')
+    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH3.')
  endif
 
 
@@ -529,11 +511,11 @@
                         )
  if (associated(self%nh4wt)) self%nh4wt = fluxWT_ptr(:,:,1)
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NH4a', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NH4a.', &
                         messageType=MPAS_LOG_CRIT)
  else
     if(allocated(fluxoutWT)) deallocate(fluxoutWT)
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH4a:')
+    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH4a.')
  endif
 
 
@@ -552,7 +534,7 @@
            fluxout   = self%niwt         , rc      = istat                                            &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN1', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN1.', &
                         messageType=MPAS_LOG_CRIT)
  else
     call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN1:')
@@ -573,10 +555,10 @@
            fluxout   = self%niwt         , rc      = istat                                            &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN2', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN2.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN2:')
+    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN2.')
  endif
 
 
@@ -594,10 +576,10 @@
            fluxout   = self%niwt         , rc      = istat                                            &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN3', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN3.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN3:')
+    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN3.')
  endif
 
 
@@ -642,10 +624,10 @@
            rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NH4a', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NH4a.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags NH4a:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags NH4a.')
  endif
 
 
@@ -682,10 +664,10 @@
            rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NH3', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NH3.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags NH3:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags NH3.')
  endif
 
 
@@ -730,10 +712,10 @@
            rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NO3AN1', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NO3AN1.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags NO3AN1:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags NO3AN1.')
  endif
 
 
@@ -792,10 +774,10 @@
            rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NO3AN1 NO3AN2 NO3AN3', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NO3AN1 NO3AN2 NO3AN3.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags NO3AN1 NO3AN2 NO3AN3:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags NO3AN1 NO3AN2 NO3AN3.')
  endif
 
 
@@ -832,10 +814,10 @@
            rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags RH20', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags RH20.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
  endif
 
 
@@ -868,17 +850,17 @@
            rc                  = istat                                    &
                         )
  if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags RH80', &
+    call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags RH80.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80:')
+    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
  endif
  if(allocated(rh20)) deallocate(rh20)
  if(allocated(rh80)) deallocate(rh80)
  if(allocated(aerosol)) deallocate(aerosol)
 
 
- call mpas_log_write('--- end subroutine processes_NI2G_GridCOMP:')
+ call mpas_log_write('--- end subroutine processes_NI2G_GridCOMP.')
 
  end subroutine processes_NI2G_GridComp
 
