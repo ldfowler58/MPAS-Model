@@ -421,6 +421,10 @@
        self%oc_biomass(i,j) = 10.*(fMassOC/Avogadro)*self%oc_biomass(i,j)
        self%su_biomass(i,j) = 10.*(fMassSO2/Avogadro)*self%su_biomass(i,j)
        self%nh3_bb(i,j)     = 10.*(fMassNH3/Avogadro)*self%nh3_bb(i,j)
+
+       self%bc_biofuel(i,j) = 0._RKIND
+       self%br_biofuel(i,j) = 0._RKIND
+       self%oc_biofuel(i,j) = 0._RKIND
     enddo
  enddo
 
@@ -430,19 +434,19 @@
 !call mpas_pool_get_array(BIOG_emissions,'br_biog_em',br_biog_em)
 !call mpas_pool_get_array(BIOG_emissions,'oc_biog_em',oc_biog_em)
 
-!do j = jts,jte
-!   do i = its,ite
+ do j = jts,jte
+    do i = its,ite
 !      self%bc_biofuel(i,j) = bc_biog_em(i)
 !      self%br_biofuel(i,j) = br_biog_em(i)
 !      self%oc_biofuel(i,j) = oc_biog_em(i)
 
-!      self%br_terpene(i,j)  = 0._RKIND
-!      self%oc_isoprene(i,j) = 0._RKIND
-!      self%oc_mtpa(i,j)     = 0._RKIND
-!      self%oc_mtpo(i,j)     = 0._RKIND
-!      self%oc_limo(i,j)     = 0._RKIND
-!   enddo
-!enddo
+       self%br_terpene(i,j)  = 0._RKIND
+       self%oc_isoprene(i,j) = 0._RKIND
+       self%oc_mtpa(i,j)     = 0._RKIND
+       self%oc_mtpo(i,j)     = 0._RKIND
+       self%oc_limo(i,j)     = 0._RKIND
+    enddo
+ enddo
 
 
  call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_emissions_init.')

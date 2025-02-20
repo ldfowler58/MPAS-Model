@@ -230,6 +230,8 @@
 
        !--- biofuel emissions:
        CA2G_br%br_biofuel => mpas_emis_gocart2G%br_biofuel
+
+       !--- biogenic emissions:
        CA2G_br%br_terpene => mpas_emis_gocart2G%br_terpene
 
        !--- chemistry fields:
@@ -281,6 +283,8 @@
 
        !--- biofuel emissions:
        CA2G_oc%oc_biofuel  => mpas_emis_gocart2G%oc_biofuel
+
+       !--- biogenic emissions:
        CA2G_oc%oc_isoprene => mpas_emis_gocart2G%oc_isoprene
        CA2G_oc%oc_mtpa     => mpas_emis_gocart2G%oc_mtpa
        CA2G_oc%oc_mtpo     => mpas_emis_gocart2G%oc_mtpo

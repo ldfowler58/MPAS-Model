@@ -174,9 +174,8 @@
 
 
  if(.not.allocated(biogvoc_src)) allocate(biogvoc_src(its:ite,jts:jte))
- biogvoc_src(:,:) = 0._RKIND
-!biogvoc_src(:,:) = (self%oc_mtpa+self%oc_mtpo+self%oc_limo)*self_params%fMonoterpenes &
-!                 + self%oc_isoprene*self_params%fIsoprene
+ biogvoc_src(:,:) = (self%oc_mtpa+self%oc_mtpo+self%oc_limo)*self_params%fMonoterpenes &
+                  + self%oc_isoprene*self_params%fIsoprene
 
 
 !--- apply diurnal cycle to biomass burning if needed:
