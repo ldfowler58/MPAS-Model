@@ -176,26 +176,6 @@
  </var_struct>
 
 
- <var_struct name="CAMS_emissions" time_levs="1">
-
-      <var name="bc1_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="BC1 - Black carbon hydrophobic anthropogenic surface emission - sector All"/>
-
-      <var name="co_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="CO - Carbon monoxide anthropogenic surface emission - sector All"/>
-
-      <var name="oc1_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="OC1 - Organic carbon hydrophobic anthropogenic surface emission - sector All"/>
-
-      <var name="nh3_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="NH3 - Ammonia anthropogenic surface emission - sector All"/>
-
-      <var name="so2_em_anthro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="SO2 - Sulfur dioxide anthropogenic surface emission - sector All"/>
-
- </var_struct>
-
-
  <var_struct name="gocart2G_backgrounds" time_levs="1">
 
       <var name="oh_gocart2G" type="real" dimensions="nBCKLevels nCells Time" units="mole mole^{-1}"

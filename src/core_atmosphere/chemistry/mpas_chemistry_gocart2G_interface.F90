@@ -73,13 +73,6 @@
     real(kind=RKIND),dimension(:,:),pointer:: backg_ptrop  => null()
 
 
-    !--- CAMS surface emissions:
-    real(kind=RKIND),dimension(:,:),pointer:: qbc1_em      => null()
-    real(kind=RKIND),dimension(:,:),pointer:: qoc1_em      => null()
-    real(kind=RKIND),dimension(:,:),pointer:: qnh3_em      => null()
-    real(kind=RKIND),dimension(:,:),pointer:: qso2_em      => null()
-
-
     !--- miscellaneous variables:
     real(kind=RKIND):: dt
 
@@ -239,13 +232,6 @@
  if(.not.associated(self%qsu2G)      ) allocate(self%qsu2G(its:ite,jts:jte,kts:kte,4)   )
 
 
-!--- allocate surface emissions:
- if(.not.associated(self%qbc1_em)    ) allocate(self%qbc1_em(its:ite,jts:jte)           )
- if(.not.associated(self%qoc1_em)    ) allocate(self%qoc1_em(its:ite,jts:jte)           )
- if(.not.associated(self%qnh3_em)    ) allocate(self%qnh3_em(its:ite,jts:jte)           )
- if(.not.associated(self%qso2_em)    ) allocate(self%qso2_em(its:ite,jts:jte)           )
-
-
 !--- allocate background fields:
  if(.not.associated(self%backg_dms)  ) allocate(self%backg_dms(its:ite,jts:jte)         )
  if(.not.associated(self%backg_oh)   ) allocate(self%backg_oh(its:ite,jts:jte,kts:kte)  )
@@ -351,13 +337,6 @@
  if(associated(self%qsu2G)      ) deallocate(self%qsu2G      )
 
 
-!--- allocate surface emissions:
- if(associated(self%qbc1_em)    ) deallocate(self%qbc1_em    )
- if(associated(self%qoc1_em)    ) deallocate(self%qoc1_em    )
- if(associated(self%qnh3_em)    ) deallocate(self%qnh3_em    )
- if(associated(self%qso2_em)    ) deallocate(self%qso2_em    )
-
-
 !--- allocate background fields:
  if(associated(self%backg_dms)  ) deallocate(self%backg_dms  )
  if(associated(self%backg_oh)   ) deallocate(self%backg_oh   )
@@ -453,7 +432,6 @@
 !--- local variables and pointers for mesh, surface, and atmospheric fields:
  integer,pointer:: index_qv
 
- real(kind=RKIND),dimension(:),pointer:: bc1_em_anthro,oc1_em_anthro,nh3_em_anthro,so2_em_anthro
  real(kind=RKIND),dimension(:),pointer:: background_ptrop
  real(kind=RKIND),dimension(:),pointer:: background_dms
  real(kind=RKIND),dimension(:,:),pointer:: background_h2o2,background_oh,background_no3
@@ -553,26 +531,6 @@
           self%qdms(i,j,kk)      = scalars(index_qdms,k,i)
           self%qmsa(i,j,kk)      = scalars(index_qmsa,k,i)
        enddo
-    enddo
- enddo
-
-
-!--- initialization of emission fields:
- call mpas_pool_get_array(CAMS_emissions,'bc1_em_anthro',bc1_em_anthro)
- call mpas_pool_get_array(CAMS_emissions,'oc1_em_anthro',oc1_em_anthro)
- call mpas_pool_get_array(CAMS_emissions,'nh3_em_anthro',nh3_em_anthro)
- call mpas_pool_get_array(CAMS_emissions,'so2_em_anthro',so2_em_anthro)
-
- do j = jts,jte
-    do i = its,ite
-!      self%qbc1_em(i,j) = bc1_em_anthro(i)
-!      self%qoc1_em(i,j) = oc1_em_anthro(i)
-!      self%qnh3_em(i,j) = nh3_em_anthro(i)
-!      self%qso2_em(i,j) = so2_em_anthro(i)
-       self%qbc1_em(i,j) = 0._RKIND
-       self%qoc1_em(i,j) = 0._RKIND
-       self%qnh3_em(i,j) = 0._RKIND
-       self%qso2_em(i,j) = 0._RKIND
     enddo
  enddo
 
