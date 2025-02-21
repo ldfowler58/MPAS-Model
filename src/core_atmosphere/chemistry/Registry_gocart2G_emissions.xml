@@ -120,19 +120,19 @@
 
  <var_struct name="biob_emissions" time_levs="1">
 
-      <var name="bc_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+      <var name="bc_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Black carbon hydrophobic biomass burning emission"/>
 
-      <var name="br_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+      <var name="br_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Brown carbon hydrophobic biomass burning emission"/>
 
-      <var name="oc_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+      <var name="oc_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Organic carbon hydrophobic biomass burning emission"/>
 
-      <var name="ni_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+      <var name="ni_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Nitrate biomass burning emission"/>
 
-      <var name="su_biob_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+      <var name="su_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Sulfate biomass burning emission"/>
 
  </var_struct>
