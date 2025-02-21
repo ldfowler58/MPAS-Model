@@ -657,6 +657,7 @@
                         <var_array name="scalars_fg" packages="gocart2G_interp_out"/>
                         <var_struct name="anth_emissions" packages="gocart2G_interp_out"/>
                         <var_struct name="biob_emissions" packages="gocart2G_interp_out"/>
+                        <var_struct name="biog_emissions" packages="gocart2G_interp_out"/>
 #endif
 		</stream>
 

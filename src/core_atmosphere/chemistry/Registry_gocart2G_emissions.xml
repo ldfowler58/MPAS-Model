@@ -115,6 +115,9 @@
       <var name="su_dmso_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Dimethyl sulfide emission over oceans"/>
 
+      <var name="co_anth_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide anthropogenic emission"/>
+
  </var_struct>
 
 
@@ -135,9 +138,12 @@
       <var name="su_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Sulfate biomass burning emission"/>
 
+      <var name="co_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Carbon monoxide biomass burning emission"/>
+
  </var_struct>
 
- <var_struct name="BIOG_emissions" time_levs="1">
+ <var_struct name="biog_emissions" time_levs="1">
 
       <var name="bc_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Black carbon hydrophobic biogenic emission"/>
@@ -147,6 +153,9 @@
 
       <var name="oc_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Organic carbon hydrophobic biogenic emission"/>
+
+      <var name="co_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide biogenic emission"/>
 
  </var_struct>
 

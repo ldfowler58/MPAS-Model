@@ -160,6 +160,53 @@
       <var name="so2_anth_tro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Sulphur dioxide surface emission - sector TRO"/>
 
+      <var name="co_anth_agl" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector AGL"/>
+
+      <var name="co_anth_ags" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector AGS"/>
+
+      <var name="co_anth_awb" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector AWB"/>
+
+      <var name="co_anth_ene" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector ENE"/>
+
+      <var name="co_anth_fef" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector FEF"/>
+
+      <var name="co_anth_ind" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector IND"/>
+
+      <var name="co_anth_res" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector RES"/>
+
+      <var name="co_anth_shp" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector SHP"/>
+
+      <var name="co_anth_slv" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector SLV"/>
+
+      <var name="co_anth_sum" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector SUM"/>
+
+      <var name="co_anth_swd" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector SWD"/>
+
+      <var name="co_anth_tnr" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector TNR"/>
+
+      <var name="co_anth_tro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide surface emission - sector TRO"/>
+
+ </var_struct>
+
+
+ <var_struct name="CAMS_biog_emissions" time_levs="1">
+
+      <var name="co_biog_megan" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide biogenic surface emission"/>
+
  </var_struct>
 
 
@@ -176,6 +223,9 @@
 
       <var name="so2_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Sulphur dioxide biomass burning emission"/>
+
+      <var name="co_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Carbon monoxide biomass burning emission"/>
 
  </var_struct>
 

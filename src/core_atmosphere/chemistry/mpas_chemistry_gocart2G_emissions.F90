@@ -69,11 +69,13 @@
     real(kind=RKIND),dimension(:,:),pointer:: su_biomass      => null()
     real(kind=RKIND),dimension(:,:),pointer:: nh3_bb          => null()
 
-    !--- biogenic emissions:
+    !--- biofuel emissions:
     real(kind=RKIND),dimension(:,:),pointer:: bc_biofuel      => null()
     real(kind=RKIND),dimension(:,:),pointer:: br_biofuel      => null()
-    real(kind=RKIND),dimension(:,:),pointer:: br_terpene      => null()
     real(kind=RKIND),dimension(:,:),pointer:: oc_biofuel      => null()
+
+    !--- biogenic emissions:
+    real(kind=RKIND),dimension(:,:),pointer:: br_terpene      => null()
     real(kind=RKIND),dimension(:,:),pointer:: oc_isoprene     => null()
     real(kind=RKIND),dimension(:,:),pointer:: oc_mtpa         => null()
     real(kind=RKIND),dimension(:,:),pointer:: oc_mtpo         => null()
@@ -156,11 +158,13 @@
  if(.not.associated(self%nh3_bb)         ) allocate(self%nh3_bb(its:ite,jts:jte)             )
 
 
-!--- biogenic emissions:
+!--- biofuel emissions:
  if(.not.associated(self%bc_biofuel)     ) allocate(self%bc_biofuel(its:ite,jts:jte)         )
  if(.not.associated(self%br_biofuel)     ) allocate(self%br_biofuel(its:ite,jts:jte)         )
- if(.not.associated(self%br_terpene)     ) allocate(self%br_terpene(its:ite,jts:jte)         )
  if(.not.associated(self%oc_biofuel)     ) allocate(self%oc_biofuel(its:ite,jts:jte)         )
+
+!--- biogenic emissions:
+ if(.not.associated(self%br_terpene)     ) allocate(self%br_terpene(its:ite,jts:jte)         )
  if(.not.associated(self%oc_isoprene)    ) allocate(self%oc_isoprene(its:ite,jts:jte)        )
  if(.not.associated(self%oc_mtpa)        ) allocate(self%oc_mtpa(its:ite,jts:jte)            )
  if(.not.associated(self%oc_mtpo)        ) allocate(self%oc_mtpo(its:ite,jts:jte)            )
@@ -234,11 +238,13 @@
  if(associated(self%nh3_bb)         ) deallocate(self%nh3_bb         )
 
 
-!--- biogenic emissions:
+!--- biofuel emissions:
  if(associated(self%bc_biofuel)     ) deallocate(self%bc_biofuel     )
  if(associated(self%br_biofuel)     ) deallocate(self%br_biofuel     )
- if(associated(self%br_terpene)     ) deallocate(self%br_terpene     )
  if(associated(self%oc_biofuel)     ) deallocate(self%oc_biofuel     )
+
+!--- biogenic emissions:
+ if(associated(self%br_terpene)     ) deallocate(self%br_terpene     )
  if(associated(self%oc_isoprene)    ) deallocate(self%oc_isoprene    )
  if(associated(self%oc_mtpa)        ) deallocate(self%oc_mtpa        )
  if(associated(self%oc_mtpo)        ) deallocate(self%oc_mtpo        )
