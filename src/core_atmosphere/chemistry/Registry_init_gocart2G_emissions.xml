@@ -199,6 +199,84 @@
       <var name="co_anth_tro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Carbon monoxide surface emission - sector TRO"/>
 
+      <var name="iso_anth_agl" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector AGL"/>
+
+      <var name="iso_anth_ags" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector AGS"/>
+
+      <var name="iso_anth_awb" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector AWB"/>
+
+      <var name="iso_anth_ene" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector ENE"/>
+
+      <var name="iso_anth_fef" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector FEF"/>
+
+      <var name="iso_anth_ind" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector IND"/>
+
+      <var name="iso_anth_res" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector RES"/>
+
+      <var name="iso_anth_shp" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector SHP"/>
+
+      <var name="iso_anth_slv" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector SLV"/>
+
+      <var name="iso_anth_sum" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector SUM"/>
+
+      <var name="iso_anth_swd" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector SWD"/>
+
+      <var name="iso_anth_tnr" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector TNR"/>
+
+      <var name="iso_anth_tro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene surface emission - sector TRO"/>
+
+      <var name="mnt_anth_agl" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector AGL"/>
+
+      <var name="mnt_anth_ags" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector AGS"/>
+
+      <var name="mnt_anth_awb" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector AWB"/>
+
+      <var name="mnt_anth_ene" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector ENE"/>
+
+      <var name="mnt_anth_fef" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector FEF"/>
+
+      <var name="mnt_anth_ind" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector IND"/>
+
+      <var name="mnt_anth_res" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector RES"/>
+
+      <var name="mnt_anth_shp" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector SHP"/>
+
+      <var name="mnt_anth_slv" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector SLV"/>
+
+      <var name="mnt_anth_sum" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector SUM"/>
+
+      <var name="mnt_anth_swd" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector SWD"/>
+
+      <var name="mnt_anth_tnr" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector TNR"/>
+
+      <var name="mnt_anth_tro" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes surface emission - sector TRO"/>
+
  </var_struct>
 
 
@@ -206,6 +284,12 @@
 
       <var name="co_biog_megan" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Carbon monoxide biogenic surface emission"/>
+
+      <var name="iso_biog_megan" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene biogenic surface emission"/>
+
+      <var name="mnt_biog_megan" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Other monoterpenes biogenic surface emission"/>
 
  </var_struct>
 
@@ -226,6 +310,12 @@
 
       <var name="co_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Carbon monoxide biomass burning emission"/>
+
+      <var name="iso_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Isoprene biomass burning emission"/>
+
+      <var name="mnt_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Monoterpenes biomass burning emission"/>
 
  </var_struct>
 

@@ -118,6 +118,12 @@
       <var name="co_anth_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Carbon monoxide anthropogenic emission"/>
 
+      <var name="iso_anth_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene anthropogenic emission"/>
+
+      <var name="mnt_anth_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes anthropogenic emission"/>
+
  </var_struct>
 
 
@@ -141,6 +147,12 @@
       <var name="co_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Carbon monoxide biomass burning emission"/>
 
+      <var name="iso_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Isoprene biomass burning emission"/>
+
+      <var name="mnt_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Other monoterpenes biomass burning emission"/>
+
  </var_struct>
 
  <var_struct name="biog_emissions" time_levs="1">
@@ -156,6 +168,12 @@
 
       <var name="co_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Carbon monoxide biogenic emission"/>
+
+      <var name="iso_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene biogenic emission"/>
+
+      <var name="mnt_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Monoterpenes biogenic emission"/>
 
  </var_struct>
 

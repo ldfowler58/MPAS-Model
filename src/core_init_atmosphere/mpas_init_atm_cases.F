@@ -31,6 +31,8 @@ module init_atm_cases
                                                     init_anth_emissions_oc,         &
                                                     init_anth_emissions_nh3,        &
                                                     init_anth_emissions_su,         &
+                                                    init_anth_emissions_iso,        &
+                                                    init_anth_emissions_mnt,        &
                                                     init_biomass_burning_emissions, &
                                                     init_biog_emissions
    use mpas_chemistry_init_gocart2G_interp,only: init_gocart2G_aerosols
@@ -342,6 +344,8 @@ module init_atm_cases
                call init_anth_emissions_nh3(domain%clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
                call init_anth_emissions_su(domain%clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
                call init_anth_emissions_co(domain%clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+               call init_anth_emissions_iso(domain%clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+               call init_anth_emissions_mnt(domain%clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
             endif
 
             if(config_gocart2G_BIOBemis) then
