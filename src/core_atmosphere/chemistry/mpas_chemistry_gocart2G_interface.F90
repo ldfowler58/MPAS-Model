@@ -59,6 +59,9 @@
     real(kind=RKIND),dimension(:,:,:),pointer:: qdms       => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qmsa       => null()
     real(kind=RKIND),dimension(:,:,:,:),pointer:: qsu2G    => null()
+    !--- secondary organic aerosols:
+    real(kind=RKIND),dimension(:,:,:),pointer:: qsoap_a    => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qsoap_bb   => null()
 
 
     !--- background DMS, OH, H2O2, and NO3:
@@ -231,6 +234,9 @@
  if(.not.associated(self%qmsa)       ) allocate(self%qmsa(its:ite,jts:jte,kts:kte)      )
  if(.not.associated(self%qsu2G)      ) allocate(self%qsu2G(its:ite,jts:jte,kts:kte,4)   )
 
+ if(.not.associated(self%qsoap_a)    ) allocate(self%qsoap_a(its:ite,jts:jte,kts:kte)   )
+ if(.not.associated(self%qsoap_bb)   ) allocate(self%qsoap_bb(its:ite,jts:jte,kts:kte)  )
+
 
 !--- allocate background fields:
  if(.not.associated(self%backg_dms)  ) allocate(self%backg_dms(its:ite,jts:jte)         )
@@ -336,6 +342,9 @@
  if(associated(self%qmsa)       ) deallocate(self%qmsa       )
  if(associated(self%qsu2G)      ) deallocate(self%qsu2G      )
 
+ if(associated(self%qsoap_a)    ) deallocate(self%qsoap_a    )
+ if(associated(self%qsoap_bb)   ) deallocate(self%qsoap_bb   )
+
 
 !--- allocate background fields:
  if(associated(self%backg_dms)  ) deallocate(self%backg_dms  )
@@ -426,6 +435,7 @@
  integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
  integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
  integer,pointer:: index_qdms,index_qmsa
+ integer,pointer:: index_qsoapa,index_qsoapbb
  integer:: i,its,ite,j,jts,jte,k,kts,kte,ktep1,kk,n
  integer:: nerod
 
@@ -497,6 +507,9 @@
  call mpas_pool_get_dimension(state,'index_qseas5'   ,index_qseas5   )
  call mpas_pool_get_dimension(state,'index_qdms'     ,index_qdms     )
  call mpas_pool_get_dimension(state,'index_qmsa'     ,index_qmsa     )
+ call mpas_pool_get_dimension(state,'index_qsoapa'   ,index_qsoapa   )
+ call mpas_pool_get_dimension(state,'index_qsoapbb'  ,index_qsoapbb  )
+
 
  call mpas_pool_get_array(state,'scalars',scalars,time_lev)
  do k = kts,kte
@@ -530,6 +543,8 @@
           self%qseas5(i,j,kk)    = scalars(index_qseas5,k,i)
           self%qdms(i,j,kk)      = scalars(index_qdms,k,i)
           self%qmsa(i,j,kk)      = scalars(index_qmsa,k,i)
+          self%qsoap_a(i,j,kk)   = scalars(index_qsoapa,k,i)
+          self%qsoap_bb(i,j,kk)  = scalars(index_qsoapbb,k,i)
        enddo
     enddo
  enddo
@@ -591,7 +606,6 @@
 
 
 !--- initialization of surface fields:
- nullify(raincv)
  call mpas_pool_get_array(diag_physics,'coszr'  ,coszr  )
  call mpas_pool_get_array(diag_physics,'u10'    ,u10    )
  call mpas_pool_get_array(diag_physics,'v10'    ,v10    )
@@ -599,8 +613,6 @@
  call mpas_pool_get_array(diag_physics,'hfx'    ,hfx    )
  call mpas_pool_get_array(diag_physics,'hpbl'   ,hpbl   )
  call mpas_pool_get_array(diag_physics,'z0'     ,z0h    )
- call mpas_pool_get_array(diag_physics,'raincv' ,raincv )
- call mpas_pool_get_array(diag_physics,'rainncv',rainncv)
 
  call mpas_pool_get_array(sfc_input,'porosity',porosity)
  call mpas_pool_get_array(sfc_input,'skintemp',skintemp)
@@ -619,15 +631,40 @@
        self%ustar(i,j)    = ust(i)
        self%sh(i,j)       = hfx(i)
        self%z0h(i,j)      = z0h(i)
-       self%cn_prcp(i,j)  = raincv(i)
-       self%ncn_prcp(i,j) = rainncv(i)
        self%wet1(i,j)     = smois(1,i)/porosity(i)
-!      if(raincv(i) .gt. 0._RKIND) then
-!         call mpas_log_write('--- cn_prcp $i $r $r',intArgs=(/i/),realArgs= &
-!                            (/self%cn_prcp(i,j),self%ncn_prcp(i,j)/))
-!      endif
     enddo 
  enddo
+
+ nullify(raincv)
+ nullify(rainncv)
+ call mpas_pool_get_array(diag_physics,'raincv' ,raincv )
+ call mpas_pool_get_array(diag_physics,'rainncv',rainncv)
+ if(associated(raincv)) then
+    do j = jts,jte
+       do i = its,ite
+          self%cn_prcp(i,j) = raincv(i)
+       enddo
+    enddo
+ else
+    do j = jts,jte
+       do i = its,ite
+          self%cn_prcp(i,j) = 0._RKIND
+       enddo
+    enddo
+ endif
+ if(associated(rainncv)) then
+    do j = jts,jte
+       do i = its,ite
+          self%ncn_prcp(i,j) = rainncv(i)
+       enddo
+    enddo
+ else
+    do j = jts,jte
+       do i = its,ite
+          self%ncn_prcp(i,j) = 0._RKIND
+       enddo
+    enddo
+ endif
 
 
 !--- initialization of ocean, seaice, lake fractions, and deep lakes mask:
@@ -662,11 +699,15 @@
  call mpas_pool_get_dimension(state,'index_qv',index_qv)
  qv => scalars(index_qv,:,:)
 
- call mpas_pool_get_array(diag_physics,'cldfrac' ,cldfrac )
+ nullify(pflrain )
+ nullify(pflice  )
+ nullify(pflsnow )
+ nullify(pflgraul)
  call mpas_pool_get_array(diag_physics,'pflrain' ,pflrain )
  call mpas_pool_get_array(diag_physics,'pflice'  ,pflice  )
  call mpas_pool_get_array(diag_physics,'pflsnow' ,pflsnow )
  call mpas_pool_get_array(diag_physics,'pflgraul',pflgraul)
+ call mpas_pool_get_array(diag_physics,'cldfrac' ,cldfrac )
 
  do k = kts,kte
     kk = kte+1-k
@@ -679,13 +720,33 @@
           self%rh2(i,j,kk)      = relhum(k,i)/100.
           self%u(i,j,kk)        = u(k,i)
           self%v(i,j,kk)        = v(k,i)
-
           self%fcld(i,j,kk)     = cldfrac(k,i)
-          self%pfl_lsan(i,j,kk) = pflrain(k,i)
-          self%pfi_lsan(i,j,kk) = pflice(k,i)+pflsnow(k,i)+pflgraul(k,i)
        enddo
     enddo
  enddo
+ if(associated(pflrain) .and. associated(pflice) .and. associated(pflsnow) &
+    .and. associated(pflgraul)) then
+    do k = kts,kte
+       kk = kte+1-k
+       do j = jts,jte
+          do i = its,ite
+             self%pfl_lsan(i,j,kk) = pflrain(k,i)
+             self%pfi_lsan(i,j,kk) = pflice(k,i)+pflsnow(k,i)+pflgraul(k,i)
+          enddo
+       enddo
+    enddo
+ else
+    do k = kts,kte
+       kk = kte+1-k
+       do j = jts,jte
+          do i = its,ite
+             self%pfl_lsan(i,j,kk) = 0._RKIND
+             self%pfi_lsan(i,j,kk) = 0._RKIND
+          enddo
+       enddo
+    enddo
+ endif
+
  do k = kts,ktep1
     kk = ktep1+1-k
     do j = jts,jte
@@ -699,7 +760,6 @@
        self%sfcdz(i,j) = self%delz(i,j,kte)
     enddo
  enddo
-
 
  if(.not.allocated(pres)) allocate(pres(kts:kte))
  if(.not.allocated(presl2)) allocate(presl2(kts:ktep1))
@@ -778,6 +838,7 @@
  integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
  integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
  integer,pointer:: index_qdms,index_qmsa
+ integer,pointer:: index_qsoapa,index_qsoapbb
  integer:: i,its,ite,j,jts,jte,k,kk,kts,kte
 
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars
@@ -822,6 +883,8 @@
  call mpas_pool_get_dimension(state,'index_qseas5'   ,index_qseas5   )
  call mpas_pool_get_dimension(state,'index_qdms'     ,index_qdms     )
  call mpas_pool_get_dimension(state,'index_qmsa'     ,index_qmsa     )
+ call mpas_pool_get_dimension(state,'index_qsoapa'   ,index_qsoapa   )
+ call mpas_pool_get_dimension(state,'index_qsoapbb'  ,index_qsoapbb  )
 
  call mpas_pool_get_array(state,'scalars',scalars,time_lev)
  do k = kts,kte
@@ -855,6 +918,8 @@
           scalars(index_qseas5,kk,i)    = self%qseas5(i,j,k)
           scalars(index_qdms,kk,i)      = self%qdms(i,j,k)
           scalars(index_qmsa,kk,i)      = self%qmsa(i,j,k)
+          scalars(index_qsoapa,kk,i)    = self%qsoap_a(i,j,k)
+          scalars(index_qsoapbb,kk,i)   = self%qsoap_bb(i,j,k)
        enddo
     enddo
  enddo

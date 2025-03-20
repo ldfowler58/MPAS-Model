@@ -58,6 +58,11 @@
            description="set to true to apply gocart2G chemistry processes for nitrate; false otherwise"
            possible_values="True,False"/>
 
+      <nml_option name="config_gocart2G_do_SOA2G" type="logical" default_value="false"
+           units="-"
+           description="set to true to apply gocart2G chemistry processes for secondary organic; false otherwise"
+           possible_values="True,False"/>
+
       <nml_option name="config_gocart2G_do_SS2G" type="logical" default_value="false"
            units="-"
            description="set to true to apply gocart2G chemistry processes for sea salt; false otherwise"
@@ -302,6 +307,12 @@
 
            <var name="qnh4a" array_group="gocart2G" units="kg kg^{-1}"
                 description="NH4a - ammonium ion mass mixing ratio"/>
+
+           <var name="qsoapa" array_group="gocart2G" units="kg kg^{-1}"
+                description="SOAPa - lumped SOA precursor mass mixing ratio from anthropogenic emissions"/>
+
+           <var name="qsoapbb" array_group="gocart2G" units="kg kg^{-1}"
+                description="SOAPbb - lumped SOA precursor mass mixing ratio from biomass burning emissions"/>
       </var_array>
 
  </var_struct>
@@ -390,6 +401,12 @@
 
            <var name="tend_qnh4a" name_in_code="qnh4a" array_group="gocart2G" units="kg m^{-3} s^{-1}"
                 description="NH4a - tendency of ammonium ion mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qsoapa" name_in_code=qsoapa" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SOAPa - tendency of anthropogenic lumped SOA precursor mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qsoapbb" name_in_code="qsoapbb" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SOAPbb - tendency of biomass burning lumped SOA precursor mass per unit volume divided by d(zeta)/dz"/>
       </var_array>
 
  </var_struct>

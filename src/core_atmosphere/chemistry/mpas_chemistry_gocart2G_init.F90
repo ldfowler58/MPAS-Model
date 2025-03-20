@@ -42,6 +42,7 @@
  logical:: l_exist
  logical,pointer:: do_CA2Gbc,do_CA2Gbr,do_CA2Goc
  logical,pointer:: do_NI2G,do_DU2G,do_SS2G,do_SU2G
+ logical,pointer:: do_SOA2G
  logical:: do_GOCART2G
 
  integer:: its,ite,jts,jte,kts,kte,nerod
@@ -74,6 +75,7 @@
  call mpas_pool_get_config(configs,'config_gocart2G_do_NI2G'  ,do_NI2G  )
  call mpas_pool_get_config(configs,'config_gocart2G_do_SS2G'  ,do_SS2G  )
  call mpas_pool_get_config(configs,'config_gocart2G_do_SU2G'  ,do_SU2G  )
+ call mpas_pool_get_config(configs,'config_gocart2G_do_SOA2G' ,do_SOA2G )
 
 
 !--- reads input wavelengths from LUT:
@@ -346,6 +348,19 @@
     endif
 
     call mpas_log_write('--- end initialization of SU2G.')
+    call mpas_log_write(' ')
+ endif
+
+
+!--- SOA2G:
+ if(do_SOA2G) then
+    call mpas_log_write('--- begin initialization of SOA2G:')
+
+    !initializes and allocates all parameters and arrasy related to SOA2G:
+    call SOA2G_params%load_GridComp( )
+    call SOA2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+
+    call mpas_log_write('--- end initialization of SOA2G.')
     call mpas_log_write(' ')
  endif
 

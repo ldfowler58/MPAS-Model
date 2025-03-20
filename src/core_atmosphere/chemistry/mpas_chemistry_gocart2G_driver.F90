@@ -24,6 +24,7 @@
                                         NI2G,NI2G_params,        &
                                         SS2G,SS2G_params,        &
                                         SU2G,SU2G_params,        &
+                                        SOA2G,SOA2G_params,      &
                                         GOCART2G,GOCART2G_params
 
 
@@ -76,6 +77,7 @@
 
  logical,pointer:: do_CA2Gbc,do_CA2Gbr,do_CA2Goc
  logical,pointer:: do_NI2G,do_DU2G,do_SS2G,do_SU2G
+ logical,pointer:: do_SOA2G
  logical:: do_GOCART2G
 
  integer:: time_lev
@@ -85,7 +87,8 @@
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine gocart2G_driver:')
 
- time_lev = 1
+ time_lev = 2
+
 
  call mpas_pool_get_config(domain%configs,'config_gocart2G_do_CA2Gbc',do_CA2Gbc)
  call mpas_pool_get_config(domain%configs,'config_gocart2G_do_CA2Gbr',do_CA2Gbr)
@@ -94,6 +97,7 @@
  call mpas_pool_get_config(domain%configs,'config_gocart2G_do_NI2G'  ,do_NI2G  )
  call mpas_pool_get_config(domain%configs,'config_gocart2G_do_SS2G'  ,do_SS2G  )
  call mpas_pool_get_config(domain%configs,'config_gocart2G_do_SU2G'  ,do_SU2G  )
+ call mpas_pool_get_config(domain%configs,'config_gocart2G_do_SOA2G' ,do_SOA2G )
 
 
  block => domain % blocklist
@@ -104,7 +108,6 @@
     call mpas_pool_get_subpool(block%structs,'diag'                ,diag                )
     call mpas_pool_get_subpool(block%structs,'diag_physics'        ,diag_physics        )
     call mpas_pool_get_subpool(block%structs,'sfc_input'           ,sfc_input           )
-    call mpas_pool_get_subpool(block%structs,'CAMS_emissions'      ,CAMS_emissions      )
     call mpas_pool_get_subpool(block%structs,'gocart2G_backgrounds',gocart2G_backgrounds)
     call mpas_pool_get_subpool(block%structs,'gocart2G_met'        ,gocart2G_met        )
 
@@ -145,6 +148,39 @@
                                          mesh,diag,state,diag_physics,sfc_input,time_lev)
 
 
+    !--- SOA2G:
+    if(do_SOA2G) then
+       SOA2G_params%cdt = mpas_gocart2G%dt
+
+       !--- meteorological fields:
+       SOA2G%zpbl => mpas_gocart2G%zpbl
+
+       SOA2G%airdens => mpas_gocart2G%airdens ; SOA2G%delp => mpas_gocart2G%delp
+       SOA2G%delz    => mpas_gocart2G%delz    ; SOA2G%ple  => mpas_gocart2G%ple
+       SOA2G%zle     => mpas_gocart2G%zle
+
+       !--- anthropogenic emissions:
+       SOA2G%soap_anthro => mpas_emis_gocart2G%soap_anthrop
+
+       !--- biomass burning emissions:
+       SOA2G%soap_biomass => mpas_emis_gocart2G%soap_biomass
+
+       !--- biofuel emissions:
+       SOA2G%soap_biofuel => mpas_emis_gocart2G%soap_biofuel
+
+       !--- biogenic emissions:
+       SOA2G%soap_biogenic => mpas_emis_gocart2G%soap_biogenic
+
+       !--- chemistry fields:
+       SOA2G%soap_a  => mpas_gocart2G%qsoap_a
+       SOA2G%soap_bb => mpas_gocart2G%qsoap_bb
+       SOA2G%soap_oh => mpas_gocart2G%backg_oh
+
+       !--- gocart2G processes:
+       call SOA2G_params%emissions_GridComp(SOA2G,its,ite,jts,jte,kts,kte)
+    endif
+
+
     !--- CA2G_bc:
     if(do_CA2Gbc) then
        CA2G_bc_params%cdt = mpas_gocart2G%dt
@@ -167,17 +203,15 @@
        CA2G_bc%v        => mpas_gocart2G%v
 
        !--- anthropogenic emissions:
-        CA2G_bc%bc_antebc1      => mpas_emis_gocart2G%bc_antebc1
-        CA2G_bc%bc_antebc2      => mpas_emis_gocart2G%bc_antebc2
-        CA2G_bc%bc_ship         => mpas_emis_gocart2G%bc_ship
-        CA2G_bc%bc_aviation_lto => mpas_emis_gocart2G%bc_aviation_lto
-        CA2G_bc%bc_aviation_cds => mpas_emis_gocart2G%bc_aviation_cds
-        CA2G_bc%bc_aviation_crs => mpas_emis_gocart2G%bc_aviation_crs
-        CA2G_bc%bc_aircraft     => mpas_emis_gocart2G%bc_aircraft
-
+       CA2G_bc%bc_antebc1      => mpas_emis_gocart2G%bc_antebc1
+       CA2G_bc%bc_antebc2      => mpas_emis_gocart2G%bc_antebc2
+       CA2G_bc%bc_ship         => mpas_emis_gocart2G%bc_ship
+       CA2G_bc%bc_aviation_lto => mpas_emis_gocart2G%bc_aviation_lto
+       CA2G_bc%bc_aviation_cds => mpas_emis_gocart2G%bc_aviation_cds
+       CA2G_bc%bc_aviation_crs => mpas_emis_gocart2G%bc_aviation_crs
+       CA2G_bc%bc_aircraft     => mpas_emis_gocart2G%bc_aircraft
        !--- biomass burning emissions:
        CA2G_bc%bc_biomass => mpas_emis_gocart2G%bc_biomass
-
        !--- biofuel emissions:
        CA2G_bc%bc_biofuel => mpas_emis_gocart2G%bc_biofuel
 
@@ -217,13 +251,13 @@
        CA2G_br%v        => mpas_gocart2G%v
 
        !--- anthropogenic emissions:
-        CA2G_br%br_antebr1      => mpas_emis_gocart2G%br_antebr1
-        CA2G_br%br_antebr2      => mpas_emis_gocart2G%br_antebr2
-        CA2G_br%br_ship         => mpas_emis_gocart2G%br_ship
-        CA2G_br%br_aviation_lto => mpas_emis_gocart2G%br_aviation_lto
-        CA2G_br%br_aviation_cds => mpas_emis_gocart2G%br_aviation_cds
-        CA2G_br%br_aviation_crs => mpas_emis_gocart2G%br_aviation_crs
-        CA2G_br%br_aircraft     => mpas_emis_gocart2G%br_aircraft
+       CA2G_br%br_antebr1      => mpas_emis_gocart2G%br_antebr1
+       CA2G_br%br_antebr2      => mpas_emis_gocart2G%br_antebr2
+       CA2G_br%br_ship         => mpas_emis_gocart2G%br_ship
+       CA2G_br%br_aviation_lto => mpas_emis_gocart2G%br_aviation_lto
+       CA2G_br%br_aviation_cds => mpas_emis_gocart2G%br_aviation_cds
+       CA2G_br%br_aviation_crs => mpas_emis_gocart2G%br_aviation_crs
+       CA2G_br%br_aircraft     => mpas_emis_gocart2G%br_aircraft
 
        !--- biomass burning emissions:
        CA2G_br%br_biomass => mpas_emis_gocart2G%br_biomass
@@ -270,13 +304,13 @@
        CA2G_oc%v        => mpas_gocart2G%v
 
        !--- anthropogenic emissions:
-        CA2G_oc%oc_anteoc1      => mpas_emis_gocart2G%oc_anteoc1
-        CA2G_oc%oc_anteoc2      => mpas_emis_gocart2G%oc_anteoc2
-        CA2G_oc%oc_ship         => mpas_emis_gocart2G%oc_ship
-        CA2G_oc%oc_aviation_lto => mpas_emis_gocart2G%oc_aviation_lto
-        CA2G_oc%oc_aviation_cds => mpas_emis_gocart2G%oc_aviation_cds
-        CA2G_oc%oc_aviation_crs => mpas_emis_gocart2G%oc_aviation_crs
-        CA2G_oc%oc_aircraft     => mpas_emis_gocart2G%oc_aircraft
+       CA2G_oc%oc_anteoc1      => mpas_emis_gocart2G%oc_anteoc1
+       CA2G_oc%oc_anteoc2      => mpas_emis_gocart2G%oc_anteoc2
+       CA2G_oc%oc_ship         => mpas_emis_gocart2G%oc_ship
+       CA2G_oc%oc_aviation_lto => mpas_emis_gocart2G%oc_aviation_lto
+       CA2G_oc%oc_aviation_cds => mpas_emis_gocart2G%oc_aviation_cds
+       CA2G_oc%oc_aviation_crs => mpas_emis_gocart2G%oc_aviation_crs
+       CA2G_oc%oc_aircraft     => mpas_emis_gocart2G%oc_aircraft
 
        !--- biomass burning emissions:
        CA2G_oc%oc_biomass => mpas_emis_gocart2G%oc_biomass
