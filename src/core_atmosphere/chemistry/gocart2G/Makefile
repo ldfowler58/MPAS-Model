@@ -21,6 +21,7 @@ OBJS = \
 	CA2G_oc_GridCompMod.o \
 	DU2G_GridCompMod.o \
 	NI2G_GridCompMod.o \
+	SOA2G_GridCompMod.o \
 	SS2G_GridCompMod.o \
 	SU2G_GridCompMod.o \
 	CA2G_bc_StateSpecs.o \
@@ -28,6 +29,7 @@ OBJS = \
 	CA2G_oc_StateSpecs.o \
 	DU2G_StateSpecs.o \
 	NI2G_StateSpecs.o \
+	SOA2G_StateSpecs.o \
 	SS2G_StateSpecs.o \
 	SU2G_StateSpecs.o \
 	GA_EnvironmentMod.o \
@@ -98,6 +100,9 @@ NI2G_GridCompMod.o: \
 	GOCART2G_AeroGeneric.o \
 	GOCART2G_MieMod_smiol.o \
 	GOCART2G_Process.o
+
+SOA2G_GridCompMod.o: \
+	SOA2G_StateSpecs.o
 
 SS2G_GridCompMod.o: \
 	SS2G_instance.o \
