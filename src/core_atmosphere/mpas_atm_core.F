@@ -593,7 +593,7 @@ module atm_core
 #ifdef DO_GOCART2G
       call mpas_pool_get_subpool(block % structs, 'anth_emissions', anth_emissions)
       call mpas_pool_get_subpool(block % structs, 'biob_emissions', biob_emissions)
-      call mpas_pool_get_subpool(block % structs, 'BIOG_emissions', BIOG_emissions)
+      call mpas_pool_get_subpool(block % structs, 'biog_emissions', biog_emissions)
 
       call init_gocart2G_timetracker(block % configs, clock)
       call init_gocart2G_emissions(mesh, anth_emissions, biob_emissions, biog_emissions)

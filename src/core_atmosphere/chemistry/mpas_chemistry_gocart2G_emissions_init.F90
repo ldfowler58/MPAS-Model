@@ -20,14 +20,14 @@
 
 
 !==================================================================================================================
- subroutine init_gocart2G_emissions(mesh,anth_emissions,biob_emissions,BIOG_emissions)
+ subroutine init_gocart2G_emissions(mesh,anth_emissions,biob_emissions,biog_emissions)
 !==================================================================================================================
 
 !--- input arguments:
  type(mpas_pool_type),intent(in):: mesh
  type(mpas_pool_type),intent(in):: anth_emissions
  type(mpas_pool_type),intent(in):: biob_emissions
- type(mpas_pool_type),intent(in):: BIOG_emissions
+ type(mpas_pool_type),intent(in):: biog_emissions
 
 !--- local variables:
  integer:: its,ite,jts,jte,kts,kte
@@ -53,7 +53,7 @@
 
 
 !--- initializes local arrays needed to run GOCART2G emissions:
- call mpas_emis_gocart2G%gocart2G_emissions(anth_emissions,biob_emissions,BIOG_emissions,its,ite,jts,jte,kts,kte)
+ call mpas_emis_gocart2G%gocart2G_emissions(anth_emissions,biob_emissions,biog_emissions,its,ite,jts,jte,kts,kte)
 
 
  call mpas_log_write('--- end subroutine init_gocart2G_emissions.')
