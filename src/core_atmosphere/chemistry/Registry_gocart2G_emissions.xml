@@ -175,5 +175,11 @@
       <var name="mnt_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Monoterpenes biogenic emission"/>
 
+      <var name="mnta_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Alpha-pinene biogenic emission"/>
+
+      <var name="mntb_biog_em" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Beta-pinene biogenic emission"/>
+
  </var_struct>
 

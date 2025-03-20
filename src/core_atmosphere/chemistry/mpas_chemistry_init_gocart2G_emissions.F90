@@ -825,12 +825,6 @@
  if(total_dt > 0.0_RKIND) then
     iso_anth_em(:) = (after_dt/total_dt)*anth_em(:) + (before_dt/total_dt)*iso_anth_sum(:)
  endif
- do iCell = 1,nCells
-    if(iso_anth_em(iCell)-anth_em(iCell) .gt. 0._RKIND) then
-       call mpas_log_write('iso: $i $r $r $r',intArgs=(/iCell/),realArgs=(/iso_anth_em(iCell),anth_em(iCell), &
-                           iso_anth_em(iCell)-anth_em(iCell)/))
-    endif
- enddo
 
  deallocate(anth_em)
 
@@ -940,12 +934,6 @@
  if(total_dt > 0.0_RKIND) then
     mnt_anth_em(:) = (after_dt/total_dt)*anth_em(:) + (before_dt/total_dt)*mnt_anth_sum(:)
  endif
- do iCell = 1,nCells
-    if(mnt_anth_em(iCell)-anth_em(iCell) .gt. 0._RKIND) then
-       call mpas_log_write('mnt: $i $r $r $r',intArgs=(/iCell/),realArgs=(/mnt_anth_em(iCell),anth_em(iCell), &
-                           mnt_anth_em(iCell)-anth_em(iCell)/))
-    endif
- enddo
 
  deallocate(anth_em)
 
@@ -982,11 +970,15 @@
  real(kind=RKIND),dimension(:),pointer:: co_biog_megan
  real(kind=RKIND),dimension(:),pointer:: iso_biog_megan
  real(kind=RKIND),dimension(:),pointer:: mnt_biog_megan
+ real(kind=RKIND),dimension(:),pointer:: mnta_biog_megan
+ real(kind=RKIND),dimension(:),pointer:: mntb_biog_megan
 
 !gocart2G biogenic emissions:
  real(kind=RKIND),dimension(:),pointer:: co_biog_em
  real(kind=RKIND),dimension(:),pointer:: iso_biog_em
  real(kind=RKIND),dimension(:),pointer:: mnt_biog_em
+ real(kind=RKIND),dimension(:),pointer:: mnta_biog_em
+ real(kind=RKIND),dimension(:),pointer:: mntb_biog_em
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -1000,17 +992,23 @@
 
 
 !MEGAN biogenic emissions:
- call mpas_pool_get_array(biog_emissions,'co_biog_em' ,co_biog_em )
- call mpas_pool_get_array(biog_emissions,'iso_biog_em',iso_biog_em)
- call mpas_pool_get_array(biog_emissions,'mnt_biog_em',mnt_biog_em)
- co_biog_em(:)  = 0._RKIND
- iso_biog_em(:) = 0._RKIND
- mnt_biog_em(:) = 0._RKIND
+ call mpas_pool_get_array(biog_emissions,'co_biog_em'  ,co_biog_em  )
+ call mpas_pool_get_array(biog_emissions,'iso_biog_em' ,iso_biog_em )
+ call mpas_pool_get_array(biog_emissions,'mnt_biog_em' ,mnt_biog_em )
+ call mpas_pool_get_array(biog_emissions,'mnta_biog_em',mnta_biog_em)
+ call mpas_pool_get_array(biog_emissions,'mntb_biog_em',mntb_biog_em)
+ co_biog_em(:)   = 0._RKIND
+ iso_biog_em(:)  = 0._RKIND
+ mnt_biog_em(:)  = 0._RKIND
+ mnta_biog_em(:) = 0._RKIND
+ mntb_biog_em(:) = 0._RKIND
 
 
- call mpas_pool_get_array(CAMS_biog_emissions,'co_biog_megan' ,co_biog_megan )
- call mpas_pool_get_array(CAMS_biog_emissions,'iso_biog_megan',iso_biog_megan)
- call mpas_pool_get_array(CAMS_biog_emissions,'mnt_biog_megan',mnt_biog_megan)
+ call mpas_pool_get_array(CAMS_biog_emissions,'co_biog_megan'  ,co_biog_megan  )
+ call mpas_pool_get_array(CAMS_biog_emissions,'iso_biog_megan' ,iso_biog_megan )
+ call mpas_pool_get_array(CAMS_biog_emissions,'mnt_biog_megan' ,mnt_biog_megan )
+ call mpas_pool_get_array(CAMS_biog_emissions,'mnta_biog_megan',mnta_biog_megan)
+ call mpas_pool_get_array(CAMS_biog_emissions,'mntb_biog_megan',mntb_biog_megan)
 
 
 !biogenic emission of carbon monoxide:
@@ -1083,6 +1081,47 @@
  if(total_dt > 0.0_RKIND) then
     mnt_biog_em(:) = (after_dt/total_dt)*biog_megan(:) + (before_dt/total_dt)*mnt_biog_megan(:)
  endif
+
+
+!biogenic emission of alpha-pinene:
+ call mpas_stream_mgr_read(stream_manager,'biog_apinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biog_megan(1:nCells) = mnta_biog_megan(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biog_apinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_log_write('    earliest time after is '//trim(actualTimestamp))
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of black carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    mnta_biog_em(:) = (after_dt/total_dt)*biog_megan(:) + (before_dt/total_dt)*mnta_biog_megan(:)
+ endif
+
+
+!biogenic emission of beta-pinene:
+ call mpas_stream_mgr_read(stream_manager,'biog_bpinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biog_megan(1:nCells) = mntb_biog_megan(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biog_bpinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_log_write('    earliest time after is '//trim(actualTimestamp))
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of black carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    mntb_biog_em(:) = (after_dt/total_dt)*biog_megan(:) + (before_dt/total_dt)*mnta_biog_megan(:)
+ endif
+
+
+ deallocate(biog_megan)
 
 
  call mpas_log_write('--- end subroutine init_biog_emissions.')
