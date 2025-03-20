@@ -17,6 +17,13 @@
  private
 
 
+!--- parameters:
+ real(kind=RKIND),parameter:: voc_AnthroFactor      = 0.069 ! (g/g CO)
+ real(kind=RKIND),parameter:: voc_BiomassBurnFactor = 0.013 ! (g/g CO)
+ real(kind=RKIND),parameter:: voc_BiogIsopFactor    = 0.015 ! (-)
+ real(kind=RKIND),parameter:: voc_BiogMonxFactor    = 0.005 ! (-)
+
+
  type,public:: emis_gocart2G
     integer:: its,ite,jts,jte,kts,kte
 
@@ -52,6 +59,8 @@
     real(kind=RKIND),dimension(:,:),pointer:: nh3_re          => null()
     real(kind=RKIND),dimension(:,:),pointer:: nh3_tr          => null()
 
+    real(kind=RKIND),dimension(:,:),pointer:: soap_anthrop    => null()
+
     real(kind=RKIND),dimension(:,:),pointer:: su_anthrol1     => null()
     real(kind=RKIND),dimension(:,:),pointer:: su_anthrol2     => null()
     real(kind=RKIND),dimension(:,:),pointer:: su_shipso2      => null()
@@ -69,10 +78,16 @@
     real(kind=RKIND),dimension(:,:),pointer:: su_biomass      => null()
     real(kind=RKIND),dimension(:,:),pointer:: nh3_bb          => null()
 
+    real(kind=RKIND),dimension(:,:),pointer:: soap_biomass    => null()
+    real(kind=RKIND),dimension(:,:),pointer:: soas_biomass    => null()
+
     !--- biofuel emissions:
     real(kind=RKIND),dimension(:,:),pointer:: bc_biofuel      => null()
     real(kind=RKIND),dimension(:,:),pointer:: br_biofuel      => null()
     real(kind=RKIND),dimension(:,:),pointer:: oc_biofuel      => null()
+
+    real(kind=RKIND),dimension(:,:),pointer:: soap_biofuel    => null()
+    real(kind=RKIND),dimension(:,:),pointer:: soas_biofuel    => null()
 
     !--- biogenic emissions:
     real(kind=RKIND),dimension(:,:),pointer:: br_terpene      => null()
@@ -81,6 +96,8 @@
     real(kind=RKIND),dimension(:,:),pointer:: oc_mtpo         => null()
     real(kind=RKIND),dimension(:,:),pointer:: oc_limo         => null()
 
+    real(kind=RKIND),dimension(:,:),pointer:: soap_biogenic   => null()
+    real(kind=RKIND),dimension(:,:),pointer:: soas_biogenic   => null()
 
     contains
        procedure:: gocart2G_allocate   => mpas_chemistry_gocart2G_emissions_allocate
@@ -139,6 +156,8 @@
  if(.not.associated(self%nh3_re)         ) allocate(self%nh3_re(its:ite,jts:jte)             )
  if(.not.associated(self%nh3_tr)         ) allocate(self%nh3_tr(its:ite,jts:jte)             )
 
+ if(.not.associated(self%soap_anthrop)   ) allocate(self%soap_anthrop(its:ite,jts:jte)       )
+
  if(.not.associated(self%su_anthrol1)    ) allocate(self%su_anthrol1(its:ite,jts:jte)        )
  if(.not.associated(self%su_anthrol2)    ) allocate(self%su_anthrol2(its:ite,jts:jte)        )
  if(.not.associated(self%su_shipso2)     ) allocate(self%su_shipso2(its:ite,jts:jte)         )
@@ -157,11 +176,17 @@
  if(.not.associated(self%su_biomass)     ) allocate(self%su_biomass(its:ite,jts:jte)         )
  if(.not.associated(self%nh3_bb)         ) allocate(self%nh3_bb(its:ite,jts:jte)             )
 
+ if(.not.associated(self%soap_biomass)   ) allocate(self%soap_biomass(its:ite,jts:jte)       )
+ if(.not.associated(self%soas_biomass)   ) allocate(self%soas_biomass(its:ite,jts:jte)       )
 
 !--- biofuel emissions:
  if(.not.associated(self%bc_biofuel)     ) allocate(self%bc_biofuel(its:ite,jts:jte)         )
  if(.not.associated(self%br_biofuel)     ) allocate(self%br_biofuel(its:ite,jts:jte)         )
  if(.not.associated(self%oc_biofuel)     ) allocate(self%oc_biofuel(its:ite,jts:jte)         )
+
+ if(.not.associated(self%soap_biofuel)   ) allocate(self%soap_biofuel(its:ite,jts:jte)       )
+ if(.not.associated(self%soas_biofuel)   ) allocate(self%soas_biofuel(its:ite,jts:jte)       )
+
 
 !--- biogenic emissions:
  if(.not.associated(self%br_terpene)     ) allocate(self%br_terpene(its:ite,jts:jte)         )
@@ -169,6 +194,9 @@
  if(.not.associated(self%oc_mtpa)        ) allocate(self%oc_mtpa(its:ite,jts:jte)            )
  if(.not.associated(self%oc_mtpo)        ) allocate(self%oc_mtpo(its:ite,jts:jte)            )
  if(.not.associated(self%oc_limo)        ) allocate(self%oc_limo(its:ite,jts:jte)            )
+
+ if(.not.associated(self%soap_biogenic)  ) allocate(self%soap_biogenic(its:ite,jts:jte)      )
+ if(.not.associated(self%soas_biogenic)  ) allocate(self%soas_biogenic(its:ite,jts:jte)      )
 
 
  call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_emissions_allocate.')
@@ -219,6 +247,8 @@
  if(associated(self%nh3_re)         ) deallocate(self%nh3_re         )
  if(associated(self%nh3_tr)         ) deallocate(self%nh3_tr         )
 
+ if(associated(self%soap_anthrop)   ) deallocate(self%soap_anthrop   )
+
  if(associated(self%su_anthrol1)    ) deallocate(self%su_anthrol1    )
  if(associated(self%su_anthrol2)    ) deallocate(self%su_anthrol2    )
  if(associated(self%su_shipso2)     ) deallocate(self%su_shipso2     )
@@ -237,11 +267,17 @@
  if(associated(self%su_biomass)     ) deallocate(self%su_biomass     )
  if(associated(self%nh3_bb)         ) deallocate(self%nh3_bb         )
 
+ if(associated(self%soap_biomass)   ) deallocate(self%soap_biomass   )
+ if(associated(self%soas_biomass)   ) deallocate(self%soas_biomass   )
 
 !--- biofuel emissions:
  if(associated(self%bc_biofuel)     ) deallocate(self%bc_biofuel     )
  if(associated(self%br_biofuel)     ) deallocate(self%br_biofuel     )
  if(associated(self%oc_biofuel)     ) deallocate(self%oc_biofuel     )
+
+ if(associated(self%soap_biofuel)   ) deallocate(self%soap_biofuel   )
+ if(associated(self%soas_biofuel)   ) deallocate(self%soas_biofuel   )
+
 
 !--- biogenic emissions:
  if(associated(self%br_terpene)     ) deallocate(self%br_terpene     )
@@ -250,20 +286,23 @@
  if(associated(self%oc_mtpo)        ) deallocate(self%oc_mtpo        )
  if(associated(self%oc_limo)        ) deallocate(self%oc_limo        )
 
+ if(associated(self%soap_biogenic)  ) deallocate(self%soap_biogenic  )
+ if(associated(self%soas_biogenic)  ) deallocate(self%soas_biogenic  )
+
 
  call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_emissions_deallocate.')
 
  end subroutine mpas_chemistry_gocart2G_emissions_deallocate
 
 !==================================================================================================================
- subroutine mpas_chemistry_gocart2G_emissions_init(self,anth_emissions,biob_emissions,BIOG_emissions, &
+ subroutine mpas_chemistry_gocart2G_emissions_init(self,anth_emissions,biob_emissions,biog_emissions, &
                                                    its,ite,jts,jte,kts,kte)
 !==================================================================================================================
 
 !--- input arguments:
  type(mpas_pool_type),intent(in):: anth_emissions
  type(mpas_pool_type),intent(in):: biob_emissions
- type(mpas_pool_type),intent(in):: BIOG_emissions
+ type(mpas_pool_type),intent(in):: biog_emissions
  integer,intent(in):: its,ite,jts,jte,kts,kte
 
 !--- inout arguments:
@@ -284,8 +323,12 @@
  real(kind=RKIND),dimension(:),pointer:: su_anth_less100m,su_anth_less500m,su_anth_shipso2,su_anth_shipso4, &
                                          su_dmso_em,su_anth_aviation_lto,su_anth_aviation_cds,su_anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: su_anth_aircraft
+ real(kind=RKIND),dimension(:),pointer:: co_anth_em
 
- real(kind=RKIND),dimension(:),pointer:: bc_biob_em,br_biob_em,oc_biob_em,ni_biob_em,su_biob_em
+ real(kind=RKIND),dimension(:),pointer:: bc_biob_em,br_biob_em,oc_biob_em,ni_biob_em,su_biob_em, &
+                                         co_biob_em
+
+ real(kind=RKIND),dimension(:),pointer:: iso_biog_em,mnt_biog_em,mnta_biog_em,mntb_biog_em
 
 !--- local variables and arrays:
  integer:: i,j,k
@@ -345,10 +388,10 @@
  call mpas_pool_get_array(anth_emissions,'su_anth_aircraft'    ,su_anth_aircraft    )
  call mpas_pool_get_array(anth_emissions,'su_dmso_em'          ,su_dmso_em          )
 
+ call mpas_pool_get_array(anth_emissions,'co_anth_em'          ,co_anth_em          )
 
  do j = jts,jte
     do i = its,ite
-
        !--- black carbon:
        self%bc_antebc1(i,j)      = bc_anth_less100m(i)
        self%bc_antebc2(i,j)      = bc_anth_less500m(i)
@@ -402,6 +445,9 @@
        do k = kts,kte
           self%su_aircraft(i,j,k) = su_anth_aircraft(k,i)
        enddo
+
+       !--- secondary organic aerosols:
+       self%soap_anthrop(i,j) = voc_AnthroFactor*co_anth_em(i)
     enddo
  enddo
 
@@ -412,6 +458,7 @@
  call mpas_pool_get_array(biob_emissions,'oc_biob_em',oc_biob_em)
  call mpas_pool_get_array(biob_emissions,'ni_biob_em',ni_biob_em)
  call mpas_pool_get_array(biob_emissions,'su_biob_em',su_biob_em)
+ call mpas_pool_get_array(biob_emissions,'co_biob_em',co_biob_em)
 
  do j = jts,jte
     do i = its,ite
@@ -421,36 +468,55 @@
        self%su_biomass(i,j) = su_biob_em(i)
        self%nh3_bb(i,j)     = ni_biob_em(i)
 
-       !conversion from molecules/cm^2/s to kg/m^2/s:
+       !--- conversion from molecules/cm^2/s to kg/m^2/s:
        self%bc_biomass(i,j) = 10.*(fMassBC/Avogadro)*self%bc_biomass(i,j)
        self%br_biomass(i,j) = 10.*(fMassBR/Avogadro)*self%br_biomass(i,j)
        self%oc_biomass(i,j) = 10.*(fMassOC/Avogadro)*self%oc_biomass(i,j)
        self%su_biomass(i,j) = 10.*(fMassSO2/Avogadro)*self%su_biomass(i,j)
        self%nh3_bb(i,j)     = 10.*(fMassNH3/Avogadro)*self%nh3_bb(i,j)
 
+       !--- secondary organic aerosols:
+       self%soap_biomass(i,j) = voc_BiomassBurnFactor*co_biob_em(i)
+       self%soap_biomass(i,j) = 10.*(fMassOC/Avogadro)*self%soap_biomass(i,j)
+       self%soas_biomass(i,j) = 0._RKIND
+    enddo
+ enddo
+
+
+!--- biofuel emissions:
+ do j = jts,jte
+    do i = its,ite
        self%bc_biofuel(i,j) = 0._RKIND
        self%br_biofuel(i,j) = 0._RKIND
        self%oc_biofuel(i,j) = 0._RKIND
+
+       !--- secondary organic aerosols:
+       self%soap_biofuel(i,j) = 0._RKIND
+       self%soas_biofuel(i,j) = 0._RKIND
     enddo
  enddo
 
 
 !--- biogenic emissions:
-!call mpas_pool_get_array(BIOG_emissions,'bc_biog_em',bc_biog_em)
-!call mpas_pool_get_array(BIOG_emissions,'br_biog_em',br_biog_em)
-!call mpas_pool_get_array(BIOG_emissions,'oc_biog_em',oc_biog_em)
+ call mpas_pool_get_array(biog_emissions,'iso_biog_em' ,iso_biog_em )
+ call mpas_pool_get_array(biog_emissions,'mnt_biog_em' ,mnt_biog_em )
+ call mpas_pool_get_array(biog_emissions,'mnta_biog_em',mnta_biog_em)
+ call mpas_pool_get_array(biog_emissions,'mntb_biog_em',mntb_biog_em)
 
  do j = jts,jte
     do i = its,ite
-!      self%bc_biofuel(i,j) = bc_biog_em(i)
-!      self%br_biofuel(i,j) = br_biog_em(i)
-!      self%oc_biofuel(i,j) = oc_biog_em(i)
-
        self%br_terpene(i,j)  = 0._RKIND
        self%oc_isoprene(i,j) = 0._RKIND
        self%oc_mtpa(i,j)     = 0._RKIND
        self%oc_mtpo(i,j)     = 0._RKIND
        self%oc_limo(i,j)     = 0._RKIND
+
+       !--- secondary organic aerosols:
+       self%soap_biogenic(i,j) = voc_BiogIsopFactor*iso_biog_em(i)
+                               + voc_BiogMonxFactor*(mnt_biog_em(i)+mnta_biog_em(i)+mntb_biog_em(i))
+
+       self%soas_biogenic(i,j) = voc_BiogIsopFactor*iso_biog_em(i)
+                               + voc_BiogMonxFactor*(mnt_biog_em(i)+mnta_biog_em(i)+mntb_biog_em(i))
     enddo
  enddo
 

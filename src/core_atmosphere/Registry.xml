@@ -597,6 +597,7 @@
 			<var name="background_ptrop"/>
 			<var_struct name="anth_emissions"/>
 			<var_struct name="biob_emissions"/>
+			<var_struct name="biog_emissions"/>
 #endif
 		</stream>
 
@@ -879,6 +880,7 @@
 #ifdef DO_GOCART2G
 			<var_struct name="anth_emissions"/>
 			<var_struct name="biob_emissions"/>
+			<var_struct name="biog_emissions"/>
 			<var name="background_dms"/>
 			<var name="background_h2o2"/>
 			<var name="background_oh"/>
