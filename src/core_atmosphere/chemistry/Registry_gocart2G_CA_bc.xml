@@ -106,9 +106,6 @@
      <var name="bcBCKCOEF" type="real" dimensions="nVertLevels npAOPs nCells Time" units="m^{-1} sr^{-1}"
                description="Monochromatic backscatter coefficient of black carbon aerosols at 550 nm"/>
 
-     <var name="bcPSOA" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-               description="SOA production of black carbon aerosols"/>
-
      <var name="bcANGSTR" type="real" dimensions="nCells Time" units="unitless"
                description="Angstrom parameter [470nm-870nm] of black carbon aerosols"/>
 

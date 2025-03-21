@@ -53,7 +53,7 @@
  real(kind=RKIND),dimension(:),pointer:: bcSMASS,bcCMASS,bcFLUXU,bcFLUXV
  real(kind=RKIND),dimension(:,:),pointer:: bcMASS,bcCONC
 
- real(kind=RKIND),dimension(:),pointer:: bcPSOA,bcANGSTR,bcAERIDX
+ real(kind=RKIND),dimension(:),pointer:: bcANGSTR,bcAERIDX
  real(kind=RKIND),dimension(:,:),pointer:: bcEXTTAU,bcSTEXTTAU,bcSCATAU,bcSTSCATAU
  real(kind=RKIND),dimension(:,:,:),pointer:: bcEXTCOEF,bcEXTCOEFRH20,bcEXTCOEFRH80,bcSCACOEF,bcSCACOEFRH20, &
                                              bcSCACOEFRH80,bcBCKCOEF
@@ -132,7 +132,6 @@
  call mpas_pool_get_array(CA2G_bc_aops,'bcSTEXTTAU',bcSTEXTTAU)
  call mpas_pool_get_array(CA2G_bc_aops,'bcSCATAU'  ,bcSCATAU  )
  call mpas_pool_get_array(CA2G_bc_aops,'bcSTSCATAU',bcSTSCATAU)
- call mpas_pool_get_array(CA2G_bc_aops,'bcPSOA'    ,bcPSOA    )
  call mpas_pool_get_array(CA2G_bc_aops,'bcANGSTR'  ,bcANGSTR  )
  call mpas_pool_get_array(CA2G_bc_aops,'bcAERIDX'  ,bcAERIDX  )
 
@@ -146,7 +145,6 @@
 
  do j = jts,jte
     do i = its,ite
-       bcPSOA(i)     = CA2G_bc%bcpsoa(i,j)
        bcANGSTR(i)   = CA2G_bc%bcangstr(i,j)
        bcAERIDX(i)   = CA2G_bc%bcaeridx(i,j)
     enddo
