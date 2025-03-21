@@ -315,6 +315,9 @@
 
            <var name="qsoapbb" array_group="gocart2G" units="kg kg^{-1}"
                 description="SOAPbb - lumped SOA precursor mass mixing ratio from biomass burning emissions"/>
+
+           <var name="qsoapbg" array_group="gocart2G" units="kg kg^{-1}"
+                description="SOAPbg - lumped SOA precursor mass mixing ratio from biogenic burning emissions"/>
       </var_array>
 
  </var_struct>

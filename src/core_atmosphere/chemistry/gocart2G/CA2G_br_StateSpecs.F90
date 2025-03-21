@@ -254,8 +254,8 @@
 !if(associated(self%pfi_lsan)       ) deallocate(self%pfi_lsan       )
 !if(associated(self%zle)            ) deallocate(self%zle            )
 !if(associated(self%ple)            ) deallocate(self%ple            )
-!if(associated(self%psoa_anthro_voc)) deallocate(self%psoa_anthro_voc)
-!if(associated(self%psoa_biob_voc)  ) deallocate(self%psoa_biob_voc  )
+ if(associated(self%psoa_anthro_voc)) deallocate(self%psoa_anthro_voc)
+ if(associated(self%psoa_biob_voc)  ) deallocate(self%psoa_biob_voc  )
 !........................................ .........................................................................
 !if(associated(self%br_biomass)     ) deallocate(self%br_biomass     )
 !if(associated(self%br_biofuel)     ) deallocate(self%br_biofuel     )

@@ -149,7 +149,7 @@
 
 
     !--- SOA2G:
-    if(do_SOA2G) then
+    if(do_SOA2G .or. do_CA2Gbr .or. do_CA2Goc) then
        SOA2G_params%cdt = mpas_gocart2G%dt
 
        !--- meteorological fields:
@@ -269,6 +269,8 @@
        CA2G_br%br_terpene => mpas_emis_gocart2G%br_terpene
 
        !--- chemistry fields:
+       CA2G_br%psoa_anthro_voc => SOA2G%soapa_prod
+       CA2G_br%psoa_biob_voc   => SOA2G%soapbb_prod
        CA2G_br%brphobic => mpas_gocart2G%qbrphobic
        CA2G_br%brphilic => mpas_gocart2G%qbrphilic
 
@@ -325,6 +327,8 @@
        CA2G_oc%oc_limo     => mpas_emis_gocart2G%oc_limo
 
        !--- chemistry fields:
+       CA2G_oc%psoa_anthro_voc => SOA2G%soapa_prod
+       CA2G_oc%psoa_biob_voc   => SOA2G%soapbb_prod
        CA2G_oc%ocphobic => mpas_gocart2G%qocphobic
        CA2G_oc%ocphilic => mpas_gocart2G%qocphilic
 

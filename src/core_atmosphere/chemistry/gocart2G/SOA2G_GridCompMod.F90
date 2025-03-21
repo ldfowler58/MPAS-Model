@@ -120,8 +120,6 @@
  dOAanth  = 0._RKIND
  dOAbiob  = 0._RKIND
 
- where(self%soap_a  < tiny(0._RKIND)) self%soap_a  = tiny(0._RKIND)
- where(self%soap_bb < tiny(0._RKIND)) self%soap_bb = tiny(0._RKIND)
 
  rk_OA_OH = 1.25d-11*Avogadro*self%soap_oh*self%airdens/fMassAir*(1.0e-6)*cdt 
  dsoap = (self%soap_a + self%soap_bb)*(1.-exp(-rk_OA_OH)) ! total loss of SOAP due to oxidation (kg/kg)

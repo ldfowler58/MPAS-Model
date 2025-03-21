@@ -62,6 +62,7 @@
     !--- secondary organic aerosols:
     real(kind=RKIND),dimension(:,:,:),pointer:: qsoap_a    => null()
     real(kind=RKIND),dimension(:,:,:),pointer:: qsoap_bb   => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: qsoap_bg   => null()
 
 
     !--- background DMS, OH, H2O2, and NO3:
@@ -236,6 +237,7 @@
 
  if(.not.associated(self%qsoap_a)    ) allocate(self%qsoap_a(its:ite,jts:jte,kts:kte)   )
  if(.not.associated(self%qsoap_bb)   ) allocate(self%qsoap_bb(its:ite,jts:jte,kts:kte)  )
+ if(.not.associated(self%qsoap_bg)   ) allocate(self%qsoap_bg(its:ite,jts:jte,kts:kte)  )
 
 
 !--- allocate background fields:
@@ -344,6 +346,7 @@
 
  if(associated(self%qsoap_a)    ) deallocate(self%qsoap_a    )
  if(associated(self%qsoap_bb)   ) deallocate(self%qsoap_bb   )
+ if(associated(self%qsoap_bg)   ) deallocate(self%qsoap_bg   )
 
 
 !--- allocate background fields:
@@ -405,8 +408,8 @@
  end subroutine mpas_chemistry_gocart2G_deallocate
 
 !==================================================================================================================
- subroutine mpas_chemistry_gocart2G_fromMPAS(self,CAMS_emissions,gocart2G_backgrounds,gocart2G_met,configs, &
-                                             mesh,diag,state,diag_physics,sfc_input,time_lev)
+ subroutine mpas_chemistry_gocart2G_fromMPAS(self,gocart2G_backgrounds,gocart2G_met,configs,mesh,diag,state, &
+                                             diag_physics,sfc_input,time_lev)
 !==================================================================================================================
 
 !--- input arguments:
@@ -416,7 +419,6 @@
  type(mpas_pool_type),intent(in):: sfc_input
  type(mpas_pool_type),intent(in):: mesh
  type(mpas_pool_type),intent(in):: state
- type(mpas_pool_type),intent(in):: CAMS_emissions
  type(mpas_pool_type),intent(in):: gocart2G_met
 
  integer,intent(in):: time_lev
@@ -435,7 +437,7 @@
  integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
  integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
  integer,pointer:: index_qdms,index_qmsa
- integer,pointer:: index_qsoapa,index_qsoapbb
+ integer,pointer:: index_qsoapa,index_qsoapbb,index_qsoapbg
  integer:: i,its,ite,j,jts,jte,k,kts,kte,ktep1,kk,n
  integer:: nerod
 
@@ -509,6 +511,7 @@
  call mpas_pool_get_dimension(state,'index_qmsa'     ,index_qmsa     )
  call mpas_pool_get_dimension(state,'index_qsoapa'   ,index_qsoapa   )
  call mpas_pool_get_dimension(state,'index_qsoapbb'  ,index_qsoapbb  )
+ call mpas_pool_get_dimension(state,'index_qsoapbg'  ,index_qsoapbg  )
 
 
  call mpas_pool_get_array(state,'scalars',scalars,time_lev)
@@ -545,6 +548,7 @@
           self%qmsa(i,j,kk)      = scalars(index_qmsa,k,i)
           self%qsoap_a(i,j,kk)   = scalars(index_qsoapa,k,i)
           self%qsoap_bb(i,j,kk)  = scalars(index_qsoapbb,k,i)
+          self%qsoap_bg(i,j,kk)  = scalars(index_qsoapbg,k,i)
        enddo
     enddo
  enddo
@@ -838,7 +842,7 @@
  integer,pointer:: index_qseas1,index_qseas2,index_qseas3,index_qseas4,index_qseas5
  integer,pointer:: index_qso2,index_qso2v,index_qso4,index_qso4v
  integer,pointer:: index_qdms,index_qmsa
- integer,pointer:: index_qsoapa,index_qsoapbb
+ integer,pointer:: index_qsoapa,index_qsoapbb,index_qsoapbg
  integer:: i,its,ite,j,jts,jte,k,kk,kts,kte
 
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars
@@ -885,6 +889,7 @@
  call mpas_pool_get_dimension(state,'index_qmsa'     ,index_qmsa     )
  call mpas_pool_get_dimension(state,'index_qsoapa'   ,index_qsoapa   )
  call mpas_pool_get_dimension(state,'index_qsoapbb'  ,index_qsoapbb  )
+ call mpas_pool_get_dimension(state,'index_qsoapbg'  ,index_qsoapbg  )
 
  call mpas_pool_get_array(state,'scalars',scalars,time_lev)
  do k = kts,kte
@@ -920,6 +925,7 @@
           scalars(index_qmsa,kk,i)      = self%qmsa(i,j,k)
           scalars(index_qsoapa,kk,i)    = self%qsoap_a(i,j,k)
           scalars(index_qsoapbb,kk,i)   = self%qsoap_bb(i,j,k)
+          scalars(index_qsoapbg,kk,i)   = self%qsoap_bg(i,j,k)
        enddo
     enddo
  enddo

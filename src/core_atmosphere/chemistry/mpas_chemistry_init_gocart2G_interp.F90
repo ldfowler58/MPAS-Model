@@ -638,7 +638,7 @@
  integer,pointer:: num_scalars,gocart2G_start,gocart2G_end
  integer,pointer:: num_scalars_fg,gocart2G_fg_start,gocart2G_fg_end
  integer,pointer:: index_qnh3,index_qnh4a,index_qso4
- integer,pointer:: index_qsoapa,index_qsoapbb
+ integer,pointer:: index_qsoapa,index_qsoapbb,index_qsoapbg
 
  real(kind=RKIND),dimension(:,:),pointer:: pgoc,pressure
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars_fg
@@ -724,10 +724,13 @@
 !--- initializes precursor and simple secondary organic aerosols mixing ratios:
  call mpas_pool_get_dimension(state,'index_qsoapa' ,index_qsoapa )
  call mpas_pool_get_dimension(state,'index_qsoapbb',index_qsoapbb)
+ call mpas_pool_get_dimension(state,'index_qsoapbg',index_qsoapbg)
  call mpas_log_write('--- index_qsoapa  = $i',intArgs=(/index_qsoapa/) )
  call mpas_log_write('--- index_qsoapbb = $i',intArgs=(/index_qsoapbb/))
+ call mpas_log_write('--- index_qsoapbg = $i',intArgs=(/index_qsoapbg/))
  scalars(index_qsoapa,:,:)  = 0._RKIND
  scalars(index_qsoapbb,:,:) = 0._RKIND
+ scalars(index_qsoapbg,:,:) = 0._RKIND
 
 
  call mpas_log_write('--- end subroutine init_vinterp_gocart2G.')

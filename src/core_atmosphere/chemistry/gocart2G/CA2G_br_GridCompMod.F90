@@ -273,6 +273,9 @@
  call mpas_log_write('--- enter subroutine processes_CA2G_br_GridComp:')
 
 
+ self%brphilic(:,:,:) = self%brphilic(:,:,:) + self%psoa_biob_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
+
+
 !--- add hoc transfer of hydrophobic to hydrophilic aerosols following Chin's parameterization:
 !    the rate constant is k = 4.63e-6 s-1 (.4 day-1; e-folding time = 2.5 days)
  call mpas_log_write('--- enter subroutine phobicTophilic:')

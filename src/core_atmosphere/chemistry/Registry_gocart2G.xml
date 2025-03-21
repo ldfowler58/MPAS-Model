@@ -313,6 +313,9 @@
 
            <var name="qsoapbb" array_group="gocart2G" units="kg kg^{-1}"
                 description="SOAPbb - lumped SOA precursor mass mixing ratio from biomass burning emissions"/>
+
+           <var name="qsoapbg" array_group="gocart2G" units="kg kg^{-1}"
+                description="SOAPbg - lumped SOA precursor mass mixing ratio from biogenic emissions"/>
       </var_array>
 
  </var_struct>
@@ -407,6 +410,9 @@
 
            <var name="tend_qsoapbb" name_in_code="qsoapbb" array_group="gocart2G" units="kg m^{-3} s^{-1}"
                 description="SOAPbb - tendency of biomass burning lumped SOA precursor mass per unit volume divided by d(zeta)/dz"/>
+
+           <var name="tend_qsoapbg" name_in_code="qsoapbg" array_group="gocart2G" units="kg m^{-3} s^{-1}"
+                description="SOAPbg - tendency of biogenic lumped SOA precursor mass per unit volume divided by d(zeta)/dz"/>
       </var_array>
 
  </var_struct>
