@@ -353,7 +353,7 @@
 
 
 !--- SOA2G:
- if(do_SOA2G) then
+ if(do_SOA2G .or. do_CA2Gbr .or. do_CA2Goc) then
     call mpas_log_write('--- begin initialization of SOA2G:')
 
     !initializes and allocates all parameters and arrasy related to SOA2G:
@@ -361,7 +361,6 @@
     call SOA2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
 
     call mpas_log_write('--- end initialization of SOA2G.')
-    call mpas_log_write(' ')
  endif
 
 
