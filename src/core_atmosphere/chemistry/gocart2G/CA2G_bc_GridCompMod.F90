@@ -219,8 +219,8 @@
     rhoa              = self%airdens,                &
     rh                = self%rh2,                    &
     delp              = self%delp,                   &
-    aerosolPhilic     = self%bcphobic,               &
-    aerosolPhobic     = self%bcphilic,               &
+    aerosolPhilic     = self%bcphilic,               &
+    aerosolPhobic     = self%bcphobic,               &
     oc_emis           = self%bcem,                   &
     oc_emisan         = self%bceman,                 &
     oc_emisbb         = self%bcembb,                 &
