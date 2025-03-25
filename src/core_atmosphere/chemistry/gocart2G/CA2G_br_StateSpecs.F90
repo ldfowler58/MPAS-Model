@@ -54,8 +54,7 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: pfi_lsan         => null() ! 3d_flux_of_ice_nonconvective_precipitation (kg/m2/s)
  real(kind=RKIND),dimension(:,:,:),pointer:: u                => null() ! eastward_wind (m s-1)
  real(kind=RKIND),dimension(:,:,:),pointer:: v                => null() ! northward_wind (m s-1)
- real(kind=RKIND),dimension(:,:,:),pointer:: psoa_anthro_voc  => null() ! soa from anthropogenic and biomass burning voc (kg m-3 s-1)
- real(kind=RKIND),dimension(:,:,:),pointer:: psoa_biob_voc    => null() ! soa from anthropogenic and biomass burning voc (kg m-3 s-1)
+ real(kind=RKIND),dimension(:,:,:),pointer:: psoa_biob_voc    => null() ! soa production from biomass burning voc (kg m-3 s-1)
 !..................................................................................................................
  real(kind=RKIND),dimension(:,:),pointer  :: br_biomass       => null() ! biomass burning emissions (-)
  real(kind=RKIND),dimension(:,:),pointer  :: br_biofuel       => null() ! biofuel emissions (-)
@@ -66,7 +65,6 @@
  real(kind=RKIND),dimension(:,:),pointer  :: br_aviation_cds  => null() ! climb/descent aircraft emissions (-)
  real(kind=RKIND),dimension(:,:),pointer  :: br_aviation_crs  => null() ! cruise aircraft source species (-)
  real(kind=RKIND),dimension(:,:,:),pointer:: br_aircraft      => null() ! aircraft emissions (-)
- real(kind=RKIND),dimension(:,:),pointer  :: br_terpene       => null() ! terpene emissions (-)
 
 !category: EXPORT
  real(kind=RKIND),dimension(:,:,:),pointer  :: brmass         => null() ! brown carbon aerosol mass mixing ratio (kg kg-1)
@@ -163,8 +161,7 @@
 !if(.not.associated(self%v)              ) allocate(self%v(its:ite,jts:jte,kts:kte)              )
 !if(.not.associated(self%zle)            ) allocate(self%zle(its:ite,jts:jte,kts:kte+1)          )
 !if(.not.associated(self%ple)            ) allocate(self%ple(its:ite,jts:jte,kts:kte+1)          )
- if(.not.associated(self%psoa_anthro_voc)) allocate(self%psoa_anthro_voc(its:ite,jts:jte,kts:kte))
- if(.not.associated(self%psoa_biob_voc)  ) allocate(self%psoa_biob_voc(its:ite,jts:jte,kts:kte)  )
+!if(.not.associated(self%psoa_biob_voc)  ) allocate(self%psoa_biob_voc(its:ite,jts:jte,kts:kte)  )
 !..................................................................................................................
 !if(.not.associated(self%br_biomass)     ) allocate(self%br_biomass(its:ite,jts:jte)             )
 !if(.not.associated(self%br_biofuel)     ) allocate(self%br_biofuel(its:ite,jts:jte)             )
@@ -175,7 +172,6 @@
 !if(.not.associated(self%br_aviation_cds)) allocate(self%br_aviation_cds(its:ite,jts:jte)        )
 !if(.not.associated(self%br_aviation_crs)) allocate(self%br_aviation_crs(its:ite,jts:jte)        )
 !if(.not.associated(self%br_aircraft)    ) allocate(self%br_aircraft(its:ite,jts:jte,kts:kte)    )
-!if(.not.associated(self%br_terpene)     ) allocate(self%br_terpene(its:ite,jts:jte)             )
 
 !category: EXPORT
  if(.not.associated(self%brmass)         ) allocate(self%brmass(its:ite,jts:jte,kts:kte)         )
@@ -254,8 +250,7 @@
 !if(associated(self%pfi_lsan)       ) deallocate(self%pfi_lsan       )
 !if(associated(self%zle)            ) deallocate(self%zle            )
 !if(associated(self%ple)            ) deallocate(self%ple            )
- if(associated(self%psoa_anthro_voc)) deallocate(self%psoa_anthro_voc)
- if(associated(self%psoa_biob_voc)  ) deallocate(self%psoa_biob_voc  )
+!if(associated(self%psoa_biob_voc)  ) deallocate(self%psoa_biob_voc  )
 !........................................ .........................................................................
 !if(associated(self%br_biomass)     ) deallocate(self%br_biomass     )
 !if(associated(self%br_biofuel)     ) deallocate(self%br_biofuel     )
@@ -266,7 +261,6 @@
 !if(associated(self%br_aviation_cds)) deallocate(self%br_aviation_cds)
 !if(associated(self%br_aviation_crs)) deallocate(self%br_aviation_crs)
 !if(associated(self%br_aircraft)    ) deallocate(self%br_aircraft    )
-!if(associated(self%br_terpene)     ) deallocate(self%br_terpene     )
 
 !category: EXPORT
  if(associated(self%brmass)         ) deallocate(self%brmass         )

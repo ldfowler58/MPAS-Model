@@ -172,7 +172,7 @@
 
 
  if(.not.allocated(biogvoc_src)) allocate(biogvoc_src(its:ite,jts:jte))
- biogvoc_src(:,:) = self%br_terpene
+ biogvoc_src(:,:) = 0._RKIND
 
 
 !--- apply diurnal cycle to biomass burning if needed:
@@ -204,7 +204,7 @@
     aviation_layers   = self_params%aviation_layers, &
     nbins             = self_params%nbins,           &
     grav              = grav,                        &
-    prefix            = 'BC',                        &
+    prefix            = 'BR',                        &
     terpene_src       = biogvoc_src,                 &
     biomass_src       = self%br_biomass,             &
     biofuel_src       = self%br_biofuel,             &
@@ -220,8 +220,8 @@
     rhoa              = self%airdens,                &
     rh                = self%rh2,                    &
     delp              = self%delp,                   &
-    aerosolPhilic     = self%brphobic,               &
-    aerosolPhobic     = self%brphilic,               &
+    aerosolPhilic     = self%brphilic,               &
+    aerosolPhobic     = self%brphobic,               &
     oc_emis           = self%brem,                   &
     oc_emisan         = self%breman,                 &
     oc_emisbb         = self%brembb,                 &
@@ -272,8 +272,9 @@
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine processes_CA2G_br_GridComp:')
 
-
- self%brphilic(:,:,:) = self%brphilic(:,:,:) + self%psoa_biob_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
+ if(associated(self%psoa_biob_voc)) then
+    self%brphilic(:,:,:) = self%brphilic(:,:,:) + self%psoa_biob_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
+ endif
 
 
 !--- add hoc transfer of hydrophobic to hydrophilic aerosols following Chin's parameterization:
