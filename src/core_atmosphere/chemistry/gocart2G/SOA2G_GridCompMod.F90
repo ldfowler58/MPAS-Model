@@ -73,11 +73,11 @@
  real(kind=RKIND):: cdt
  real(kind=RKIND),dimension(:,:,:),allocatable:: rk_OA_OH
  real(kind=RKIND),dimension(:,:,:),allocatable:: dsoap
- real(kind=RKIND),dimension(:,:,:),allocatable:: dOAanth,dOAbiob
+ real(kind=RKIND),dimension(:,:,:),allocatable:: dOAanth,dOAbiob,dOAbiog
  real(kind=RKIND),dimension(:,:,:),allocatable:: fanth 
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine emissions_SOA2G_GridComp:')
 
  cdt = self_params%cdt
@@ -103,11 +103,13 @@
          biomass_src  = self%soap_biomass,  &
          biogenic_src = self%soap_biogenic, &
          soap_a       = self%soap_a,        &
-         soap_bb      = self%soap_bb        &
+         soap_bb      = self%soap_bb,       &
+         soap_bg      = self%soap_bg        &
                  )
 
 
-!--- production of the lumped simple SOA due to oxidation by OH (following Kim et al. 2015):
+!--- production of the lumped simple SOA due to oxidation by OH (following Kim et al. 2015), from CO anthropogenic
+!    and biomass burning emissions:
  allocate(rk_OA_OH(its:ite,jts:jte,kts:kte))
  allocate(fanth(its:ite,jts:jte,kts:kte)   )
  allocate(dsoap(its:ite,jts:jte,kts:kte)   )
@@ -119,7 +121,6 @@
  dsoap    = 0._RKIND
  dOAanth  = 0._RKIND
  dOAbiob  = 0._RKIND
-
 
  rk_OA_OH = 1.25d-11*Avogadro*self%soap_oh*self%airdens/fMassAir*(1.0e-6)*cdt 
  dsoap = (self%soap_a + self%soap_bb)*(1.-exp(-rk_OA_OH)) ! total loss of SOAP due to oxidation (kg/kg)
@@ -136,11 +137,37 @@
  self%soapbb_prod = self%airdens*dOAbiob/cdt
 
  
+!--- production of the lumped simple SOA due to oxidation by OH (following Kim et al. 2015), from isoprene and
+!    monoterpene biogenic emissions:
+ allocate(dOAbiog(its:ite,jts:jte,kts:kte) )
+
+ rk_OA_OH = 0._RKIND
+ dsoap    = 0._RKIND
+ dOAbiog  = 0._RKIND
+
+ rk_OA_OH = 1.25d-11*Avogadro*self%soap_oh*self%airdens/fMassAir*(1.0e-6)*cdt
+ dsoap = self%soap_bg*(1.-exp(-rk_OA_OH)) ! total loss of SOAP due to oxidation (kg/kg)
+
+ where(dsoap .gt. 1.e-32)
+    dOAbiog      = dsoap                ! loss of biogenic SOAP/production of lumped SOA (kg/kg)
+    self%soap_bg = self%soap_bg - dsoap ! update biogenic SOA
+ end where
+
+ self%soapbg_prod = self%airdens*dOAbiog/cdt
+
+
+!--- additional direct production of the lumped simple SOA from isoprene and monoterpene biogenic emissions:
+ if(associated(self%soasbg_prod)) self%soasbg_prod(:,:,:) = 0._RKIND
+ self%soasbg_prod(:,:,kte) = self%soas_biogenic(:,:)*grav/self%delp(:,:,kte)
+ self%soasbg_prod(:,:,kte) = self%soasbg_prod(:,:,kte)*self%airdens(:,:,kte)
+
+
  deallocate(rk_OA_OH)
  deallocate(fanth   )
  deallocate(dsoap   )
  deallocate(dOAanth )
  deallocate(dOAbiob )
+ deallocate(dOAbiog )
 
 
  call mpas_log_write('--- end subroutine emissions_SOA2G_GridComp.')
@@ -149,7 +176,7 @@
 
 !==================================================================================================================
  subroutine SOAemission(its,ite,jts,jte,kts,kte,cdt,ratPOM,zpbl,delp,delz,ple,zle,eocant1_src, &
-                        biomass_src,biogenic_src,soap_a,soap_bb)
+                        biomass_src,biogenic_src,soap_a,soap_bb,soap_bg)
 !==================================================================================================================
 
 !--- input arguments:
@@ -164,24 +191,25 @@
  real(kind=RKIND),intent(in),dimension(:,:),pointer:: eocant1_src,biomass_src,biogenic_src
 
 !--- inout arguments:
- real(kind=RKIND),intent(inout),dimension(:,:,:),pointer:: soap_a,soap_bb
+ real(kind=RKIND),intent(inout),dimension(:,:,:),pointer:: soap_a,soap_bb,soap_bg
 
 !--- local variables and arrays:
  integer:: i,j,k,kk
  integer,dimension(:,:),allocatable:: i100,i500,ipbl
 
- real(kind=RKIND):: eAnthro,eBiomass
+ real(kind=RKIND):: eAnthro,eBiomass,eBiogenic
  real(kind=RKIND):: f100,f500,fpbl,fbot,zfactor,zp
  real(kind=RKIND),dimension(:),allocatable:: zs
  real(kind=RKIND),dimension(:,:),allocatable:: p100,p500,ppbl
- real(kind=RKIND),dimension(:,:),allocatable:: srcAnthro,srcBiomass
+ real(kind=RKIND),dimension(:,:),allocatable:: srcAnthro,srcBiomass,srcBiogenic
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine SOAemission:')
 
- allocate(srcAnthro(its:ite,jts:jte) )
- allocate(srcBiomass(its:ite,jts:jte))
+ allocate(srcAnthro(its:ite,jts:jte)  )
+ allocate(srcBiomass(its:ite,jts:jte) )
+ allocate(srcBiogenic(its:ite,jts:jte))
 
  allocate(i100(its:ite,jts:jte))
  allocate(i500(its:ite,jts:jte))
@@ -193,8 +221,9 @@
  allocate(ppbl(its:ite,kts:kte))
 
 
- eAnthro  = ratPOM
- eBiomass = ratPOM
+ eAnthro   = ratPOM
+ eBiomass  = ratPOM
+ eBiogenic = ratPOM
 
 
 !--- finds the pressure of the 100 meters, 500 meters, and PBL height:
@@ -255,18 +284,25 @@
              fpbl = zfactor*(ple(i,j,k+1)-ppbl(i,j))
           endif
 
-          srcAnthro(i,j) = f100*eAnthro*eocant1_src(i,j)
-          srcBiomass(i,j) = fpbl*eBiomass*biomass_src(i,j)
+          fbot = 0._RKIND
+          if(k .eq. kte) fbot = 1._RKIND
+
+          srcAnthro(i,j)   = f100*eAnthro*eocant1_src(i,j)
+          srcBiomass(i,j)  = fpbl*eBiomass*biomass_src(i,j)
+          srcBiogenic(i,j) = fbot*eBiogenic*biogenic_src(i,j)
 
           zfactor = cdt*grav/delp(i,j,k)
-          soap_a(i,j,k) = soap_a(i,j,k) + zfactor*srcAnthro(i,j)
+          soap_a(i,j,k)  = soap_a(i,j,k)  + zfactor*srcAnthro(i,j)
           soap_bb(i,j,k) = soap_bb(i,j,k) + zfactor*srcBiomass(i,j)
+          soap_bg(i,j,k) = soap_bg(i,j,k) + zfactor*srcBiogenic(i,j)
        enddo
     enddo
  enddo
 
- deallocate(srcAnthro )
- deallocate(srcBiomass)
+
+ deallocate(srcAnthro  )
+ deallocate(srcBiomass )
+ deallocate(srcBiogenic)
 
  deallocate(i100)
  deallocate(i500)

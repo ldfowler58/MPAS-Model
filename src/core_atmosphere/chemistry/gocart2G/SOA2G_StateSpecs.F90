@@ -8,6 +8,7 @@
 !=================================================================================================================
  module SOA2G_StateSpecs
  use mpas_kind_types,only: RKIND
+ use mpas_log
 
  implicit none
  public
@@ -28,20 +29,24 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: delz          => null() ! geometric_layer_thickness (m)
  real(kind=RKIND),dimension(:,:,:),pointer:: zle           => null() ! geopotential_height (m)
  real(kind=RKIND),dimension(:,:,:),pointer:: ple           => null() ! air_pressure (Pa)
- real(kind=RKIND),dimension(:,:,:),pointer:: soap_oh       => null() !climatological oh source (mole mole-1)
+ real(kind=RKIND),dimension(:,:,:),pointer:: soap_oh       => null() ! climatological oh source (mole mole-1)
 !..................................................................................................................
  real(kind=RKIND),dimension(:,:),pointer  :: soap_anthro   => null() ! SOAP anthropogenic emissions (kg m-2 s-1)
  real(kind=RKIND),dimension(:,:),pointer  :: soap_biomass  => null() ! SOAP biomass burning emissions (kg m-2 s-1)
  real(kind=RKIND),dimension(:,:),pointer  :: soap_biofuel  => null() ! SOAP biofuel emissions (kg m-2 s-1)
  real(kind=RKIND),dimension(:,:),pointer  :: soap_biogenic => null() ! SOAP biogenic emissions (kg m-2 s-1)
+ real(kind=RKIND),dimension(:,:),pointer  :: soas_biogenic => null() ! SOAS biogenic emissions (kg m-2 s-1)
 
 !category: EXPORT
  real(kind=RKIND),dimension(:,:,:),pointer:: soapa_prod    => null() ! SOAP anthropogenic production (kg m-3 s-1)
  real(kind=RKIND),dimension(:,:,:),pointer:: soapbb_prod   => null() ! SOAP biomass burning production (kg m-3 s-1)
+ real(kind=RKIND),dimension(:,:,:),pointer:: soapbg_prod   => null() ! SOAP biogenic production (kg m-3 s-1)
+ real(kind=RKIND),dimension(:,:,:),pointer:: soasbg_prod   => null() ! SOAS biogenic production (kg m-3 s-1)
 
 !category: INTERNAL
- real(kind=RKIND),dimension(:,:,:),pointer:: soap_a        => null() !
- real(kind=RKIND),dimension(:,:,:),pointer:: soap_bb       => null() ! 
+ real(kind=RKIND),dimension(:,:,:),pointer:: soap_a        => null() ! SOAP mass mixing ratio due to soapa_prod
+ real(kind=RKIND),dimension(:,:,:),pointer:: soap_bb       => null() ! SOAP mass mixing ratio due to soapbb_prod
+ real(kind=RKIND),dimension(:,:,:),pointer:: soap_bg       => null() ! SOAP mass mixing ratio due to soapbg_prod
  
 
  contains
@@ -64,7 +69,11 @@
 !--- inout arguments:
  class(SOA2G_State),intent(inout):: self
 
+!--- local variables:
+ integer:: i,j,k
+
 !-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write('--- enter subroutine SOA2G_StateSpecsInit:')
 
 !category: IMPORT
 !if(.not.associated(self%zpbl)         ) allocate(self%zpbl(its:ite,jts:jte)               )
@@ -80,14 +89,20 @@
 !if(.not.associated(self%soap_biomass) ) allocate(self%soap_biomass(its:ite,jts:jte)       )
 !if(.not.associated(self%soap_biofuel) ) allocate(self%soap_biofuel(its:ite,jts:jte)       )
 !if(.not.associated(self%soap_biogenic)) allocate(self%soap_biogenic(its:ite,jts:jte)      )
+!if(.not.associated(self%soas_biogenic)) allocate(self%soas_biogenic(its:ite,jts:jte)      )
 
 !category: EXPORT
- if(.not.associated(self%soapa_prod)   ) allocate(self%soapa_prod(its:ite,jts:jte,kts:kte) )
- if(.not.associated(self%soapbb_prod)  ) allocate(self%soapbb_prod(its:ite,jts:jte,kts:kte))
+ allocate(self%soapa_prod(its:ite,jts:jte,kts:kte) )
+ allocate(self%soapbb_prod(its:ite,jts:jte,kts:kte))
+ allocate(self%soapbg_prod(its:ite,jts:jte,kts:kte))
+ allocate(self%soasbg_prod(its:ite,jts:jte,kts:kte))
 
 !category: INTERNAL
 !if(.not.associated(self%soap_a)       ) allocate(self%soap_a(its:ite,jts:jte,kts_kte)     )
 !if(.not.associated(self%soap_bb)      ) allocate(self%soap_bb(its:ite,jts:jte,kts_kte)    )
+!if(.not.associated(self%soap_bg)      ) allocate(self%soap_bg(its:ite,jts:jte,kts_kte)    )
+
+ call mpas_log_write('--- end subroutine SOA2G_StateSpecsInit.')
 
  end subroutine SOA2G_StateSpecsInit
 
@@ -99,6 +114,7 @@
  class(SOA2G_State),intent(inout) :: self
 
 !-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write('--- enter subroutine SOA2G_StateSpecsFinalize:')
 
 !category: IMPORT
 !if(associated(self%zpbl)         ) deallocate(self%zpbl         )
@@ -114,14 +130,20 @@
 !if(associated(self%soap_biomass) ) deallocate(self%soap_biomass )
 !if(associated(self%soap_biofuel) ) deallocate(self%soap_biofuel )
 !if(associated(self%soap_biogenic)) deallocate(self%soap_biogenic)
+!if(associated(self%soas_biogenic)) deallocate(self%soas_biogenic)
 
 !category: EXPORT
- if(associated(self%soapa_prod)   ) deallocate(self%soapa_prod   )
- if(associated(self%soapbb_prod)  ) deallocate(self%soapbb_prod  )
+ if(associated(self%soapa_prod)    ) deallocate(self%soapa_prod  )
+ if(associated(self%soapbb_prod)   ) deallocate(self%soapbb_prod )
+ if(associated(self%soapbg_prod)   ) deallocate(self%soapbg_prod )
+ if(associated(self%soasbg_prod)   ) deallocate(self%soasbg_prod )
 
 !category: INTERNAL
 !if(associated(self%soap_a)       ) deallocate(self%soap_a       )
 !if(associated(self%soap_bb)      ) deallocate(self%soap_bb      )
+!if(associated(self%soap_bg)      ) deallocate(self%soap_bg      )
+
+ call mpas_log_write('--- end subroutine SOA2G_StateSpecsFinalize.')
 
  end subroutine SOA2G_StateSpecsFinalize
 
