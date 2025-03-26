@@ -54,8 +54,9 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: pfi_lsan         => null() ! 3d_flux_of_ice_nonconvective_precipitation (kg/m2/s)
  real(kind=RKIND),dimension(:,:,:),pointer:: u                => null() ! eastward_wind (m s-1)
  real(kind=RKIND),dimension(:,:,:),pointer:: v                => null() ! northward_wind (m s-1)
- real(kind=RKIND),dimension(:,:,:),pointer:: psoa_anthro_voc  => null() ! soa from anthropogenic and biomass burning voc (kg m-3 s-1)
- real(kind=RKIND),dimension(:,:,:),pointer:: psoa_biob_voc    => null() ! soa from anthropogenic and biomass burning voc (kg m-3 s-1)
+ real(kind=RKIND),dimension(:,:,:),pointer:: psoa_anthro_voc  => null() ! soa production from anthropogenic voc (kg m-3 s-1)
+ real(kind=RKIND),dimension(:,:,:),pointer:: psoap_biog_voc   => null() ! soap production from biogenic voc (kg m-3 s-1)
+ real(kind=RKIND),dimension(:,:,:),pointer:: psoas_biog_voc   => null() ! soas production from biogenic voc (kg m-3 s-1)
 !..................................................................................................................
  real(kind=RKIND),dimension(:,:),pointer  :: oc_biomass       => null() ! biomass burning emissions (-)
  real(kind=RKIND),dimension(:,:),pointer  :: oc_biofuel       => null() ! biofuel emissions (-)
@@ -66,10 +67,6 @@
  real(kind=RKIND),dimension(:,:),pointer  :: oc_aviation_cds  => null() ! climb/descent aircraft emissions (-)
  real(kind=RKIND),dimension(:,:),pointer  :: oc_aviation_crs  => null() ! cruise aircraft source species (-)
  real(kind=RKIND),dimension(:,:,:),pointer:: oc_aircraft      => null() ! aircraft emissions (-)
- real(kind=RKIND),dimension(:,:),pointer  :: oc_isoprene      => null() ! source species (-)
- real(kind=RKIND),dimension(:,:),pointer  :: oc_mtpa          => null() ! source species (-)
- real(kind=RKIND),dimension(:,:),pointer  :: oc_mtpo          => null() ! source species (-)
- real(kind=RKIND),dimension(:,:),pointer  :: oc_limo          => null() ! source species (-)
 
 !category: EXPORT
  real(kind=RKIND),dimension(:,:,:),pointer  :: ocmass         => null() ! organic carbon aerosol mass mixing ratio (kg kg-1)
@@ -166,8 +163,9 @@
 !if(.not.associated(self%v)              ) allocate(self%v(its:ite,jts:jte,kts:kte)              )
 !if(.not.associated(self%zle)            ) allocate(self%zle(its:ite,jts:jte,kts:kte+1)          )
 !if(.not.associated(self%ple)            ) allocate(self%ple(its:ite,jts:jte,kts:kte+1)          )
- if(.not.associated(self%psoa_anthro_voc)) allocate(self%psoa_anthro_voc(its:ite,jts:jte,kts:kte))
- if(.not.associated(self%psoa_biob_voc)  ) allocate(self%psoa_biob_voc(its:ite,jts:jte,kts:kte)  )
+!if(.not.associated(self%psoa_anthro_voc)) allocate(self%psoa_anthro_voc(its:ite,jts:jte,kts:kte))
+!if(.not.associated(self%psoap_biog_voc) ) allocate(self%psoap_biog_voc(its:ite,jts:jte,kts:kte) )
+!if(.not.associated(self%psoas_biog_voc) ) allocate(self%psoas_biog_voc(its:ite,jts:jte,kts:kte) )
 !..................................................................................................................
 !if(.not.associated(self%oc_biomass)     ) allocate(self%oc_biomass(its:ite,jts:jte)             )
 !if(.not.associated(self%oc_biofuel)     ) allocate(self%oc_biofuel(its:ite,jts:jte)             )
@@ -178,10 +176,6 @@
 !if(.not.associated(self%oc_aviation_cds)) allocate(self%oc_aviation_cds(its:ite,jts:jte)        )
 !if(.not.associated(self%oc_aviation_crs)) allocate(self%oc_aviation_crs(its:ite,jts:jte)        )
 !if(.not.associated(self%oc_aircraft)    ) allocate(self%oc_aircraft(its:ite,jts:jte,kts:kte)    )
-!if(.not.associated(self%oc_isoprene)    ) allocate(self%oc_isoprene(its:ite,jts:jte)            )
-!if(.not.associated(self%oc_mtpa)        ) allocate(self%oc_mtpa(its:ite,jts:jte)                )
-!if(.not.associated(self%oc_mtpo)        ) allocate(self%oc_mtpo(its:ite,jts:jte)                )
-!if(.not.associated(self%oc_limo)        ) allocate(self%oc_limo(its:ite,jts:jte)                )
 
 !category: EXPORT
  if(.not.associated(self%ocmass)         ) allocate(self%ocmass(its:ite,jts:jte,kts:kte)         )
@@ -260,8 +254,9 @@
 !if(associated(self%pfi_lsan)       ) deallocate(self%pfi_lsan       )
 !if(associated(self%zle)            ) deallocate(self%zle            )
 !if(associated(self%ple)            ) deallocate(self%ple            )
- if(associated(self%psoa_anthro_voc)) deallocate(self%psoa_anthro_voc)
- if(associated(self%psoa_biob_voc)  ) deallocate(self%psoa_biob_voc  )
+!if(associated(self%psoa_anthro_voc)) deallocate(self%psoa_anthro_voc)
+!if(associated(self%psoap_biog_voc) ) deallocate(self%psoap_biog_voc )
+!if(associated(self%psoas_biog_voc) ) deallocate(self%psoas_biog_voc )
 !..................................................................................................................
 !if(associated(self%oc_biomass)     ) deallocate(self%oc_biomass     )
 !if(associated(self%oc_biofuel)     ) deallocate(self%oc_biofuel     )
@@ -272,10 +267,6 @@
 !if(associated(self%oc_aviation_cds)) deallocate(self%oc_aviation_cds)
 !if(associated(self%oc_aviation_crs)) deallocate(self%oc_aviation_crs)
 !if(associated(self%oc_aircraft)    ) deallocate(self%oc_aircraft    )
-!if(associated(self%oc_isoprene)    ) deallocate(self%oc_isoprene    )
-!if(associated(self%oc_mtpa)        ) deallocate(self%oc_mtpa        )
-!if(associated(self%oc_mtpo)        ) deallocate(self%oc_mtpo        )
-!if(associated(self%oc_limo)        ) deallocate(self%oc_limo        )
 
 !category: EXPORT
  if(associated(self%ocmass)         ) deallocate(self%ocmass         )

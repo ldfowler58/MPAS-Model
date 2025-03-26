@@ -174,8 +174,7 @@
 
 
  if(.not.allocated(biogvoc_src)) allocate(biogvoc_src(its:ite,jts:jte))
- biogvoc_src(:,:) = (self%oc_mtpa+self%oc_mtpo+self%oc_limo)*self_params%fMonoterpenes &
-                  + self%oc_isoprene*self_params%fIsoprene
+ biogvoc_src(:,:) = 0._RKIND
 
 
 !--- apply diurnal cycle to biomass burning if needed:
@@ -223,8 +222,8 @@
     rhoa              = self%airdens,                &
     rh                = self%rh2,                    &
     delp              = self%delp,                   &
-    aerosolPhilic     = self%ocphobic,               &
-    aerosolPhobic     = self%ocphilic,               &
+    aerosolPhilic     = self%ocphilic,               &
+    aerosolPhobic     = self%ocphobic,               &
     oc_emis           = self%ocem,                   &
     oc_emisan         = self%oceman,                 &
     oc_emisbb         = self%ocembb,                 &
@@ -275,8 +274,12 @@
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine processes_CA2G_oc_GridComp:')
 
-
- self%ocphilic(:,:,:) = self%ocphilic(:,:,:) + self%psoa_anthro_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
+ if(associated(self%psoa_anthro_voc)) &
+    self%ocphilic(:,:,:) = self%ocphilic(:,:,:) + self%psoa_anthro_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
+ if(associated(self%psoap_biog_voc)) &
+    self%ocphilic(:,:,:) = self%ocphilic(:,:,:) + self%psoap_biog_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
+ if(associated(self%psoas_biog_voc)) &
+    self%ocphilic(:,:,:) = self%ocphilic(:,:,:) + self%psoas_biog_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
 
 
 !--- add hoc transfer of hydrophobic to hydrophilic aerosols following Chin's parameterization:
