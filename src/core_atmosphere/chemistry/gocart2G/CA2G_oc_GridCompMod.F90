@@ -274,12 +274,38 @@
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine processes_CA2G_oc_GridComp:')
 
- if(associated(self%psoa_anthro_voc)) &
+
+ if(associated(self%ocpsoa)) self%ocpsoa(:,:) = 0._RKIND
+
+ if(associated(self%psoa_anthro_voc)) then
     self%ocphilic(:,:,:) = self%ocphilic(:,:,:) + self%psoa_anthro_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
- if(associated(self%psoap_biog_voc)) &
+    if(associated(self%ocpsoa)) then
+       do k = kts,kte
+          self%ocpsoa(:,:) = self%ocpsoa(:,:) + self%psoa_anthro_voc(:,:,k)*self%delp(:,:,k)/grav &
+                           / self%airdens(:,:,k)
+       enddo
+    endif
+ endif
+
+ if(associated(self%psoap_biog_voc)) then
     self%ocphilic(:,:,:) = self%ocphilic(:,:,:) + self%psoap_biog_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
- if(associated(self%psoas_biog_voc)) &
+    if(associated(self%ocpsoa)) then
+       do k = kts,kte
+          self%ocpsoa(:,:) = self%ocpsoa(:,:) + self%psoap_biog_voc(:,:,k)*self%delp(:,:,k)/grav &
+                           / self%airdens(:,:,k)
+       enddo
+    endif
+ endif
+
+ if(associated(self%psoas_biog_voc)) then
     self%ocphilic(:,:,:) = self%ocphilic(:,:,:) + self%psoas_biog_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
+    if(associated(self%ocpsoa)) then
+       do k = kts,kte
+          self%ocpsoa(:,:) = self%ocpsoa(:,:) + self%psoa_anthro_voc(:,:,k)*self%delp(:,:,k)/grav &
+                           / self%airdens(:,:,k)
+       enddo
+    endif
+ endif
 
 
 !--- add hoc transfer of hydrophobic to hydrophilic aerosols following Chin's parameterization:

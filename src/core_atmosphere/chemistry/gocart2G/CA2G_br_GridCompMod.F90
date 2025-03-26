@@ -274,6 +274,13 @@
 
  if(associated(self%psoa_biob_voc)) then
     self%brphilic(:,:,:) = self%brphilic(:,:,:) + self%psoa_biob_voc(:,:,:)*self_params%cdt/self%airdens(:,:,:)
+    if(associated(self%brpsoa)) then
+       self%brpsoa(:,:) = 0._RKIND
+       do k = kts,kte
+          self%brpsoa(:,:) = self%brpsoa(:,:) + self%psoa_biob_voc(:,:,k)*self%delp(:,:,k)/grav &
+                           / self%airdens(:,:,k)
+       enddo
+    endif
  endif
 
 
