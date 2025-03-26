@@ -21,7 +21,7 @@
  real(kind=RKIND),parameter:: voc_AnthroFactor      = 0.069 ! (g/g CO)
  real(kind=RKIND),parameter:: voc_BiomassBurnFactor = 0.013 ! (g/g CO)
  real(kind=RKIND),parameter:: voc_BiogIsopFactor    = 0.015 ! (-)
- real(kind=RKIND),parameter:: voc_BiogMonxFactor    = 0.005 ! (-)
+ real(kind=RKIND),parameter:: voc_BiogMonxFactor    = 0.050 ! (-)
 
 
  type,public:: emis_gocart2G
@@ -90,12 +90,6 @@
     real(kind=RKIND),dimension(:,:),pointer:: soas_biofuel    => null()
 
     !--- biogenic emissions:
-    real(kind=RKIND),dimension(:,:),pointer:: br_terpene      => null()
-    real(kind=RKIND),dimension(:,:),pointer:: oc_isoprene     => null()
-    real(kind=RKIND),dimension(:,:),pointer:: oc_mtpa         => null()
-    real(kind=RKIND),dimension(:,:),pointer:: oc_mtpo         => null()
-    real(kind=RKIND),dimension(:,:),pointer:: oc_limo         => null()
-
     real(kind=RKIND),dimension(:,:),pointer:: soap_biogenic   => null()
     real(kind=RKIND),dimension(:,:),pointer:: soas_biogenic   => null()
 
@@ -189,12 +183,6 @@
 
 
 !--- biogenic emissions:
- if(.not.associated(self%br_terpene)     ) allocate(self%br_terpene(its:ite,jts:jte)         )
- if(.not.associated(self%oc_isoprene)    ) allocate(self%oc_isoprene(its:ite,jts:jte)        )
- if(.not.associated(self%oc_mtpa)        ) allocate(self%oc_mtpa(its:ite,jts:jte)            )
- if(.not.associated(self%oc_mtpo)        ) allocate(self%oc_mtpo(its:ite,jts:jte)            )
- if(.not.associated(self%oc_limo)        ) allocate(self%oc_limo(its:ite,jts:jte)            )
-
  if(.not.associated(self%soap_biogenic)  ) allocate(self%soap_biogenic(its:ite,jts:jte)      )
  if(.not.associated(self%soas_biogenic)  ) allocate(self%soas_biogenic(its:ite,jts:jte)      )
 
@@ -280,12 +268,6 @@
 
 
 !--- biogenic emissions:
- if(associated(self%br_terpene)     ) deallocate(self%br_terpene     )
- if(associated(self%oc_isoprene)    ) deallocate(self%oc_isoprene    )
- if(associated(self%oc_mtpa)        ) deallocate(self%oc_mtpa        )
- if(associated(self%oc_mtpo)        ) deallocate(self%oc_mtpo        )
- if(associated(self%oc_limo)        ) deallocate(self%oc_limo        )
-
  if(associated(self%soap_biogenic)  ) deallocate(self%soap_biogenic  )
  if(associated(self%soas_biogenic)  ) deallocate(self%soas_biogenic  )
 
@@ -505,17 +487,11 @@
 
  do j = jts,jte
     do i = its,ite
-       self%br_terpene(i,j)  = 0._RKIND
-       self%oc_isoprene(i,j) = 0._RKIND
-       self%oc_mtpa(i,j)     = 0._RKIND
-       self%oc_mtpo(i,j)     = 0._RKIND
-       self%oc_limo(i,j)     = 0._RKIND
-
        !--- secondary organic aerosols:
-       self%soap_biogenic(i,j) = voc_BiogIsopFactor*iso_biog_em(i)
+       self%soap_biogenic(i,j) = voc_BiogIsopFactor*iso_biog_em(i) &
                                + voc_BiogMonxFactor*(mnt_biog_em(i)+mnta_biog_em(i)+mntb_biog_em(i))
 
-       self%soas_biogenic(i,j) = voc_BiogIsopFactor*iso_biog_em(i)
+       self%soas_biogenic(i,j) = voc_BiogIsopFactor*iso_biog_em(i) &
                                + voc_BiogMonxFactor*(mnt_biog_em(i)+mnta_biog_em(i)+mntb_biog_em(i))
     enddo
  enddo

@@ -51,7 +51,6 @@
  type(mpas_pool_type),pointer:: diag
  type(mpas_pool_type),pointer:: diag_physics
  type(mpas_pool_type),pointer:: sfc_input
- type(mpas_pool_type),pointer:: CAMS_emissions
  type(mpas_pool_type),pointer:: gocart2G_backgrounds
  type(mpas_pool_type),pointer:: gocart2G_met
 
@@ -144,8 +143,8 @@
 
 
     !--- fills local chemistry arrays with global chemistry arrays:
-    call mpas_gocart2G%gocart2G_fromMPAS(CAMS_emissions,gocart2G_backgrounds,gocart2G_met,block%configs, &
-                                         mesh,diag,state,diag_physics,sfc_input,time_lev)
+    call mpas_gocart2G%gocart2G_fromMPAS(gocart2G_backgrounds,gocart2G_met,block%configs,mesh,diag,state, &
+                                         diag_physics,sfc_input,time_lev)
 
 
     !--- SOA2G:
@@ -170,10 +169,12 @@
 
        !--- biogenic emissions:
        SOA2G%soap_biogenic => mpas_emis_gocart2G%soap_biogenic
+       SOA2G%soas_biogenic => mpas_emis_gocart2G%soas_biogenic
 
        !--- chemistry fields:
        SOA2G%soap_a  => mpas_gocart2G%qsoap_a
        SOA2G%soap_bb => mpas_gocart2G%qsoap_bb
+       SOA2G%soap_bg => mpas_gocart2G%qsoap_bg
        SOA2G%soap_oh => mpas_gocart2G%backg_oh
 
        !--- gocart2G processes:
@@ -266,11 +267,9 @@
        CA2G_br%br_biofuel => mpas_emis_gocart2G%br_biofuel
 
        !--- biogenic emissions:
-       CA2G_br%br_terpene => mpas_emis_gocart2G%br_terpene
+       CA2G_br%psoa_biob_voc => SOA2G%soapbb_prod
 
        !--- chemistry fields:
-       CA2G_br%psoa_anthro_voc => SOA2G%soapa_prod
-       CA2G_br%psoa_biob_voc   => SOA2G%soapbb_prod
        CA2G_br%brphobic => mpas_gocart2G%qbrphobic
        CA2G_br%brphilic => mpas_gocart2G%qbrphilic
 
@@ -315,20 +314,17 @@
        CA2G_oc%oc_aircraft     => mpas_emis_gocart2G%oc_aircraft
 
        !--- biomass burning emissions:
-       CA2G_oc%oc_biomass => mpas_emis_gocart2G%oc_biomass
+       CA2G_oc%oc_biomass      => mpas_emis_gocart2G%oc_biomass
+       CA2G_oc%psoa_anthro_voc => SOA2G%soapa_prod
 
        !--- biofuel emissions:
        CA2G_oc%oc_biofuel  => mpas_emis_gocart2G%oc_biofuel
 
        !--- biogenic emissions:
-       CA2G_oc%oc_isoprene => mpas_emis_gocart2G%oc_isoprene
-       CA2G_oc%oc_mtpa     => mpas_emis_gocart2G%oc_mtpa
-       CA2G_oc%oc_mtpo     => mpas_emis_gocart2G%oc_mtpo
-       CA2G_oc%oc_limo     => mpas_emis_gocart2G%oc_limo
+       CA2G_oc%psoap_biog_voc => SOA2G%soapbg_prod
+       CA2G_oc%psoas_biog_voc => SOA2G%soasbg_prod
 
        !--- chemistry fields:
-       CA2G_oc%psoa_anthro_voc => SOA2G%soapa_prod
-       CA2G_oc%psoa_biob_voc   => SOA2G%soapbb_prod
        CA2G_oc%ocphobic => mpas_gocart2G%qocphobic
        CA2G_oc%ocphilic => mpas_gocart2G%qocphilic
 
