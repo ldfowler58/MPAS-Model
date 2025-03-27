@@ -459,7 +459,6 @@
  else
     call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
  endif
-!return
 
 
 !--- CA2G_oc diagnostics:
@@ -535,8 +534,6 @@
  else
     call mpas_log_write('--- end subroutine Aero_Compute_Diags.')
  endif
- if(allocated(qca2G)) deallocate(qca2G)
- return
 
 
  i1 = lbound(self%rh2,1); i2 = ubound(self%rh2,1)

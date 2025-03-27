@@ -438,7 +438,7 @@
  endif
 
 
-!--- CA2G_bc diagnostics:
+!--- CA2G_br diagnostics:
  do j = jts,jte
     do i = its,ite
        do k = kts,kte
