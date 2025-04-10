@@ -1,0 +1,98 @@
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G INTERACTIONS WITH PHYSICS:                                                                       -->
+<!-- ========================================================================================================== -->
+
+ <var_struct name="diag_physics" time_levs="1">
+
+      <var name="drydepv" type="real" dimensions="nVertLevels nCells Time" units="m s^{-1}"
+           description="Dry deposition vertical velocity"/>
+
+ </var_struct>
+
+
+ <var_struct name="tend_chemistry" time_levs="1">
+
+      <var_array name="bl_chemistry" type="real" dimensions="nVertLevels nCells Time">
+           <var name="bl_qbcphobic" name_in_code="qbcphobic" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="BCPHOBIC - tendency of hydrophobic black carbon due to dry deposition"/>
+
+           <var name="bl_qbcphilic" name_in_code="qbcphilic" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="BCPHILIC - tendency of hydrophilic black carbon due to dry deposition"/>
+
+           <var name="bl_qbrphobic" name_in_code="qbrphobic" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="BRPHOBIC - tendency of hydrophobic brown carbon due to dry deposition"/>
+
+           <var name="bl_qbrphilic" name_in_code="qbrphilic" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="BCPHILIC - tendency of hydrophilic brown carbon due to dry deposition"/>
+
+           <var name="bl_qocphobic" name_in_code="qocphobic" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="OCPHOBIC - tendency of hydrophobic organic carbon due to dry deposition"/>
+
+           <var name="bl_qocphilic" name_in_code="qocphilic" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="OCPHILIC - tendency of hydrophilic organic carbon due to dry deposition"/>
+
+           <var name="bl_qdust1" name_in_code="qdust1" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="DU001 - tendency of mineral dust size bin 1 due to dry deposition"/>
+
+           <var name="bl_qdust2" name_in_code="qdust2" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="DU002 - tendency of mineral dust size bin 2 due to dry deposition"/>
+
+           <var name="bl_qdust3" name_in_code="qdust3" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="DU003 - tendency of mineral dust size bin 3 due to dry deposition"/>
+
+           <var name="bl_qdust4" name_in_code="qdust4" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="DU004 - tendency of mineral dust size bin 4 due to dry deposition"/>
+
+           <var name="bl_qdust5" name_in_code="qdust5" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="DU005 - tendency of mineral dust size bin 5 due to dry deposition"/>
+
+           <var name="bl_qni1" name_in_code="qni1" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="NI001 - tendency of nitrate size bin 1 due to dry deposition"/>
+
+           <var name="bl_qni2" name_in_code="qni2" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="NI002 - tendency of nitrate size bin 2 due to dry deposition"/>
+
+           <var name="bl_qni3" name_in_code="qni3" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="NI003 - tendency of nitrate size bin 3 due to dry deposition"/>
+
+           <var name="bl_qso2" name_in_code="qso2" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="SO2 - tendency of sulfur dioxide due to dry deposition"/>
+
+           <var name="bl_qso2v" name_in_code="qso2v" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="SO2v - tendency of sulfur dioxide (volcanic) due to dry deposition"/>
+
+           <var name="bl_qso4" name_in_code="qso4" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="SO4 - tendency of sulfate due to dry deposition"/>
+
+           <var name="bl_qso4v" name_in_code="qso4v" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="SO4v - tendency of sulfate (volcanic) due to dry deposition"/>
+
+           <var name="bl_qseas1" name_in_code="qseas1" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="SEAS1 - tendency of sea-salt size bin 1 due to dry deposition"/>
+
+           <var name="bl_qseas2" name_in_code="qseas2" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="SEAS2 - tendency of sea-salt size bin 2 due to dry deposition"/>
+
+           <var name="bl_qseas3" name_in_code="qseas3" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="SEAS3 - tendency of sea-salt size bin 3 due to dry deposition"/>
+
+           <var name="bl_qseas4" name_in_code="qseas4" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="SEAS4 - tendency of sea-salt size bin 4 due to dry deposition"/>
+
+           <var name="bl_qseas5" name_in_code="qseas5" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="SEAS5 - tendency of sea-salt size bin 5 due to dry deposition"/>
+
+           <var name="bl_qdms" name_in_code="qdms" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="DMS - tendency of dimethyl sulfide due to dry deposition"/>
+
+           <var name="bl_qmsa" name_in_code="qmsa" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="MSA - tendency of methanesulfonic acid due to dry deposition"/>
+
+           <var name="bl_qnh3" name_in_code="qnh3" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="NH3 - tendency of ammonia due to dry deposition"/>
+
+           <var name="bl_qnh4a" name_in_code="qnh4a" array_group="gocart2G" units="kg kg^{-1} s^{-1}"
+                description="NH4a - tendency of ammonium ion due to dry deposition"/>
+      </var_array>
+
+ </var_struct>
