@@ -158,6 +158,11 @@
            description="filename of optics-related variables needed to compute AOPs for sulfate (RRTMG)"
            possible_values="`opticsBands_SU.v1_3.RRTMG.nc'"/>
 
+      <nml_option name="config_gocart2G_toMYNN" type="logical" default_value="false"
+           in_defaults="false" units="-"
+           description="set to true to include the mixing in the PBL and free-troposphere in MYNN"
+           possible_values="True,False"/>
+
  </nml_record>
 
 
@@ -532,6 +537,7 @@
 
 #include "Registry_gocart2G_emissions_update.xml"
 #include "Registry_gocart2G_emissions.xml"
+#include "Registry_gocart2G_tophysics.xml"
 #include "Registry_gocart2G_AOPs.xml"
 #include "Registry_gocart2G_CA_bc.xml"
 #include "Registry_gocart2G_CA_br.xml"

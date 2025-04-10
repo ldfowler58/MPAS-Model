@@ -597,7 +597,7 @@ module atm_core
 
       call init_gocart2G_timetracker(block % configs, clock)
       call init_gocart2G_emissions(mesh, anth_emissions, biob_emissions, biog_emissions)
-      call init_gocart2G_chemistry(dminfo, block % configs, mesh)
+      call init_gocart2G_chemistry(dminfo, block % configs, mesh, state)
 #endif
 
       call atm_compute_mesh_scaling(mesh, block % configs)

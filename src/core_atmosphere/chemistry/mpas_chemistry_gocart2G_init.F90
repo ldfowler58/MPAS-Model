@@ -26,13 +26,14 @@
 
 
 !==================================================================================================================
- subroutine init_gocart2G_chemistry(dminfo,configs,mesh)
+ subroutine init_gocart2G_chemistry(dminfo,configs,mesh,state)
 !==================================================================================================================
 
 !--- input arguments:
  type(dm_info),intent(in):: dminfo
  type(mpas_pool_type),intent(in):: configs
  type(mpas_pool_type),intent(in):: mesh
+ type(mpas_pool_type),intent(in):: state
 
 !--- local variables:
  character(len=StrKIND):: fnm,message
@@ -44,6 +45,8 @@
  logical,pointer:: do_NI2G,do_DU2G,do_SS2G,do_SU2G
  logical,pointer:: do_SOA2G
  logical:: do_GOCART2G
+
+ logical,pointer:: to_MYNN
 
  integer:: its,ite,jts,jte,kts,kte,nerod
  integer:: ic,ch_size
@@ -77,6 +80,8 @@
  call mpas_pool_get_config(configs,'config_gocart2G_do_SU2G'  ,do_SU2G  )
  call mpas_pool_get_config(configs,'config_gocart2G_do_SOA2G' ,do_SOA2G )
 
+ call mpas_pool_get_config(configs,'config_gocart2G_toMYNN'   ,to_MYNN  )
+
 
 !--- reads input wavelengths from LUT:
  ch_size = size(aerosol_monochromatic_optics_wavelength_in_nm_from_LUT)
@@ -104,14 +109,14 @@
 
 
 !--- CA2G_bc:
+ call mpas_log_write(' ')
+ call mpas_log_write('--- begin initialization of CA2G_bc:')
+
+!initializes and allocates all parameters and arrays related to CA2G_bc:
+ call CA2G_bc_params%load_GridComp(kts,kte)
+ call CA2G_bc%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+
  if(do_CA2Gbc) then
-    call mpas_log_write(' ')
-    call mpas_log_write('--- begin initialization of CA2G_bc:')
-
-    !initializes and allocates all parameters and arrays related to CA2G_bc:
-    call CA2G_bc_params%load_GridComp(kts,kte)
-    call CA2G_bc%gocart2G_allocate(its,ite,jts,jte,kts,kte)
-
     !creates radiation Mie table for CA2G:
     l_exist = .false.
     fnm = trim(fCA2G_bc_RRTMG)
@@ -140,13 +145,13 @@
 
 
 !--- CA2G_br:
+ call mpas_log_write('--- begin initialization of CA2G_br:')
+
+!initializes and allocates all parameters and arrays related to CA2G_br:
+ call CA2G_br_params%load_GridComp(kts,kte)
+ call CA2G_br%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+
  if(do_CA2Gbr) then
-    call mpas_log_write('--- begin initialization of CA2G_br:')
-
-    !initializes and allocates all parameters and arrays related to CA2G_br:
-    call CA2G_br_params%load_GridComp(kts,kte)
-    call CA2G_br%gocart2G_allocate(its,ite,jts,jte,kts,kte)
-
     !creates radiation Mie table for CA2G_br:
     l_exist = .false.
     fnm = trim(fCA2G_br_RRTMG)
@@ -175,13 +180,13 @@
 
 
 !--- CA2G_oc:
+ call mpas_log_write('--- begin initialization of CA2G_oc:')
+
+!initializes and allocates all parameters and arrays related to CA2G_oc:
+ call CA2G_oc_params%load_GridComp(kts,kte)
+ call CA2G_oc%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+
  if(do_CA2Goc) then
-    call mpas_log_write('--- begin initialization of CA2G_oc:')
-
-    !initializes and allocates all parameters and arrays related to CA2G_oc:
-    call CA2G_oc_params%load_GridComp(kts,kte)
-    call CA2G_oc%gocart2G_allocate(its,ite,jts,jte,kts,kte)
-
     !creates radiation Mie table for CA2G_oc:
     l_exist = .false.
     fnm = trim(fCA2G_oc_RRTMG)
@@ -210,13 +215,13 @@
 
 
 !--- DU2G:
+ call mpas_log_write('--- begin initialization of DU2G:')
+
+!initializes and allocates all parameters and arrays related to DU2G:
+ call DU2G_params%load_GridComp(kts,kte)
+ call DU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nerod)
+
  if(do_DU2G) then
-    call mpas_log_write('--- begin initialization of DU2G:')
-
-    !initializes and allocates all parameters and arrays related to DU2G:
-    call DU2G_params%load_GridComp(kts,kte)
-    call DU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nerod)
-
     !create radiation Mie table for DU2G:
     l_exist = .false.
     fnm = trim(fDU2G_RRTMG)
@@ -245,16 +250,15 @@
 
 
 !--- NI2G:
+ call mpas_log_write('--- begin initialization of NI2G:')
+
+!initializes and allocates all parameters and arrays related to NI2G:
+ call DU2G_params%load_GridComp(kts,kte)
+ call SS2G_params%load_GridComp(kts,kte)
+ call NI2G_params%load_GridComp(DU2G_params,SS2G_params,kts,kte)
+ call NI2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+
  if(do_NI2G) then
-    call mpas_log_write('--- begin initialization of NI2G:')
-
-    !initializes and allocates all parameters and arrays related to NI2G:
-    call DU2G_params%load_GridComp(kts,kte)
-    call SS2G_params%load_GridComp(kts,kte)
-
-    call NI2G_params%load_GridComp(DU2G_params,SS2G_params,kts,kte)
-    call NI2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
-
     !create radiation Mie table for SU2G:
     l_exist = .false.
     fnm = trim(fNI2G_RRTMG)
@@ -283,13 +287,13 @@
 
 
 !--- SS2G:
+ call mpas_log_write('--- begin initialization of SS2G:')
+
+!initializes and allocates all parameters and arrays related to SS2G:
+ call SS2G_params%load_GridComp(kts,kte)
+ call SS2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+
  if(do_SS2G) then
-    call mpas_log_write('--- begin initialization of SS2G:')
-
-    !initializes and allocates all parameters and arrays related to SS2G:
-    call SS2G_params%load_GridComp(kts,kte)
-    call SS2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
-
     !create radiation Mie table for SU2G:
     l_exist = .false.
     fnm = trim(fSS2G_RRTMG)
@@ -318,13 +322,13 @@
 
 
 !--- SU2G:
+ call mpas_log_write('--- begin initialization of SU2G:')
+
+!initializes and allocates all parameters and arrays related to SU2G:
+ call SU2G_params%load_GridComp(kts,kte)
+ call SU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+
  if(do_SU2G) then
-    call mpas_log_write('--- begin initialization of SU2G:')
-
-    !initializes and allocates all parameters and arrays related to SU2G:
-    call SU2G_params%load_GridComp(kts,kte)
-    call SU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
-
     !create radiation Mie table for SU2G:
     l_exist = .false.
     fnm = trim(fSU2G_RRTMG)
@@ -370,6 +374,15 @@
     do_NI2G .or. do_NI2G .or. do_SS2G .or. do_SU2G) do_GOCART2G = .true.
  if(do_GOCART2G) then
     call GOCART2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+ endif
+
+
+!--- FEEBACKS TO PHYSICS:
+ if(to_MYNN) then
+    call mpas_chem_gocart2G%gocart2G_dims(mesh,state)
+    call mpas_chem_gocart2G%gocart2G_allocate()
+    call mpas_chem_gocart2G%gocart2G_tophysics_init(CA2G_bc_params,CA2G_br_params,CA2G_oc_params,DU2G_params, &
+                                                    NI2G_params,SS2G_params,SU2G_params)
  endif
 
 

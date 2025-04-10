@@ -16,6 +16,7 @@
  use mpas_chemistry_gocart2G_interface
  use mpas_chemistry_gocart2G_manager,only: iyear,imonth,iday,ihour,iminute,isecond
  use mpas_chemistry_gocart2G_vars,only: mpas_gocart2G,           &
+                                        mpas_chem_gocart2G,      &
                                         mpas_emis_gocart2G,      &
                                         CA2G_bc,CA2G_bc_params,  &
                                         CA2G_br,CA2G_br_params,  &
@@ -79,6 +80,8 @@
  logical,pointer:: do_SOA2G
  logical:: do_GOCART2G
 
+ logical,pointer:: to_MYNN
+
  integer:: time_lev
  integer:: i,its,ite,j,jts,jte,k,kts,kte,n,nerod
 
@@ -97,6 +100,8 @@
  call mpas_pool_get_config(domain%configs,'config_gocart2G_do_SS2G'  ,do_SS2G  )
  call mpas_pool_get_config(domain%configs,'config_gocart2G_do_SU2G'  ,do_SU2G  )
  call mpas_pool_get_config(domain%configs,'config_gocart2G_do_SOA2G' ,do_SOA2G )
+
+ call mpas_pool_get_config(domain%configs,'config_gocart2G_toMYNN'   ,to_MYNN  )
 
 
  block => domain % blocklist
@@ -391,10 +396,11 @@
        NI2G%cn_prcp  => mpas_gocart2G%cn_prcp  ; NI2G%ncn_prcp => mpas_gocart2G%ncn_prcp
 
        NI2G%airdens  => mpas_gocart2G%airdens  ; NI2G%delp     => mpas_gocart2G%delp
-       NI2G%t        => mpas_gocart2G%t        ; NI2G%rh2      => mpas_gocart2G%rh2
-       NI2G%u        => mpas_gocart2g%u        ; NI2G%v        => mpas_gocart2G%v
-       NI2G%ple      => mpas_gocart2G%ple      ; NI2G%zle      => mpas_gocart2G%zle
-       NI2G%pfl_lsan => mpas_gocart2G%pfl_lsan ; NI2G%pfi_lsan => mpas_gocart2G%pfi_lsan
+       NI2G%delz     => mpas_gocart2G%delz     ; NI2G%t        => mpas_gocart2G%t
+       NI2G%rh2      => mpas_gocart2G%rh2      ; NI2G%u        => mpas_gocart2g%u
+       NI2G%v        => mpas_gocart2G%v        ; NI2G%ple      => mpas_gocart2G%ple
+       NI2G%zle      => mpas_gocart2G%zle      ; NI2G%pfl_lsan => mpas_gocart2G%pfl_lsan
+       NI2G%pfi_lsan => mpas_gocart2G%pfi_lsan
 
        !--- anthropogenic emissions:
        NI2G%emi_nh3_ag  => mpas_emis_gocart2G%nh3_ag
@@ -541,6 +547,13 @@
 
     !--- fills global chemistry arrays with local chemistry arrays:
     call mpas_gocart2G%gocart2G_toMPAS(state,time_lev)
+
+
+    !--- feedbacks to physics:
+    if(to_MYNN) then
+       call mpas_chem_gocart2G%gocart2G_dims(mesh,state)
+       call mpas_chem_gocart2G%gocart2G_tophysics(CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G)
+    endif
 
     block => block % next
  end do
