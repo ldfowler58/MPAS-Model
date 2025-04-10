@@ -250,6 +250,25 @@
 !if(.not.associated(self%no3an3)) allocate(self%no3an3(its:ite,jts:jte,kts:kte))
 !if(.not.associated(self%xhno3) ) allocate(self%xhno3(its:ite,jts:jte,kts:kte) )
 
+
+!--- initialization of diagnostics used in GOCART2G_GridComp:
+ self%niangstr(:,:) = 0._RKIND
+ self%nismass(:,:)  = 0._RKIND
+
+ self%niexttau(:,:,:)   = 0._RKIND
+ self%nistexttau(:,:,:) = 0._RKIND
+ self%niscatau(:,:,:)   = 0._RKIND
+ self%nistscatau(:,:,:) = 0._RKIND
+
+ self%niextcoef(:,:,:,:)     = 0._RKIND
+ self%niextcoefrh20(:,:,:,:) = 0._RKIND
+ self%niextcoefrh80(:,:,:,:) = 0._RKIND
+ self%niscacoef(:,:,:,:)     = 0._RKIND
+ self%niscacoefrh20(:,:,:,:) = 0._RKIND
+ self%niscacoefrh80(:,:,:,:) = 0._RKIND
+ self%nibckcoef(:,:,:,:)     = 0._RKIND
+
+
  end subroutine NI2G_StateSpecsInit
 
 !=================================================================================================================

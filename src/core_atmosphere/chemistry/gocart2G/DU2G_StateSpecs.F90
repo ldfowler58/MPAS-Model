@@ -72,7 +72,7 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: u              => null() ! eastward_wind (m s-1)
  real(kind=RKIND),dimension(:,:,:),pointer:: v              => null() ! northward_wind (m s-1)
 
-!category: export
+!category: EXPORT
  real(kind=RKIND),dimension(:,:,:),pointer  ::dumass        => null() ! dust mass mixing ratio (kg kg-1)
  real(kind=RKIND),dimension(:,:,:),pointer  ::dumass25      => null() ! dust mass mixing ratio (kg kg-1)
  real(kind=RKIND),dimension(:,:,:),pointer  ::duconc        => null() ! dust mass concentration (kg m-3)
@@ -234,6 +234,25 @@
 
 !category: INTERNAL
  if(.not.associated(self%du)           ) allocate(self%du(its:ite,jts:jte,kts:kte,nbins))
+
+
+!--- initialization of diagnostics used in GOCART2G_GridComp:
+ self%duangstr(:,:) = 0._RKIND
+ self%dusmass(:,:)  = 0._RKIND
+
+ self%duexttau(:,:,:)   = 0._RKIND
+ self%dustexttau(:,:,:) = 0._RKIND
+ self%duscatau(:,:,:)   = 0._RKIND
+ self%dustscatau(:,:,:) = 0._RKIND
+
+ self%duextcoef(:,:,:,:)     = 0._RKIND
+ self%duextcoefrh20(:,:,:,:) = 0._RKIND
+ self%duextcoefrh80(:,:,:,:) = 0._RKIND
+ self%duscacoef(:,:,:,:)     = 0._RKIND
+ self%duscacoefrh20(:,:,:,:) = 0._RKIND
+ self%duscacoefrh80(:,:,:,:) = 0._RKIND
+ self%dubckcoef(:,:,:,:)     = 0._RKIND
+
 
  end subroutine DU2G_StateSpecsInit
 

@@ -206,6 +206,25 @@
 !if(.not.associated(self%bcphobic)       ) allocate(self%bcphobic(its:ite,jts:jte,kts:kte)       )
 !if(.not.associated(self%bcphilic)       ) allocate(self%bcphilic(its:ite,jts:jte,kts:kte)       )
 
+
+!--- initialization of diagnostics used in GOCART2G_GridComp:
+ self%bcangstr(:,:) = 0._RKIND
+ self%bcsmass(:,:)  = 0._RKIND
+
+ self%bcexttau(:,:,:)   = 0._RKIND
+ self%bcstexttau(:,:,:) = 0._RKIND
+ self%bcscatau(:,:,:)   = 0._RKIND
+ self%bcstscatau(:,:,:) = 0._RKIND
+
+ self%bcextcoef(:,:,:,:)     = 0._RKIND
+ self%bcextcoefrh20(:,:,:,:) = 0._RKIND
+ self%bcextcoefrh80(:,:,:,:) = 0._RKIND
+ self%bcscacoef(:,:,:,:)     = 0._RKIND
+ self%bcscacoefrh20(:,:,:,:) = 0._RKIND
+ self%bcscacoefrh80(:,:,:,:) = 0._RKIND
+ self%bcbckcoef(:,:,:,:)     = 0._RKIND
+
+
  end subroutine CA2G_bc_StateSpecsInit
 
 !==================================================================================================================

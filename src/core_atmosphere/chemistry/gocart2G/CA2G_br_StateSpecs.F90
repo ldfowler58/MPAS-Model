@@ -210,6 +210,25 @@
 !if(.not.associated(self%brphobic)       ) allocate(self%brphobic(its:ite,jts:jte,kts:kte)       )
 !if(.not.associated(self%brphilic)       ) allocate(self%brphilic(its:ite,jts:jte,kts:kte)       )
 
+
+!--- initialization of diagnostics used in GOCART2G_GridComp:
+ self%brangstr(:,:) = 0._RKIND
+ self%brsmass(:,:)  = 0._RKIND
+
+ self%brexttau(:,:,:)   = 0._RKIND
+ self%brstexttau(:,:,:) = 0._RKIND
+ self%brscatau(:,:,:)   = 0._RKIND
+ self%brstscatau(:,:,:) = 0._RKIND
+
+ self%brextcoef(:,:,:,:)     = 0._RKIND
+ self%brextcoefrh20(:,:,:,:) = 0._RKIND
+ self%brextcoefrh80(:,:,:,:) = 0._RKIND
+ self%brscacoef(:,:,:,:)     = 0._RKIND
+ self%brscacoefrh20(:,:,:,:) = 0._RKIND
+ self%brscacoefrh80(:,:,:,:) = 0._RKIND
+ self%brbckcoef(:,:,:,:)     = 0._RKIND
+
+
  end subroutine CA2G_br_StateSpecsInit
 
 !==================================================================================================================

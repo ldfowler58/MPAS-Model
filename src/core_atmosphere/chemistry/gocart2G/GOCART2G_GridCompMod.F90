@@ -198,7 +198,7 @@
  endif
 
 
-!--- add AOPs from black carbon to total AOPs:
+!--- add AOPs from brown carbon to total AOPs:
  do w = 1,nw_vertint
     if(associated(self%totexttau) .and. associated(CA2G_br%brexttau)) &
        self%totexttau(:,:,w) = self%totexttau(:,:,w) + CA2G_br%brexttau(:,:,w)

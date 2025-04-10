@@ -191,6 +191,25 @@
  if(.not.associated(self%ss)             ) allocate(self%ss(its:ite,jts:jte,kts:kte,nbins)     )
 !if(.not.associated(self%deep_lakes_mask)) allocate(self%deep_lakes_mask(its:ite,jts:jte)      )
 
+
+!--- initialization of diagnostics used in GOCART2G_GridComp:
+ self%ssangstr(:,:) = 0._RKIND
+ self%sssmass(:,:)  = 0._RKIND
+
+ self%ssexttau(:,:,:)   = 0._RKIND
+ self%ssstexttau(:,:,:) = 0._RKIND
+ self%ssscatau(:,:,:)   = 0._RKIND
+ self%ssstscatau(:,:,:) = 0._RKIND
+
+ self%ssextcoef(:,:,:,:)     = 0._RKIND
+ self%ssextcoefrh20(:,:,:,:) = 0._RKIND
+ self%ssextcoefrh80(:,:,:,:) = 0._RKIND
+ self%ssscacoef(:,:,:,:)     = 0._RKIND
+ self%ssscacoefrh20(:,:,:,:) = 0._RKIND
+ self%ssscacoefrh80(:,:,:,:) = 0._RKIND
+ self%ssbckcoef(:,:,:,:)     = 0._RKIND
+
+
  end subroutine SS2G_StateSpecsInit
 
 !=================================================================================================================

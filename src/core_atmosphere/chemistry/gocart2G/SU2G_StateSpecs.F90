@@ -259,6 +259,25 @@
 !if(.not.associated(self%msa)            ) allocate(self%msa(its:ite,jts:jte,kts:kte)                     )
  if(.not.associated(self%h2o2_init)      ) allocate(self%h2o2_init(its:ite,jts:jte,kts:kte)               )
 
+
+!--- initialization of diagnostics used in GOCART2G_GridComp:
+ self%suangstr(:,:) = 0._RKIND
+ self%so4smass(:,:) = 0._RKIND
+
+ self%suexttau(:,:,:)   = 0._RKIND
+ self%sustexttau(:,:,:) = 0._RKIND
+ self%suscatau(:,:,:)   = 0._RKIND
+ self%sustscatau(:,:,:) = 0._RKIND
+
+ self%suextcoef(:,:,:,:)     = 0._RKIND
+ self%suextcoefrh20(:,:,:,:) = 0._RKIND
+ self%suextcoefrh80(:,:,:,:) = 0._RKIND
+ self%suscacoef(:,:,:,:)     = 0._RKIND
+ self%suscacoefrh20(:,:,:,:) = 0._RKIND
+ self%suscacoefrh80(:,:,:,:) = 0._RKIND
+ self%subckcoef(:,:,:,:)     = 0._RKIND
+
+
  end subroutine SU2G_StateSpecsInit
 
 !=================================================================================================================

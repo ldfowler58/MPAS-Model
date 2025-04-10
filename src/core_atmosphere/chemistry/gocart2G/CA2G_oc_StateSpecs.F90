@@ -214,6 +214,24 @@
 !if(.not.associated(self%ocphobic)       ) allocate(self%ocphobic(its:ite,jts:jte,kts:kte)       )
 !if(.not.associated(self%ocphilic)       ) allocate(self%ocphilic(its:ite,jts:jte,kts:kte)       )
 
+
+!--- initialization of diagnostics used in GOCART2G_GridComp:
+ self%ocangstr(:,:) = 0._RKIND
+ self%ocsmass(:,:)  = 0._RKIND
+
+ self%ocexttau(:,:,:)   = 0._RKIND
+ self%ocstexttau(:,:,:) = 0._RKIND
+ self%ocscatau(:,:,:)   = 0._RKIND
+ self%ocstscatau(:,:,:) = 0._RKIND
+
+ self%ocextcoef(:,:,:,:)     = 0._RKIND
+ self%ocextcoefrh20(:,:,:,:) = 0._RKIND
+ self%ocextcoefrh80(:,:,:,:) = 0._RKIND
+ self%ocscacoef(:,:,:,:)     = 0._RKIND
+ self%ocscacoefrh20(:,:,:,:) = 0._RKIND
+ self%ocscacoefrh80(:,:,:,:) = 0._RKIND
+
+
  end subroutine CA2G_oc_StateSpecsInit
 
 !==================================================================================================================
