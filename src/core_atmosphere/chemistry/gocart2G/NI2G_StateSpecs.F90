@@ -37,6 +37,7 @@
 !.................................................................................................................
  real(kind=RKIND),dimension(:,:,:),pointer  :: airdens       => null() ! moist_air_density (kg/m^3)
  real(kind=RKIND),dimension(:,:,:),pointer  :: delp          => null() ! pressure_thickness (Pa)
+ real(kind=RKIND),dimension(:,:,:),pointer  :: delz          => null() ! geometric_layer_thickness (m)
  real(kind=RKIND),dimension(:,:,:),pointer  :: t             => null() ! air_temperature (K)
  real(kind=RKIND),dimension(:,:,:),pointer  :: rh2           => null() ! rel_hum_after_moist (-)
  real(kind=RKIND),dimension(:,:,:),pointer  :: zle           => null() ! geopotential_height (m)
@@ -115,6 +116,8 @@
  real(kind=RKIND),dimension(:,:),pointer    :: nifluxu       => null() ! nitrate column u-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: nifluxv       => null() ! nitrate column v-wind mass flux (kg m-1 s-1)
 
+ real(kind=RKIND),dimension(:,:),pointer    :: nivdep        => null() ! dry deposition velocity (m s-1)
+
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:),pointer  :: nh3           => null() ! ammonia (nh3, gas phase) (kg kg-1)
  real(kind=RKIND),dimension(:,:,:),pointer  :: nh4a          => null() ! ammonium ion (nh4+, aerosol phase) (kg kg-1)
@@ -165,6 +168,7 @@
 !.................................................................................................................
 !if(.not.associated(self%airdens)     ) allocate(self%airdens(its:ite,jts:jte,kts:kte)     )
 !if(.not.associated(self%delp)        ) allocate(self%delp(its:ite,jts:jte,kts:kte)        )
+!if(.not.associated(self%delz)        ) allocate(self%delz(its:ite,jts:jte,kts:kte)        )
 !if(.not.associated(self%t)           ) allocate(self%t(its:ite,jts:jte,kts:kte)           )
 !if(.not.associated(self%rh2)         ) allocate(self%rh2(its:ite,jts:jte,kts:kte)         )
 !if(.not.associated(self%zle)         ) allocate(self%zle(its:ite,jts:jte,kts:kte)         )
@@ -242,6 +246,8 @@
  if(.not.associated(self%nifluxu)      ) allocate(self%nifluxu(its:ite,jts:jte)         )
  if(.not.associated(self%nifluxv)      ) allocate(self%nifluxv(its:ite,jts:jte)         )
 
+ if(.not.associated(self%nivdep)       ) allocate(self%nivdep(its:ite,jts:jte)          )
+
 !category: INTERNAL
 !if(.not.associated(self%nh3)   ) allocate(self%nh3(its:ite,jts:jte,kts:kte)   )
 !if(.not.associated(self%nh4a)  ) allocate(self%nh4a(its:ite,jts:jte,kts:kte)  )
@@ -293,6 +299,7 @@
 !.................................................................................................................
 !if(associated(self%airdens)     ) deallocate(self%airdens     )
 !if(associated(self%delp)        ) deallocate(self%delp        )
+!if(associated(self%delz)        ) deallocate(self%delz        )
 !if(associated(self%t)           ) deallocate(self%t           )
 !if(associated(self%rh2)         ) deallocate(self%rh2         )
 !if(associated(self%zle)         ) deallocate(self%zle         )
@@ -369,6 +376,8 @@
  if(associated(self%niangstr)     ) deallocate(self%niangstr     )
  if(associated(self%nifluxu)      ) deallocate(self%nifluxu      )
  if(associated(self%nifluxv)      ) deallocate(self%nifluxv      )
+
+ if(associated(self%nivdep)       ) deallocate(self%nivdep       )
 
 !category: INTERNAL
 !if(associated(self%nh3)   ) deallocate(self%nh3   )

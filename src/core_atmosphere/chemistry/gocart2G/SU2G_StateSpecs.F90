@@ -121,6 +121,8 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: so4sarea        => null() !so4 surface area density (m2 m-3 )
  real(kind=RKIND),dimension(:,:,:),pointer:: so4snum         => null() !so4 number density (m-3)
 
+ real(kind=RKIND),dimension(:,:),pointer  :: suvdep          => null() ! dry deposition velocity (m s-1)
+
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:),pointer:: dms             => null() !dimethylsulphide (kg kg-1)
  real(kind=RKIND),dimension(:,:,:),pointer:: so2             => null() !sulphur dioxide (kg kg-1)
@@ -251,6 +253,8 @@
  if(.not.associated(self%sustscatau)     ) allocate(self%sustscatau(its:ite,jts:jte,nw_vertint)           )
  if(.not.associated(self%so4sarea)       ) allocate(self%so4sarea(its:ite,jts:jte,kts:kte)                )
  if(.not.associated(self%so4snum)        ) allocate(self%so4snum(its:ite,jts:jte,kts:kte)                 )
+
+ if(.not.associated(self%suvdep)         ) allocate(self%suvdep(its:ite,jts:jte)                          )
 
 !category: INTERNAL
 !if(.not.associated(self%dms)            ) allocate(self%dms(its:ite,jts:jte,kts:kte)                     )
@@ -384,6 +388,8 @@
 !if(associated(self%sustscatau)     ) deallocate(self%sustscatau     )
  if(associated(self%so4sarea)       ) deallocate(self%so4sarea       )
  if(associated(self%so4snum)        ) deallocate(self%so4snum        )
+
+ if(associated(self%suvdep)         ) deallocate(self%suvdep         )
 
 !category: INTERNAL
 !if(associated(self%dms)            ) deallocate(self%dms            )

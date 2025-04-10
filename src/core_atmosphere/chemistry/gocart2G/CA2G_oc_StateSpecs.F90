@@ -101,6 +101,8 @@
  real(kind=RKIND),dimension(:,:),pointer    :: ocfluxv        => null() ! organic carbon aerosol column v-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: ocaeridx       => null() ! organic carbon aerosol toms uv aerosol index (-)
 
+ real(kind=RKIND),dimension(:,:),pointer    :: ocvdep         => null() ! dry deposition velocity (m s-1)
+
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:),pointer  :: ocphobic       => null() ! Hydrophobic organic carbon aerosol mixing Ratio (kg kg-1)
  real(kind=RKIND),dimension(:,:,:),pointer  :: ocphilic       => null() ! Hydrophilic organic carbon aerosol mixing Ratio (kg kg-1)
@@ -210,6 +212,8 @@
  if(.not.associated(self%ocfluxv)        ) allocate(self%ocfluxv(its:ite,jts:jte)                )
  if(.not.associated(self%ocaeridx)       ) allocate(self%ocaeridx(its:ite,jts:jte)               )
 
+ if(.not.associated(self%ocvdep)         ) allocate(self%ocvdep(its:ite,jts:jte)                 )
+
 !category: INTERNAL
 !if(.not.associated(self%ocphobic)       ) allocate(self%ocphobic(its:ite,jts:jte,kts:kte)       )
 !if(.not.associated(self%ocphilic)       ) allocate(self%ocphilic(its:ite,jts:jte,kts:kte)       )
@@ -318,6 +322,8 @@
  if(associated(self%ocfluxu)        ) deallocate(self%ocfluxu        )
  if(associated(self%ocfluxv)        ) deallocate(self%ocfluxv        )
  if(associated(self%ocaeridx)       ) deallocate(self%ocaeridx       )
+
+ if(associated(self%ocvdep)         ) deallocate(self%ocvdep         )
 
 !category: INTERNAL
 !if(associated(self%ocphobic)       ) deallocate(self%ocphobic       )

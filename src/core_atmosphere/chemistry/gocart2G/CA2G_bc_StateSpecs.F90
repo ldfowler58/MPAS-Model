@@ -97,6 +97,8 @@
  real(kind=RKIND),dimension(:,:),pointer    :: bcfluxv        => null() ! black carbon aerosol column v-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: bcaeridx       => null() ! black carbon aerosol toms uv aerosol index (-)
 
+ real(kind=RKIND),dimension(:,:),pointer    :: bcvdep         => null() ! dry deposition velocity (m s-1)
+
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:),pointer  :: bcphobic       => null() ! Hydrophobic black carbon aerosol mixing Ratio (kg kg-1)
  real(kind=RKIND),dimension(:,:,:),pointer  :: bcphilic       => null() ! Hydrophilic black carbon aerosol mixing Ratio (kg kg-1)
@@ -201,6 +203,8 @@
  if(.not.associated(self%bcfluxu)        ) allocate(self%bcfluxu(its:ite,jts:jte)                )
  if(.not.associated(self%bcfluxv)        ) allocate(self%bcfluxv(its:ite,jts:jte)                )
  if(.not.associated(self%bcaeridx)       ) allocate(self%bcaeridx(its:ite,jts:jte)               )
+
+ if(.not.associated(self%bcvdep)         ) allocate(self%bcvdep(its:ite,jts:jte)                 )
 
 !category: INTERNAL
 !if(.not.associated(self%bcphobic)       ) allocate(self%bcphobic(its:ite,jts:jte,kts:kte)       )
@@ -307,6 +311,8 @@
  if(associated(self%bcfluxu)        ) deallocate(self%bcfluxu        )
  if(associated(self%bcfluxv)        ) deallocate(self%bcfluxv        )
  if(associated(self%bcaeridx)       ) deallocate(self%bcaeridx       )
+
+ if(associated(self%bcvdep)         ) deallocate(self%bcvdep         )
 
 !category: INTERNAL
 !if(associated(self%bcphobic)       ) deallocate(self%bcphobic       )

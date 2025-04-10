@@ -112,6 +112,8 @@
  real(kind=RKIND),dimension(:,:),pointer  :: du_smc         => null() ! aeolian_soil_moisture_correction (-)
  real(kind=RKIND),dimension(:,:),pointer  :: du_erod        => null() ! aeolian_erodibilitiy (-)
 
+ real(kind=RKIND),dimension(:,:),pointer    :: duvdep       => null() ! dry deposition velocity (m s-1)
+
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:,:),pointer:: du           => null() ! dust mixing Ratio (Bin %d) (kg kg-1)
 
@@ -232,6 +234,8 @@
  if(.not.associated(self%du_smc)       ) allocate(self%du_smc(its:ite,jts:jte)          )
  if(.not.associated(self%du_erod)      ) allocate(self%du_erod(its:ite,jts:jte)         )
 
+ if(.not.associated(self%duvdep)       ) allocate(self%duvdep(its:ite,jts:jte)          )
+
 !category: INTERNAL
  if(.not.associated(self%du)           ) allocate(self%du(its:ite,jts:jte,kts:kte,nbins))
 
@@ -351,6 +355,8 @@
  if(associated(self%du_dpc)       ) deallocate(self%du_dpc       )
  if(associated(self%du_smc)       ) deallocate(self%du_smc       )
  if(associated(self%du_erod)      ) deallocate(self%du_erod      )
+
+ if(associated(self%duvdep)       ) deallocate(self%duvdep       )
 
 !category: internal
  if(associated(self%du)           ) deallocate(self%du           )

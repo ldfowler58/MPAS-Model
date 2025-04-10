@@ -342,6 +342,7 @@
 !--- CA2G_bc dry deposition:
 !call mpas_log_write('--- enter subroutine DryDeposition:')
  if(associated(self%bcdp)  ) self%bcdp(:,:,:) = 0._RKIND
+ if(associated(self%bcvdep)) self%bcvdep(:,:) = 0._RKIND
  if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
  drydepf = 0.
@@ -362,6 +363,7 @@
               drydepf    = drydepf        , &
               rc         = istat            &
                    )
+
  do ibin = 1, self_params%nbins
     dqa = 0.
     dqa = max(0.0,qca2G(:,:,self_params%km,ibin)*(1.-exp(-drydepf*self_params%cdt)))
@@ -369,6 +371,9 @@
     if(associated(self%bcdp)) then
        self%bcdp(:,:,ibin) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
     end if
+    if(associated(self%bcvdep) .and. ibin == self_params%nbins) then
+       self%bcvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
+    endif
  enddo
  if(istat /=0) then
     call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine DryDeposition.', &
@@ -378,7 +383,6 @@
     if(allocated(drydepf)) deallocate(drydepf)
 !   call mpas_log_write('--- end subroutine DryDeposition.')
  endif
-
 
  do j = jts,jte
     do i = its,ite

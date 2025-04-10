@@ -344,6 +344,7 @@
 
 !--- DU2G dry deposition:
 !call mpas_log_write('--- enter subroutine DryDeposition:')
+ if(associated(self%duvdep)) self%duvdep(:,:) = 0._RKIND
  if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
  drydepf = 0._RKIND
@@ -372,6 +373,9 @@
     if(associated(self%dudp)) then
        self%dudp(:,:,ibin) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
     end if
+    if(associated(self%duvdep) .and. ibin == self_params%nbins) then
+       self%duvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
+    endif
  enddo
  if(istat /=0) then
     call mpas_log_write('--- DU2G_bc_GridComp: error in subroutine DryDeposition.', &

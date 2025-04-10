@@ -401,6 +401,10 @@
 
 !--- NI2G dry deposition:
 !call mpas_log_write('--- enter subroutine DryDeposition:')
+ if(associated(self%nh3dp)) self%nh3dp(:,:) = 0._RKIND
+ if(associated(self%nh3dp)) self%nh4dp(:,:) = 0._RKIND
+ if(associated(self%nh3dp)) self%nidp(:,:,:)  = 0._RKIND
+ if(associated(self%nivdep)) self%nivdep(:,:) = 0._RKIND
  if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
  drydepf = 0._RKIND
@@ -421,6 +425,8 @@
               drydepf    = drydepf        , &
               rc         = istat            &
                    )
+
+ if(associated(self%nivdep)) self%nivdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
 
 !- nh3:
  dqa = 0._RKIND

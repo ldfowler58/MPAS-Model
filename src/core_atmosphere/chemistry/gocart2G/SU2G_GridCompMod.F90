@@ -468,6 +468,7 @@
 !--- SU2G chem driver:
 !call mpas_log_write('--- enter subroutine SulfateChemDriver:')
  istat = 0
+ if(associated(self%suvdep)) self%suvdep(:,:) = 0._RKIND
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
  call SulfateChemDriver( &
               km             = self_params%km   , &
@@ -524,6 +525,9 @@
               drydepositionfrequency = drydepf  , &
               rc             = istat              &
                        )
+ if(associated(self%suvdep)) then
+    self%suvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
+ endif
  if(istat /=0) then
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SulfateChemDriver.', &
                         messageType=MPAS_LOG_CRIT)

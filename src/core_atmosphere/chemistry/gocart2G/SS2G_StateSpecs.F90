@@ -90,6 +90,8 @@
  real(kind=RKIND),dimension(:,:),pointer    :: ssfluxu         => null() ! sea salt column u-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: ssfluxv         => null() ! sea salt column v-wind mass flux (kg m-1 s-1)
 
+ real(kind=RKIND),dimension(:,:),pointer    :: ssvdep         => null() ! dry deposition velocity (m s-1)
+
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:,:),pointer:: ss              => null() ! sea salt mixing ratio (bin %d) (kg kg-1)
  real(kind=RKIND),dimension(:,:),pointer    :: deep_lakes_mask => null() ! deep lakes mask
@@ -186,6 +188,8 @@
  if(.not.associated(self%ssangstr)       ) allocate(self%ssangstr(its:ite,jts:jte)             )
  if(.not.associated(self%ssfluxu)        ) allocate(self%ssfluxu(its:ite,jts:jte)              )
  if(.not.associated(self%ssfluxv)        ) allocate(self%ssfluxv(its:ite,jts:jte)              )
+
+ if(.not.associated(self%ssvdep)         ) allocate(self%ssvdep(its:ite,jts:jte)               )
 
 !category: INTERNAL
  if(.not.associated(self%ss)             ) allocate(self%ss(its:ite,jts:jte,kts:kte,nbins)     )
@@ -285,6 +289,8 @@
  if(associated(self%ssangstr)       ) deallocate(self%ssangstr     )
  if(associated(self%ssfluxu)        ) deallocate(self%ssfluxu      )
  if(associated(self%ssfluxv)        ) deallocate(self%ssfluxv      )
+
+ if(associated(self%ssvdep)         ) deallocate(self%ssvdep       )
 
 !category: INTERNAL
  if(associated(self%ss)             ) deallocate(self%ss             )
