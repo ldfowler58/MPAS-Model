@@ -137,8 +137,7 @@
 
 
 !--- initialization using parameters defined in SU2G_instance_SU:
-!self%diurnal_bb = .false.
- self%diurnal_bb = .true.
+ self%diurnal_bb = .false.
 
  call self%load_from_config(nbins,particle_radius_microns,particle_density,fscav,molecular_weight,fnum, &
                             rhFlag,pressure_lid_in_hPa)
