@@ -7,6 +7,11 @@
  use bl_mynn_post,only: bl_mynn_post_run
  use bl_mynn_pre,only: bl_mynn_pre_run
 
+#ifdef DO_GOCART2G
+ use mpas_chemistry_gocart2G_vars
+#endif
+
+
  implicit none
  private
  public:: mynn_bl_driver
@@ -50,12 +55,8 @@
                   bl_mynn_closure   , bl_mynn_stfunc    , bl_mynn_topdown    , bl_mynn_scaleaware , &
                   bl_mynn_dheat_opt , bl_mynn_edmf      , bl_mynn_edmf_dd    , bl_mynn_edmf_mom   , &
                   bl_mynn_edmf_tke  , bl_mynn_output    , bl_mynn_mixscalars , bl_mynn_cloudmix   , &
-                  bl_mynn_mixqt     , errmsg            , errflg                                    &
-#if(WRF_CHEM == 1)
-                 ,mix_chem   , nchem        , kdvel       , ndvel        , chem3         , vd3d   , &
-                  frp_mean   , emis_ant_no                                                          &
-#endif
-               )
+                  bl_mynn_mixqt     , bl_mynn_mixchems  , errmsg             , errflg               &
+                 )
 
 !=================================================================================================================
 
@@ -72,6 +73,7 @@
     f_nbca               ! if true,the physics package includes the number concentration of black carbon.
 
  logical,intent(in):: &
+    bl_mynn_mixchems,   &!
     bl_mynn_tkeadvect    !
 
  logical,intent(in):: &
@@ -230,21 +232,6 @@
     qshear,      &!
     qbuoy,       &!
     qdiss         !
-
-#if(WRF_CHEM == 1)
-!--- input arguments for PBL and free-tropospheric mixing of chemical species:
- logical,intent(in):: mix_chem
- integer,intent(in):: kdvel,nchem,ndvel
-
- real(kind=kind_phys),intent(in),dimension(ims:ime,jms:jme):: frp_mean,ems_ant_no
- real(kind=kind_phys),intent(in),dimension(ims:ime,kdvel,jms:jme,ndvel):: vd3d
- real(kind=kind_phys),intent(inout),dimension(ims:ime,kms:kme,jms:jme,nchem):: chem3
-
- real(kind=RKIND),dimension(its:ite):: frp_mean_hv,emsant_no_hv
- real(kind=RKIND),dimension(its:ite,kdvel,ndvel):: vd_hv
- real(kind=RKIND),dimension(its:ite,kts:kte,nchem):: chem_hv
-#endif
-
 
 !local variables and arrays:
  logical:: mynn_edmf_l,mynn_edmf_dd_l,mynn_edmf_mom_l,mynn_edmf_tke_l
@@ -501,24 +488,6 @@
        enddo
     enddo
 
-#if(WRF_CHEM == 1)
-    do i = its,ite
-       do ic = 1,nchem
-          do k = kts,kte
-             chem_hv(i,k,ic) = chem3d(i,k,j,ic)
-          enddo
-       enddo
-       do ic = 1,ndvel
-          do k = 1,kdvel
-             vd_hv(i,k,ic) = vd3d(i,k,j,ic)
-          enddo
-       enddo
-
-       frp_mean_hv(i)   = frp_mean(i,j)
-       emisant_no_hv(i) = emis_ant_no(i,j)
-    enddo
-#endif
-
     do k = kts,kte
        do i = its,ite
           rqcblten_hv(i,k)   = 0._kind_phys
@@ -567,11 +536,13 @@
             flag_qoz        = f_qoz          , flag_qnc    = f_nc           , flag_qni    = f_ni          , &
             flag_qnwfa      = f_nwfa         , flag_qnifa  = f_nifa         , flag_qnbca  = f_nbca        , &
             pattern_spp_pbl = pattern_spp_hv                                                                &
-#if(WRF_CHEM == 1)
-           ,mix_chem  = mix_chem  , enh_mix = enh_mix , rrfs_sd     = rrfs_sd        , &
-            smoke_dbg = smoke_dbg , nchem   = nchem   , kdvel       = kdvel          , &
-            ndvel     = ndvel     , chem    = chem_hv , emis_ant_no = emisant_no_hv  , &
-            frp       = frp_hv    , vdep    = vd_hv                                    &
+#ifdef DO_GOCART2G
+           ,nchem      = mpas_chem_gocart2G%nchem,    &
+            kdvel      = mpas_chem_gocart2G%kdepvel,  &
+            ndvel      = mpas_chem_gocart2G%ndepvel,  &
+            chem       = mpas_chem_gocart2G%chem_mr,  &
+            vdep       = mpas_chem_gocart2G%drydepv,  &
+            rchemblten = mpas_chem_gocart2G%chemblten &
 #endif
            ,bl_mynn_tkeadvect  = bl_mynn_tkeadvect  , &
             bl_mynn_tkebudget  = mynn_tkebudget_l   , &
@@ -590,6 +561,7 @@
             bl_mynn_output     = mynn_output_l      , &
             bl_mynn_cloudmix   = mynn_mixclouds_l   , &
             bl_mynn_mixqt      = mynn_mixqt_l       , &
+            bl_mynn_mixchems   = bl_mynn_mixchems   , &
             its = its , ite = ite , kts = kts , kte = kte , kme = kme , errmsg = errmsg , errflg = errflg )
 
 

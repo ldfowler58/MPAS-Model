@@ -887,6 +887,7 @@
 			<var name="background_no3"/>
 			<var name="background_hno3"/>
 			<var name="background_ptrop"/>
+                        <var_array name="bl_chemistry"/>
 #endif
 		</stream>
 
@@ -2451,6 +2452,11 @@
                      units="-"
                      description="=0:activatevmixing of moisture species separately;= 1:activate mixing of total water in the mynn PBL scheme"
                      possible_values="0,1"/>
+
+                <nml_option name="config_mynn_mixchems" type="logical" default_value="false" in_defaults="false"
+                     units="-"
+                     description="true:activate mixing of aerosols;=false:do not activate mixing of aerosols in the mynn PBL scheme"
+                     possible_values=".true. or .false."/>
 
                 <nml_option name="config_bucket_radt" type="real" default_value="1.0e9" in_defaults="false"
                      units="-"

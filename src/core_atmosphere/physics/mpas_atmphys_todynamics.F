@@ -89,6 +89,8 @@
                                   radt_lw_scheme,    &
                                   radt_sw_scheme
 
+ logical,pointer:: mynn_mixchems
+
  integer:: i,iCell,k,n
  integer,pointer:: index_qv,index_qc,index_qr,index_qi,index_qs
  integer,pointer:: index_nc,index_ni,index_nifa,index_nwfa
@@ -113,6 +115,17 @@
  real(kind=RKIND),dimension(:,:),pointer:: rublten_Edge,rucuten_Edge
 
  real(kind=RKIND),dimension(:,:),allocatable:: tend_th
+
+!physics tendencies associated to gocart2G aerosols species: mixing in the PBL and free-troposphere computed
+!in the MYNN PBL parameterization:
+ integer,pointer:: num_scalars
+ integer,pointer:: moist_start,moist_end
+ integer,pointer:: number_start,number_end
+ integer,pointer:: gocart2G_start,gocart2G_end
+ integer:: num_moist,num_number,num_chem
+ integer:: nchem,nchem_start,nchem_end
+
+ real(kind=RKIND),dimension(:,:,:),pointer:: rchemblten
 
 !=================================================================================================================
 
@@ -206,18 +219,57 @@
  if(.not. associated(rnifablten)) allocate(rnifablten(0,0))
  if(.not. associated(rnwfablten)) allocate(rnwfablten(0,0))
 
+
+!initialize the tendency for the PBL and free-tropospheric mixing of gocart2G aerosol species:
+ call mpas_pool_get_config(configs,'config_mynn_mixchems',mynn_mixchems)
+ call mpas_pool_get_dimension(state,'num_scalars' ,num_scalars )
+ call mpas_pool_get_dimension(state,'moist_start' ,moist_start )
+ call mpas_pool_get_dimension(state,'moist_end'   ,moist_end   )
+ call mpas_pool_get_dimension(state,'number_start',number_start)
+ call mpas_pool_get_dimension(state,'number_end'  ,number_end  )
+
+ num_moist  = moist_end - moist_start + 1
+ num_number = number_end - number_start + 1
+ num_chem   = num_scalars - num_moist - num_number
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine physics_get_tend:')
+ call mpas_log_write('--- num_scalars = $i',intArgs=(/num_scalars/) )
+ call mpas_log_write('--- num_moist   = $i',intArgs=(/num_moist/)   )
+ call mpas_log_write('--- num_number  = $i',intArgs=(/num_number/)  )
+ call mpas_log_write('--- num_chem    = $i',intArgs=(/num_chem/))
+
+ nchem = 0
+ nchem_start = 0
+ nchem_end   = 0
+ if(mynn_mixchems .and. num_chem > 0) then
+    call mpas_pool_get_dimension(state,'gocart2G_start',gocart2G_start)
+    call mpas_pool_get_dimension(state,'gocart2G_end'  ,gocart2G_end  )
+    call mpas_pool_get_array(tend_physics,'bl_chemistry',rchemblten)
+
+    nchem = num_chem
+    nchem_start = gocart2G_start
+    nchem_end   = gocart2G_end
+ endif
+ if(.not.associated(rchemblten)) allocate(rchemblten(0,0,0))
+
+ call mpas_log_write('--- nchem       = $i',intArgs=(/nchem/))
+ call mpas_log_write('--- nchem_start = $i',intArgs=(/nchem_start/))
+ call mpas_log_write('--- nchem_end   = $i',intArgs=(/nchem_end/))
+
  call physics_get_tend_work( &
               block,mesh,nCells,nEdges,nCellsSolve,nEdgesSolve,rk_step,dynamics_substep, &
               pbl_scheme,convection_scheme,microp_scheme,radt_lw_scheme,radt_sw_scheme,  &
               index_qv,index_qc,index_qr,index_qi,index_qs,                              &
               index_nc,index_ni,index_nifa,index_nwfa,                                   &
+              nchem_start,nchem_end,nchem,                                               &
               mass,mass_edge,theta_m,scalars,                                            &
               rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,rqsblten,              &
-              rncblten,rniblten,rnifablten,rnwfablten,                                   &
+              rncblten,rniblten,rnifablten,rnwfablten,rchemblten,                        &
               rucuten,rvcuten,rthcuten,rqvcuten,rqccuten,rqrcuten,rqicuten,rqscuten,     &
               rthratenlw,rthratensw,rublten_Edge,rucuten_Edge,                           &
               tend_th,tend_rtheta_physics,tend_scalars,tend_ru_physics,tend_u_phys,      &
               exchange_halo_group)
+
 
 !clean up any pointers that were allocated with zero size before the call to physics_get_tend_work:
  if(size(rucuten) == 0 ) deallocate(rucuten )
@@ -240,8 +292,11 @@
  if(size(rniblten) == 0) deallocate(rniblten)
  if(size(rnifablten) == 0) deallocate(rnifablten)
  if(size(rnwfablten) == 0) deallocate(rnwfablten)
+ if(size(rchemblten) == 0) deallocate(rchemblten)
 
  deallocate(tend_th)
+
+ call mpas_log_write('--- end subroutine physics_get_tend.')
 
  end subroutine physics_get_tend
 
@@ -251,9 +306,10 @@
                     pbl_scheme,convection_scheme,microp_scheme,radt_lw_scheme,radt_sw_scheme,  &
                     index_qv,index_qc,index_qr,index_qi,index_qs,                              &
                     index_nc,index_ni,index_nifa,index_nwfa,                                   &
+                    nchem_start,nchem_end,nchem,                                               &
                     mass,mass_edge,theta_m,scalars,                                            &
                     rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,rqsblten,              &
-                    rncblten,rniblten,rnifablten,rnwfablten,                                   &
+                    rncblten,rniblten,rnifablten,rnwfablten,rchemblten,                        &
                     rucuten,rvcuten,rthcuten,rqvcuten,rqccuten,rqrcuten,rqicuten,rqscuten,     &
                     rthratenlw,rthratensw,rublten_Edge,rucuten_Edge,                           &
                     tend_th,tend_theta,tend_scalars,tend_u,tend_u_phys,                        &
@@ -276,6 +332,7 @@
  integer,intent(in):: rk_step,dynamics_substep
  integer,intent(in):: index_qv,index_qc,index_qr,index_qi,index_qs
  integer,intent(in):: index_nc,index_ni,index_nifa,index_nwfa
+ integer,intent(in):: nchem_start,nchem_end,nchem
 
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: mass
  real(kind=RKIND),intent(in),dimension(nVertLevels,nEdges+1):: mass_edge
@@ -293,6 +350,7 @@
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rniblten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rnifablten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rnwfablten
+ real(kind=RKIND),intent(in),dimension(nchem,nVertLevels,nCells+1):: rchemblten
 
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rucuten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rvcuten
@@ -318,7 +376,7 @@
  real(kind=RKIND),intent(inout),dimension(num_scalars,nVertLevels,nCells+1):: tend_scalars
 
 !local variables:
- integer:: i,k
+ integer:: i,ic,ig,k
  real(kind=RKIND):: coeff
 
 !-----------------------------------------------------------------------------------------------------------------
@@ -363,6 +421,18 @@
                 tend_scalars(index_nifa,k,i) = tend_scalars(index_nifa,k,i) + rnifablten(k,i)*mass(k,i)
                 tend_scalars(index_nwfa,k,i) = tend_scalars(index_nwfa,k,i) + rnwfablten(k,i)*mass(k,i)
              enddo
+             enddo
+          endif
+
+          if(nchem > 0) then
+             ic = 0
+             do ig = nchem_start, nchem_end
+                ic = ic+1
+                do i = 1, nCellsSolve
+                do k = 1, nVertLevels
+                   tend_scalars(ig,k,i) = tend_scalars(ig,k,i) + rchemblten(ic,k,i)*mass(k,i)
+                enddo
+                enddo
              enddo
           endif
 

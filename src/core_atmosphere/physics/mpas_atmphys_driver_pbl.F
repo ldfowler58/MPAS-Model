@@ -13,6 +13,9 @@
 
  use mpas_atmphys_constants
  use mpas_atmphys_vars
+#ifdef DO_GOCART2G
+ use mpas_chemistry_gocart2G_vars
+#endif
 
  use bl_mynn,only: bl_mynn_init
  use module_bl_mynn,only: mynn_bl_driver
@@ -566,6 +569,8 @@
  real(kind=RKIND),dimension(:,:),pointer:: sub_thl,sub_qv,det_thl,det_qv
 
 !-----------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine pbl_to_MPAS:')
 
  call mpas_pool_get_config(configs,'config_pbl_scheme',pbl_scheme)
 
@@ -717,9 +722,15 @@
           enddo
        endif
 
+#ifdef DO_GOCART2G
+       call mpas_chem_gocart2G%gocart2G_todynamics(tend_physics)
+#endif
+
     case default
 
  end select pbl_select
+
+ call mpas_log_write('--- end subroutine pbl_to_MPAS.')
 
  end subroutine pbl_to_MPAS
  
@@ -772,6 +783,7 @@
 !local pointers:
  logical,pointer:: config_do_DAcycling, &
                    config_do_restart,   &
+                   bl_mynn_mixchems,    &
                    bl_mynn_tkeadvect
 
  character(len=StrKIND),pointer:: pbl_scheme
@@ -867,6 +879,7 @@
        call mpas_pool_get_config(configs,'config_mynn_mixscalars' ,bl_mynn_mixscalars )
        call mpas_pool_get_config(configs,'config_mynn_mixclouds'  ,bl_mynn_cloudmix   )
        call mpas_pool_get_config(configs,'config_mynn_mixqt'      ,bl_mynn_mixqt      )
+       call mpas_pool_get_config(configs,'config_mynn_mixchems'   ,bl_mynn_mixchems   )
        call mpas_pool_get_config(configs,'config_mynn_tkeadvect'  ,bl_mynn_tkeadvect  )
        call mpas_pool_get_config(configs,'config_mynn_tkebudget'  ,bl_mynn_tkebudget  )
 
@@ -886,6 +899,7 @@
 !      call mpas_log_write('--- config_mynn_mixscalars  = $i',intArgs=(/bl_mynn_mixscalars/))
 !      call mpas_log_write('--- config_mynn_mixclouds   = $i',intArgs=(/bl_mynn_cloudmix/))
 !      call mpas_log_write('--- config_mynn_mixqt       = $i',intArgs=(/bl_mynn_mixqt/))
+!      call mpas_log_write('--- config_mynn_mixchems    = $i',intArgs=(/bl_mynn_mixchems/))
 !      call mpas_log_write('--- config_mynn_tkeadvect   = $l',logicArgs=(/bl_mynn_tkeadvect/))
 !      call mpas_log_write('--- config_mynn_tkebudget   = $i',intArgs=(/bl_mynn_tkebudget/))
 !      call mpas_log_write('--- config_mynn_closure     = $r',realArgs=(/bl_mynn_closure/))
@@ -952,6 +966,7 @@
                   bl_mynn_mixscalars = bl_mynn_mixscalars  ,                                              &
                   bl_mynn_cloudmix   = bl_mynn_cloudmix    ,                                              &
                   bl_mynn_mixqt      = bl_mynn_mixqt       ,                                              &
+                  bl_mynn_mixchems   = bl_mynn_mixchems    ,                                              &
                   ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde ,                 &
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme ,                 &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte ,                 &
