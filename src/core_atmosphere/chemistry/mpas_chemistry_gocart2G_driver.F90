@@ -51,6 +51,7 @@
  type(mpas_pool_type),pointer:: state
  type(mpas_pool_type),pointer:: diag
  type(mpas_pool_type),pointer:: diag_physics
+ type(mpas_pool_type),pointer:: tend_physics
  type(mpas_pool_type),pointer:: sfc_input
  type(mpas_pool_type),pointer:: gocart2G_backgrounds
  type(mpas_pool_type),pointer:: gocart2G_met
@@ -111,6 +112,7 @@
     call mpas_pool_get_subpool(block%structs,'state'               ,state               )
     call mpas_pool_get_subpool(block%structs,'diag'                ,diag                )
     call mpas_pool_get_subpool(block%structs,'diag_physics'        ,diag_physics        )
+    call mpas_pool_get_subpool(block%structs,'tend_physics'        ,tend_physics        )
     call mpas_pool_get_subpool(block%structs,'sfc_input'           ,sfc_input           )
     call mpas_pool_get_subpool(block%structs,'gocart2G_backgrounds',gocart2G_backgrounds)
     call mpas_pool_get_subpool(block%structs,'gocart2G_met'        ,gocart2G_met        )

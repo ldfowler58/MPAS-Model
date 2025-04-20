@@ -10,7 +10,7 @@
  use mpas_log
  use mpas_kind_types
  use mpas_derived_types,only: mpas_pool_type,MPAS_LOG_CRIT
- use mpas_pool_routines,only: mpas_pool_get_config,mpas_pool_get_dimension,mpas_pool_get_subpool
+ use mpas_pool_routines,only: mpas_pool_get_array,mpas_pool_get_dimension
 
  use CA2G_bc_GridCompMod
  use CA2G_br_GridCompMod
@@ -39,17 +39,20 @@
     integer:: ndepvel
     integer:: nchem
 
-    real(kind=RKIND),dimension(:),pointer     :: fscav   => null()
-    real(kind=RKIND),dimension(:),pointer     :: fnum    => null()
-    real(kind=RKIND),dimension(:,:,:),pointer :: drydepv => null()
-    real(kind=RKIND),dimension(:,:,:),pointer :: chem_mr => null()
-    real(kind=RKIND),dimension(:,:,:),pointer :: chem_nc => null()
+    real(kind=RKIND),dimension(:),pointer    :: fscav   => null()
+    real(kind=RKIND),dimension(:),pointer    :: fnum    => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: drydepv => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: chem_mr => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: chem_nc => null()
+
+    real(kind=RKIND),dimension(:,:,:),pointer:: chemblten => null()
 
 
     contains
        procedure:: gocart2G_dims       => gocart2G_tophysics_dims
        procedure:: gocart2G_allocate   => gocart2G_tophysics_allocate
        procedure:: gocart2G_deallocate => gocart2G_tophysics_deallocate
+       procedure:: gocart2G_todynamics
        procedure:: gocart2G_tophysics
        procedure:: gocart2G_tophysics_init
  end type
@@ -166,6 +169,8 @@
  if(.not.associated(self%chem_mr)) allocate(self%chem_mr(its:ite,kts:kte,nchem))
  if(.not.associated(self%chem_nc)) allocate(self%chem_nc(its:ite,kts:kte,nchem))
 
+ if(.not.associated(self%chemblten)) allocate(self%chemblten(its:ite,kts:kte,nchem))
+
 
  call mpas_log_write('--- end subroutine gocart2G_physics_allocate.')
 
@@ -189,6 +194,8 @@
  if(associated(self%drydepv)) deallocate(self%drydepv)
  if(associated(self%chem_mr)) deallocate(self%chem_mr)
  if(associated(self%chem_nc)) deallocate(self%chem_nc)
+
+ if(associated(self%chemblten)) deallocate(self%chemblten)
 
 
  call mpas_log_write('--- end subroutine gocart2G_physics_deallocate.')
@@ -225,7 +232,6 @@
 
 
  n = 0
-
 !--- black carbon:
  n = n+1
  self%fnum(n)  = CA2G_bc_params%fnum(1)  ! hydrophobic
@@ -233,7 +239,6 @@
  n = n+1
  self%fnum(n)  = CA2G_bc_params%fnum(2)  ! hydrophilic
  self%fscav(n) = CA2G_bc_params%fscav(2) ! hydrophilic
-
 
 !--- brown carbon:
  n = n+1
@@ -243,7 +248,6 @@
  self%fnum(n)  = CA2G_br_params%fnum(2)  ! hydrophilic
  self%fscav(n) = CA2G_br_params%fscav(2) ! hydrophilic
 
-
 !--- organic carbon:
  n = n+1
  self%fnum(n)  = CA2G_oc_params%fnum(1)  ! hydrophobic
@@ -251,7 +255,6 @@
  n = n+1
  self%fnum(n)  = CA2G_oc_params%fnum(2)  ! hydrophilic
  self%fscav(n) = CA2G_oc_params%fscav(2) ! hydrophilic
-
 
 !--- mineral dust:
  n = n+1
@@ -270,14 +273,7 @@
  self%fnum(n)  = DU2G_params%fnum(5)     ! dust bin 5
  self%fscav(n) = DU2G_params%fscav(5)    ! dust bin 5
 
-
 !--- nitrate:
- n = n+1
- self%fnum(n)  = NI2G_params%fnum(1)     ! nh3
- self%fscav(n) = NI2G_params%fscav(1)    ! nh3
- n = n+1
- self%fnum(n)  = NI2G_params%fnum(2)     ! nh4a
- self%fscav(n) = NI2G_params%fscav(2)    ! nh4a
  n = n+1
  self%fnum(n)  = NI2G_params%fnum(3)     ! no3an1
  self%fscav(n) = NI2G_params%fscav(3)    ! no3an1
@@ -288,6 +284,19 @@
  self%fnum(n)  = NI2G_params%fnum(5)     ! no3an3
  self%fscav(n) = NI2G_params%fscav(5)    ! no3an3
 
+!--- sulfate:
+ n = n+1
+ self%fnum(n)  = SU2G_params%fnum(2)     ! so2
+ self%fscav(n) = SU2G_params%fscav(2)    ! so2
+ n = n+1
+ self%fnum(n)  = 0._RKIND                ! volcanic so2.
+ self%fscav(n) = 0._RKIND                ! volcanic so2.
+ n = n+1
+ self%fnum(n)  = SU2G_params%fnum(3)     ! so4
+ self%fscav(n) = SU2G_params%fscav(3)    ! so4
+ n = n+1
+ self%fnum(n)  = 0._RKIND                ! volcanic so4.
+ self%fscav(n) = 0._RKIND                ! volcanic so4.
 
 !--- sea salt:
  n = n+1
@@ -306,29 +315,23 @@
  self%fnum(n)  = SS2G_params%fnum(5)     ! sea salt bin 5
  self%fscav(n) = SS2G_params%fscav(5)    ! sea salt bin 5
 
-
-!--- sulfate:
+!--- dms and msa needed for sulfate:
  n = n+1
  self%fnum(n)  = SU2G_params%fnum(1)     ! dms
  self%fscav(n) = SU2G_params%fscav(1)    ! dms
  n = n+1
- self%fnum(n)  = SU2G_params%fnum(2)     ! so2
- self%fscav(n) = SU2G_params%fscav(2)    ! so2
- n = n+1
- self%fnum(n)  = SU2G_params%fnum(3)     ! so4
- self%fscav(n) = SU2G_params%fscav(3)    ! so4
- n = n+1
  self%fnum(n)  = SU2G_params%fnum(4)     ! msa
  self%fscav(n) = SU2G_params%fscav(4)    ! msa
 
+!--- ammonia and ammonium ion needed for nitrate:
+ n = n+1
+ self%fnum(n)  = NI2G_params%fnum(1)     ! nh3
+ self%fscav(n) = NI2G_params%fscav(1)    ! nh3
+ n = n+1
+ self%fnum(n)  = NI2G_params%fnum(2)     ! nh4a
+ self%fscav(n) = NI2G_params%fscav(2)    ! nh4a
 
 !--- extra prognostic aerosols:
- n = n+1
- self%fnum(n)  = 0._RKIND                ! volcanic so2.
- self%fscav(n) = 0._RKIND                ! volcanic so2.
- n = n+1
- self%fnum(n)  = 0._RKIND                ! volcanic so4.
- self%fscav(n) = 0._RKIND                ! volcanic so4.
  n = n+1
  self%fnum(n)  = 0._RKIND                ! soa (anthropogenic)
  self%fscav(n) = 0._RKIND                ! soa (anthropogenic)
@@ -346,7 +349,7 @@
  self%chem_nc(:,:,:) = 0._RKIND
 
 
- call mpas_log_write('--- n = $i',intArgs=(/n/))
+ call mpas_log_write('--- nchem = $i',intArgs=(/n/))
  do nn = 1,n
     call mpas_log_write('$i $r $r',intArgs=(/nn/),realArgs=(/self%fnum(nn),self%fscav(nn)/))
  enddo
@@ -395,7 +398,6 @@
  if(associated(self%chem_mr)) self%chem_mr(:,:,:) = 0._RKIND
  if(associated(self%chem_nc)) self%chem_nc(:,:,:) = 0._RKIND
 
-
  do j = jts,jte
     do k = 1,kdvel
        do i = its,ite
@@ -433,15 +435,21 @@
 
           !--- nitrate:
           n = n+1
-          if(associated(NI2G%nh3)) self%drydepv(i,k,n)    = NI2G%nivdep(i,j) 
-          n = n+1
-          if(associated(NI2G%nh4a)) self%drydepv(i,k,n)   = NI2G%nivdep(i,j)
-          n = n+1
           if(associated(NI2G%no3an1)) self%drydepv(i,k,n) = NI2G%nivdep(i,j)
           n = n+1
           if(associated(NI2G%no3an2)) self%drydepv(i,k,n) = NI2G%nivdep(i,j)
           n = n+1
           if(associated(NI2G%no3an3)) self%drydepv(i,k,n) = NI2G%nivdep(i,j)
+
+          !--- sulfate:
+          n = n+1
+          if(associated(SU2G%so2)) self%drydepv(i,k,n) = SU2G%suvdep(i,j)
+          n = n+1
+          self%drydepv(i,k,n) = SU2G%suvdep(i,j) ! volcanic so2.
+          n = n+1
+          if(associated(SU2G%so4)) self%drydepv(i,k,n) = SU2G%suvdep(i,j)
+          n = n+1
+          self%drydepv(i,k,n) = SU2G%suvdep(i,j) ! volcanic so4.
 
           !--- sea salt:
           n = n+1
@@ -455,21 +463,19 @@
           n = n+1
           if(associated(SS2G%ss)) self%drydepv(i,k,n) = SS2G%ssvdep(i,j)
 
-          !--- sulfate:
+          !--- dms and msa needed for sulfate:
           n = n+1
           if(associated(SU2G%dms)) self%drydepv(i,k,n) = SU2G%suvdep(i,j)
           n = n+1
-          if(associated(SU2G%so2)) self%drydepv(i,k,n) = SU2G%suvdep(i,j)
-          n = n+1
-          if(associated(SU2G%so4)) self%drydepv(i,k,n) = SU2G%suvdep(i,j)
-          n = n+1
           if(associated(SU2G%msa)) self%drydepv(i,k,n) = SU2G%suvdep(i,j)
 
+          !--- ammonia and ammonium ion needed for nitrate:
+          n = n+1
+          if(associated(NI2G%nh3)) self%drydepv(i,k,n)  = NI2G%nivdep(i,j)
+          n = n+1
+          if(associated(NI2G%nh4a)) self%drydepv(i,k,n) = NI2G%nivdep(i,j)
+
           !--- extra prognostic aerosols:
-          n = n+1
-          self%drydepv(i,k,n) = 0._RKIND ! volcanic so2.
-          n = n+1
-          self%drydepv(i,k,n) = 0._RKIND ! volcanic so4.
           n = n+1
           self%drydepv(i,k,n) = 0._RKIND ! soa (anthropogenic)
           n = n+1
@@ -480,6 +486,7 @@
        enddo
     enddo
  enddo
+ call mpas_log_write('--- n = $i',intArgs=(/n/))
 
 
  do k = kts,kte
@@ -553,16 +560,6 @@
 
           !--- nitrate:
           n = n+1
-          if(associated(NI2G%nh3)) then
-             self%chem_mr(i,kk,n) = NI2G%nh3(i,j,k)
-             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
-          endif
-          n = n+1
-          if(associated(NI2G%nh4a)) then
-             self%chem_mr(i,kk,n) = NI2G%nh4a(i,j,k)
-             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
-          endif
-          n = n+1
           if(associated(NI2G%no3an1)) then
              self%chem_mr(i,kk,n) = NI2G%no3an1(i,j,k)
              self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
@@ -577,6 +574,24 @@
              self%chem_mr(i,kk,n) = NI2G%no3an3(i,j,k)
              self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
           endif
+
+          !--- sulfate:
+          n = n+1
+          if(associated(SU2G%so2)) then
+             self%chem_mr(i,kk,n) = SU2G%so2(i,j,k)
+             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
+          endif
+          n = n+1
+          self%chem_mr(i,kk,n)    = 0._RKIND ! volcanic so2.
+          self%chem_nc(i,kk,n)    = 0._RKIND ! volcanic so2.
+          n = n+1
+          if(associated(SU2G%so4)) then
+             self%chem_mr(i,kk,n) = SU2G%so4(i,j,k)
+             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
+          endif
+          n = n+1
+          self%chem_mr(i,kk,n)    = 0._RKIND ! volcanic so4.
+          self%chem_nc(i,kk,n)    = 0._RKIND ! volcanic so4.
 
           !--- sea salt:
           n = n+1
@@ -605,20 +620,10 @@
              self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
           endif
 
-          !--- sulfate:
+          !--- dms and msa needed for sulfate:
           n = n+1
           if(associated(SU2G%dms)) then
              self%chem_mr(i,kk,n) = SU2G%dms(i,j,k)
-             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
-          endif
-          n = n+1
-          if(associated(SU2G%so2)) then
-             self%chem_mr(i,kk,n) = SU2G%so2(i,j,k)
-             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
-          endif
-          n = n+1
-          if(associated(SU2G%so4)) then
-             self%chem_mr(i,kk,n) = SU2G%so4(i,j,k)
              self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
           endif
           n = n+1
@@ -627,13 +632,19 @@
              self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
           endif
 
+          !--- ammonia and ammonium ion needed for nitrate:
+          n = n+1
+          if(associated(NI2G%nh3)) then
+             self%chem_mr(i,kk,n) = NI2G%nh3(i,j,k)
+             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
+          endif
+          n = n+1
+          if(associated(NI2G%nh4a)) then
+             self%chem_mr(i,kk,n) = NI2G%nh4a(i,j,k)
+             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
+          endif
+
           !--- extra prognostic aerosols:
-          n = n+1
-          self%chem_mr(i,kk,n) = 0._RKIND ! volcanic so2.
-          self%chem_nc(i,kk,n) = 0._RKIND ! volcanic so2.
-          n = n+1
-          self%chem_mr(i,kk,n) = 0._RKIND ! volcanic so4.
-          self%chem_nc(i,kk,n) = 0._RKIND ! volcanic so4.
           n = n+1
           self%chem_mr(i,kk,n) = 0._RKIND ! soa (anthropogenic)
           self%chem_nc(i,kk,n) = 0._RKIND ! soa (anthropogenic)
@@ -643,14 +654,69 @@
           n = n+1
           self%chem_mr(i,kk,n) = 0._RKIND ! soa (biogenic)
           self%chem_nc(i,kk,n) = 0._RKIND ! soa (biogenic)
+
        enddo
     enddo
  enddo
+ call mpas_log_write('--- n = $i',intArgs=(/n/))
 
 
  call mpas_log_write('--- end subroutine gocart2G_tophysics.')
 
  end subroutine gocart2G_tophysics
+
+!==================================================================================================================
+ subroutine gocart2G_todynamics(self,tend_physics)
+!==================================================================================================================
+
+!--- input arguments:
+ class(chem_gocart2G),intent(in):: self
+
+!--- inout arguments:
+ type(mpas_pool_type),intent(inout):: tend_physics
+
+!local variables and pointers:
+ character(len=StrKIND):: message
+
+ integer,pointer:: bl_start,bl_end
+ integer:: bl,i,ic,its,ite,k,kts,kte
+
+ real(kind=RKIND),dimension(:,:,:),pointer:: bl_chemistry
+
+!------------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine gocart2G_todynamics:')
+
+ its = self%its
+ ite = self%ite
+ kts = self%kts
+ kte = self%kte
+
+ call mpas_pool_get_dimension(tend_physics,'gocart2G_bl_start',bl_start)
+ call mpas_pool_get_dimension(tend_physics,'gocart2G_bl_end'  ,bl_end  )
+ call mpas_log_write('--- gocart2G_bl_start = $i',intArgs=(/bl_start/))
+ call mpas_log_write('--- gocart2G_bl_end   = $i',intArgs=(/bl_end/)  )
+
+ call mpas_pool_get_array(tend_physics,'bl_chemistry',bl_chemistry)
+ ic = 0
+ do bl = bl_start,bl_end
+    ic = ic+1
+    do k = kts,kte
+       do i = its,ite
+          bl_chemistry(bl,k,i) = self%chemblten(i,k,ic)
+       enddo
+    enddo
+ enddo
+ call mpas_log_write('--- ic                = $i',intArgs=(/ic/))
+
+ if(ic /= bl_end-bl_start+1) then
+    message = '--- subroutine gocart2G_todynamics: bl_end-bl_start different than nb of gocart2G aerosol species'
+    call mpas_log_write(message,messageType=MPAS_LOG_crit)
+ endif
+
+ call mpas_log_write('--- end subroutine gocart2G_todynamics:')
+
+ end subroutine gocart2G_todynamics
 
 !==================================================================================================================
  end module mpas_chemistry_gocart2G_tophysics
