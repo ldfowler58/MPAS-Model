@@ -550,6 +550,8 @@
 !local pointers:
  character(len=StrKIND),pointer:: pbl_scheme
 
+ logical,pointer:: bl_mynn_mixchems
+
  integer,dimension(:),pointer:: kpbl
 
  real(kind=RKIND),dimension(:),pointer  :: hpbl
@@ -631,6 +633,8 @@
        enddo
 
     case("bl_mynn")
+       call mpas_pool_get_config(configs,'config_mynn_mixchems',bl_mynn_mixchems)
+
        call mpas_pool_get_array(diag_physics,'el_pbl'    ,el_pbl    )
        call mpas_pool_get_array(diag_physics,'cov'       ,cov       )
        call mpas_pool_get_array(diag_physics,'qke'       ,qke       )
@@ -723,7 +727,7 @@
        endif
 
 #ifdef DO_GOCART2G
-       call mpas_chem_gocart2G%gocart2G_todynamics(tend_physics)
+       if(bl_mynn_mixchems) call mpas_chem_gocart2G%gocart2G_todynamics(diag_physics,tend_physics)
 #endif
 
     case default
