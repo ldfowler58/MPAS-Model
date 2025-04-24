@@ -301,15 +301,16 @@
  end subroutine emissions_SU2G_GridComp
 
 !==================================================================================================================
- subroutine processes_SU2G_GridComp(self_params,self,its,ite,jts,jte,kts,kte,iyr,imm,idd,ihr,imn,isc)
+ subroutine processes_SU2G_GridComp(self_params,self,to_MYNN,its,ite,jts,jte,kts,kte,iyr,imm,idd,ihr,imn,isc)
 !==================================================================================================================
 
 !--- input arguments:
+ logical,intent(in):: to_MYNN
  integer,intent(in):: its,ite,jts,jte,kts,kte
  integer,intent(in):: iyr,imm,idd,ihr,imn,isc
+ class(SU2G_GridComp),intent(in):: self_params
 
 !--- inout arguments:
- class(SU2G_GridComp),intent(inout):: self_params
  class(SU2G_State),intent(inout):: self
 
 !--- local variables:
@@ -523,11 +524,10 @@
               pso4g          = self%pso4g       , &
               pso4aq         = self%pso4aq      , &
               drydepositionfrequency = drydepf  , &
+              to_MYNN        = to_MYNN          , &
               rc             = istat              &
                        )
- if(associated(self%suvdep)) then
-    self%suvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
- endif
+ if(associated(self%suvdep)) self%suvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
  if(istat /=0) then
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SulfateChemDriver.', &
                         messageType=MPAS_LOG_CRIT)

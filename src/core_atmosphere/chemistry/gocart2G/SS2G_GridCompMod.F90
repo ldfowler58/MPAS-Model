@@ -288,9 +288,10 @@
  end subroutine emissions_SS2G_GridComp
 
 !==================================================================================================================
- subroutine processes_SS2G_GridComp(self_params,self,its,ite,jts,jte,kts,kte)
+ subroutine processes_SS2G_GridComp(self_params,self,to_MYNN,its,ite,jts,jte,kts,kte)
 !==================================================================================================================
 !--- input arguments:
+ logical,intent(in):: to_MYNN
  integer,intent(in):: its,ite,jts,jte,kts,kte
  class(SS2G_GridComp),intent(in):: self_params
 
@@ -375,18 +376,20 @@
     drydepf = 5._RKIND*drydepf
  end where
 
- do ibin = 1, self_params%nbins
-    if(associated(self%ssdp)) self%ssdp(:,:,ibin) = 0._RKIND
-    dqa = 0._RKIND
-    dqa = max(0._RKIND,self%ss(:,:,self_params%km,ibin)*(1.-exp(-drydepf*self_params%cdt)))
-    self%ss(:,:,self_params%km,ibin) = self%ss(:,:,self_params%km,ibin) - dqa
-    if(associated(self%ssdp)) then
-       self%ssdp(:,:,ibin) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
-    end if
-    if(associated(self%ssvdep) .and. ibin == self_params%nbins) then
-       self%ssvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
-    endif
- enddo
+!--- if gocart2G does not interact with the MYNN PBL parameterization, then we update the mixing ratios
+!    due to dry deposition in the model layer adjacent to the surface, otherwise we simply skip this step:
+ if(associated(self%ssvdep)) self%ssvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
+ if(.not. to_MYNN) then
+    do ibin = 1, self_params%nbins
+       if(associated(self%ssdp)) self%ssdp(:,:,ibin) = 0._RKIND
+       dqa = 0._RKIND
+       dqa = max(0._RKIND,self%ss(:,:,self_params%km,ibin)*(1.-exp(-drydepf*self_params%cdt)))
+       self%ss(:,:,self_params%km,ibin) = self%ss(:,:,self_params%km,ibin) - dqa
+       if(associated(self%ssdp)) then
+          self%ssdp(:,:,ibin) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
+       end if
+    enddo
+ endif
  if(istat /=0) then
     call mpas_log_write('--- SS2G_bc_GridComp: error in subroutine DryDeposition.', &
                         messageType=MPAS_LOG_CRIT)

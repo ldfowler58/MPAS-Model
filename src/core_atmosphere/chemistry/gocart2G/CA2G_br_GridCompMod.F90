@@ -245,10 +245,11 @@
  end subroutine emissions_CA2G_br_GridComp
 
 !==================================================================================================================
- subroutine processes_CA2G_br_GridComp(self_params,self,its,ite,jts,jte,kts,kte)
+ subroutine processes_CA2G_br_GridComp(self_params,self,to_MYNN,its,ite,jts,jte,kts,kte)
 !==================================================================================================================
 
 !--- input arguments:
+ logical,intent(in):: to_MYNN
  integer,intent(in):: its,ite,jts,jte,kts,kte
  class(CA2G_br_GridComp),intent(in):: self_params
 
@@ -375,17 +376,21 @@
               drydepf    = drydepf        , &
               rc         = istat            &
                    )
- do ibin = 1, self_params%nbins
-    dqa = 0.
-    dqa = max(0.0,qca2G(:,:,self_params%km,ibin)*(1.-exp(-drydepf*self_params%cdt)))
-    qca2G(:,:,self_params%km,ibin) = qca2G(:,:,self_params%km,ibin) - dqa
-    if(associated(self%brdp)) then
-       self%brdp(:,:,ibin) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
-    end if
-    if(associated(self%brvdep) .and. ibin == self_params%nbins) then
-       self%brvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
-    endif
- enddo
+
+!--- if gocart2G does not interact with the MYNN PBL parameterization, then we update the hydrophobic and
+!    hydrophilic mixing ratio due to dry deposition in the model layer adjacent to the surface, otherwise
+!    we simply skip this step:
+ if(associated(self%brvdep)) self%brvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
+ if(.not. to_MYNN) then
+    do ibin = 1, self_params%nbins
+       dqa = 0.
+       dqa = max(0.0,qca2G(:,:,self_params%km,ibin)*(1.-exp(-drydepf*self_params%cdt)))
+       qca2G(:,:,self_params%km,ibin) = qca2G(:,:,self_params%km,ibin) - dqa
+       if(associated(self%brdp)) then
+          self%brdp(:,:,ibin) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
+       end if
+    enddo
+ endif
  if(istat /=0) then
     call mpas_log_write('--- CA2G_br_GridComp: error in subroutine DryDeposition.', &
                         messageType=MPAS_LOG_CRIT)

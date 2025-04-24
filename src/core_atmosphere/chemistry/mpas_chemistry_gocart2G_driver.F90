@@ -230,7 +230,7 @@
        !--- gocart2G processes:
        call CA2G_bc_params%emissions_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte, &
                                      iyear,imonth,iday,ihour,iminute,isecond)
-       call CA2G_bc_params%processes_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte)
+       call CA2G_bc_params%processes_GridComp(CA2G_bc,to_MYNN,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
        call CA2G_bc_diagnostics(mesh,CA2G_bc,CA2G_bc_diags,CA2G_bc_aops,its,ite,jts,jte,kts,kte)
@@ -283,7 +283,7 @@
        !--- gocart2G processes:
        call CA2G_br_params%emissions_GridComp(CA2G_br,its,ite,jts,jte,kts,kte, &
                                      iyear,imonth,iday,ihour,iminute,isecond)
-       call CA2G_br_params%processes_GridComp(CA2G_br,its,ite,jts,jte,kts,kte)
+       call CA2G_br_params%processes_GridComp(CA2G_br,to_MYNN,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
        call CA2G_br_diagnostics(mesh,CA2G_br,CA2G_br_diags,CA2G_br_aops,its,ite,jts,jte,kts,kte)
@@ -338,7 +338,7 @@
        !--- gocart2G processes:
        call CA2G_oc_params%emissions_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte, &
                                       iyear,imonth,iday,ihour,iminute,isecond)
-       call CA2G_oc_params%processes_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte)
+       call CA2G_oc_params%processes_GridComp(CA2G_oc,to_MYNN,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
        call CA2G_oc_diagnostics(mesh,CA2G_oc,CA2G_oc_diags,CA2G_oc_aops,its,ite,jts,jte,kts,kte)
@@ -374,7 +374,7 @@
 
        !--- gocart2G processes:
        call DU2G_params%emissions_GridComp(DU2G,its,ite,jts,jte,kts,kte,nerod)
-       call DU2G_params%processes_GridComp(DU2G,its,ite,jts,jte,kts,kte)
+       call DU2G_params%processes_GridComp(DU2G,to_MYNN,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
        call DU2G_diagnostics(mesh,DU2G,DU2G_diags,DU2G_aops,its,ite,jts,jte,kts,kte)
@@ -436,7 +436,7 @@
 
        !--- gocart2G processes:
        call NI2G_params%emissions_GridComp(NI2G,its,ite,jts,jte,kts,kte)
-       call NI2G_params%processes_GridComp(NI2G,its,ite,jts,jte,kts,kte)
+       call NI2G_params%processes_GridComp(NI2G,to_MYNN,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
        call NI2G_diagnostics(mesh,NI2G,NI2G_diags,NI2G_aops,its,ite,jts,jte,kts,kte)
@@ -473,7 +473,7 @@
 
        !--- gocart2G processes:
        call SS2G_params%emissions_GridComp(SS2G,its,ite,jts,jte,kts,kte)
-       call SS2G_params%processes_GridComp(SS2G,its,ite,jts,jte,kts,kte)
+       call SS2G_params%processes_GridComp(SS2G,to_MYNN,its,ite,jts,jte,kts,kte)
 
        !--- global diagnostics:
        call SS2G_diagnostics(mesh,SS2G,SS2G_diags,SS2G_aops,its,ite,jts,jte,kts,kte)
@@ -529,7 +529,8 @@
 
        !--- gocart2G processes:
        call SU2G_params%emissions_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
-       call SU2G_params%processes_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
+       call SU2G_params%processes_GridComp(SU2G,to_MYNN,its,ite,jts,jte,kts,kte, &
+                                           iyear,imonth,iday,ihour,iminute,isecond)
 
        !--- global diagnostics:
        call SU2G_diagnostics(mesh,SU2G,SU2G_diags,SU2G_aops,its,ite,jts,jte,kts,kte)

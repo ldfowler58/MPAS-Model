@@ -283,10 +283,11 @@
  end subroutine emissions_DU2G_GridComp
 
 !==================================================================================================================
- subroutine processes_DU2G_GridComp(self_params,self,its,ite,jts,jte,kts,kte)
+ subroutine processes_DU2G_GridComp(self_params,self,to_MYNN,its,ite,jts,jte,kts,kte)
 !==================================================================================================================
 
 !--- input arguments:
+ logical,intent(in):: to_MYNN
  integer,intent(in):: its,ite,jts,jte,kts,kte
  class(DU2G_GridComp),intent(in):: self_params
 
@@ -344,6 +345,7 @@
 
 !--- DU2G dry deposition:
 !call mpas_log_write('--- enter subroutine DryDeposition:')
+ if(associated(self%dudp)  ) self%dudp(:,:,:) = 0._RKIND
  if(associated(self%duvdep)) self%duvdep(:,:) = 0._RKIND
  if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
@@ -365,18 +367,20 @@
               drydepf    = drydepf        , &
               rc         = istat            &
                    )
- do ibin = 1, self_params%nbins
-    if(associated(self%dudp)) self%dudp(:,:,ibin) = 0._RKIND
-    dqa = 0._RKIND
-    dqa = max(0._RKIND,self%du(:,:,self_params%km,ibin)*(1.-exp(-drydepf*self_params%cdt)))
-    self%du(:,:,self_params%km,ibin) = self%du(:,:,self_params%km,ibin) - dqa
-    if(associated(self%dudp)) then
-       self%dudp(:,:,ibin) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
-    end if
-    if(associated(self%duvdep) .and. ibin == self_params%nbins) then
-       self%duvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
-    endif
- enddo
+!--- if gocart2G does not interact with the MYNN PBL parameterization, then we update the mixing ratios
+!    due to dry deposition in the model layer adjacent to the surface, otherwise we simply skip this step:
+ if(associated(self%duvdep)) self%duvdep(:,:) = drydepf(:,:)*self%delz(:,:,self_params%km)
+ if(.not. to_MYNN) then
+    do ibin = 1, self_params%nbins
+       if(associated(self%dudp)) self%dudp(:,:,ibin) = 0._RKIND
+       dqa = 0._RKIND
+       dqa = max(0._RKIND,self%du(:,:,self_params%km,ibin)*(1.-exp(-drydepf*self_params%cdt)))
+       self%du(:,:,self_params%km,ibin) = self%du(:,:,self_params%km,ibin) - dqa
+       if(associated(self%dudp)) then
+          self%dudp(:,:,ibin) = dqa*self%delp(:,:,self_params%km)/grav/self_params%cdt
+       end if
+    enddo
+ endif
  if(istat /=0) then
     call mpas_log_write('--- DU2G_bc_GridComp: error in subroutine DryDeposition.', &
                         messageType=MPAS_LOG_CRIT)

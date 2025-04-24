@@ -7114,6 +7114,7 @@ K_LOOP: do k = km, 1, -1
                                  SU_dep, SU_PSO2, SU_PMSA, &
                                  SU_PSO4, SU_PSO4g, SU_PSO4aq, &     ! 2d diagnostics
                                  pso2, pmsa, pso4, pso4g, pso4aq, drydepositionfrequency, & ! 3d diagnostics
+                                 to_MYNN, &
                                  rc)
 
 
@@ -7168,6 +7169,7 @@ K_LOOP: do k = km, 1, -1
    real(kind=RKIND), pointer, dimension(:,:,:), intent(inout) :: pso4aq ! SO4 Prod from aqueous SO2 oxidation [kg m-2 s-1]
 !--- BEGIN MPAS-A: drydepositionfrequency is allocated in subroutine run2_SU2G_GridComp:
 !  real(kind=RKIND), dimension(:,:), allocatable, intent(out) :: drydepositionfrequency
+   logical,intent(in):: to_MYNN
    real(kind=RKIND), dimension(:,:), intent(inout) :: drydepositionfrequency
 !--- END MPAS-A.
 
@@ -7264,6 +7266,11 @@ K_LOOP: do k = km, 1, -1
 
    call DryDeposition ( km, tmpu, rhoa, hghte, oro, ustar, pblh, shflux, &
                         von_karman, cpd, grav, z0h, drydepositionfrequency, __RC__)
+
+!--- if gocart2G interacts with the MYNN PBL parameterization to simulate mixig of sulfate
+!    (SO2 and SO4) in the PBL and free-troposphere, then we simply set the dry deposition
+!    frequency to 0.; otherwise we output the dry deposition frequency for use in MYNN.
+   if(to_MYNN) drydepositionfrequency(:,:) = 0.
 
 !  Now call the chemistry packages...
 !  ----------------------------------
