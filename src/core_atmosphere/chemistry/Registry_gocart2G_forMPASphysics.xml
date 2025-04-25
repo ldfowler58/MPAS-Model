@@ -2,8 +2,6 @@
 <!-- GOCART-2G INTERACTIONS WITH PHYSICS:                                                                       -->
 <!-- ========================================================================================================== -->
 
-#ifdef DO_GOCART2G
-
  <dims>
 
       <dim name="kDepLevels" definition="1"
@@ -204,4 +202,4 @@
 
  </var_struct>
 
-#endif
+

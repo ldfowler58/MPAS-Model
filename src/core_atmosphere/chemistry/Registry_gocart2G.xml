@@ -537,7 +537,7 @@
 
 #include "Registry_gocart2G_emissions_update.xml"
 #include "Registry_gocart2G_emissions.xml"
-#include "Registry_gocart2G_tophysics.xml"
+#include "Registry_gocart2G_forMPASphysics.xml"
 #include "Registry_gocart2G_AOPs.xml"
 #include "Registry_gocart2G_CA_bc.xml"
 #include "Registry_gocart2G_CA_br.xml"

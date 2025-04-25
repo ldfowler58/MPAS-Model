@@ -6,7 +6,7 @@
 ! distributed with this code, or at http://mpas-dev.github.com/license.html
 !
 !==================================================================================================================
- module mpas_chemistry_gocart2G_tophysics
+ module mpas_chemistry_gocart2G_forMPASphysics
  use mpas_log
  use mpas_kind_types
  use mpas_derived_types,only: mpas_pool_type,MPAS_LOG_CRIT
@@ -746,5 +746,5 @@
  end subroutine gocart2G_todynamics
 
 !==================================================================================================================
- end module mpas_chemistry_gocart2G_tophysics
+ end module mpas_chemistry_gocart2G_forMPASphysics
 !==================================================================================================================
