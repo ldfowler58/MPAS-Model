@@ -30,11 +30,7 @@
 
  use mpas_chemistry_gocart2G_interface,only: atm_gocart2G
  use mpas_chemistry_gocart2G_emissions,only: emis_gocart2G
-<<<<<<< HEAD
  use mpas_chemistry_gocart2G_forMPASphysics,only: chem_gocart2G
-=======
- use mpas_chemistry_gocart2G_tophysics,only: chem_gocart2G
->>>>>>> 3a1a1f59 (* In ./src/core_atmosphere/chemistry, connected the interface between gocart2G and physics.)
 
 
  type(CA2G_bc_GridComp) :: CA2G_bc_params
