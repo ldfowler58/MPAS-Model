@@ -1,0 +1,207 @@
+<!-- ========================================================================================================== -->
+<!-- GOCART-2G INTERACTIONS WITH PHYSICS:                                                                       -->
+<!-- ========================================================================================================== -->
+
+#ifdef DO_GOCART2G
+
+ <dims>
+
+      <dim name="kDepLevels" definition="1"
+           description="The number of vertical layers where dry deposition occurs"/>
+
+ </dims>
+
+
+ <var_struct name="diag_physics" time_levs="1">
+
+      <var_array name="bl_drydepv" type="real" dimensions="kDepLevels nCells Time">
+           <var name="depv_qbcphobic" name_in_code="qbcphobic" array_group="gocart2G_bl" units="m s^{-1}"
+                description="BCPHOBIC - dry deposition vertical velocity of hydrophobic black carbon"/>
+
+           <var name="depv_qbcphilic" name_in_code="qbcphilic" array_group="gocart2G_bl" units="m s^{-1}"
+                description="BCPHILIC - dry deposition vertical velocity of hydrophilic black carbon"/>
+
+           <var name="depv_qbrphobic" name_in_code="qbrphobic" array_group="gocart2G_bl" units="m s^{-1}"
+                description="BRPHOBIC - dry deposition vertical velocity of hydrophobic brown carbon"/>
+
+           <var name="depv_qbrphilic" name_in_code="qbrphilic" array_group="gocart2G_bl" units="m s^{-1}"
+                description="BCPHILIC - dry deposition vertical velocity of hydrophilic brown carbon"/>
+
+           <var name="depv_qocphobic" name_in_code="qocphobic" array_group="gocart2G_bl" units="m s^{-1}"
+                description="OCPHOBIC - dry deposition vertical velocity of hydrophobic organic carbon"/>
+
+           <var name="depv_qocphilic" name_in_code="qocphilic" array_group="gocart2G_bl" units="m s^{-1}"
+                description="OCPHILIC - dry deposition vertical velocity of hydrophilic organic carbon"/>
+
+           <var name="depv_qdust1" name_in_code="qdust1" array_group="gocart2G_bl" units="m s^{-1}"
+                description="DU001 - dry deposition vertical velocity of mineral dust size bin 1"/>
+
+           <var name="depv_qdust2" name_in_code="qdust2" array_group="gocart2G_bl" units="m s^{-1}"
+                description="DU002 - dry deposition vertical velocity of mineral dust size bin 2"/>
+
+           <var name="depv_qdust3" name_in_code="qdust3" array_group="gocart2G_bl" units="m s^{-1}"
+                description="DU003 - dry deposition vertical velocity of mineral dust size bin 3"/>
+
+           <var name="depv_qdust4" name_in_code="qdust4" array_group="gocart2G_bl" units="m s^{-1}"
+                description="DU004 - dry deposition vertical velocity of mineral dust size bin 4"/>
+
+           <var name="depv_qdust5" name_in_code="qdust5" array_group="gocart2G_bl" units="m s^{-1}"
+                description="DU005 - dry deposition vertical velocity of mineral dust size bin 5"/>
+
+           <var name="depv_qni1" name_in_code="qni1" array_group="gocart2G_bl" units="m s^{-1}"
+                description="NI001 - dry deposition vertical velocity of nitrate size bin 1"/>
+
+           <var name="depv_qni2" name_in_code="qni2" array_group="gocart2G_bl" units="m s^{-1}"
+                description="NI002 - dry deposition vertical velocity of nitrate size bin 2"/>
+
+           <var name="depv_qni3" name_in_code="qni3" array_group="gocart2G_bl" units="m s^{-1}"
+                description="NI003 - dry deposition vertical velocity of nitrate size bin 3"/>
+
+           <var name="depv_qso2" name_in_code="qso2" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SO2 - dry deposition vertical velocity of sulfur dioxide"/>
+
+           <var name="depv_qso2v" name_in_code="qso2v" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SO2v - dry deposition vertical velocity of sulfur dioxide (volcanic)"/>
+
+           <var name="depv_qso4" name_in_code="qso4" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SO4 - dry deposition vertical velocity of sulfate"/>
+
+           <var name="depv_qso4v" name_in_code="qso4v" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SO4v - dry deposition vertical velocity of sulfate (volcanic)"/>
+
+           <var name="depv_qseas1" name_in_code="qseas1" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SEAS1 - dry deposition vertical velocity of sea-salt size bin 1"/>
+
+           <var name="depv_qseas2" name_in_code="qseas2" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SEAS2 - dry deposition vertical velocity of sea-salt size bin 2"/>
+
+           <var name="depv_qseas3" name_in_code="qseas3" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SEAS3 - dry deposition vertical velocity of sea-salt size bin 3"/>
+
+           <var name="depv_qseas4" name_in_code="qseas4" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SEAS4 - dry deposition vertical velocity of sea-salt size bin 4"/>
+
+           <var name="depv_qseas5" name_in_code="qseas5" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SEAS5 - dry deposition vertical velocity of sea-salt size bin 5"/>
+
+           <var name="depv_qdms" name_in_code="qdms" array_group="gocart2G_bl" units="m s^{-1}"
+                description="DMS - dry deposition vertical velocity of dimethyl sulfide"/>
+
+           <var name="depv_qmsa" name_in_code="qmsa" array_group="gocart2G_bl" units="m s^{-1}"
+                description="MSA - dry deposition vertical velocity of methanesulfonic acid"/>
+
+           <var name="depv_qnh3" name_in_code="qnh3" array_group="gocart2G_bl" units="m s^{-1}"
+                description="NH3 - dry deposition vertical velocity of ammonia"/>
+
+           <var name="depv_qnh4a" name_in_code="qnh4a" array_group="gocart2G_bl" units="m s^{-1}"
+                description="NH4a - dry deposition vertical velocity of ammonium ion"/>
+
+           <var name="depv_qsoapa" name_in_code="qsoapa" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SOAPa - dry deposition vertical velocity of lumped anthropogenic SOA precursor"/>
+
+           <var name="depv_qsoapbb" name_in_code=qsoapbb" array_group="gocart2G_bl" units="m s^{-1}"
+                description="SOAPbb - dry deposition vertical velocity of lumped biomass SOA precursor"/>
+
+           <var name="depv_qsoapbg" name_in_code="qsoapbg" array_group="gocart2G_bl" units="kg kg^{-1}"
+                description="SOAPbg - tendency of lumped biogenic SOA precursor due to PBL and free-tropospheric mixing"/>
+      </var_array>
+ </var_struct>
+
+
+ <var_struct name="tend_physics" time_levs="1">
+
+      <var_array name="bl_chemistry" type="real" dimensions="nVertLevels nCells Time">
+           <var name="bl_qbcphobic" name_in_code="qbcphobic" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="BCPHOBIC - tendency of hydrophobic black carbon due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qbcphilic" name_in_code="qbcphilic" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="BCPHILIC - tendency of hydrophilic black carbon due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qbrphobic" name_in_code="qbrphobic" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="BRPHOBIC - tendency of hydrophobic brown carbon due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qbrphilic" name_in_code="qbrphilic" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="BCPHILIC - tendency of hydrophilic brown carbon due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qocphobic" name_in_code="qocphobic" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="OCPHOBIC - tendency of hydrophobic organic carbon due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qocphilic" name_in_code="qocphilic" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="OCPHILIC - tendency of hydrophilic organic carbon due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qdust1" name_in_code="qdust1" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="DU001 - tendency of mineral dust size bin 1 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qdust2" name_in_code="qdust2" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="DU002 - tendency of mineral dust size bin 2 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qdust3" name_in_code="qdust3" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="DU003 - tendency of mineral dust size bin 3 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qdust4" name_in_code="qdust4" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="DU004 - tendency of mineral dust size bin 4 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qdust5" name_in_code="qdust5" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="DU005 - tendency of mineral dust size bin 5 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qni1" name_in_code="qni1" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="NI001 - tendency of nitrate size bin 1 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qni2" name_in_code="qni2" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="NI002 - tendency of nitrate size bin 2 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qni3" name_in_code="qni3" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="NI003 - tendency of nitrate size bin 3 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qso2" name_in_code="qso2" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SO2 - tendency of sulfur dioxide due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qso2v" name_in_code="qso2v" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SO2v - tendency of sulfur dioxide (volcanic) due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qso4" name_in_code="qso4" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SO4 - tendency of sulfate due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qso4v" name_in_code="qso4v" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SO4v - tendency of sulfate (volcanic) due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qseas1" name_in_code="qseas1" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SEAS1 - tendency of sea-salt size bin 1 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qseas2" name_in_code="qseas2" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SEAS2 - tendency of sea-salt size bin 2 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qseas3" name_in_code="qseas3" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SEAS3 - tendency of sea-salt size bin 3 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qseas4" name_in_code="qseas4" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SEAS4 - tendency of sea-salt size bin 4 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qseas5" name_in_code="qseas5" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SEAS5 - tendency of sea-salt size bin 5 due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qdms" name_in_code="qdms" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="DMS - tendency of dimethyl sulfide due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qmsa" name_in_code="qmsa" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="MSA - tendency of methanesulfonic acid due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qnh3" name_in_code="qnh3" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="NH3 - tendency of ammonia due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qnh4a" name_in_code="qnh4a" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="NH4a - tendency of ammonium ion due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qsoapa" name_in_code="qsoapa" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SOAPa - tendency of lumped anthropogenic SOA precursor due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qsoapbb" name_in_code=qsoapbb" array_group="gocart2G_bl" units="kg kg^{-1} s^{-1}"
+                description="SOAPbb - tendency of lumped biomass SOA precursor due to PBL and free-tropospheric mixing"/>
+
+           <var name="bl_qsoapbg" name_in_code="qsoapbg" array_group="gocart2G_bl" units="kg kg^{-1}"
+                description="SOAPbg - tendency of lumped biogenic SOA precursor due to PBL and free-tropospheric mixing"/>
+      </var_array>
+
+ </var_struct>
+
+#endif
