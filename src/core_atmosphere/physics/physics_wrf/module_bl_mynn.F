@@ -535,16 +535,16 @@
             flag_qc         = f_qc           , flag_qi     = f_qi           , flag_qs     = f_qs          , &
             flag_qoz        = f_qoz          , flag_qnc    = f_nc           , flag_qni    = f_ni          , &
             flag_qnwfa      = f_nwfa         , flag_qnifa  = f_nifa         , flag_qnbca  = f_nbca        , &
-            pattern_spp_pbl = pattern_spp_hv                                                                &
+            pattern_spp_pbl = pattern_spp_hv ,                                                              &
 #ifdef DO_GOCART2G
-           ,nchem      = mpas_chem_gocart2G%nchem,    &
-            kdvel      = mpas_chem_gocart2G%kdepvel,  &
-            ndvel      = mpas_chem_gocart2G%ndepvel,  &
-            chem       = mpas_chem_gocart2G%chem_mr,  &
-            vdep       = mpas_chem_gocart2G%drydepv,  &
-            rchemblten = mpas_chem_gocart2G%chemblten &
+            nchem      = mpas_chem_gocart2G%nchem,     &
+            kdvel      = mpas_chem_gocart2G%kdepvel,   &
+            ndvel      = mpas_chem_gocart2G%ndepvel,   &
+            chem       = mpas_chem_gocart2G%chem_mr,   &
+            vdep       = mpas_chem_gocart2G%drydepv,   &
+            rchemblten = mpas_chem_gocart2G%chemblten, &
 #endif
-           ,bl_mynn_tkeadvect  = bl_mynn_tkeadvect  , &
+            bl_mynn_tkeadvect  = bl_mynn_tkeadvect  , &
             bl_mynn_tkebudget  = mynn_tkebudget_l   , &
             bl_mynn_cloudpdf   = bl_mynn_cloudpdf   , &
             bl_mynn_mixlength  = bl_mynn_mixlength  , &
