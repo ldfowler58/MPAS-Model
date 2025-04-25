@@ -75,7 +75,7 @@
  class(chem_gocart2G),intent(inout):: self
 
 !--- local variables and arrays:
- integer,pointer:: nCellsSolve,nVertLevels
+ integer,pointer:: nCellsSolve,nVertLevels,kDepLevels
  integer,pointer:: num_scalars
  integer,pointer:: moist_start,moist_end
  integer,pointer:: number_start,number_end
