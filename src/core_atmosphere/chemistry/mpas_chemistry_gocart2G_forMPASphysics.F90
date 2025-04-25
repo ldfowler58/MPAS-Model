@@ -50,12 +50,12 @@
 
 
     contains
-       procedure:: gocart2G_dims       => gocart2G_tophysics_dims
-       procedure:: gocart2G_allocate   => gocart2G_tophysics_allocate
-       procedure:: gocart2G_deallocate => gocart2G_tophysics_deallocate
-       procedure:: gocart2G_todynamics
-       procedure:: gocart2G_tophysics
-       procedure:: gocart2G_tophysics_init
+       procedure:: gocart2G_dims       => gocart2G_forMPASphys_dims
+       procedure:: gocart2G_allocate   => gocart2G_forMPASphys_allocate
+       procedure:: gocart2G_deallocate => gocart2G_forMPASphys_deallocate
+       procedure:: gocart2G_forMPASdyn
+       procedure:: gocart2G_forMPASphys
+       procedure:: gocart2G_forMPASphys_init
  end type
 
 
@@ -63,7 +63,7 @@
 
 
 !==================================================================================================================
- subroutine gocart2G_tophysics_dims(self,mesh,state)
+ subroutine gocart2G_forMPASphys_dims(self,mesh,state)
 !==================================================================================================================
 
 !--- input arguments:
@@ -83,7 +83,7 @@
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine gocart2G_tophysics_dims:')
+ call mpas_log_write('--- enter subroutine gocart2G_forMPASphys_dims:')
 
 
  call mpas_pool_get_dimension(mesh,'nCellsSolve',nCellsSolve)
@@ -135,12 +135,12 @@
  call mpas_log_write('--- ndepvel      = $i',intArgs=(/self%ndepvel/))
 
 
- call mpas_log_write('--- end subroutine gocart2G_tophysics_dims.')
+ call mpas_log_write('--- end subroutine gocart2G_forMPASphys_dims.')
 
- end subroutine gocart2G_tophysics_dims
+ end subroutine gocart2G_forMPASphys_dims
 
 !==================================================================================================================
- subroutine gocart2G_tophysics_allocate(self)
+ subroutine gocart2G_forMPASphys_allocate(self)
 !==================================================================================================================
 
 !--- inout arguments:
@@ -152,7 +152,7 @@
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine gocart2G_tophysics_allocate:')
+ call mpas_log_write('--- enter subroutine gocart2G_forMPASphys_allocate:')
 
 
  its   = self%its
@@ -173,12 +173,12 @@
  if(.not.associated(self%chemblten)) allocate(self%chemblten(its:ite,kts:kte,nchem))
 
 
- call mpas_log_write('--- end subroutine gocart2G_physics_allocate.')
+ call mpas_log_write('--- end subroutine gocart2G_forMPASphys_allocate.')
 
- end subroutine gocart2G_tophysics_allocate
+ end subroutine gocart2G_forMPASphys_allocate
 
 !==================================================================================================================
- subroutine gocart2G_tophysics_deallocate(self)
+ subroutine gocart2G_forMPASphys_deallocate(self)
 !==================================================================================================================
 
 !--- inout arguments:
@@ -186,7 +186,7 @@
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine gocart2G_tophysics_deallocate:')
+ call mpas_log_write('--- enter subroutine gocart2G_forMPASphys_deallocate:')
 
 
  if(associated(self%fnum) ) deallocate(self%fnum )
@@ -199,12 +199,12 @@
  if(associated(self%chemblten)) deallocate(self%chemblten)
 
 
- call mpas_log_write('--- end subroutine gocart2G_physics_deallocate.')
+ call mpas_log_write('--- end subroutine gocart2G_forMPASphys_deallocate.')
 
- end subroutine gocart2G_tophysics_deallocate
+ end subroutine gocart2G_forMPASphys_deallocate
 
 !==================================================================================================================
- subroutine gocart2G_tophysics_init(self,CA2G_bc_params,CA2G_br_params,CA2G_oc_params,DU2G_params,NI2G_params, &
+ subroutine gocart2G_forMPASphys_init(self,CA2G_bc_params,CA2G_br_params,CA2G_oc_params,DU2G_params,NI2G_params, &
                                     SS2G_params,SU2G_params)
 !==================================================================================================================
 
@@ -225,7 +225,7 @@
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine gocart2G_tophysics_init:')
+ call mpas_log_write('--- enter subroutine gocart2G_forMPASphys_init:')
 
 
  if(associated(self%fnum) ) self%fnum(:)  = 0._RKIND
@@ -357,13 +357,12 @@
  enddo
 
 
- call mpas_log_write('--- end subroutine gocart2G_tophysics_init.')
+ call mpas_log_write('--- end subroutine gocart2G_forMPASphys_init.')
 
- end subroutine gocart2G_tophysics_init
+ end subroutine gocart2G_forMPASphys_init
 
 !==================================================================================================================
-!subroutine gocart2G_tophysics(self,CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G)
- subroutine gocart2G_tophysics(self,diag_physics,CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G,SOA2G)
+ subroutine gocart2G_forMPASphys(self,diag_physics,CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G,SOA2G)
 !==================================================================================================================
 
 !--- input arguments:
@@ -388,7 +387,7 @@
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine gocart2G_tophysics:')
+ call mpas_log_write('--- enter subroutine gocart2G_forMPASphys:')
 
 
  its = self%its
@@ -686,12 +685,12 @@
  enddo
 
 
- call mpas_log_write('--- end subroutine gocart2G_tophysics.')
+ call mpas_log_write('--- end subroutine gocart2G_forMPASphys.')
 
- end subroutine gocart2G_tophysics
+ end subroutine gocart2G_forMPASphys
 
 !==================================================================================================================
- subroutine gocart2G_todynamics(self,tend_physics)
+ subroutine gocart2G_forMPASdyn(self,tend_physics)
 !==================================================================================================================
 
 !--- input arguments:
@@ -710,7 +709,7 @@
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine gocart2G_todynamics:')
+ call mpas_log_write('--- enter subroutine gocart2G_forMPASdyn:')
 
  its = self%its
  ite = self%ite
@@ -741,9 +740,9 @@
     call mpas_log_write(message,messageType=MPAS_LOG_crit)
  endif
 
- call mpas_log_write('--- end subroutine gocart2G_todynamics:')
+ call mpas_log_write('--- end subroutine gocart2G_forMPASdyn:')
 
- end subroutine gocart2G_todynamics
+ end subroutine gocart2G_forMPASdyn
 
 !==================================================================================================================
  end module mpas_chemistry_gocart2G_forMPASphysics
