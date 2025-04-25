@@ -555,7 +555,9 @@
     !--- feedbacks to physics:
     if(to_MYNN) then
        call mpas_chem_gocart2G%gocart2G_dims(mesh,state)
-       call mpas_chem_gocart2G%gocart2G_tophysics(CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G)
+!      call mpas_chem_gocart2G%gocart2G_tophysics(CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G)
+       call mpas_chem_gocart2G%gocart2G_tophysics(diag_physics,CA2G_bc,CA2G_br,CA2G_oc, &
+                                                  DU2G,NI2G,SS2G,SU2G,SOA2G)
     endif
 
     block => block % next

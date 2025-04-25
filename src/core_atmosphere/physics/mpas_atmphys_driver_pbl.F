@@ -727,7 +727,7 @@
        endif
 
 #ifdef DO_GOCART2G
-       if(bl_mynn_mixchems) call mpas_chem_gocart2G%gocart2G_todynamics(diag_physics,tend_physics)
+       if(bl_mynn_mixchems) call mpas_chem_gocart2G%gocart2G_todynamics(tend_physics)
 #endif
 
     case default

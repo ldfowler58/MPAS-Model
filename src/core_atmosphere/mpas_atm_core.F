@@ -1006,6 +1006,7 @@ module atm_core
       use mpas_atmphys_update
 #endif
 #ifdef DO_GOCART2G
+      use mpas_chemistry_gocart2G_forMPASrestart,only: gocart2G_forMPASrestart
       use mpas_chemistry_gocart2G_manager,only: gocart2G_timetracker
       use mpas_chemistry_gocart2G_driver,only : gocart2G_driver
 #endif
@@ -1037,6 +1038,9 @@ module atm_core
 #ifdef DO_PHYSICS
       !proceed with physics if moist_physics is set to true:
       if(moist_physics) then
+#ifdef DO_GOCART2G
+         call gocart2G_forMPASrestart(domain)
+#endif
          call physics_timetracker(domain,dt,clock,itimestep,xtime_s)
          call physics_driver(domain,itimestep,xtime_s)
       endif

@@ -27,6 +27,7 @@
  use NI2G_StateSpecs
  use SS2G_StateSpecs
  use SU2G_StateSpecs
+ use SOA2G_StateSpecs
 
 
  implicit none
@@ -73,7 +74,7 @@
  class(chem_gocart2G),intent(inout):: self
 
 !--- local variables and arrays:
- integer,pointer:: nCellsSolve,nVertLevels
+ integer,pointer:: nCellsSolve,nVertLevels,kDepLevels
  integer,pointer:: num_scalars
  integer,pointer:: moist_start,moist_end
  integer,pointer:: number_start,number_end
@@ -331,16 +332,17 @@
  self%fnum(n)  = NI2G_params%fnum(2)     ! nh4a
  self%fscav(n) = NI2G_params%fscav(2)    ! nh4a
 
-!--- extra prognostic aerosols:
+!--- secondary organic aerosols: here, we set the conversion factor between mass mixing ratios and
+!    wet scavenging coefficients to that of organic carbon:
  n = n+1
- self%fnum(n)  = 0._RKIND                ! soa (anthropogenic)
- self%fscav(n) = 0._RKIND                ! soa (anthropogenic)
+ self%fnum(n)  = CA2G_oc_params%fnum(1)  ! soa (anthropogenic)
+ self%fscav(n) = CA2G_oc_params%fscav(1) ! soa (anthropogenic)
  n = n+1
- self%fnum(n)  = 0._RKIND                ! soa (biomass burning)
- self%fscav(n) = 0._RKIND                ! soa (biomass burning)
+ self%fnum(n)  = CA2G_oc_params%fnum(1)  ! soa (biomass burning)
+ self%fscav(n) = CA2G_oc_params%fscav(1) ! soa (biomass burning)
  n = n+1
- self%fnum(n)  = 0._RKIND                ! soa (biogenic)
- self%fscav(n) = 0._RKIND                ! soa (biogenic)
+ self%fnum(n)  = CA2G_oc_params%fnum(1)  ! soa (biogenic)
+ self%fscav(n) = CA2G_oc_params%fscav(1) ! soa (biogenic)
 
 
 !--- initialization of arrays needed in physics:
@@ -360,24 +362,29 @@
  end subroutine gocart2G_tophysics_init
 
 !==================================================================================================================
- subroutine gocart2G_tophysics(self,CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G)
+!subroutine gocart2G_tophysics(self,CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G)
+ subroutine gocart2G_tophysics(self,diag_physics,CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G,SOA2G)
 !==================================================================================================================
 
 !--- input arguments:
  type(CA2G_bc_State),intent(in):: CA2G_bc
  type(CA2G_br_State),intent(in):: CA2G_br
  type(CA2G_oc_State),intent(in):: CA2G_oc
- type(DU2G_State),intent(in):: DU2G
- type(NI2G_State),intent(in):: NI2G
- type(SS2G_State),intent(in):: SS2G
- type(SU2G_State),intent(in):: SU2G
+ type(DU2G_State),intent(in)   :: DU2G
+ type(NI2G_State),intent(in)   :: NI2G
+ type(SS2G_State),intent(in)   :: SS2G
+ type(SU2G_State),intent(in)   :: SU2G
+ type(SOA2G_State),intent(in)  :: SOA2G
 
 !--- inout arguments:
  class(chem_gocart2G),intent(inout):: self
+ type(mpas_pool_type),intent(inout):: diag_physics
 
 !--- local variables:
  integer:: its,ite,jts,jte,kts,kte
  integer:: i,j,k,kk,kdvel,n,nn
+
+ real(kind=RKIND),dimension(:,:,:),pointer:: drydepv
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -475,13 +482,14 @@
           n = n+1
           if(associated(NI2G%nh4a)) self%drydepv(i,k,n) = NI2G%nivdep(i,j)
 
-          !--- extra prognostic aerosols:
+          !--- secondary organic aerosols: here, we set the dry deposition vertical velocity
+          !    to that of organic carbon:
           n = n+1
-          self%drydepv(i,k,n) = 0._RKIND ! soa (anthropogenic)
+          if(associated(SOA2G%soap_a))  self%drydepv(i,k,n) = CA2G_oc%ocvdep(i,j)
           n = n+1
-          self%drydepv(i,k,n) = 0._RKIND ! soa (biomass burning)
+          if(associated(SOA2G%soap_bb)) self%drydepv(i,k,n) = CA2G_oc%ocvdep(i,j)
           n = n+1
-          self%drydepv(i,k,n) = 0._RKIND ! soa (biogenic)
+          if(associated(SOA2G%soap_bg)) self%drydepv(i,k,n) = CA2G_oc%ocvdep(i,j)
 
        enddo
     enddo
@@ -644,21 +652,38 @@
              self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
           endif
 
-          !--- extra prognostic aerosols:
+          !--- secondary organic aerosols:
           n = n+1
-          self%chem_mr(i,kk,n) = 0._RKIND ! soa (anthropogenic)
-          self%chem_nc(i,kk,n) = 0._RKIND ! soa (anthropogenic)
+          if(associated(SOA2G%soap_a)) then
+             self%chem_mr(i,kk,n) = SOA2G%soap_a(i,j,k)
+             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
+          endif
           n = n+1
-          self%chem_mr(i,kk,n) = 0._RKIND ! soa (biomass burning)
-          self%chem_nc(i,kk,n) = 0._RKIND ! soa (biomass burning)
+          if(associated(SOA2G%soap_bb)) then
+             self%chem_mr(i,kk,n) = SOA2G%soap_bb(i,j,k)
+             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
+          endif
           n = n+1
-          self%chem_mr(i,kk,n) = 0._RKIND ! soa (biogenic)
-          self%chem_nc(i,kk,n) = 0._RKIND ! soa (biogenic)
-
+          if(associated(SOA2G%soap_bg)) then
+             self%chem_mr(i,kk,n) = SOA2G%soap_bg(i,j,k)
+             self%chem_nc(i,kk,n) = self%fnum(n)*self%chem_mr(i,kk,n)
+          endif
        enddo
     enddo
  enddo
  call mpas_log_write('--- n = $i',intArgs=(/n/))
+
+
+!--- save dry deposition vertical velocities to diag_physics:
+ call mpas_pool_get_array(diag_physics,'bl_drydepv',drydepv)
+
+ do n = 1,self%ndepvel
+    do k = kts,kdvel
+       do i = its,ite
+          drydepv(n,k,i) = self%drydepv(i,k,n)
+       enddo
+    enddo
+ enddo
 
 
  call mpas_log_write('--- end subroutine gocart2G_tophysics.')
@@ -692,6 +717,7 @@
  kts = self%kts
  kte = self%kte
 
+
  call mpas_pool_get_dimension(tend_physics,'gocart2G_bl_start',bl_start)
  call mpas_pool_get_dimension(tend_physics,'gocart2G_bl_end'  ,bl_end  )
  call mpas_log_write('--- gocart2G_bl_start = $i',intArgs=(/bl_start/))
@@ -708,6 +734,7 @@
     enddo
  enddo
  call mpas_log_write('--- ic                = $i',intArgs=(/ic/))
+
 
  if(ic /= bl_end-bl_start+1) then
     message = '--- subroutine gocart2G_todynamics: bl_end-bl_start different than nb of gocart2G aerosol species'
