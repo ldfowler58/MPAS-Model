@@ -442,6 +442,7 @@
            <var name="cu_qsoapbg" array_group="gocart2G_cu" units="kg kg^{-1}"
                 description="SOAPbg - tendency of lumped biogenic SOA precursor due to convective transport and wet scavenging"/>
       </var_array>
+
  </var_struct>
 
 
