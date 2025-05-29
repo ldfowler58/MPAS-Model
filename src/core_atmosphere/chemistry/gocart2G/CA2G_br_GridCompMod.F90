@@ -396,7 +396,7 @@
     do i = its,ite
        do k = kts,kte
           self%brphobic(i,j,k) = qca2G(i,j,k,1)
-          self%brphobic(i,j,k) = qca2G(i,j,k,2)
+          self%brphilic(i,j,k) = qca2G(i,j,k,2)
        enddo
     enddo
  enddo
