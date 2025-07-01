@@ -330,15 +330,6 @@ module init_atm_cases
                call init_gocart2G_aerosols(block_ptr%configs,mesh,fg,diag,state,gocart2G_backgrounds)
             endif
 
-            !interpolation of climatological fields:
-            if(config_gocart2G_clim) then
-               call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)
-               call mpas_pool_get_subpool(block_ptr%structs,'diag',diag)
-               call mpas_pool_get_subpool(block_ptr%structs,'gocart2G_met',gocart2G_met)
-               call mpas_pool_get_subpool(block_ptr%structs,'gocart2G_backgrounds',gocart2G_backgrounds)
-               call init_gocart2G_climatology(block_ptr,block_ptr%configs,mesh,diag,gocart2G_met,gocart2G_backgrounds)
-            endif
-
             !interpolation of static fields:
             if(config_gocart2G_static) then
                call mpas_pool_get_subpool(block_ptr%structs,'mesh',mesh)

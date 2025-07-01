@@ -58,11 +58,6 @@
            description="Whether to interpolate climatological data to run gocart2G (case 7 only)"
            possible_values="true or false"/>
 
-      <nml_option name="config_gocart2G_clim" type="logical" default_value="false"
-           units="-"
-           description="Whether to interpolate climatological data to run gocart2G (case 7 only)"
-           possible_values="true or false"/>
-
       <nml_option name="config_gocart2G_static" type="logical" default_value="false"
            units="-"
            description="Whether to interpolate erod,clayfrac,and sandfrac WPS static data (case 7 only)"

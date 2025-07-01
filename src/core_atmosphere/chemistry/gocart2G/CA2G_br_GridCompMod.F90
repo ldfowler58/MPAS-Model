@@ -400,6 +400,7 @@
 !   call mpas_log_write('--- end subroutine DryDeposition.')
  endif
 
+
  do j = jts,jte
     do i = its,ite
        do k = kts,kte
