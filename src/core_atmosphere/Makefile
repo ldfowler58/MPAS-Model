@@ -99,14 +99,14 @@ clean:
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(PHYSICS) $(CPPINCLUDES) -I./inc $< > $*.f90
 ifeq "$(GOCART2G)" "true"
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../framework -I../operators -I./chemistry -I./physics -I./dynamics -I./diagnostics -I./chemistry/gocart2G -I./physics/physics_wrf -I./physics/physics_mmm -I../external/esmf_time_f90 -I../external/SMIOL
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../framework -I../operators -I./chemistry -I./physics -I./dynamics -I./diagnostics -I./chemistry/gocart2G -I./physics/physics_wrf -I./physics/physics_mmm -I./physics/physics_noaa/UGWP -I../external/esmf_time_f90 -I../external/SMIOL
 else
-	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I./physics/physics_mmm -I../external/esmf_time_f90 -I../external/SMIOL
+	$(FC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I./physics/physics_mmm -I./physics/physics_noaa/UGWP -I../external/esmf_time_f90 -I../external/SMIOL
 endif
 else
 ifeq "$(GOCART2G)" "true"
-	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./chemistry -I./physics -I./dynamics -I./diagnostics -I./chemistry/gocart2G -I./physics/physics_wrf -I./physics/physics_mmm -I../external/esmf_time_f90 -I../external/SMIOL
+	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./chemistry -I./physics -I./dynamics -I./diagnostics -I./chemistry/gocart2G -I./physics/physics_wrf -I./physics/physics_mmm -I./physics/physics_noaa/UGWP -I../external/esmf_time_f90 -I../external/SMIOL
 else
-	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I./physics/physics_mmm -I../external/esmf_time_f90 -I../external/SMIOL
+	$(FC) $(CPPFLAGS) $(PHYSICS) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I./inc -I../framework -I../operators -I./physics -I./dynamics -I./diagnostics -I./physics/physics_wrf -I./physics/physics_mmm -I./physics/physics_noaa/UGWP -I../external/esmf_time_f90 -I../external/SMIOL
 endif
 endif

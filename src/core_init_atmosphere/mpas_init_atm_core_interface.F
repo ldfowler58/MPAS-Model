@@ -323,6 +323,9 @@ module init_atm_core_interface
                              messageType=MPAS_LOG_ERR)
          call mpas_log_write('********************************************************************************', &
                              messageType=MPAS_LOG_ERR)
+         ierr = 1
+         return
+      end if
 
 #ifdef DO_GOCART2G
       !

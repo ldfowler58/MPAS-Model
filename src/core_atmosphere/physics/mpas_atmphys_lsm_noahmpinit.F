@@ -9,11 +9,11 @@
  module mpas_atmphys_lsm_noahmpinit
  use mpas_log
  use mpas_pool_routines
- use mpas_timekeeping,only      : mpas_get_timeInterval, mpas_get_clock_timestep
+ use mpas_timekeeping,only: mpas_get_timeInterval, mpas_get_clock_timestep
 
- use mpas_atmphys_constants,only: grav => gravity, t0 => svpt0
- use mpas_atmphys_utilities,only: physics_error_fatal
- use mpas_atmphys_vars,only     : mpas_noahmp
+ use mpas_atmphys_constants,only  : grav => gravity, t0 => svpt0
+ use mpas_atmphys_utilities,only  : physics_error_fatal
+ use mpas_atmphys_vars_noahmp,only: mpas_noahmp
 
  use NoahmpInitMainMod,only : NoahmpInitMain
  use NoahmpIOVarInitMod,only: NoahmpIOVarInitDefault
