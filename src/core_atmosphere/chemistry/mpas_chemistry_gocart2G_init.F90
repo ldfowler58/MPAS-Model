@@ -383,6 +383,7 @@
     call mpas_chem_gocart2G%gocart2G_allocate()
     call mpas_chem_gocart2G%gocart2G_forMPASphys_init(CA2G_bc_params,CA2G_br_params,CA2G_oc_params, &
                                                  DU2G_params,NI2G_params,SS2G_params,SU2G_params)
+    call mpas_chem_gocart2G%gocart2G_forMPASphys_mr(state)
  endif
 
 

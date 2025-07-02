@@ -56,6 +56,7 @@
        procedure:: gocart2G_forMPASdyn
        procedure:: gocart2G_forMPASphys
        procedure:: gocart2G_forMPASphys_init
+       procedure:: gocart2G_forMPASphys_mr
  end type
 
 
@@ -360,6 +361,59 @@
  call mpas_log_write('--- end subroutine gocart2G_forMPASphys_init.')
 
  end subroutine gocart2G_forMPASphys_init
+
+
+!==================================================================================================================
+ subroutine gocart2G_forMPASphys_mr(self,state)
+!==================================================================================================================
+
+!--- input arguments:
+ type(mpas_pool_type),intent(in):: state
+
+!--- inout arguments:
+ class(chem_gocart2G),intent(inout):: self
+
+!--- local variables and pointers:
+ integer,pointer:: gocart2G_start,gocart2G_end
+ integer:: its,ite,kts,kte
+ integer:: i,ic,ig,k
+
+ real(kind=RKIND),dimension(:,:,:),pointer:: scalars
+
+!------------------------------------------------------------------------------------------------------------------
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine gocart2G_forMPASphys_mr:')
+
+
+ its = self%its
+ ite = self%ite
+ kts = self%kts
+ kte = self%kte
+
+
+ call mpas_pool_get_dimension(state,'gocart2G_start',gocart2G_start)
+ call mpas_pool_get_dimension(state,'gocart2G_end'  ,gocart2G_end  )
+ call mpas_log_write('--- gocart2G_start = $i',intArgs=(/gocart2G_start/))
+ call mpas_log_write('--- gocart2G_end   = $i',intArgs=(/gocart2G_end/)  )
+ call mpas_log_write('--- nchem          = $i',intArgs=(/self%nchem/)    )
+
+
+ call mpas_pool_get_array(state,'scalars',scalars,1)
+ ic = 0
+ do ig = gocart2G_start,gocart2G_end
+    ic = ic+1
+    do i = its,ite
+       do k = kts,kte
+          self%chem_mr(i,k,ic) = scalars(ig,k,i)
+       enddo
+    enddo
+ enddo
+ call mpas_log_write('--- nchem          = $i',intArgs=(/ic/))
+
+
+ call mpas_log_write('--- end subroutine gocart2G_forMPASphys_mr.')
+
+ end subroutine gocart2G_forMPASphys_mr
 
 !==================================================================================================================
  subroutine gocart2G_forMPASphys(self,diag_physics,CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G,SOA2G)
