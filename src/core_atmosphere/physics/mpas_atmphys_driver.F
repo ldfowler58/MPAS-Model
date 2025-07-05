@@ -27,6 +27,9 @@
  use mpas_atmphys_update
  use mpas_atmphys_vars, only: l_camlw,l_conv,l_radtlw,l_radtsw
  use mpas_timer
+#ifdef DO_GOCART2G
+ use mpas_chemistry_gocart2G_vars
+#endif
 
  implicit none
  private
@@ -132,6 +135,7 @@
                                  sfc_input
 
  logical,pointer:: config_frac_seaice
+ logical,pointer:: bl_mynn_mixchems
 
  character(len=StrKIND),pointer:: config_bucket_update,     &
                                   config_convection_scheme, &
@@ -370,6 +374,11 @@
 
     !deallocate arrays shared by all physics parameterizations:
     call deallocate_forall_physics(block%configs)
+
+#ifdef DO_GOCART2G
+    call mpas_pool_get_config(block%configs,'config_mynn_mixchems',bl_mynn_mixchems)
+    if(bl_mynn_mixchems) call mpas_chem_gocart2G%gocart2G_forMPASdyn(tend_physics)
+#endif
 
     block => block % next
  end do 

@@ -13,9 +13,6 @@
 
  use mpas_atmphys_constants
  use mpas_atmphys_vars
-#ifdef DO_GOCART2G
- use mpas_chemistry_gocart2G_vars
-#endif
 
  use bl_mynn,only: bl_mynn_init
  use module_bl_mynn,only: mynn_bl_driver
@@ -725,10 +722,6 @@
              enddo
           enddo
        endif
-
-#ifdef DO_GOCART2G
-       if(bl_mynn_mixchems) call mpas_chem_gocart2G%gocart2G_forMPASdyn(tend_physics)
-#endif
 
     case default
 
