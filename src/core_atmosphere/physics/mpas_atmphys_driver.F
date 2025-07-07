@@ -136,6 +136,7 @@
 
  logical,pointer:: config_frac_seaice
  logical,pointer:: bl_mynn_mixchems
+ logical,pointer:: cu_ntiedtke_ctrchems
 
  character(len=StrKIND),pointer:: config_bucket_update,     &
                                   config_convection_scheme, &
@@ -376,8 +377,11 @@
     call deallocate_forall_physics(block%configs)
 
 #ifdef DO_GOCART2G
-    call mpas_pool_get_config(block%configs,'config_mynn_mixchems',bl_mynn_mixchems)
-    if(bl_mynn_mixchems) call mpas_chem_gocart2G%gocart2G_forMPASdyn(tend_physics)
+    call mpas_pool_get_config(block%configs,'config_mynn_mixchems'    ,bl_mynn_mixchems    )
+    call mpas_pool_get_config(block%configs,'config_ntiedtke_ctrchems',cu_ntiedtke_ctrchems)
+    if(bl_mynn_mixchems .or. cu_ntiedtke_ctrchems) then
+       call mpas_chem_gocart2G%gocart2G_forMPASdyn(tend_physics)
+    endif
 #endif
 
     block => block % next
