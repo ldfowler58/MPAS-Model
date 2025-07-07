@@ -48,6 +48,8 @@ OBJS = \
 	module_sf_urban.o              \
 	bl_mynn_post.o                 \
 	bl_mynn_pre.o                  \
+	cu_ntiedtke_ctrans_post.o      \
+	cu_ntiedtke_ctrans_pre.o       \
 	cu_ntiedtke_post.o             \
 	cu_ntiedtke_pre.o	       \
 	sf_mynn_pre.o                  \
@@ -68,6 +70,8 @@ module_cam_support.o: \
 	module_cam_shr_kind_mod.o
 
 module_cu_ntiedtke.o: \
+	cu_ntiedtke_ctrans_post.o \
+	cu_ntiedtke_ctrans_pre.o \
 	cu_ntiedtke_post.o \
 	cu_ntiedtke_pre.o
 

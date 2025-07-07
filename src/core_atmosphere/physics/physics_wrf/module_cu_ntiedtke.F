@@ -1,11 +1,20 @@
 !=================================================================================================================
  module module_cu_ntiedtke
  use mpas_kind_types,only: kind_phys => RKIND
+ use mpas_log
  use cu_ntiedtke,only: cu_ntiedtke_run, &
                        cu_ntiedtke_init
  use cu_ntiedtke_common
  use cu_ntiedtke_post,only: cu_ntiedtke_post_run
  use cu_ntiedtke_pre,only: cu_ntiedtke_pre_run
+
+#ifdef DO_GOCART2G
+ use mpas_chemistry_gocart2G_vars
+ use cu_ntiedtke_ctrans_post
+ use cu_ntiedtke_ctrans_pre
+ use cu_ntiedtke_ctrans
+#endif
+
 
  implicit none
  private
@@ -27,6 +36,7 @@
                 ,grav,xlf,xls,xlv,rd,rv,cp               &
                 ,rthcuten,rqvcuten,rqccuten,rqicuten     &
                 ,rucuten,rvcuten                         &
+                ,do_ctrchems,do_scavchems                &
                 ,ids,ide,jds,jde,kds,kde                 &
                 ,ims,ime,jms,jme,kms,kme                 &
                 ,its,ite,jts,jte,kts,kte                 &
@@ -85,6 +95,7 @@
 !-----------------------------------------------------------------------------------------------------------------
 
 !--- input arguments:
+ logical,intent(in):: do_ctrchems,do_scavchems
  logical,intent(in),optional:: f_qc,f_qi
 
  integer,intent(in):: ids,ide,jds,jde,kds,kde, &
@@ -153,10 +164,25 @@
  real(kind=kind_phys),dimension(its:ite,kts:kte):: rthcuten_hv,rqvcuten_hv,rqccuten_hv,rqicuten_hv, &
                                                    rucuten_hv,rvcuten_hv
 
+!--- additional local arrays output from the subroutine cu_ntiedtke_run:
+!    aerosol species:
+ logical,dimension(its:ite):: ldcum,lddraf
+ integer,dimension(its:ite):: kctype,kcbot,kctop,kdtop
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: pmfu,pmfd
+ real(kind=kind_phys),dimension(its:ite,kts:kte):: pmfu_entr,pmfd_entr,pmfu_detr,pmfd_detr
+
+ integer:: ic,nchem
+ real(kind=kind_phys),dimension(:),allocatable:: fscav
+ real(kind=kind_phys),dimension(:,:,:),allocatable:: chem,chemf
+ real(kind=kind_phys),dimension(:,:,:),allocatable:: ptenc,ptencf
+
 !-----------------------------------------------------------------------------------------------------------------
 
  errmsg = ' '
  errflg = 0
+
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine cu_ntiedtke_driver:')
 
  call cu_ntiedtke_init( &
                        con_cp  = cp  , con_rd = rd   , con_rv   = rv   , con_xlv = xlv    , &
@@ -218,23 +244,31 @@
                             )
 
     call cu_ntiedtke_run( &
-                     pu   = uf     , pv   = vf     , pt     = tf      , pqv    = qvf     , &
-                     pqc  = qcf    , pqi  = qif    , pqvf   = qvftenz , ptf    = thftenz , &
-                     poz  = ghtl   , pzz  = ghti   , pomg   = omg     , pap    = prsl    , &
-                     paph = prsi   , evap = qfx_hv , hfx    = hfx_hv  , zprecc = rn      , &
-                     lndj = slimsk , lq   = im     , km     = kx      , km1    = kx1     , &
-                     dt   = delt   , dx   = dx_hv  , errmsg = errmsg  , errflg = errflg    &
+                     pu        =  uf       , pv        = vf        , pt        = tf        , &
+                     pqv       = qvf       , pqc       = qcf       , pqi       = qif       , &
+                     pqvf      = qvftenz   , ptf       = thftenz   , poz       = ghtl      , &
+                     pzz       = ghti      , pomg      = omg       , pap       = prsl      , &
+                     paph      = prsi      , evap      = qfx_hv    , hfx       = hfx_hv    , &
+                     zprecc    = rn        , lndj      = slimsk    , lq        = im        , &
+                     km        = kx        , km1       = kx1       , dt        = delt      , &
+                     dx        = dx_hv     , ldcum     = ldcum     , lddraf    = lddraf    , &
+                     kctype    = kctype    , kcbot     = kcbot     , kctop     = kctop     , &
+                     kdtop     = kdtop     , pmfu      = pmfu      , pmfd      = pmfd      , &
+                     pmfu_entr = pmfu_entr , pmfd_entr = pmfd_entr , pmfu_detr = pmfu_detr , &
+                     pmfd_detr = pmfd_detr , errmsg    = errmsg    , errflg    = errflg      &
                         )
 
     call cu_ntiedtke_post_run( &
-                     its      = its         , ite      = ite         , kts      = kts         , kte      = kte         , &
-                     stepcu   = stepcu      , dt       = dt          , exner    = pi_hv       , qv       = qv_hv       , &
-                     qc       = qc_hv       , qi       = qi_hv       , t        = t_hv        , u        = u_hv        , &
-                     v        = v_hv        , qvf      = qvf         , qcf      = qcf         , qif      = qif         , &
-                     tf       = tf          , uf       = uf          , vf       = vf          , rn       = rn          , &
-                     raincv   = raincv_hv   , pratec   = pratec_hv   , rthcuten = rthcuten_hv , rqvcuten = rqvcuten_hv , &
-                     rqccuten = rqccuten_hv , rqicuten = rqicuten_hv , rucuten  = rucuten_hv  , rvcuten  = rvcuten_hv  , &
-                     errmsg   = errmsg      , errflg   = errflg                                                          &
+                     its       = its         , ite       = ite         , kts       = kts         , &
+                     kte       = kte         , stepcu    = stepcu      , dt        = dt          , &
+                     exner     = pi_hv       , qv        = qv_hv       , qc        = qc_hv       , &
+                     qi        = qi_hv       , t         = t_hv        , u         = u_hv        , &
+                     v         = v_hv        , qvf       = qvf         , qcf       = qcf         , &
+                     qif       = qif         , tf        = tf          , uf        = uf          , &
+                     vf        = vf          , rn        = rn          , raincv    = raincv_hv   , &
+                     pratec    = pratec_hv   , rthcuten  = rthcuten_hv , rqvcuten  = rqvcuten_hv , &
+                     rqccuten  = rqccuten_hv , rqicuten  = rqicuten_hv , rucuten   = rucuten_hv  , &
+                     rvcuten   = rvcuten_hv  , errmsg    = errmsg      , errflg    = errflg        &
                              )
 
     do i = its,ite
@@ -271,7 +305,58 @@
        endif
     endif
 
+#ifdef DO_GOCART2G
+    nchem = mpas_chem_gocart2G%nchem
+    if(do_ctrchems) then
+       if(.not.allocated(fscav) ) allocate(fscav(nchem))
+       if(.not.allocated(chem)  ) allocate(chem(its:ite,kts:kte,nchem)  )
+       if(.not.allocated(chemf) ) allocate(chemf(its:ite,kts:kte,nchem) )
+       if(.not.allocated(ptenc) ) allocate(ptenc(its:ite,kts:kte,nchem) )
+       if(.not.allocated(ptencf)) allocate(ptencf(its:ite,kts:kte,nchem))
+       do ic = 1,nchem
+          fscav(ic) = mpas_chem_gocart2G%fscav(ic)
+          chem(:,:,ic) = mpas_chem_gocart2G%chem_mr(:,:,ic)
+       enddo
+       call cu_ntiedtke_ctrans_pre_run( &
+               its    = its    , ite  = ite  , kts   = kts   , kte    = kte    , &
+               nchem  = nchem  , chem = chem , chemf = chemf , errmsg = errmsg , &
+               errflg = errflg                                                   &
+                                      )
+
+       call cu_ntiedtke_ctrans_run( &
+               klon        = im        , klev    = kx           , ldcum       = ldcum     , &
+               lddraf      = lddraf    , kctype  = kctype       , kcbot       = kcbot     , &
+               kctop       = kctop     , kdtop   = kdtop        , grav        = grav      , &
+               ztmst       = delt      , ghti    = ghti         , paph        = prsi      , &
+               pmfu        = pmfu      , pmfd    = pmfd         , pmfude_rate = pmfu_detr , &
+               pmfdde_rate = pmfd_detr , do_scav = do_scavchems , nchem       = nchem     , &
+               fscav       = fscav     , chem    = chemf        , ptenc       = ptenc     , &
+               errmsg      = errmsg    , errflg  = errflg                                   &
+                                  )
+
+       call cu_ntiedtke_ctrans_post_run( &
+               its    = its   , ite   = ite   , kts    = kts    , kte    = kte    , &
+               nchem  = nchem , ptenc = ptenc , ptencf = ptencf , errmsg = errmsg , &
+               errflg = errflg &
+                                       )
+       do ic = 1,nchem
+          mpas_chem_gocart2G%chemcuten(:,:,ic) = ptencf(:,:,ic)
+       enddo
+       if(allocated(fscav) ) deallocate(fscav)
+       if(allocated(chem)  ) deallocate(chem  )
+       if(allocated(chemf) ) deallocate(chemf )
+       if(allocated(ptenc) ) deallocate(ptenc )
+       if(allocated(ptencf)) deallocate(ptencf)
+    else
+       do ic = 1,nchem
+          mpas_chem_gocart2G%chemcuten(:,:,ic) = 0._kind_phys
+       enddo
+    endif
+#endif
+
  enddo
+
+ call mpas_log_write('--- end subroutine cu_ntiedtke_driver.')
 
  end subroutine cu_ntiedtke_driver
 

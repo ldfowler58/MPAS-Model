@@ -427,6 +427,8 @@
 
 !local pointers:
  logical,pointer:: config_do_restart
+ logical,pointer:: cu_ntiedtke_ctrchems
+ logical,pointer:: cu_ntiedtke_scavchems
  integer,pointer:: gfconv_closure_deep,gfconv_closure_shallow
  character(len=StrKIND),pointer:: convection_scheme
  real(kind=RKIND),pointer:: len_disp
@@ -578,6 +580,9 @@
        call mpas_timer_stop('Tiedtke')
 
     case("cu_ntiedtke")
+       call mpas_pool_get_config(configs,'config_ntiedtke_ctrchems' ,cu_ntiedtke_ctrchems )
+       call mpas_pool_get_config(configs,'config_ntiedtke_scavchems',cu_ntiedtke_scavchems)
+
        call mpas_timer_start('cu_ntiedtke')
        call cu_ntiedtke_driver( &
              pcps     = pres_hyd_p , p8w         = pres2_hyd_p ,                     &
@@ -600,6 +605,8 @@
              xls      = xls        , xlv         = xlv         ,                     &
              rd       = R_d        , rv          = R_v         ,                     &
              cp       = cp         ,                                                 &
+             do_ctrchems  = cu_ntiedtke_ctrchems ,                                   &
+             do_scavchems = cu_ntiedtke_scavchems,                                   &
              errmsg   = errmsg     , errflg      = errflg      ,                     &
              ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde , &
              ims = ims , ime = ime , jms = jms , jme = jme , kms = kds , kme = kme , &
