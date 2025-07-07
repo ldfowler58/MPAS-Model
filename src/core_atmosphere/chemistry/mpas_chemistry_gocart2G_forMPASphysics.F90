@@ -47,6 +47,7 @@
     real(kind=RKIND),dimension(:,:,:),pointer:: chem_nc => null()
 
     real(kind=RKIND),dimension(:,:,:),pointer:: chemblten => null()
+    real(kind=RKIND),dimension(:,:,:),pointer:: chemcuten => null()
 
 
     contains
@@ -172,6 +173,7 @@
  if(.not.associated(self%chem_nc)) allocate(self%chem_nc(its:ite,kts:kte,nchem))
 
  if(.not.associated(self%chemblten)) allocate(self%chemblten(its:ite,kts:kte,nchem))
+ if(.not.associated(self%chemcuten)) allocate(self%chemcuten(its:ite,kts:kte,nchem))
 
 
  call mpas_log_write('--- end subroutine gocart2G_forMPASphys_allocate.')
@@ -198,6 +200,7 @@
  if(associated(self%chem_nc)) deallocate(self%chem_nc)
 
  if(associated(self%chemblten)) deallocate(self%chemblten)
+ if(associated(self%chemcuten)) deallocate(self%chemcuten)
 
 
  call mpas_log_write('--- end subroutine gocart2G_forMPASphys_deallocate.')
@@ -755,9 +758,11 @@
  character(len=StrKIND):: message
 
  integer,pointer:: bl_start,bl_end
- integer:: bl,i,ic,its,ite,k,kts,kte
+ integer,pointer:: cu_start,cu_end
+ integer:: bl,cu,i,ic,its,ite,k,kts,kte
 
  real(kind=RKIND),dimension(:,:,:),pointer:: bl_chemistry
+ real(kind=RKIND),dimension(:,:,:),pointer:: cu_chemistry
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -785,10 +790,30 @@
     enddo
  enddo
  call mpas_log_write('--- ic                = $i',intArgs=(/ic/))
-
-
  if(ic /= bl_end-bl_start+1) then
     message = '--- subroutine gocart2G_todynamics: bl_end-bl_start different than nb of gocart2G aerosol species'
+    call mpas_log_write(message,messageType=MPAS_LOG_crit)
+ endif
+
+
+ call mpas_pool_get_dimension(tend_physics,'gocart2G_cu_start',cu_start)
+ call mpas_pool_get_dimension(tend_physics,'gocart2G_cu_end'  ,cu_end  )
+ call mpas_log_write('--- gocart2G_cu_start = $i',intArgs=(/cu_start/))
+ call mpas_log_write('--- gocart2G_cu_end   = $i',intArgs=(/cu_end/)  )
+
+ call mpas_pool_get_array(tend_physics,'cu_chemistry',cu_chemistry)
+ ic = 0
+ do cu = cu_start,cu_end
+    ic = ic+1
+    do k = kts,kte
+       do i = its,ite
+          cu_chemistry(cu,k,i) = self%chemcuten(i,k,ic)
+       enddo
+    enddo
+ enddo
+ call mpas_log_write('--- ic                = $i',intArgs=(/ic/))
+ if(ic /= cu_end-cu_start+1) then
+    message = '--- subroutine gocart2G_todynamics: cu_end-cu_start different than nb of gocart2G aerosol species'
     call mpas_log_write(message,messageType=MPAS_LOG_crit)
  endif
 
