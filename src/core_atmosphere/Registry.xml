@@ -2459,6 +2459,16 @@
                      description="true:activate mixing of aerosols;=false:do not activate mixing of aerosols in the mynn PBL scheme"
                      possible_values=".true. or .false."/>
 
+                <nml_option name="config_ntiedtke_ctrchems" type="logical" default_value="false" in_defaults="false"
+                     units="-"
+                     description="true:activate convective transport of aerosols;=false:do not activate convective transport of aerosols"
+                     possible_values=".true. or .false."/>
+
+                <nml_option name="config_ntiedtke_scavchems" type="logical" default_value="false" in_defaults="false"
+                     units="-"
+                     description="true:activate wet scavenging of aerosols;=false:do not activate wet scavenging of aerosols"
+                     possible_values=".true. or .false."/>
+
                 <nml_option name="config_bucket_radt" type="real" default_value="1.0e9" in_defaults="false"
                      units="-"
                      description="threshold above which accumulated radiation diagnostics are reset"
