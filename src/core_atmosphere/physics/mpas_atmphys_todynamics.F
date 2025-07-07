@@ -89,7 +89,8 @@
                                   radt_lw_scheme,    &
                                   radt_sw_scheme
 
- logical,pointer:: mynn_mixchems
+ logical,pointer:: mynn_mixchems,    &
+                   ntiedtke_ctrchems
 
  integer:: i,iCell,k,n
  integer,pointer:: index_qv,index_qc,index_qr,index_qi,index_qs
@@ -125,7 +126,7 @@
  integer:: num_moist,num_number,num_chem
  integer:: nchem,nchem_start,nchem_end
 
- real(kind=RKIND),dimension(:,:,:),pointer:: rchemblten
+ real(kind=RKIND),dimension(:,:,:),pointer:: rchemblten,rchemcuten
 
 !=================================================================================================================
 
@@ -220,8 +221,10 @@
  if(.not. associated(rnwfablten)) allocate(rnwfablten(0,0))
 
 
-!initialize the tendency for the PBL and free-tropospheric mixing of gocart2G aerosol species:
- call mpas_pool_get_config(configs,'config_mynn_mixchems',mynn_mixchems)
+!initialize the tendency for the PBL and free-tropospheric mixing, and convective transport
+!of gocart2G aerosol species:
+ call mpas_pool_get_config(configs,'config_mynn_mixchems'    ,mynn_mixchems    )
+ call mpas_pool_get_config(configs,'config_ntiedtke_ctrchems',ntiedtke_ctrchems)
  call mpas_pool_get_dimension(state,'num_scalars' ,num_scalars )
  call mpas_pool_get_dimension(state,'moist_start' ,moist_start )
  call mpas_pool_get_dimension(state,'moist_end'   ,moist_end   )
@@ -241,16 +244,21 @@
  nchem = 0
  nchem_start = 0
  nchem_end   = 0
- if(mynn_mixchems .and. num_chem > 0) then
-    call mpas_pool_get_dimension(state,'gocart2G_start',gocart2G_start)
-    call mpas_pool_get_dimension(state,'gocart2G_end'  ,gocart2G_end  )
-    call mpas_pool_get_array(tend_physics,'bl_chemistry',rchemblten)
+ if(num_chem > 0) then
+    if(mynn_mixchems .or. ntiedtke_ctrchems) then
+       call mpas_pool_get_dimension(state,'gocart2G_start',gocart2G_start)
+       call mpas_pool_get_dimension(state,'gocart2G_end'  ,gocart2G_end  )
+       call mpas_pool_get_array(tend_physics,'bl_chemistry',rchemblten)
+       call mpas_pool_get_array(tend_physics,'cu_chemistry',rchemcuten)
 
-    nchem = num_chem
-    nchem_start = gocart2G_start
-    nchem_end   = gocart2G_end
+       if(.not.associated(rchemblten)) allocate(rchemblten(0,0,0))
+       if(.not.associated(rchemcuten)) allocate(rchemcuten(0,0,0))
+
+       nchem = num_chem
+       nchem_start = gocart2G_start
+       nchem_end   = gocart2G_end
+    endif
  endif
- if(.not.associated(rchemblten)) allocate(rchemblten(0,0,0))
 
  call mpas_log_write('--- nchem       = $i',intArgs=(/nchem/))
  call mpas_log_write('--- nchem_start = $i',intArgs=(/nchem_start/))
@@ -264,7 +272,7 @@
               nchem_start,nchem_end,nchem,                                               &
               mass,mass_edge,theta_m,scalars,                                            &
               rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,rqsblten,              &
-              rncblten,rniblten,rnifablten,rnwfablten,rchemblten,                        &
+              rncblten,rniblten,rnifablten,rnwfablten,rchemblten,rchemcuten,             &
               rucuten,rvcuten,rthcuten,rqvcuten,rqccuten,rqrcuten,rqicuten,rqscuten,     &
               rthratenlw,rthratensw,rublten_Edge,rucuten_Edge,                           &
               tend_th,tend_rtheta_physics,tend_scalars,tend_ru_physics,tend_u_phys,      &
@@ -292,7 +300,13 @@
  if(size(rniblten) == 0) deallocate(rniblten)
  if(size(rnifablten) == 0) deallocate(rnifablten)
  if(size(rnwfablten) == 0) deallocate(rnwfablten)
- if(size(rchemblten) == 0) deallocate(rchemblten)
+
+ if(num_chem > 0) then
+    if(mynn_mixchems .or. ntiedtke_ctrchems) then
+       if(size(rchemblten) == 0) deallocate(rchemblten)
+       if(size(rchemcuten) == 0) deallocate(rchemcuten)
+    endif
+ endif
 
  deallocate(tend_th)
 
@@ -309,7 +323,7 @@
                     nchem_start,nchem_end,nchem,                                               &
                     mass,mass_edge,theta_m,scalars,                                            &
                     rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,rqsblten,              &
-                    rncblten,rniblten,rnifablten,rnwfablten,rchemblten,                        &
+                    rncblten,rniblten,rnifablten,rnwfablten,rchemblten,rchemcuten,             &
                     rucuten,rvcuten,rthcuten,rqvcuten,rqccuten,rqrcuten,rqicuten,rqscuten,     &
                     rthratenlw,rthratensw,rublten_Edge,rucuten_Edge,                           &
                     tend_th,tend_theta,tend_scalars,tend_u,tend_u_phys,                        &
@@ -351,6 +365,7 @@
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rnifablten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rnwfablten
  real(kind=RKIND),intent(in),dimension(nchem,nVertLevels,nCells+1):: rchemblten
+ real(kind=RKIND),intent(in),dimension(nchem,nVertLevels,nCells+1):: rchemcuten
 
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rucuten
  real(kind=RKIND),intent(in),dimension(nVertLevels,nCells+1):: rvcuten
@@ -474,6 +489,23 @@
              tend_u(k,i)=tend_u(k,i)+rucuten_Edge(k,i)*mass_edge(k,i)
           enddo
           enddo
+
+          cu2_select: select case(trim(convection_scheme))
+              case('cu_ntiedtke')
+                 if(nchem > 0) then
+                    ic = 0
+                    do ig = nchem_start, nchem_end
+                       ic = ic+1
+                       do i = 1, nCellsSolve
+                       do k = 1, nVertLevels
+                          tend_scalars(ig,k,i) = tend_scalars(ig,k,i) + rchemcuten(ic,k,i)*mass(k,i)
+                       enddo
+                       enddo
+                    enddo
+                 endif
+
+              case default
+          end select cu2_select
 
        case default
     end select cu_select
