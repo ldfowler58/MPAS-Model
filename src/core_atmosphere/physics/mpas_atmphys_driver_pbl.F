@@ -568,8 +568,8 @@
  real(kind=RKIND),dimension(:,:),pointer:: sub_thl,sub_qv,det_thl,det_qv
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine pbl_to_MPAS:')
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine pbl_to_MPAS:')
 
  call mpas_pool_get_config(configs,'config_pbl_scheme',pbl_scheme)
 
@@ -727,7 +727,7 @@
 
  end select pbl_select
 
- call mpas_log_write('--- end subroutine pbl_to_MPAS.')
+!call mpas_log_write('--- end subroutine pbl_to_MPAS.')
 
  end subroutine pbl_to_MPAS
  

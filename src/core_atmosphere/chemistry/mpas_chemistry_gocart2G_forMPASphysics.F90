@@ -75,7 +75,7 @@
  class(chem_gocart2G),intent(inout):: self
 
 !--- local variables and arrays:
- integer,pointer:: nCellsSolve,nVertLevels,kDepLevels
+ integer,pointer:: nCellsSolve,nVertLevels
  integer,pointer:: num_scalars
  integer,pointer:: moist_start,moist_end
  integer,pointer:: number_start,number_end
@@ -291,14 +291,14 @@
  self%fnum(n)  = SU2G_params%fnum(2)     ! so2
  self%fscav(n) = SU2G_params%fscav(2)    ! so2
  n = n+1
- self%fnum(n)  = 0._RKIND                ! volcanic so2.
- self%fscav(n) = 0._RKIND                ! volcanic so2.
+ self%fnum(n)  = SU2G_params%fnum(2)     ! volcanic so2
+ self%fscav(n) = SU2G_params%fscav(2)    ! volcanic so2
  n = n+1
  self%fnum(n)  = SU2G_params%fnum(3)     ! so4
  self%fscav(n) = SU2G_params%fscav(3)    ! so4
  n = n+1
- self%fnum(n)  = 0._RKIND                ! volcanic so4.
- self%fscav(n) = 0._RKIND                ! volcanic so4.
+ self%fnum(n)  = SU2G_params%fnum(3)     ! volcanic so4
+ self%fscav(n) = SU2G_params%fscav(3)    ! volcanic so4
 
 !--- sea salt:
  n = n+1
@@ -361,7 +361,6 @@
  call mpas_log_write('--- end subroutine gocart2G_forMPASphys_init.')
 
  end subroutine gocart2G_forMPASphys_init
-
 
 !==================================================================================================================
  subroutine gocart2G_forMPASphys_mr(self,state)
@@ -554,7 +553,6 @@
     kk = kte+1-k
     do j = jts,jte
        do i = its,ite
-       
           n = 0
           !--- black carbon:
           n = n+1
