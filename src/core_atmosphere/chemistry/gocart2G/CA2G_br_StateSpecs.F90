@@ -98,8 +98,14 @@
  real(kind=RKIND),dimension(:,:),pointer    :: brfluxu        => null() ! brown carbon aerosol column u-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: brfluxv        => null() ! brown carbon aerosol column v-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: braeridx       => null() ! brown carbon aerosol toms uv aerosol index (-)
-
  real(kind=RKIND),dimension(:,:),pointer    :: brvdep         => null() ! dry deposition velocity (m s-1)
+!..................................................................................................................
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: brtau_lw       => null() ! brown carbon optical depth for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: brasy_lw       => null() ! brown carbon asymmetry factor for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: brssa_lw       => null() ! brown carbon single scattering albedo for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: brtau_sw       => null() ! brown carbon optical depth for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: brasy_sw       => null() ! brown carbon asymmetry factor for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: brssa_sw       => null() ! brown carbon single scattering albedo for shortwave RRTMG (-)
 
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:),pointer  :: brphobic       => null() ! Hydrophobic brown carbon aerosol mixing Ratio (kg kg-1)
@@ -117,11 +123,12 @@
 
 
 !==================================================================================================================
- subroutine CA2G_br_StateSpecsInit(self,its,ite,jts,jte,kts,kte)
+ subroutine CA2G_br_StateSpecsInit(self,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 !==================================================================================================================
 
 !--- input arguments:
  integer,intent(in):: its,ite,jts,jte,kts,kte
+ integer,intent(in):: nbndlw,nbndsw
 
 !--- inout arguments:
  class(CA2G_br_State),intent(inout):: self
@@ -207,8 +214,14 @@
  if(.not.associated(self%brfluxu)        ) allocate(self%brfluxu(its:ite,jts:jte)                )
  if(.not.associated(self%brfluxv)        ) allocate(self%brfluxv(its:ite,jts:jte)                )
  if(.not.associated(self%braeridx)       ) allocate(self%braeridx(its:ite,jts:jte)               )
-
  if(.not.associated(self%brvdep)         ) allocate(self%brvdep(its:ite,jts:jte)                 )
+!..................................................................................................................
+ if(.not.associated(self%brtau_lw)       ) allocate(self%brtau_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%brssa_lw)       ) allocate(self%brssa_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%brasy_lw)       ) allocate(self%brasy_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%brtau_sw)       ) allocate(self%brtau_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%brssa_sw)       ) allocate(self%brssa_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%brasy_sw)       ) allocate(self%brasy_sw(its:ite,jts:jte,kts:kte,nbndsw))
 
 !category: INTERNAL
 !if(.not.associated(self%brphobic)       ) allocate(self%brphobic(its:ite,jts:jte,kts:kte)       )
@@ -231,6 +244,15 @@
  self%brscacoefrh20(:,:,:,:) = 0._RKIND
  self%brscacoefrh80(:,:,:,:) = 0._RKIND
  self%brbckcoef(:,:,:,:)     = 0._RKIND
+
+
+!--- initialization of RRTMG longwave and shortwave optical properties:
+ self%brtau_lw(:,:,:,:) = 0._RKIND
+ self%brssa_lw(:,:,:,:) = 0._RKIND
+ self%brasy_lw(:,:,:,:) = 0._RKIND
+ self%brtau_sw(:,:,:,:) = 0._RKIND
+ self%brssa_sw(:,:,:,:) = 0._RKIND
+ self%brasy_sw(:,:,:,:) = 0._RKIND
 
 
  end subroutine CA2G_br_StateSpecsInit
@@ -317,8 +339,14 @@
  if(associated(self%brfluxu)        ) deallocate(self%brfluxu        )
  if(associated(self%brfluxv)        ) deallocate(self%brfluxv        )
  if(associated(self%braeridx)       ) deallocate(self%braeridx       )
-
  if(associated(self%brvdep)         ) deallocate(self%brvdep         )
+!..................................................................................................................
+ if(associated(self%brtau_lw)       ) deallocate(self%brtau_lw       )
+ if(associated(self%brssa_lw)       ) deallocate(self%brssa_lw       )
+ if(associated(self%brasy_lw)       ) deallocate(self%brasy_lw       )
+ if(associated(self%brtau_sw)       ) deallocate(self%brtau_sw       )
+ if(associated(self%brssa_sw)       ) deallocate(self%brssa_sw       )
+ if(associated(self%brasy_sw)       ) deallocate(self%brasy_sw       )
 
 !category: INTERNAL
 !if(associated(self%brphobic)       ) deallocate(self%brphobic       )

@@ -50,6 +50,7 @@
  logical,pointer:: to_NTIEDTKE
 
  integer:: its,ite,jts,jte,kts,kte,nerod
+ integer:: nbndlw,nbndsw
  integer:: ic,ch_size
  real(kind=RKIND),dimension(:),allocatable:: channels
 
@@ -108,6 +109,8 @@
  kts   = mpas_gocart2G%kts
  kte   = mpas_gocart2G%kte
  nerod = mpas_gocart2G%nerod
+ nbndlw = mpas_gocart2G%nbndlw
+ nbndsw = mpas_gocart2G%nbndsw
 
 
 !--- CA2G_bc:
@@ -116,7 +119,7 @@
 
 !initializes and allocates all parameters and arrays related to CA2G_bc:
  call CA2G_bc_params%load_GridComp(kts,kte)
- call CA2G_bc%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+ call CA2G_bc%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_CA2Gbc) then
     !creates radiation Mie table for CA2G:
@@ -151,7 +154,7 @@
 
 !initializes and allocates all parameters and arrays related to CA2G_br:
  call CA2G_br_params%load_GridComp(kts,kte)
- call CA2G_br%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+ call CA2G_br%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_CA2Gbr) then
     !creates radiation Mie table for CA2G_br:
@@ -186,7 +189,7 @@
 
 !initializes and allocates all parameters and arrays related to CA2G_oc:
  call CA2G_oc_params%load_GridComp(kts,kte)
- call CA2G_oc%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+ call CA2G_oc%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_CA2Goc) then
     !creates radiation Mie table for CA2G_oc:
@@ -221,7 +224,7 @@
 
 !initializes and allocates all parameters and arrays related to DU2G:
  call DU2G_params%load_GridComp(kts,kte)
- call DU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nerod)
+ call DU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nerod,nbndlw,nbndsw)
 
  if(do_DU2G) then
     !create radiation Mie table for DU2G:
@@ -258,7 +261,7 @@
  call DU2G_params%load_GridComp(kts,kte)
  call SS2G_params%load_GridComp(kts,kte)
  call NI2G_params%load_GridComp(DU2G_params,SS2G_params,kts,kte)
- call NI2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+ call NI2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_NI2G) then
     !create radiation Mie table for SU2G:
@@ -293,7 +296,7 @@
 
 !initializes and allocates all parameters and arrays related to SS2G:
  call SS2G_params%load_GridComp(kts,kte)
- call SS2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+ call SS2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_SS2G) then
     !create radiation Mie table for SU2G:
@@ -328,7 +331,7 @@
 
 !initializes and allocates all parameters and arrays related to SU2G:
  call SU2G_params%load_GridComp(kts,kte)
- call SU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte)
+ call SU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_SU2G) then
     !create radiation Mie table for SU2G:

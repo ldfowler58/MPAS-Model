@@ -111,8 +111,14 @@
  real(kind=RKIND),dimension(:,:),pointer  :: du_dpc         => null() ! aeolian_drag_partition_correction (-)
  real(kind=RKIND),dimension(:,:),pointer  :: du_smc         => null() ! aeolian_soil_moisture_correction (-)
  real(kind=RKIND),dimension(:,:),pointer  :: du_erod        => null() ! aeolian_erodibilitiy (-)
-
- real(kind=RKIND),dimension(:,:),pointer    :: duvdep       => null() ! dry deposition velocity (m s-1)
+ real(kind=RKIND),dimension(:,:),pointer  :: duvdep         => null() ! dry deposition velocity (m s-1)
+!..................................................................................................................
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: dutau_lw     => null() ! dust aerosol optical depth for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: duasy_lw     => null() ! dust aerosol asymmetry factor for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: dussa_lw     => null() ! dust aerosol single scattering albedo for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: dutau_sw     => null() ! dust aerosol optical depth for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: duasy_sw     => null() ! dust aerosol asymmetry factor for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: dussa_sw     => null() ! dust aerosol single scattering albedo for shortwave RRTMG (-)
 
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:,:),pointer:: du           => null() ! dust mixing Ratio (Bin %d) (kg kg-1)
@@ -129,12 +135,13 @@
 
 
 !==================================================================================================================
- subroutine DU2G_StateSpecsInit(self,its,ite,jts,jte,kts,kte,nerod)
+ subroutine DU2G_StateSpecsInit(self,its,ite,jts,jte,kts,kte,nerod,nbndlw,nbndsw)
 !==================================================================================================================
 
 !--- input arguments:
  integer,intent(in):: its,ite,jts,jte,kts,kte
  integer,intent(in):: nerod
+ integer,intent(in):: nbndlw,nbndsw
 
 !--- inout arguments:
  class(DU2G_State),intent(inout):: self
@@ -233,8 +240,14 @@
  if(.not.associated(self%du_dpc)       ) allocate(self%du_dpc(its:ite,jts:jte)          )
  if(.not.associated(self%du_smc)       ) allocate(self%du_smc(its:ite,jts:jte)          )
  if(.not.associated(self%du_erod)      ) allocate(self%du_erod(its:ite,jts:jte)         )
-
  if(.not.associated(self%duvdep)       ) allocate(self%duvdep(its:ite,jts:jte)          )
+!..................................................................................................................
+ if(.not.associated(self%dutau_lw)     ) allocate(self%dutau_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%dussa_lw)     ) allocate(self%dussa_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%duasy_lw)     ) allocate(self%duasy_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%dutau_sw)     ) allocate(self%dutau_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%dussa_sw)     ) allocate(self%dussa_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%duasy_sw)     ) allocate(self%duasy_sw(its:ite,jts:jte,kts:kte,nbndsw))
 
 !category: INTERNAL
  if(.not.associated(self%du)           ) allocate(self%du(its:ite,jts:jte,kts:kte,nbins))
@@ -256,6 +269,15 @@
  self%duscacoefrh20(:,:,:,:) = 0._RKIND
  self%duscacoefrh80(:,:,:,:) = 0._RKIND
  self%dubckcoef(:,:,:,:)     = 0._RKIND
+
+
+!--- initialization of RRTMG longwave and shortwave optical properties:
+ self%dutau_lw(:,:,:,:) = 0._RKIND
+ self%dussa_lw(:,:,:,:) = 0._RKIND
+ self%duasy_lw(:,:,:,:) = 0._RKIND
+ self%dutau_sw(:,:,:,:) = 0._RKIND
+ self%dussa_sw(:,:,:,:) = 0._RKIND
+ self%duasy_sw(:,:,:,:) = 0._RKIND
 
 
  end subroutine DU2G_StateSpecsInit
@@ -355,8 +377,15 @@
  if(associated(self%du_dpc)       ) deallocate(self%du_dpc       )
  if(associated(self%du_smc)       ) deallocate(self%du_smc       )
  if(associated(self%du_erod)      ) deallocate(self%du_erod      )
-
  if(associated(self%duvdep)       ) deallocate(self%duvdep       )
+!..................................................................................................................
+ if(associated(self%dutau_lw)     ) deallocate(self%dutau_lw     )
+ if(associated(self%dussa_lw)     ) deallocate(self%dussa_lw     )
+ if(associated(self%duasy_lw)     ) deallocate(self%duasy_lw     )
+ if(associated(self%dutau_sw)     ) deallocate(self%dutau_sw     )
+ if(associated(self%dussa_sw)     ) deallocate(self%dussa_sw     )
+ if(associated(self%duasy_sw)     ) deallocate(self%duasy_sw     )
+
 
 !category: internal
  if(associated(self%du)           ) deallocate(self%du           )

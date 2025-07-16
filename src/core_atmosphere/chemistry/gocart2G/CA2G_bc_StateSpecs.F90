@@ -96,8 +96,14 @@
  real(kind=RKIND),dimension(:,:),pointer    :: bcfluxu        => null() ! black carbon aerosol column u-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: bcfluxv        => null() ! black carbon aerosol column v-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: bcaeridx       => null() ! black carbon aerosol toms uv aerosol index (-)
-
  real(kind=RKIND),dimension(:,:),pointer    :: bcvdep         => null() ! dry deposition velocity (m s-1)
+!..................................................................................................................
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: bctau_lw       => null() ! black carbon optical depth for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: bcasy_lw       => null() ! black carbon asymmetry factor for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: bcssa_lw       => null() ! black carbon single scattering albedo for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: bctau_sw       => null() ! black carbon optical depth for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: bcasy_sw       => null() ! black carbon asymmetry factor for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: bcssa_sw       => null() ! black carbon single scattering albedo for shortwave RRTMG (-)
 
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:),pointer  :: bcphobic       => null() ! Hydrophobic black carbon aerosol mixing Ratio (kg kg-1)
@@ -115,11 +121,12 @@
 
 
 !==================================================================================================================
- subroutine CA2G_bc_StateSpecsInit(self,its,ite,jts,jte,kts,kte)
+ subroutine CA2G_bc_StateSpecsInit(self,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 !==================================================================================================================
 
 !--- input arguments:
  integer,intent(in):: its,ite,jts,jte,kts,kte
+ integer,intent(in):: nbndlw,nbndsw
 
 !--- inout arguments:
  class(CA2G_bc_State),intent(inout):: self
@@ -203,8 +210,14 @@
  if(.not.associated(self%bcfluxu)        ) allocate(self%bcfluxu(its:ite,jts:jte)                )
  if(.not.associated(self%bcfluxv)        ) allocate(self%bcfluxv(its:ite,jts:jte)                )
  if(.not.associated(self%bcaeridx)       ) allocate(self%bcaeridx(its:ite,jts:jte)               )
-
  if(.not.associated(self%bcvdep)         ) allocate(self%bcvdep(its:ite,jts:jte)                 )
+!..................................................................................................................
+ if(.not.associated(self%bctau_lw)       ) allocate(self%bctau_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%bcssa_lw)       ) allocate(self%bcssa_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%bcasy_lw)       ) allocate(self%bcasy_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%bctau_sw)       ) allocate(self%bctau_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%bcssa_sw)       ) allocate(self%bcssa_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%bcasy_sw)       ) allocate(self%bcasy_sw(its:ite,jts:jte,kts:kte,nbndsw))
 
 !category: INTERNAL
 !if(.not.associated(self%bcphobic)       ) allocate(self%bcphobic(its:ite,jts:jte,kts:kte)       )
@@ -228,6 +241,14 @@
  self%bcscacoefrh80(:,:,:,:) = 0._RKIND
  self%bcbckcoef(:,:,:,:)     = 0._RKIND
 
+
+!--- initialization of RRTMG longwave and shortwave optical properties:
+ self%bctau_lw(:,:,:,:) = 0._RKIND
+ self%bcssa_lw(:,:,:,:) = 0._RKIND
+ self%bcasy_lw(:,:,:,:) = 0._RKIND
+ self%bctau_sw(:,:,:,:) = 0._RKIND
+ self%bcssa_sw(:,:,:,:) = 0._RKIND
+ self%bcasy_sw(:,:,:,:) = 0._RKIND
 
  end subroutine CA2G_bc_StateSpecsInit
 
@@ -311,8 +332,14 @@
  if(associated(self%bcfluxu)        ) deallocate(self%bcfluxu        )
  if(associated(self%bcfluxv)        ) deallocate(self%bcfluxv        )
  if(associated(self%bcaeridx)       ) deallocate(self%bcaeridx       )
-
  if(associated(self%bcvdep)         ) deallocate(self%bcvdep         )
+!..................................................................................................................
+ if(associated(self%bctau_lw)       ) deallocate(self%bctau_lw       )
+ if(associated(self%bcssa_lw)       ) deallocate(self%bcssa_lw       )
+ if(associated(self%bcasy_lw)       ) deallocate(self%bcasy_lw       )
+ if(associated(self%bctau_sw)       ) deallocate(self%bctau_sw       )
+ if(associated(self%bcssa_sw)       ) deallocate(self%bcssa_sw       )
+ if(associated(self%bcasy_sw)       ) deallocate(self%bcasy_sw       )
 
 !category: INTERNAL
 !if(associated(self%bcphobic)       ) deallocate(self%bcphobic       )

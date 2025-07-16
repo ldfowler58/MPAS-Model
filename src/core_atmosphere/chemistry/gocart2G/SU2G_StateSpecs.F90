@@ -120,8 +120,14 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: sustscatau      => null() !so4 scattering aot stratosphere (1)
  real(kind=RKIND),dimension(:,:,:),pointer:: so4sarea        => null() !so4 surface area density (m2 m-3 )
  real(kind=RKIND),dimension(:,:,:),pointer:: so4snum         => null() !so4 number density (m-3)
-
  real(kind=RKIND),dimension(:,:),pointer  :: suvdep          => null() ! dry deposition velocity (m s-1)
+!..................................................................................................................
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: sutau_lw      => null() ! sulfate optical depth for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: suasy_lw      => null() ! sulfate asymmetry factor for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: sussa_lw      => null() ! sulfate single scattering albedo for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: sutau_sw      => null() ! sulfate optical depth for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: suasy_sw      => null() ! sulfate asymmetry factor for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: sussa_sw      => null() ! sulfate single scattering albedo for shortwave RRTMG (-)
 
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:),pointer:: dms             => null() !dimethylsulphide (kg kg-1)
@@ -142,11 +148,12 @@
 
 
 !=================================================================================================================
- subroutine SU2G_StateSpecsInit(self,its,ite,jts,jte,kts,kte)
+ subroutine SU2G_StateSpecsInit(self,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 !=================================================================================================================
 
 !--- input arguments:
  integer,intent(in):: its,ite,jts,jte,kts,kte
+ integer,intent(in):: nbndlw,nbndsw
 
 !--- inout arguments:
  class(SU2G_State),intent(inout):: self
@@ -253,8 +260,14 @@
  if(.not.associated(self%sustscatau)     ) allocate(self%sustscatau(its:ite,jts:jte,nw_vertint)           )
  if(.not.associated(self%so4sarea)       ) allocate(self%so4sarea(its:ite,jts:jte,kts:kte)                )
  if(.not.associated(self%so4snum)        ) allocate(self%so4snum(its:ite,jts:jte,kts:kte)                 )
-
  if(.not.associated(self%suvdep)         ) allocate(self%suvdep(its:ite,jts:jte)                          )
+!..................................................................................................................
+ if(.not.associated(self%sutau_lw)       ) allocate(self%sutau_lw(its:ite,jts:jte,kts:kte,nbndlw)         )
+ if(.not.associated(self%sussa_lw)       ) allocate(self%sussa_lw(its:ite,jts:jte,kts:kte,nbndlw)         )
+ if(.not.associated(self%suasy_lw)       ) allocate(self%suasy_lw(its:ite,jts:jte,kts:kte,nbndlw)         )
+ if(.not.associated(self%sutau_sw)       ) allocate(self%sutau_sw(its:ite,jts:jte,kts:kte,nbndsw)         )
+ if(.not.associated(self%sussa_sw)       ) allocate(self%sussa_sw(its:ite,jts:jte,kts:kte,nbndsw)         )
+ if(.not.associated(self%suasy_sw)       ) allocate(self%suasy_sw(its:ite,jts:jte,kts:kte,nbndsw)         )
 
 !category: INTERNAL
 !if(.not.associated(self%dms)            ) allocate(self%dms(its:ite,jts:jte,kts:kte)                     )
@@ -280,6 +293,15 @@
  self%suscacoefrh20(:,:,:,:) = 0._RKIND
  self%suscacoefrh80(:,:,:,:) = 0._RKIND
  self%subckcoef(:,:,:,:)     = 0._RKIND
+
+
+!--- initialization of RRTMG longwave and shortwave optical properties:
+ self%sutau_lw(:,:,:,:) = 0._RKIND
+ self%sussa_lw(:,:,:,:) = 0._RKIND
+ self%suasy_lw(:,:,:,:) = 0._RKIND
+ self%sutau_sw(:,:,:,:) = 0._RKIND
+ self%sussa_sw(:,:,:,:) = 0._RKIND
+ self%suasy_sw(:,:,:,:) = 0._RKIND
 
 
  end subroutine SU2G_StateSpecsInit
@@ -388,8 +410,14 @@
 !if(associated(self%sustscatau)     ) deallocate(self%sustscatau     )
  if(associated(self%so4sarea)       ) deallocate(self%so4sarea       )
  if(associated(self%so4snum)        ) deallocate(self%so4snum        )
-
  if(associated(self%suvdep)         ) deallocate(self%suvdep         )
+!..................................................................................................................
+ if(associated(self%sutau_lw)       ) deallocate(self%sutau_lw       )
+ if(associated(self%sussa_lw)       ) deallocate(self%sussa_lw       )
+ if(associated(self%suasy_lw)       ) deallocate(self%suasy_lw       )
+ if(associated(self%sutau_sw)       ) deallocate(self%sutau_sw       )
+ if(associated(self%sussa_sw)       ) deallocate(self%sussa_sw       )
+ if(associated(self%suasy_sw)       ) deallocate(self%suasy_sw       )
 
 !category: INTERNAL
 !if(associated(self%dms)            ) deallocate(self%dms            )

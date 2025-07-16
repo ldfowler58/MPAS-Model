@@ -89,8 +89,15 @@
  real(kind=RKIND),dimension(:,:),pointer    :: ssangstr        => null() ! sea salt angstrom parameter [470-870 nm] (-)
  real(kind=RKIND),dimension(:,:),pointer    :: ssfluxu         => null() ! sea salt column u-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: ssfluxv         => null() ! sea salt column v-wind mass flux (kg m-1 s-1)
+ real(kind=RKIND),dimension(:,:),pointer    :: ssvdep          => null() ! dry deposition velocity (m s-1)
+!..................................................................................................................
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: sstau_lw        => null() ! sea salt optical depth for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: ssasy_lw        => null() ! sea salt asymmetry factor for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: ssssa_lw        => null() ! sea salt single scattering albedo for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: sstau_sw        => null() ! sea salt optical depth for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: ssasy_sw        => null() ! sea salt asymmetry factor for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: ssssa_sw        => null() ! sea salt single scattering albedo for shortwave RRTMG (-)
 
- real(kind=RKIND),dimension(:,:),pointer    :: ssvdep         => null() ! dry deposition velocity (m s-1)
 
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:,:),pointer:: ss              => null() ! sea salt mixing ratio (bin %d) (kg kg-1)
@@ -108,11 +115,12 @@
 
 
 !=================================================================================================================
- subroutine SS2G_StateSpecsInit(self,its,ite,jts,jte,kts,kte)
+ subroutine SS2G_StateSpecsInit(self,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 !=================================================================================================================
 
 !--- input arguments:
  integer,intent(in):: its,ite,jts,jte,kts,kte
+ integer,intent(in):: nbndlw,nbndsw
 
 !--- inout arguments:
  class(SS2G_State),intent(inout):: self
@@ -188,8 +196,14 @@
  if(.not.associated(self%ssangstr)       ) allocate(self%ssangstr(its:ite,jts:jte)             )
  if(.not.associated(self%ssfluxu)        ) allocate(self%ssfluxu(its:ite,jts:jte)              )
  if(.not.associated(self%ssfluxv)        ) allocate(self%ssfluxv(its:ite,jts:jte)              )
-
  if(.not.associated(self%ssvdep)         ) allocate(self%ssvdep(its:ite,jts:jte)               )
+!..................................................................................................................
+ if(.not.associated(self%sstau_lw)       ) allocate(self%sstau_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%ssssa_lw)       ) allocate(self%ssssa_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%ssasy_lw)       ) allocate(self%ssasy_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%sstau_sw)       ) allocate(self%sstau_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%ssssa_sw)       ) allocate(self%ssssa_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%ssasy_sw)       ) allocate(self%ssasy_sw(its:ite,jts:jte,kts:kte,nbndsw))
 
 !category: INTERNAL
  if(.not.associated(self%ss)             ) allocate(self%ss(its:ite,jts:jte,kts:kte,nbins)     )
@@ -212,6 +226,15 @@
  self%ssscacoefrh20(:,:,:,:) = 0._RKIND
  self%ssscacoefrh80(:,:,:,:) = 0._RKIND
  self%ssbckcoef(:,:,:,:)     = 0._RKIND
+
+
+!--- initialization of RRTMG longwave and shortwave optical properties:
+ self%sstau_lw(:,:,:,:) = 0._RKIND
+ self%ssssa_lw(:,:,:,:) = 0._RKIND
+ self%ssasy_lw(:,:,:,:) = 0._RKIND
+ self%sstau_sw(:,:,:,:) = 0._RKIND
+ self%ssssa_sw(:,:,:,:) = 0._RKIND
+ self%ssasy_sw(:,:,:,:) = 0._RKIND
 
 
  end subroutine SS2G_StateSpecsInit
@@ -289,8 +312,14 @@
  if(associated(self%ssangstr)       ) deallocate(self%ssangstr     )
  if(associated(self%ssfluxu)        ) deallocate(self%ssfluxu      )
  if(associated(self%ssfluxv)        ) deallocate(self%ssfluxv      )
-
  if(associated(self%ssvdep)         ) deallocate(self%ssvdep       )
+!.................................................................................................................
+ if(associated(self%sstau_lw)       ) deallocate(self%sstau_lw     )
+ if(associated(self%ssssa_lw)       ) deallocate(self%ssssa_lw     )
+ if(associated(self%ssasy_lw)       ) deallocate(self%ssasy_lw     )
+ if(associated(self%sstau_sw)       ) deallocate(self%sstau_sw     )
+ if(associated(self%ssssa_sw)       ) deallocate(self%ssssa_sw     )
+ if(associated(self%ssasy_sw)       ) deallocate(self%ssasy_sw     )
 
 !category: INTERNAL
  if(associated(self%ss)             ) deallocate(self%ss             )

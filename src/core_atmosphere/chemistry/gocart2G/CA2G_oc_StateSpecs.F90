@@ -100,8 +100,14 @@
  real(kind=RKIND),dimension(:,:),pointer    :: ocfluxu        => null() ! organic carbon aerosol column u-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: ocfluxv        => null() ! organic carbon aerosol column v-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: ocaeridx       => null() ! organic carbon aerosol toms uv aerosol index (-)
-
  real(kind=RKIND),dimension(:,:),pointer    :: ocvdep         => null() ! dry deposition velocity (m s-1)
+!..................................................................................................................
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: octau_lw       => null() ! organic carbon optical depth for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: ocasy_lw       => null() ! organic carbon asymmetry factor for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: ocssa_lw       => null() ! organic carbon single scattering albedo for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: octau_sw       => null() ! organic carbon optical depth for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: ocasy_sw       => null() ! organic carbon asymmetry factor for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: ocssa_sw       => null() ! organic carbon single scattering albedo for shortwave RRTMG (-)
 
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:),pointer  :: ocphobic       => null() ! Hydrophobic organic carbon aerosol mixing Ratio (kg kg-1)
@@ -119,11 +125,12 @@
 
 
 !==================================================================================================================
- subroutine CA2G_oc_StateSpecsInit(self,its,ite,jts,jte,kts,kte)
+ subroutine CA2G_oc_StateSpecsInit(self,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 !==================================================================================================================
 
 !--- input arguments:
  integer,intent(in):: its,ite,jts,jte,kts,kte
+ integer,intent(in):: nbndlw,nbndsw
 
 !--- inout arguments:
  class(CA2G_oc_State),intent(inout):: self
@@ -211,8 +218,14 @@
  if(.not.associated(self%ocfluxu)        ) allocate(self%ocfluxu(its:ite,jts:jte)                )
  if(.not.associated(self%ocfluxv)        ) allocate(self%ocfluxv(its:ite,jts:jte)                )
  if(.not.associated(self%ocaeridx)       ) allocate(self%ocaeridx(its:ite,jts:jte)               )
-
  if(.not.associated(self%ocvdep)         ) allocate(self%ocvdep(its:ite,jts:jte)                 )
+!..................................................................................................................
+ if(.not.associated(self%octau_lw)       ) allocate(self%octau_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%ocssa_lw)       ) allocate(self%ocssa_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%ocasy_lw)       ) allocate(self%ocasy_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%octau_sw)       ) allocate(self%octau_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%ocssa_sw)       ) allocate(self%ocssa_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%ocasy_sw)       ) allocate(self%ocasy_sw(its:ite,jts:jte,kts:kte,nbndsw))
 
 !category: INTERNAL
 !if(.not.associated(self%ocphobic)       ) allocate(self%ocphobic(its:ite,jts:jte,kts:kte)       )
@@ -234,6 +247,15 @@
  self%ocscacoef(:,:,:,:)     = 0._RKIND
  self%ocscacoefrh20(:,:,:,:) = 0._RKIND
  self%ocscacoefrh80(:,:,:,:) = 0._RKIND
+
+
+!--- initialization of RRTMG longwave and shortwave optical properties:
+ self%octau_lw(:,:,:,:) = 0._RKIND
+ self%ocssa_lw(:,:,:,:) = 0._RKIND
+ self%ocasy_lw(:,:,:,:) = 0._RKIND
+ self%octau_sw(:,:,:,:) = 0._RKIND
+ self%ocssa_sw(:,:,:,:) = 0._RKIND
+ self%ocasy_sw(:,:,:,:) = 0._RKIND
 
 
  end subroutine CA2G_oc_StateSpecsInit
@@ -322,8 +344,14 @@
  if(associated(self%ocfluxu)        ) deallocate(self%ocfluxu        )
  if(associated(self%ocfluxv)        ) deallocate(self%ocfluxv        )
  if(associated(self%ocaeridx)       ) deallocate(self%ocaeridx       )
-
  if(associated(self%ocvdep)         ) deallocate(self%ocvdep         )
+!..................................................................................................................
+ if(associated(self%octau_lw)       ) deallocate(self%octau_lw       )
+ if(associated(self%ocssa_lw)       ) deallocate(self%ocssa_lw       )
+ if(associated(self%ocasy_lw)       ) deallocate(self%ocasy_lw       )
+ if(associated(self%octau_sw)       ) deallocate(self%octau_sw       )
+ if(associated(self%ocssa_sw)       ) deallocate(self%ocssa_sw       )
+ if(associated(self%ocasy_sw)       ) deallocate(self%ocasy_sw       )
 
 !category: INTERNAL
 !if(associated(self%ocphobic)       ) deallocate(self%ocphobic       )

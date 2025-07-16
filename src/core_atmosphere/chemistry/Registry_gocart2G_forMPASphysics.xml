@@ -4,6 +4,12 @@
 
  <dims>
 
+      <dim name="nbndLW" definition="16"
+           description="The number of spectral intervals in the RRTMG longwave radiation code"/>
+
+      <dim name="nbndSW" definition="14"
+           description="The number of spectral intervals in the RRTMG shortwave radiation code"/>
+
       <dim name="kDepLevels" definition="1"
            description="The number of vertical layers where dry deposition occurs"/>
 

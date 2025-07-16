@@ -115,8 +115,14 @@
  real(kind=RKIND),dimension(:,:),pointer    :: niangstr      => null() ! nitrate angstrom parameter [470-870 nm] (-)
  real(kind=RKIND),dimension(:,:),pointer    :: nifluxu       => null() ! nitrate column u-wind mass flux (kg m-1 s-1)
  real(kind=RKIND),dimension(:,:),pointer    :: nifluxv       => null() ! nitrate column v-wind mass flux (kg m-1 s-1)
-
  real(kind=RKIND),dimension(:,:),pointer    :: nivdep        => null() ! dry deposition velocity (m s-1)
+!..................................................................................................................
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: nitau_lw      => null() ! nitrate optical depth for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: niasy_lw      => null() ! nitrate asymmetry factor for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: nissa_lw      => null() ! nitrate single scattering albedo for longwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: nitau_sw      => null() ! nitrate optical depth for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: niasy_sw      => null() ! nitrate asymmetry factor for shortwave RRTMG (-)
+ real(kind=RKIND),dimension(:,:,:,:),pointer:: nissa_sw      => null() ! nitrate single scattering albedo for shortwave RRTMG (-)
 
 !category: INTERNAL
  real(kind=RKIND),dimension(:,:,:),pointer  :: nh3           => null() ! ammonia (nh3, gas phase) (kg kg-1)
@@ -138,11 +144,12 @@
 
 
 !=================================================================================================================
- subroutine NI2G_StateSpecsInit(self,its,ite,jts,jte,kts,kte)
+ subroutine NI2G_StateSpecsInit(self,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 !=================================================================================================================
 
 !--- input arguments:
  integer,intent(in):: its,ite,jts,jte,kts,kte
+ integer,intent(in):: nbndlw,nbndsw
 
 !--- inout arguments:
  class(NI2G_State),intent(inout):: self
@@ -245,8 +252,14 @@
  if(.not.associated(self%niangstr)     ) allocate(self%niangstr(its:ite,jts:jte)        )
  if(.not.associated(self%nifluxu)      ) allocate(self%nifluxu(its:ite,jts:jte)         )
  if(.not.associated(self%nifluxv)      ) allocate(self%nifluxv(its:ite,jts:jte)         )
-
  if(.not.associated(self%nivdep)       ) allocate(self%nivdep(its:ite,jts:jte)          )
+!..................................................................................................................
+ if(.not.associated(self%nitau_lw)     ) allocate(self%nitau_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%nissa_lw)     ) allocate(self%nissa_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%niasy_lw)     ) allocate(self%niasy_lw(its:ite,jts:jte,kts:kte,nbndlw))
+ if(.not.associated(self%nitau_sw)     ) allocate(self%nitau_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%nissa_sw)     ) allocate(self%nissa_sw(its:ite,jts:jte,kts:kte,nbndsw))
+ if(.not.associated(self%niasy_sw)     ) allocate(self%niasy_sw(its:ite,jts:jte,kts:kte,nbndsw))
 
 !category: INTERNAL
 !if(.not.associated(self%nh3)   ) allocate(self%nh3(its:ite,jts:jte,kts:kte)   )
@@ -273,6 +286,15 @@
  self%niscacoefrh20(:,:,:,:) = 0._RKIND
  self%niscacoefrh80(:,:,:,:) = 0._RKIND
  self%nibckcoef(:,:,:,:)     = 0._RKIND
+
+
+!--- initialization of RRTMG longwave and shortwave optical properties:
+ self%nitau_lw(:,:,:,:) = 0._RKIND
+ self%nissa_lw(:,:,:,:) = 0._RKIND
+ self%niasy_lw(:,:,:,:) = 0._RKIND
+ self%nitau_sw(:,:,:,:) = 0._RKIND
+ self%nissa_sw(:,:,:,:) = 0._RKIND
+ self%niasy_sw(:,:,:,:) = 0._RKIND
 
 
  end subroutine NI2G_StateSpecsInit
@@ -376,8 +398,14 @@
  if(associated(self%niangstr)     ) deallocate(self%niangstr     )
  if(associated(self%nifluxu)      ) deallocate(self%nifluxu      )
  if(associated(self%nifluxv)      ) deallocate(self%nifluxv      )
-
  if(associated(self%nivdep)       ) deallocate(self%nivdep       )
+!..................................................................................................................
+ if(associated(self%nitau_lw)     ) deallocate(self%nitau_lw     )
+ if(associated(self%nissa_lw)     ) deallocate(self%nissa_lw     )
+ if(associated(self%niasy_lw)     ) deallocate(self%niasy_lw     )
+ if(associated(self%nitau_sw)     ) deallocate(self%nitau_sw     )
+ if(associated(self%nissa_sw)     ) deallocate(self%nissa_sw     )
+ if(associated(self%niasy_sw)     ) deallocate(self%niasy_sw     )
 
 !category: INTERNAL
 !if(associated(self%nh3)   ) deallocate(self%nh3   )

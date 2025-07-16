@@ -24,6 +24,7 @@
  type,public:: atm_gocart2G
     integer:: its,ite,jts,jte,kts,kte,ktep1
     integer:: nerod
+    integer:: nbndlw,nbndsw
 
 
     !--- black,brown,and organic carbon mixing ratios (kg kg-1):
@@ -150,6 +151,7 @@
 !local variables:
  integer,pointer:: nCellsSolve,nVertLevels
  integer,pointer:: nDustErosion
+ integer,pointer:: nbndLW,nbndSW
 
 !------------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -159,6 +161,9 @@
  call mpas_pool_get_dimension(mesh,'nCellsSolve'    ,nCellsSolve )
  call mpas_pool_get_dimension(mesh,'nVertLevels'    ,nVertLevels )
  call mpas_pool_get_dimension(mesh,'nDustErosionDim',nDustErosion)
+ call mpas_pool_get_dimension(mesh,'nbndLW'         ,nbndLW      )
+ call mpas_pool_get_dimension(mesh,'nbndSW'         ,nbndSW      )
+
 
  self%its = 1 ; self%ite = nCellsSolve
  self%jts = 1 ; self%jte = 1
@@ -168,7 +173,11 @@
  call mpas_log_write('KTS = $i   KTE = $i',intArgs=(/self%kts,self%kte/))
 
  self%nerod = nDustErosion
+ self%nbndlw = nbndLW
+ self%nbndsw = nbndSW
  call mpas_log_write('NEROD = $i',intArgs=(/self%nerod/))
+ call mpas_log_write('NBNDLW = $i',intArgs=(/self%nbndlw/))
+ call mpas_log_write('NBNDSW = $i',intArgs=(/self%nbndsw/))
 
 
  call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_dims.')
