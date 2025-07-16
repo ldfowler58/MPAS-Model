@@ -18,74 +18,70 @@
 #define SUBCHANNEL_ IDENTITY_(QueryByChannel)IDENTITY_(SUFFIX_)
 #define SUBWAVELENGTH_ IDENTITY_(QueryByWavelength)IDENTITY_(SUFFIX_)
 
-!-------------------------------------------------------------------------
+!==================================================================================================================
 !BOP
 !
-! !IROUTINE:  GOCART2G_Query --- Return Tau, SSA, etc 
+!IROUTINE:  GOCART2G_Query --- Return Tau, SSA, etc 
 !
 !
-! !INTERFACE:
+!INTERFACE:
 !
+ subroutine SUBCHANNEL_ (this,channel,bin,q_mass,rh,tau,ssa,gasym,bext,bsca,bbck,reff,pmom,p11,p22, &
+                         gf,rhop,rhod,vol,area,refr,refi,rc)
+!==================================================================================================================
 
- subroutine SUBCHANNEL_ ( this, channel , bin, q_mass, rh,   &
-                   tau, ssa, gasym, bext, bsca, bbck,   &
-                   reff, pmom, p11, p22, gf, rhop, rhod, &
-                   vol, area, refr, refi, rc )
+!INPUT PARAMETERS:
+     class(GOCART2G_Mie),intent(in):: this
+     integer,intent(in):: channel                               ! wave length [m] 
+     integer,intent(in):: bin                                   ! bin number
+     real(kind=RKIND),intent(in):: q_mass(__DIMS__)             ! aerosol mass [kg/m2],
+     real(kind=RKIND),intent(in):: rh    (__DIMS__)             ! relative himidity
 
-! !INPUT PARAMETERS:
+!OUTPUT PARAMETERS:
+     integer,optional,intent(out):: rc                          ! error code
+     real(kind=RKIND),optional,intent(out):: tau  (__DIMS__)    ! aerol extinction optical depth
+     real(kind=RKIND),optional,intent(out):: ssa  (__DIMS__)    ! single scattering albedo
+     real(kind=RKIND),optional,intent(out):: gasym(__DIMS__)    ! asymmetry parameter
+     real(kind=RKIND),optional,intent(out):: bext (__DIMS__)    ! mass extinction efficiency [m2 (kg dry mass)-1]
+     real(kind=RKIND),optional,intent(out):: bsca (__DIMS__)    ! mass scattering efficiency [m2 (kg dry mass)-1]
+     real(kind=RKIND),optional,intent(out):: bbck (__DIMS__)    ! mass backscatter efficiency [m2 (kg dry mass)-1]
+     real(kind=RKIND),optional,intent(out):: reff (__DIMS__)    ! effective radius (micron)
+     real(kind=RKIND),optional,intent(out):: pmom (__DIMS__,:,:)! moments of phase function 
+     real(kind=RKIND),optional,intent(out):: p11  (__DIMS__)    ! P11 phase function at backscatter
+     real(kind=RKIND),optional,intent(out):: p22  (__DIMS__)    ! P22 phase function at backscatter
+     real(kind=RKIND),optional,intent(out):: gf   (__DIMS__)    ! Growth factor (ratio of wet to dry radius)
+     real(kind=RKIND),optional,intent(out):: rhop (__DIMS__)    ! Wet particle density [kg m-3]
+     real(kind=RKIND),optional,intent(out):: rhod (__DIMS__)    ! Dry particle density [kg m-3]
+     real(kind=RKIND),optional,intent(out):: vol  (__DIMS__)    ! Wet particle volume [m3 kg-1]
+     real(kind=RKIND),optional,intent(out):: area (__DIMS__)    ! Wet particle cross section [m2 kg-1]
+     real(kind=RKIND),optional,intent(out):: refr (__DIMS__)    ! Wet particle real(kind=RKIND) part of ref. index
+     real(kind=RKIND),optional,intent(out):: refi (__DIMS__)    ! Wet particle imag. part of ref. index
 
-     class (GOCART2G_Mie),   intent(in ) :: this
-     integer,                intent(in ) :: channel    ! wave length [m] 
-     integer,                intent(in ) :: bin        ! bin number
-     real,                   intent(in ) :: q_mass(__DIMS__)      ! aerosol mass [kg/m2],
-     real,                   intent(in ) :: rh    (__DIMS__)      ! relative himidity
+!LOCAL VARIABLES:
+     character(len=*),parameter:: Iam = 'Query'
 
-! !OUTPUT PARAMETERS:
+     integer:: i,j
+     integer:: status
+     integer,dimension(:),allocatable:: irh,qrh
+     real(kind=RKIND),dimension(:),allocatable:: rh_,arh
+     real(kind=RKIND),dimension(__DIMS__),allocatable:: bext_,bsca_
 
-     real,    optional,      intent(out) :: tau    (__DIMS__)      ! aerol extinction optical depth
-     real,    optional,      intent(out) :: ssa    (__DIMS__)      ! single scattering albedo
-     real,    optional,      intent(out) :: gasym  (__DIMS__)      ! asymmetry parameter
-     real,    optional,      intent(out) :: bext   (__DIMS__)      ! mass extinction efficiency [m2 (kg dry mass)-1]
-     real,    optional,      intent(out) :: bsca   (__DIMS__)      ! mass scattering efficiency [m2 (kg dry mass)-1]
-     real,    optional,      intent(out) :: bbck   (__DIMS__)      ! mass backscatter efficiency [m2 (kg dry mass)-1]
-     real,    optional,      intent(out) :: reff   (__DIMS__)      ! effective radius (micron)
-     real,    optional,      intent(out) :: pmom   (__DIMS__,:,:)  ! moments of phase function 
-     real,    optional,      intent(out) :: p11    (__DIMS__)      ! P11 phase function at backscatter
-     real,    optional,      intent(out) :: p22    (__DIMS__)      ! P22 phase function at backscatter
-     real,    optional,      intent(out) :: gf     (__DIMS__)      ! Growth factor (ratio of wet to dry radius)
-     real,    optional,      intent(out) :: rhop   (__DIMS__)      ! Wet particle density [kg m-3]
-     real,    optional,      intent(out) :: rhod   (__DIMS__)      ! Dry particle density [kg m-3]
-     real,    optional,      intent(out) :: vol    (__DIMS__)      ! Wet particle volume [m3 kg-1]
-     real,    optional,      intent(out) :: area   (__DIMS__)      ! Wet particle cross section [m2 kg-1]
-     real,    optional,      intent(out) :: refr   (__DIMS__)      ! Wet particle real part of ref. index
-     real,    optional,      intent(out) :: refi   (__DIMS__)      ! Wet particle imag. part of ref. index
-     integer, optional,      intent(out) :: rc                      ! error code
-
-! !DESCRIPTION:
+!DESCRIPTION:
 !
-!   Returns requested parameters from the Mie tables, as a function 
-!   of species, relative humidity, and channel
+!    Returns requested parameters from the Mie tables, as a function 
+!    of species, relative humidity, and channel
 !
-!  Notes: Needs some checking, and I still force an interpolation step
+!    Notes: Needs some checking, and I still force an interpolation step
 
 !
-! !REVISION HISTORY:
+!REVISION HISTORY:
 !
-!  03Mar2022 Tom Clune refactoring
-!  23Mar2005 Colarco
-!  11Jul2005 da Silva   Standardization.
+!    03Mar2022 Tom Clune refactoring
+!    23Mar2005 Colarco
+!    11Jul2005 da Silva   Standardization.
 !
 !EOP
-!-------------------------------------------------------------------------
-
-     integer                        :: status
-
-     integer, allocatable, dimension(:)       :: irh, qrh
-     real, allocatable, dimension(:)          :: rh_, arh
-     real, allocatable, dimension(__DIMS__)   :: bext_, bsca_
-     integer :: i, j
-
-     character(len=*), parameter  :: Iam = 'Query'
+!------------------------------------------------------------------------------------------------------------------
 
      if ( present(rc) ) rc = 0
 
@@ -165,85 +161,81 @@
 
   end subroutine SUBCHANNEL_
 
-
-!-------------------------------------------------------------------------
+!==================================================================================================================
 !BOP
 !
-! !IROUTINE:  GOCART2G_Query --- Return Tau, SSA, etc
+!IROUTINE:  GOCART2G_Query --- Return Tau, SSA, etc
 !
 !
-! !INTERFACE:
+!INTERFACE:
 !
+ subroutine SUBWAVELENGTH_ (this,wavelength,bin,q_mass,rh,tau,ssa,gasym,bext,bsca,bbck,reff,pmom,p11,p22,gf, &
+                            rhop,rhod,vol,area,refr,refi,rc)
+!==================================================================================================================
 
- subroutine SUBWAVELENGTH_ ( this, wavelength, bin, q_mass, rh,   &
-                   tau, ssa, gasym, bext, bsca, bbck,   &
-                   reff, pmom, p11, p22, gf, rhop, rhod, &
-                   vol, area, refr, refi, rc )
+!INPUT PARAMETERS:
+     class (GOCART2G_Mie),intent(in ):: this
+     integer,intent(in):: bin                                    ! bin number
+     real(kind=RKIND),intent(in ):: wavelength                   ! wave length [m]
+     real(kind=RKIND),intent(in ):: q_mass(__DIMS__)             ! aerosol mass [kg/m2],
+     real(kind=RKIND),intent(in ):: rh    (__DIMS__)             ! relative himidity
 
-! !INPUT PARAMETERS:
+!OUTPUT PARAMETERS:
+     integer,optional,intent(out):: rc                           ! error code
+     real(kind=RKIND),optional,intent(out) :: tau  (__DIMS__)    ! aerol extinction optical depth
+     real(kind=RKIND),optional,intent(out) :: ssa  (__DIMS__)    ! single scattering albedo
+     real(kind=RKIND),optional,intent(out) :: gasym(__DIMS__)    ! asymmetry parameter
+     real(kind=RKIND),optional,intent(out) :: bext (__DIMS__)    ! mass extinction efficiency [m2 (kg dry mass)-1]
+     real(kind=RKIND),optional,intent(out) :: bsca (__DIMS__)    ! mass scattering efficiency [m2 (kg dry mass)-1]
+     real(kind=RKIND),optional,intent(out) :: bbck (__DIMS__)    ! mass backscatter efficiency [m2 (kg dry mass)-1]
+     real(kind=RKIND),optional,intent(out) :: reff (__DIMS__)    ! effective radius (micron)
+     real(kind=RKIND),optional,intent(out) :: pmom (__DIMS__,:,:)! moments of phase function
+     real(kind=RKIND),optional,intent(out) :: p11  (__DIMS__)    ! P11 phase function at backscatter
+     real(kind=RKIND),optional,intent(out) :: p22  (__DIMS__)    ! P22 phase function at backscatter
+     real(kind=RKIND),optional,intent(out) :: gf   (__DIMS__)    ! Growth factor (ratio of wet to dry radius)
+     real(kind=RKIND),optional,intent(out) :: rhop (__DIMS__)    ! Wet particle density [kg m-3]
+     real(kind=RKIND),optional,intent(out) :: rhod (__DIMS__)    ! Dry particle density [kg m-3]
+     real(kind=RKIND),optional,intent(out) :: vol  (__DIMS__)    ! Wet particle volume [m3 kg-1]
+     real(kind=RKIND),optional,intent(out) :: area (__DIMS__)    ! Wet particle cross section [m2 kg-1]
+     real(kind=RKIND),optional,intent(out) :: refr (__DIMS__)    ! Wet particle real(kind=RKIND) part of ref. index
+     real(kind=RKIND),optional,intent(out) :: refi (__DIMS__)    ! Wet particle imag. part of ref. index
 
-     class (GOCART2G_Mie),   intent(in ) :: this
-     real,                   intent(in ) :: wavelength ! wave length [m]
-     integer,                intent(in ) :: bin        ! bin number
-     real,                   intent(in ) :: q_mass(__DIMS__)      ! aerosol mass [kg/m2],
-     real,                   intent(in ) :: rh    (__DIMS__)      ! relative himidity
+!LOCAL VARIABLES:
+     character(len=*),parameter:: Iam = 'Query'
 
-! !OUTPUT PARAMETERS:
+     integer:: channel
+     integer:: status
 
-     real,    optional,      intent(out) :: tau    (__DIMS__)      ! aerol extinction optical depth
-     real,    optional,      intent(out) :: ssa    (__DIMS__)      ! single scattering albedo
-     real,    optional,      intent(out) :: gasym  (__DIMS__)      ! asymmetry parameter
-     real,    optional,      intent(out) :: bext   (__DIMS__)      ! mass extinction efficiency [m2 (kg dry mass)-1]
-     real,    optional,      intent(out) :: bsca   (__DIMS__)      ! mass scattering efficiency [m2 (kg dry mass)-1]
-     real,    optional,      intent(out) :: bbck   (__DIMS__)      ! mass backscatter efficiency [m2 (kg dry mass)-1]
-     real,    optional,      intent(out) :: reff   (__DIMS__)      ! effective radius (micron)
-     real,    optional,      intent(out) :: pmom   (__DIMS__,:,:)  ! moments of phase function
-     real,    optional,      intent(out) :: p11    (__DIMS__)      ! P11 phase function at backscatter
-     real,    optional,      intent(out) :: p22    (__DIMS__)      ! P22 phase function at backscatter
-     real,    optional,      intent(out) :: gf     (__DIMS__)      ! Growth factor (ratio of wet to dry radius)
-     real,    optional,      intent(out) :: rhop   (__DIMS__)      ! Wet particle density [kg m-3]
-     real,    optional,      intent(out) :: rhod   (__DIMS__)      ! Dry particle density [kg m-3]
-     real,    optional,      intent(out) :: vol    (__DIMS__)      ! Wet particle volume [m3 kg-1]
-     real,    optional,      intent(out) :: area   (__DIMS__)      ! Wet particle cross section [m2 kg-1]
-     real,    optional,      intent(out) :: refr   (__DIMS__)      ! Wet particle real part of ref. index
-     real,    optional,      intent(out) :: refi   (__DIMS__)      ! Wet particle imag. part of ref. index
-     integer, optional,      intent(out) :: rc                      ! error code
-
-! !DESCRIPTION:
+!DESCRIPTION:
 !
-!   Returns requested parameters from the Mie tables, as a function
-!   of species, relative humidity, and channel
+!    Returns requested parameters from the Mie tables, as a function
+!    of species, relative humidity, and channel
 !
-!  Notes: Needs some checking, and I still force an interpolation step
+!    Notes: Needs some checking, and I still force an interpolation step
 
 !
-! !REVISION HISTORY:
+!REVISION HISTORY:
 !
-!  03Mar2022 Tom Clune refactoring
-!  23Mar2005 Colarco
-!  11Jul2005 da Silva   Standardization.
+!    03Mar2022 Tom Clune refactoring
+!    23Mar2005 Colarco
+!    11Jul2005 da Silva   Standardization.
 !
 !EOP
-!-------------------------------------------------------------------------
-
-     integer                        :: status
-     integer                        :: channel
-
-     character(len=*), parameter  :: Iam = 'QueryByWavelength'
+!------------------------------------------------------------------------------------------------------------------
 
      if ( present(rc) ) rc = 0
 
     channel = this%getChannel(wavelength, rc=rc)
-    if (present(rc)) then
-      if (rc /=0) return
+    if(present(rc)) then
+       if (rc /=0) return
     endif
 
-    call this%Query(channel, bin, q_mass, rh,                   &
-                   tau, ssa, gasym, bext, bsca, bbck,           &
-                   reff, pmom, p11, p22, gf, rhop, rhod, &
-                   vol, area, refr, refi, rc )
+    call this%Query(channel,bin,q_mass,rh,tau,ssa,gasym,bext,bsca,bbck,reff,pmom,p11,p22, &
+                    gf,rhop,rhod,vol,area,refr,refi,rc)
 
  end subroutine SUBWAVELENGTH_
+
+!==================================================================================================================
 
 #undef SUBWAVELENGTH_
 #undef SUBCHANNEL_

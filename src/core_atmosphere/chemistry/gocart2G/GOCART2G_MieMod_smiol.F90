@@ -26,32 +26,32 @@
     integer:: nPol ! number of elements of scattering phase matrix
 
     !--- pointers available in all netCDF files:
-    real,dimension(:),pointer        :: rh          => null() ! (r) RH values   [fraction]
-    real,dimension(:,:),pointer      :: reff        => null() ! (r,b) effective radius [m]
-    real,dimension(:,:,:),pointer    :: bext        => null() ! (r,c,b) bext values [m2 kg-1]
-    real,dimension(:,:,:),pointer    :: bsca        => null() ! (r,c,b) bsca values [m2 kg-1]
-    real,dimension(:,:,:),pointer    :: bbck        => null() ! (r,c,b) bbck values [m2 kg-1]
-    real,dimension(:,:,:),pointer    :: g           => null() ! (r,c,b) asymmetry parameter
-    real,dimension(:,:,:),pointer    :: refr        => null() ! (r,c,b) real part of refractive index
-    real,dimension(:,:,:),pointer    :: refi        => null() ! (r,c,b) imaginary part of refractive index
+    real(kind=RKIND),dimension(:),pointer        :: rh     => null() ! (r) RH values   [fraction]
+    real(kind=RKIND),dimension(:,:),pointer      :: reff   => null() ! (r,b) effective radius [m]
+    real(kind=RKIND),dimension(:,:,:),pointer    :: bext   => null() ! (r,c,b) bext values [m2 kg-1]
+    real(kind=RKIND),dimension(:,:,:),pointer    :: bsca   => null() ! (r,c,b) bsca values [m2 kg-1]
+    real(kind=RKIND),dimension(:,:,:),pointer    :: bbck   => null() ! (r,c,b) bbck values [m2 kg-1]
+    real(kind=RKIND),dimension(:,:,:),pointer    :: g      => null() ! (r,c,b) asymmetry parameter
+    real(kind=RKIND),dimension(:,:,:),pointer    :: refr   => null() ! (r,c,b) real part of refractive index
+    real(kind=RKIND),dimension(:,:,:),pointer    :: refi   => null() ! (r,c,b) imaginary part of refractive index
 
     !--- pointers available in netCDF files with the "wavelength" option:
-    real,dimension(:),pointer        :: wavelengths => null() ! (c) wavelengths [m]
-    real,dimension(:,:,:,:),pointer  :: pback       => null() ! (r,c,b,m,p) backscatter phase function
-    real,dimension(:,:,:,:,:),pointer:: pmom        => null() ! (r,c,b,m,p) moments of phase function
+    real(kind=RKIND),dimension(:),pointer        :: wavelengths => null() ! (c) wavelengths [m]
+    real(kind=RKIND),dimension(:,:,:,:),pointer  :: pback  => null() ! (r,c,b,m,p) backscatter phase function
+    real(kind=RKIND),dimension(:,:,:,:,:),pointer:: pmom   => null() ! (r,c,b,m,p) moments of phase function
 
     !--- pointers (and derived pointers) that are sometimes available in netCDF with the "wavelength" option:
-    real,dimension(:,:),pointer      :: gf          => null() ! (r,b) hygroscopic growth factor
-    real,dimension(:,:),pointer      :: rhop        => null() ! (r,b) wet particle density [kg m-3]
-    real,dimension(:,:),pointer      :: rhod        => null() ! (r,b) wet particle density [kg m-3]
-    real,dimension(:,:),pointer      :: vol         => null() ! (r,b) wet particle volume [m3 kg-1]
-    real,dimension(:,:),pointer      :: area        => null() ! (r,b) wet particle cross section [m2 kg-1]
+    real(kind=RKIND),dimension(:,:),pointer      :: gf     => null() ! (r,b) hygroscopic growth factor
+    real(kind=RKIND),dimension(:,:),pointer      :: rhop   => null() ! (r,b) wet particle density [kg m-3]
+    real(kind=RKIND),dimension(:,:),pointer      :: rhod   => null() ! (r,b) wet particle density [kg m-3]
+    real(kind=RKIND),dimension(:,:),pointer      :: vol    => null() ! (r,b) wet particle volume [m3 kg-1]
+    real(kind=RKIND),dimension(:,:),pointer      :: area   => null() ! (r,b) wet particle cross section [m2 kg-1]
 
-    real,dimension(:,:,:),pointer    :: p11         => null() ! (r,c,b) backscatter phase function, index 1
-    real,dimension(:,:,:),pointer    :: p22         => null() ! (r,c,b) backscatter phase function, index 5
+    real(kind=RKIND),dimension(:,:,:),pointer    :: p11    => null() ! (r,c,b) backscatter phase function, index 1
+    real(kind=RKIND),dimension(:,:,:),pointer    :: p22    => null() ! (r,c,b) backscatter phase function, index 5
 
-    integer,dimension(NRH_BINS):: rhi ! pointer to rh LUT
-    real,dimension(NRH_BINS)   :: rha ! slope on rh LUT
+    integer,dimension(NRH_BINS):: rhi          ! pointer to rh LUT
+    real(kind=RKIND),dimension(NRH_BINS):: rha ! slope on rh LUT
 
 
     contains
@@ -90,45 +90,36 @@
  type(dm_info),intent(in):: dminfo
 
  character(len=*),intent(in):: MieFile ! Mie table file name
- real,intent(in),dimension(:), optional:: wavelengths
+ real(kind=RKIND),intent(in),dimension(:),optional:: wavelengths
 
-!--- local variables:
+!--- local variables needed to process the netCDF files:
+ type(SMIOLf_context),pointer:: context
+ type(SMIOLf_file),pointer   :: aop_file
+ type(SMIOLf_decomp),pointer :: decomp   ! not used for non-decomposed variables
+
  logical:: l_gf,l_rhop
-
  integer:: i,imom,ip1,ipol,j,n,nn,nMom,nPol
  integer:: nb,nc,np,nr
  integer:: stat,ndims
- type(SMIOLf_context),pointer :: context
- type(SMIOLf_file),pointer    :: aop_file
- type(SMIOLf_decomp),pointer  :: decomp   ! not used for non-decomposed variables
-
  real(kind=RKIND):: yerr
  real(kind=RKIND),parameter:: undefval = 1.0e15
-
- integer(kind=I8KIND):: radius_size,rh_size,lambda_size,nMom_size,nPol_size
-!the arrays below are available in all the opticsBands_*.nc and optics_*.nc files for BC,BR,DU,NI,OC,SS,and SU:
- real(kind=R4KIND),dimension(:),pointer:: rh,lambda,radius,rLow,rUp
- real(kind=R4KIND),dimension(:,:),pointer:: rEff,rMass
- real(kind=R4KIND),dimension(:,:,:),pointer:: qsca,qext,bsca,bext,g,bbck,refreal,refimag
-
- real(kind=RKIND),dimension(:,:,:),allocatable:: bext_r,bsca_r,bbck_r,g_r,refreal_r,refimag_r
-
-!in addition to the arrays above,the arrays pback and pmom are available in all the optics_*.nc files for BC,
-!BR,DU,NI,OC,SS,and SU:
- real(kind=R4KIND),dimension(:,:,:,:),pointer:: pback
- real(kind=R4KIND),dimension(:,:,:,:,:),pointer:: pmom
-
- real(kind=RKIND),dimension(:,:,:,:),allocatable:: pback_r
- real(kind=RKIND),dimension(:,:,:,:,:),allocatable:: pmom_r
-
-!in addition to the arrays above, the arrays gf and rhop are available in the optics_*.nc files for NI:
- real(kind=R4KIND),dimension(:,:),pointer:: gf,rhop
-
-!extra arrays not always available in netCDF files:
  real(kind=RKIND),dimension(:,:),pointer:: rhod,vol,area
 
-!arrays needed to call subroutine polint:
- real(kind=RKIND),dimension(:),allocatable:: lambda_r,input_r
+!--- pointers used to read the netCDF variables using subroutines read_real_1d, read_real_2d, read_real_3d,
+!    read_real_4d, and read_real_5d:
+ integer(kind=I8KIND):: radius_size,rh_size,lambda_size,nMom_size,nPol_size
+
+ real(kind=R4KIND),dimension(:),pointer        :: rh,lambda,radius,rLow,rUp
+ real(kind=R4KIND),dimension(:,:),pointer      :: rEff,rMass,gf,rhop
+ real(kind=R4KIND),dimension(:,:,:),pointer    :: qsca,qext,bsca,bext,g,bbck,refreal,refimag
+ real(kind=R4KIND),dimension(:,:,:,:),pointer  :: pback
+ real(kind=R4KIND),dimension(:,:,:,:,:),pointer:: pmom
+
+!--- intermediate allocatable arrays used to interpolate the netCDF variables to the prescribed wavelengths:
+ real(kind=RKIND),dimension(:),allocatable        :: lambda_r,input_r
+ real(kind=RKIND),dimension(:,:,:),allocatable    :: bext_r,bsca_r,bbck_r,g_r,refreal_r,refimag_r
+ real(kind=RKIND),dimension(:,:,:,:),allocatable  :: pback_r
+ real(kind=RKIND),dimension(:,:,:,:,:),allocatable:: pmom_r
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
@@ -298,7 +289,7 @@
 
 
 !
-!--- initialize arrays needed in GOCART2G_Mie:
+!--- initialize arrays contained in GOCART2G_Mie:
 !
  if(.not.associated(self%wavelengths)) allocate(self%wavelengths(self%nch))
  if(present(wavelengths)) then
@@ -307,38 +298,47 @@
     self%wavelengths = lambda
  endif
 
- if(.not.associated(self%rh)   ) allocate(self%rh(self%nrh))
- if(.not.associated(self%reff) ) allocate(self%reff(self%nrh,self%nbin))
- if(.not.associated(self%bext) ) allocate(self%bext(self%nrh,self%nch,self%nbin))
- if(.not.associated(self%bsca) ) allocate(self%bsca(self%nrh,self%nch,self%nbin))
- if(.not.associated(self%bbck) ) allocate(self%bbck(self%nrh,self%nch,self%nbin))
- if(.not.associated(self%g)    ) allocate(self%g(self%nrh,self%nch,self%nbin)   )
- if(.not.associated(self%refr) ) allocate(self%refr(self%nrh,self%nch,self%nbin))
- if(.not.associated(self%refi) ) allocate(self%refi(self%nrh,self%nch,self%nbin))
- if(.not.associated(self%p11)  ) allocate(self%p11(self%nrh,self%nch,self%nbin) )
- if(.not.associated(self%p22)  ) allocate(self%p22(self%nrh,self%nch,self%nbin) )
- if(present(wavelengths)) then
-    if(.not.associated(self%gf)  ) allocate(self%gf(self%nrh,self%nbin)  )
-    if(.not.associated(self%rhop)) allocate(self%rhop(self%nrh,self%nbin))
-    if(.not.associated(self%rhod)) allocate(self%rhod(self%nrh,self%nbin))
-    if(.not.associated(self%vol) ) allocate(self%vol(self%nrh,self%nbin) )
-    if(.not.associated(self%area)) allocate(self%area(self%nrh,self%nbin))
+ if(.not.associated(self%rh)      ) allocate(self%rh(self%nrh)                     )
+ if(.not.associated(self%reff)    ) allocate(self%reff(self%nrh,self%nbin)         )
+ if(.not.associated(self%bext)    ) allocate(self%bext(self%nrh,self%nch,self%nbin))
+ if(.not.associated(self%bsca)    ) allocate(self%bsca(self%nrh,self%nch,self%nbin))
+ if(.not.associated(self%bbck)    ) allocate(self%bbck(self%nrh,self%nch,self%nbin))
+ if(.not.associated(self%g)       ) allocate(self%g(self%nrh,self%nch,self%nbin)   )
+ if(.not.associated(self%refr)    ) allocate(self%refr(self%nrh,self%nch,self%nbin))
+ if(.not.associated(self%refi)    ) allocate(self%refi(self%nrh,self%nch,self%nbin))
+ if(.not.associated(self%p11)     ) allocate(self%p11(self%nrh,self%nch,self%nbin) )
+ if(.not.associated(self%p22)     ) allocate(self%p22(self%nrh,self%nch,self%nbin) )
 
-    if(.not.associated(self%pback)) allocate(self%pback(self%nrh,self%nch,self%nbin,self%nPol))
+ if(present(wavelengths)) then
+    if(.not.associated(self%gf)   ) allocate(self%gf(self%nrh,self%nbin)           )
+    if(.not.associated(self%rhop) ) allocate(self%rhop(self%nrh,self%nbin)         )
+    if(.not.associated(self%rhod) ) allocate(self%rhod(self%nrh,self%nbin)         )
+    if(.not.associated(self%vol)  ) allocate(self%vol(self%nrh,self%nbin)          )
+    if(.not.associated(self%area) ) allocate(self%area(self%nrh,self%nbin)         )
+
+    if(.not.associated(self%pback)) allocate(self%pback(self%nrh,self%nch,self%nbin,self%nPol)         )
     if(.not.associated(self%pmom) ) allocate(self%pmom(self%nrh,self%nch,self%nbin,self%nMom,self%nPol))
  endif
 
- if(.not.allocated(bext_r)   ) allocate(bext_r(int(lambda_size),self%nrh,self%nbin)   )
- if(.not.allocated(bsca_r)   ) allocate(bsca_r(int(lambda_size),self%nrh,self%nbin)   )
- if(.not.allocated(bbck_r)   ) allocate(bbck_r(int(lambda_size),self%nrh,self%nbin)   )
- if(.not.allocated(g_r)      ) allocate(g_r(int(lambda_size),self%nrh,self%nbin)      )
- if(.not.allocated(refreal_r)) allocate(refreal_r(int(lambda_size),self%nrh,self%nbin))
- if(.not.allocated(refimag_r)) allocate(refimag_r(int(lambda_size),self%nrh,self%nbin))
+
+!
+!--- allocate intermediate arrays used to interpolate the netCDF variables to the prescribed wavelengths:
+!
+ if(.not.allocated(bext_r)    ) allocate(bext_r(int(lambda_size),self%nrh,self%nbin)   )
+ if(.not.allocated(bsca_r)    ) allocate(bsca_r(int(lambda_size),self%nrh,self%nbin)   )
+ if(.not.allocated(bbck_r)    ) allocate(bbck_r(int(lambda_size),self%nrh,self%nbin)   )
+ if(.not.allocated(g_r)       ) allocate(g_r(int(lambda_size),self%nrh,self%nbin)      )
+ if(.not.allocated(refreal_r) ) allocate(refreal_r(int(lambda_size),self%nrh,self%nbin))
+ if(.not.allocated(refimag_r) ) allocate(refimag_r(int(lambda_size),self%nrh,self%nbin))
  if(present(wavelengths)) then
-    if(.not.allocated(pback_r)) allocate(pback_r(int(lambda_size),self%nrh,self%nbin,self%nPol))
+    if(.not.allocated(pback_r)) allocate(pback_r(int(lambda_size),self%nrh,self%nbin,self%nPol)         )
     if(.not.allocated(pmom_r) ) allocate(pmom_r(int(lambda_size),self%nrh,self%nbin,self%nMom,self%nPol))
  endif
 
+
+!
+!--- fill in the arrays contained in GOCART2G_Mie:
+!
  self%rh   = real(rh,kind=RKIND)   ! relative humidity (fraction).
  self%reff = real(rEff,kind=RKIND) ! effective radius of bin (m).
  if(present(wavelengths)) then
@@ -367,6 +367,14 @@
     pback_r = real(pback,kind=RKIND)
     pmom_r  = real(pmom,kind=RKIND)
  endif
+
+ do n = 1,self%nbin
+    do i = 1,self%nrh
+       do j = 1,int(lambda_size)
+          call mpas_log_write('$i $i $i $r $r',intArgs=(/n,i,j/),realArgs=(/refreal_r(j,i,n),refimag_r(j,i,n)/))
+       enddo
+    enddo
+ enddo
 
  if(present(wavelengths)) then
     if(.not.allocated(input_r) ) allocate(input_r(int(lambda_size)) )
@@ -440,6 +448,7 @@
  endif
 
 
+!
 !--- remapping of RH to some high resolution representation for later use. RH input is scaled 0 - 0.99.
 !    we resolve the map to 0 - 0.990 in steps of 0.001 (991 total steps):
  do j = 1, NRH_BINS
@@ -491,7 +500,7 @@
       type (SMIOLf_file), intent(inout) :: file
       type (SMIOLf_decomp), pointer :: decomp
       character(len=*), intent(in) :: varname
-      real, dimension(:), pointer :: var
+      real(kind=R4KIND), dimension(:), pointer :: var
 
       ! Local variables
       double precision, dimension(:), pointer :: var_dbl
@@ -558,7 +567,7 @@
       type (SMIOLf_file), intent(inout) :: file
       type (SMIOLf_decomp), pointer :: decomp
       character(len=*), intent(in) :: varname
-      real, dimension(:,:), pointer :: var
+      real(kind=R4KIND), dimension(:,:), pointer :: var
 
       ! Local variables
       double precision, dimension(:,:), pointer :: var_dbl
@@ -627,7 +636,7 @@
       type (SMIOLf_file), intent(inout) :: file
       type (SMIOLf_decomp), pointer :: decomp
       character(len=*), intent(in) :: varname
-      real, dimension(:,:,:), pointer :: var
+      real(kind=R4KIND), dimension(:,:,:), pointer :: var
 
       ! Local variables
       double precision, dimension(:,:,:), pointer :: var_dbl
@@ -696,7 +705,7 @@
       type (SMIOLf_file), intent(inout) :: file
       type (SMIOLf_decomp), pointer :: decomp
       character(len=*), intent(in) :: varname
-      real, dimension(:,:,:,:), pointer :: var
+      real(kind=R4KIND), dimension(:,:,:,:), pointer :: var
 
       ! Local variables
       double precision, dimension(:,:,:,:), pointer :: var_dbl
@@ -765,7 +774,7 @@
       type (SMIOLf_file), intent(inout) :: file
       type (SMIOLf_decomp), pointer :: decomp
       character(len=*), intent(in) :: varname
-      real, dimension(:,:,:,:,:), pointer :: var
+      real(kind=R4KIND), dimension(:,:,:,:,:), pointer :: var
 
       ! Local variables
       double precision, dimension(:,:,:,:,:), pointer :: var_dbl
@@ -810,27 +819,30 @@
 
 !==================================================================================================================
  subroutine polint(x,y,n,xWant,yWant,yErr)
+!==================================================================================================================
+
+!--- input arguments:
  integer,intent(in):: n
-!recall, table hard-wired single precision
  real(kind=RKIND),intent(in):: x(n),y(n)
+
+!--- inout arguments:
  real(kind=RKIND),intent(inout):: xWant,yWant,yErr
 
-!given array x(n) of independent variables and array y(n) of dependent
-!variables, compute the linear interpolated result yWant at xWant and return
-!with a dummy error estimate yErr.  Hacked up from Numerical Recipes Chapter 3
-
+!--- local variables:
  character(len=255):: msg
  integer:: i, j
  real(kind=RKIND):: dx, slope
 
-!---on out of bounds, set i to lower or upper limit:
+!------------------------------------------------------------------------------------------------------------------
+
+!--- given array x(n) of independent variables and array y(n) of dependent variables, compute the linear
+!    interpolated result yWant at xWant and return with a dummy error estimate yErr.  Hacked up from
+!    Numerical Recipes Chapter 3:
+
+!--- on out of bounds, set i to lower or upper limit:
  i = 0
- if(xWant .lt. x(1)) then
-    i = 1
- endif
- if(xWant .gt. x(n)) then
-    i = n
- endif
+ if(xWant .lt. x(1)) i = 1
+ if(xWant .gt. x(n)) i = n
 
 !--- if i is still zero find i less than xWant:
  if(i .eq. 0) then
@@ -839,13 +851,13 @@
     enddo
  endif
 
-!--- slope:
+!--- compute slope:
  if(i .eq. n) then
     slope = 0.
  else
     slope = (y(i+1)-y(i)) / (x(i+1)-x(i))
  endif
- dx = xWant - x(i)
+ dx  = xWant - x(i)
  yWant = y(i) + slope*dx
 
  yErr = 0.
@@ -853,6 +865,7 @@
  end subroutine polint
 
 !==================================================================================================================
+
 !--- Query subroutines:
 #define RANK_ 1
 #include "MieQuery.H"
@@ -867,12 +880,21 @@
 #undef RANK_
 
 !==================================================================================================================
- integer function getChannel(this, wavelength, rc) result (ch)
- class (GOCART2G_Mie), intent(in) :: this
- real, intent(in) :: wavelength
- integer, optional, intent(out) :: rc
- real, parameter :: w_tol = 1.e-9
- integer :: i
+ integer function getChannel(this,wavelength,rc) result (ch)
+!==================================================================================================================
+
+!--- input arguments:
+ class(GOCART2G_Mie),intent(in):: this
+ real(kind=RKIND),intent(in):: wavelength
+
+!--- output arguments:
+ integer,intent(out),optional:: rc
+
+!--- local variables:
+ integer:: i
+ real(kind=RKIND),parameter:: w_tol = 1.e-9
+
+!------------------------------------------------------------------------------------------------------------------
 
  ch = -1
  do i = 1, this%nch
@@ -894,12 +916,21 @@
  end function getChannel
 
 !==================================================================================================================
- real function getWavelength(this, ith_channel, rc) result (wavelength)
- class (GOCART2G_Mie), intent(in) :: this
- integer, intent(in) :: ith_channel
- integer, optional, intent(out) :: rc
- real, parameter :: w_tol = 1.e-9
- integer :: i
+ real function getWavelength(this,ith_channel,rc) result (wavelength)
+!==================================================================================================================
+
+!--- input arguments:
+ class(GOCART2G_Mie),intent(in):: this
+ integer,intent(in):: ith_channel
+
+!--- output arguments:
+ integer,intent(out),optional:: rc
+
+!--- local variables:
+ integer:: i
+ real(kind=RKIND),parameter:: w_tol = 1.e-9
+
+!------------------------------------------------------------------------------------------------------------------
 
  if (present(rc)) rc = 0
 
