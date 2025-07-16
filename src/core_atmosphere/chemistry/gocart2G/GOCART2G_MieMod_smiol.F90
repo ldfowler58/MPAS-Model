@@ -368,13 +368,6 @@
     pmom_r  = real(pmom,kind=RKIND)
  endif
 
- do n = 1,self%nbin
-    do i = 1,self%nrh
-       do j = 1,int(lambda_size)
-          call mpas_log_write('$i $i $i $r $r',intArgs=(/n,i,j/),realArgs=(/refreal_r(j,i,n),refimag_r(j,i,n)/))
-       enddo
-    enddo
- enddo
 
  if(present(wavelengths)) then
     if(.not.allocated(input_r) ) allocate(input_r(int(lambda_size)) )
