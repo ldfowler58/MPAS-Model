@@ -82,13 +82,13 @@
  ch_size = size(aerosol_monochromatic_optics_wavelength_in_nm_from_LUT)
  allocate(channels(ch_size))
 
- call mpas_log_write('--- read input channels from LUT:')
+!call mpas_log_write('--- read input channels from LUT:')
  do ic = 1,ch_size
     channels(ic) = aerosol_monochromatic_optics_wavelength_in_nm_from_LUT(ic)
     channels(ic) = channels(ic)*1.e-9
-    call mpas_log_write('$i $r',intArgs=(/ic/),realArgs=(/channels(ic)/))
+!   call mpas_log_write('$i $r',intArgs=(/ic/),realArgs=(/channels(ic)/))
  enddo
- call mpas_log_write('--- end input channels from LUT.')
+!call mpas_log_write('--- end input channels from LUT.')
 
 
 !--- initializes dimensions used to run the GOCART-2G chemistry:

@@ -103,7 +103,7 @@
  real(kind=RKIND),dimension(:),allocatable:: du_radius,ss_radius
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine load_NI2G_GridComp:')
+!call mpas_log_write('--- enter subroutine load_NI2G_GridComp:')
 
  du_nbins = du2G_params%nbins
  if(.not.allocated(du_fnum)) allocate(du_fnum(du_nbins))
@@ -148,7 +148,7 @@
  if(.not.allocated(du_radius)) deallocate(du_radius)
  if(.not.allocated(du_radius)) deallocate(ss_radius)
 
- call mpas_log_write('--- end subroutine load_NI2G_GridCOMP.')
+!call mpas_log_write('--- end subroutine load_NI2G_GridCOMP.')
 
  end subroutine load_NI2G_GridComp
 

@@ -98,7 +98,7 @@
  integer:: n
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine load_CA2G_oc_GridComp:')
+!call mpas_log_write('--- enter subroutine load_CA2G_oc_GridComp:')
 
 !--- initialization of vertical index:
  self%klid = kts
@@ -111,12 +111,12 @@
  call self%load_from_config(nbins,particle_radius_microns,particle_density,fscav,molecular_weight,fnum, &
                             rhFlag,pressure_lid_in_hPa)
 
- call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
- call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
- do n = 1,self%nbins
-    call mpas_log_write('$i $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
-                        self%fscav(n),self%molwght(n),self%fnum(n)/))
- enddo
+!call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
+!call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
+!do n = 1,self%nbins
+!   call mpas_log_write('$i $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
+!                       self%fscav(n),self%molwght(n),self%fnum(n)/))
+!enddo
 
 
 !--- initialization of all other variables in CA2G_oc_GridComp:
@@ -137,7 +137,7 @@
  enddo
 
 
- call mpas_log_write('--- end subroutine load_CA2G_oc_GridCOMP:')
+!call mpas_log_write('--- end subroutine load_CA2G_oc_GridCOMP:')
 
  end subroutine load_CA2G_oc_GridComp
 

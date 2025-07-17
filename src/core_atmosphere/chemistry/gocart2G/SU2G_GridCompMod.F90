@@ -128,7 +128,7 @@
  integer:: n
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine load_SU2G_GridComp:')
+!call mpas_log_write('--- enter subroutine load_SU2G_GridComp:')
 
 
 !--- initialization of vertical index:
@@ -152,15 +152,15 @@
     self%aviation_layers(n) = aviation_vertical_layers(n)
  enddo
 
- call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
- call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
- do n = 1,self%nbins
-    call mpas_log_write('$i $r $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
-                        self%fscav(n),self%molwght(n),self%fnum(n),self%sigma(n)/))
- enddo
+!call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
+!call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
+!do n = 1,self%nbins
+!   call mpas_log_write('$i $r $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
+!                       self%fscav(n),self%molwght(n),self%fnum(n),self%sigma(n)/))
+!enddo
 
 
- call mpas_log_write('--- end subroutine load_SU2G_GridCOMP.')
+!call mpas_log_write('--- end subroutine load_SU2G_GridCOMP.')
 
  end subroutine load_SU2G_GridComp
 

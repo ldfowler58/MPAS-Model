@@ -107,7 +107,7 @@
  integer,dimension(3):: dims
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine load_DU2G_GridComp:')
+!call mpas_log_write('--- enter subroutine load_DU2G_GridComp:')
 
 
 !--- initialization of vertical index:
@@ -119,12 +119,12 @@
  call self%load_from_config(nbins,particle_radius_microns,particle_density,fscav,molecular_weight,fnum, &
                             rhFlag,pressure_lid_in_hPa)
 
- call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
- call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
- do n = 1,self%nbins
-    call mpas_log_write('$i $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
-                        self%fscav(n),self%molwght(n),self%fnum(n)/))
- enddo
+!call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
+!call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
+!do n = 1,self%nbins
+!   call mpas_log_write('$i $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
+!                       self%fscav(n),self%molwght(n),self%fnum(n)/))
+!enddo
 
 
 !--- initialization of all other variables in DU2_GridComp:
@@ -164,7 +164,7 @@
  self%Ch_DU = 0.8e-09
 
 
- call mpas_log_write('--- end subroutine load_DU2G_GridCOMP.')
+!call mpas_log_write('--- end subroutine load_DU2G_GridCOMP.')
 
  end subroutine load_DU2G_GridComp
 

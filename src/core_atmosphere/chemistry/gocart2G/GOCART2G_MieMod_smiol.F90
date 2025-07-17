@@ -122,7 +122,7 @@
  real(kind=RKIND),dimension(:,:,:,:,:),allocatable:: pmom_r
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter function GOCART2G_MieCreate:  '//MieFile)
 
 
@@ -176,14 +176,14 @@
     nPol_size = nPol
  endif
 
- call mpas_log_write('radius_size = $i',intArgs=[int(radius_size)])
- call mpas_log_write('rh_size     = $i',intArgs=[int(rh_size)])
- call mpas_log_write('lambda_size = $i',intArgs=[int(lambda_size)])
- call mpas_log_write('nMom_size   = $i',intArgs=(/int(nMom_size)/))
- call mpas_log_write('nPol_size   = $i',intArgs=(/int(nPol_size)/))
- call mpas_log_write(' ')
- call mpas_log_write('nMom        = $i',intArgs=(/nMom/))
- call mpas_log_write('nPol        = $i',intArgs=(/nPol/))
+!call mpas_log_write('radius_size = $i',intArgs=[int(radius_size)])
+!call mpas_log_write('rh_size     = $i',intArgs=[int(rh_size)])
+!call mpas_log_write('lambda_size = $i',intArgs=[int(lambda_size)])
+!call mpas_log_write('nMom_size   = $i',intArgs=(/int(nMom_size)/))
+!call mpas_log_write('nPol_size   = $i',intArgs=(/int(nPol_size)/))
+!call mpas_log_write(' ')
+!call mpas_log_write('nMom        = $i',intArgs=(/nMom/))
+!call mpas_log_write('nPol        = $i',intArgs=(/nPol/))
 
  self%nrh  = rh_size
  self%nbin = radius_size
@@ -196,12 +196,12 @@
     self%nch = lambda_size
  endif
 
- call mpas_log_write(' ')
- call mpas_log_write('self%nbin   = $i',intArgs=(/self%nbin/))
- call mpas_log_write('self%nrh    = $i',intArgs=(/self%nrh/))
- call mpas_log_write('self%nch    = $i',intArgs=(/self%nch/))
- call mpas_log_write('self%nMom   = $i',intArgs=(/self%nMom/))
- call mpas_log_write('self%nPol   = $i',intArgs=(/self%nPol/))
+!call mpas_log_write(' ')
+!call mpas_log_write('self%nbin   = $i',intArgs=(/self%nbin/))
+!call mpas_log_write('self%nrh    = $i',intArgs=(/self%nrh/))
+!call mpas_log_write('self%nch    = $i',intArgs=(/self%nch/))
+!call mpas_log_write('self%nMom   = $i',intArgs=(/self%nMom/))
+!call mpas_log_write('self%nPol   = $i',intArgs=(/self%nPol/))
 
 
 !
@@ -254,7 +254,7 @@
     nullify(decomp)
     stat = SMIOLf_inquire_var(aop_file,'growth_factor',ndims=ndims)
     if(stat /= SMIOL_SUCCESS) then
-       call mpas_log_write('--- GROWTH FACTOR GF is not available in input file',messageType=MPAS_LOG_OUT)
+!      call mpas_log_write('--- GROWTH FACTOR GF is not available in input file',messageType=MPAS_LOG_OUT)
     else
        l_gf = .true.
        call read_real_2d(aop_file,decomp,'growth_factor',gf)
@@ -264,7 +264,7 @@
     nullify(decomp)
     stat = SMIOLf_inquire_var(aop_file,'rhop',ndims=ndims)
     if(stat /= SMIOL_SUCCESS) then
-       call mpas_log_write('--- WET PARTICLE DENSITY not available in input file',messageType=MPAS_LOG_OUT)
+!      call mpas_log_write('--- WET PARTICLE DENSITY not available in input file',messageType=MPAS_LOG_OUT)
     else
        l_rhop = .true.
        call read_real_2d(aop_file,decomp,'rhop',rhop)
@@ -285,7 +285,7 @@
     call mpas_log_write(trim(SMIOLf_error_string(stat)), messageType=MPAS_LOG_ERR)
     return
  endif
- call mpas_log_write('--- end read input netCDF file:')
+!call mpas_log_write('--- end read input netCDF file:')
 
 
 !
@@ -460,7 +460,7 @@
  enddo
 
 
- call mpas_log_write('--- end function GOCART2G_MieCreate.')
+!call mpas_log_write('--- end function GOCART2G_MieCreate.')
 
  contains
 

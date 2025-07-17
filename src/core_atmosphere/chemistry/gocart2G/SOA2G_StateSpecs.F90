@@ -73,7 +73,7 @@
  integer:: i,j,k
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine SOA2G_StateSpecsInit:')
+!call mpas_log_write('--- enter subroutine SOA2G_StateSpecsInit:')
 
 !category: IMPORT
 !if(.not.associated(self%zpbl)         ) allocate(self%zpbl(its:ite,jts:jte)               )
@@ -102,7 +102,7 @@
 !if(.not.associated(self%soap_bb)      ) allocate(self%soap_bb(its:ite,jts:jte,kts_kte)    )
 !if(.not.associated(self%soap_bg)      ) allocate(self%soap_bg(its:ite,jts:jte,kts_kte)    )
 
- call mpas_log_write('--- end subroutine SOA2G_StateSpecsInit.')
+!call mpas_log_write('--- end subroutine SOA2G_StateSpecsInit.')
 
  end subroutine SOA2G_StateSpecsInit
 
@@ -114,7 +114,7 @@
  class(SOA2G_State),intent(inout) :: self
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine SOA2G_StateSpecsFinalize:')
+!call mpas_log_write('--- enter subroutine SOA2G_StateSpecsFinalize:')
 
 !category: IMPORT
 !if(associated(self%zpbl)         ) deallocate(self%zpbl         )
@@ -143,7 +143,7 @@
 !if(associated(self%soap_bb)      ) deallocate(self%soap_bb      )
 !if(associated(self%soap_bg)      ) deallocate(self%soap_bg      )
 
- call mpas_log_write('--- end subroutine SOA2G_StateSpecsFinalize.')
+!call mpas_log_write('--- end subroutine SOA2G_StateSpecsFinalize.')
 
  end subroutine SOA2G_StateSpecsFinalize
 

@@ -82,7 +82,7 @@
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine load_from_config:')
+!call mpas_log_write('--- enter subroutine load_from_config:')
 
  self%nbins = nbins
 
@@ -110,22 +110,22 @@
 !--- DO NOT KNOW YET HOW TO INITIALIZE THOSE ARRAYS:
  n_wavelengths_profile = size(wavelengths_for_profile_aop_in_nm)
  n_wavelengths_vertint = size(wavelengths_for_vertically_integrated_aop_in_nm)
- call mpas_log_write('--- n_wavelengths_profile = $i',intArgs=(/n_wavelengths_profile/))
- call mpas_log_write('--- n_wavelengths_vertint = $i',intArgs=(/n_wavelengths_vertint/))
+!call mpas_log_write('--- n_wavelengths_profile = $i',intArgs=(/n_wavelengths_profile/))
+!call mpas_log_write('--- n_wavelengths_vertint = $i',intArgs=(/n_wavelengths_vertint/))
 
  if(.not.allocated(self%wavelengths_profile)) allocate(self%wavelengths_profile(n_wavelengths_profile))
  if(.not.allocated(self%wavelengths_vertint)) allocate(self%wavelengths_vertint(n_wavelengths_vertint))
 
  do n = 1, n_wavelengths_profile
     self%wavelengths_profile(n) = wavelengths_for_profile_aop_in_nm(n)
-    call mpas_log_write('$r',realArgs=(/self%wavelengths_profile(n)/))
+!   call mpas_log_write('$r',realArgs=(/self%wavelengths_profile(n)/))
  enddo
  do n = 1, n_wavelengths_vertint
     self%wavelengths_vertint(n) = wavelengths_for_vertically_integrated_aop_in_nm(n)
-    call mpas_log_write('$r',realArgs=(/self%wavelengths_vertint(n)/))
+!   call mpas_log_write('$r',realArgs=(/self%wavelengths_vertint(n)/))
  enddo
 
- call mpas_log_write('--- end subroutine load_from_config.')
+!call mpas_log_write('--- end subroutine load_from_config.')
 
  end subroutine load_from_config
 

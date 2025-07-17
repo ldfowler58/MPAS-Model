@@ -47,11 +47,11 @@
  class(SOA2G_GridComp),intent(inout) :: self
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine load_SOA2G_GridComp:')
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine load_SOA2G_GridComp:')
 
 
- call mpas_log_write('--- end subroutine load_SOA2G_GridComp.')
+!call mpas_log_write('--- end subroutine load_SOA2G_GridComp.')
 
  end subroutine load_SOA2G_GridComp
 

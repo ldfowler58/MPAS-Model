@@ -114,8 +114,8 @@
  class(emis_gocart2G),intent(inout):: self
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine mpas_chemistry_gocart2G_emissions_allocate:')
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine mpas_chemistry_gocart2G_emissions_allocate:')
 
 
 !--- anthropogenic emissions:
@@ -187,7 +187,7 @@
  if(.not.associated(self%soas_biogenic)  ) allocate(self%soas_biogenic(its:ite,jts:jte)      )
 
 
- call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_emissions_allocate.')
+!call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_emissions_allocate.')
 
  end subroutine mpas_chemistry_gocart2G_emissions_allocate
 
@@ -199,8 +199,8 @@
  class(emis_gocart2G),intent(inout):: self
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine mpas_chemistry_gocart2G_emissions_deallocate:')
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine mpas_chemistry_gocart2G_emissions_deallocate:')
 
 
 !--- anthropogenic emissions:
@@ -272,7 +272,7 @@
  if(associated(self%soas_biogenic)  ) deallocate(self%soas_biogenic  )
 
 
- call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_emissions_deallocate.')
+!call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_emissions_deallocate.')
 
  end subroutine mpas_chemistry_gocart2G_emissions_deallocate
 
@@ -323,8 +323,8 @@
  real(kind=RKIND),parameter:: fMassSO2 = 64.066        ! (grams per mole).
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine mpas_chemistry_gocart2G_emissions_init:')
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine mpas_chemistry_gocart2G_emissions_init:')
 
 
 !--- anthropogenic emissions:
@@ -497,7 +497,7 @@
  enddo
 
 
- call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_emissions_init.')
+!call mpas_log_write('--- end subroutine mpas_chemistry_gocart2G_emissions_init.')
 
  end subroutine mpas_chemistry_gocart2G_emissions_init
 
