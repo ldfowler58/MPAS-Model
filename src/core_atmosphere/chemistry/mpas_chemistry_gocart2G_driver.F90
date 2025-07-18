@@ -83,7 +83,7 @@
  integer:: i,its,ite,j,jts,jte,k,kts,kte,n,nerod
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine gocart2G_driver:')
 
  time_lev = 2

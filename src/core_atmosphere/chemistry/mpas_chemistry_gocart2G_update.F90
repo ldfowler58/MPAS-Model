@@ -177,7 +177,7 @@
  real(kind=RKIND),dimension(:,:),allocatable:: dummy1
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine update_tinterp_backgrounds: '//trim(current_date))
+!call mpas_log_write('--- enter subroutine update_tinterp_backgrounds: '//trim(current_date))
 
  call mpas_pool_get_dimension(mesh,'nCells'     ,nCells     )
  call mpas_pool_get_dimension(mesh,'nBCKLevels' ,nBCKLevels )
@@ -231,7 +231,7 @@
  if(allocated(dummy1)) deallocate(dummy1)
 
 
- call mpas_log_write('--- end subroutine update_tinterp_backgrounds.')
+!call mpas_log_write('--- end subroutine update_tinterp_backgrounds.')
 
  end subroutine update_tinterp_backgrounds
 
@@ -259,7 +259,7 @@
  real(kind=RKIND),dimension(:,:),allocatable:: sorted_arr
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine init_vinterp_backgrounds:')
+!call mpas_log_write('--- enter subroutine init_vinterp_backgrounds:')
 
  call mpas_pool_get_dimension(mesh,'nCells'     ,nCells     )
  call mpas_pool_get_dimension(mesh,'nBCKLevels' ,nBCKLevels )
@@ -340,7 +340,7 @@
  if(allocated(sorted_arr)) deallocate(sorted_arr)
 
 
- call mpas_log_write('--- end subroutine init_vinterp_backgrounds.')
+!call mpas_log_write('--- end subroutine init_vinterp_backgrounds.')
 
  end subroutine vinterp_backgrounds
 

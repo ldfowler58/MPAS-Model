@@ -59,7 +59,7 @@
                                              bcSCACOEFRH80,bcBCKCOEF
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine CA2G_bc_diagnostics:')
 
  call mpas_pool_get_array(CA2G_bc_diags,'bcEMAN',bcEMAN)
@@ -208,7 +208,7 @@
                                              brSCACOEFRH80,brBCKCOEF
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine CA2G_br_diagnostics:')
 
  call mpas_pool_get_array(CA2G_br_diags,'brEMAN',brEMAN)
@@ -359,7 +359,7 @@
                                              ocSCACOEFRH80,ocBCKCOEF
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine CA2G_oc_diagnostics:')
 
  call mpas_pool_get_array(CA2G_oc_diags,'ocEMAN',ocEMAN)
@@ -513,7 +513,7 @@
                                              duSCACOEFRH80,duBCKCOEF
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine DU2G_diagnostics:')
 
  call mpas_pool_get_array(DU2G_diags,'duEM_bin1',duEM_bin1)
@@ -707,7 +707,7 @@
                                              niSCACOEFRH80,niBCKCOEF
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine NI2G_diagnostics:')
 
  call mpas_pool_get_array(NI2G_diags,'niHT_bin1',niHT_bin1)
@@ -919,7 +919,7 @@
                                              ssSCACOEFRH80,ssBCKCOEF
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine SS2G_diagnostics:')
 
  call mpas_pool_get_array(SS2G_diags,'ssEM_bin1',ssEM_bin1)
@@ -1106,7 +1106,7 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: suEXTCOEF,suEXTCOEFRH20,suEXTCOEFRH80,suSCACOEF,suSCACOEFRH20, &
                                              suSCACOEFRH80,suBCKCOEF
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine SU2G_diagnostics:')
 
  call mpas_pool_get_array(SU2G_diags,'suEM_dms',suEM_dms)
@@ -1313,7 +1313,7 @@
  real(kind=RKIND),dimension(:,:,:),pointer:: totEXTCOEF,totEXTCOEFRH20,totEXTCOEFRH80,totSCACOEF,totSCACOEFRH20, &
                                              totSCACOEFRH80,totBCKCOEF
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine GOCART2G_diagnostics:')
 
  call mpas_pool_get_array(GOCART2G_diags,'totPM'      ,totPM      )

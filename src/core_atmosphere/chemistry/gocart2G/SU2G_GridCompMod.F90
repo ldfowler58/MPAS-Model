@@ -528,7 +528,7 @@
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SulfateChemDriver.', &
                         messageType=MPAS_LOG_CRIT)
  else
-!   if(allocated(drydepf)) deallocate(drydepf)
+    if(allocated(drydepf)) deallocate(drydepf)
 !   call mpas_log_write('--- end subroutine SulfateChemDriver.')
  endif
 
