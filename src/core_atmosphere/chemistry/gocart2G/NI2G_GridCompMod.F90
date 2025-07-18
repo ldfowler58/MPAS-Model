@@ -238,7 +238,7 @@
 
 
 !---
- call mpas_log_write('--- enter subroutine NIthermo:')
+!call mpas_log_write('--- enter subroutine NIthermo:')
  if(associated(self%nipno3aq)) self%nipno3aq(:,:) = 0._RKIND
  if(associated(self%nipnh4aq)) self%nipnh4aq(:,:) = 0._RKIND
  if(associated(self%nipnh3aq)) self%nipnh3aq(:,:) = 0._RKIND
@@ -255,12 +255,12 @@
  if(istat /=0) then
     call mpas_log_write('--- NI2G_GridComp: error in subroutine NIthermo.',messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine NIthermo.')
+!   call mpas_log_write('--- end subroutine NIthermo.')
  endif
 
 
 !---
- call mpas_log_write('--- enter subroutine NIheterogenous:')
+!call mpas_log_write('--- enter subroutine NIheterogenous:')
  if(associated(self%hno3conc) ) self%hno3conc  = 0._RKIND
  if(associated(self%hno3smass)) self%hno3smass = 0._RKIND
  if(associated(self%hno3cmass)) self%hno3cmass = 0._RKIND
@@ -286,7 +286,7 @@
  if(istat /=0) then
     call mpas_log_write('--- NI2G_GridComp: error in subroutine NIheterogenousChem.',messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine NIheterogenousChem.')
+!   call mpas_log_write('--- end subroutine NIheterogenousChem.')
  endif
 
 
@@ -294,12 +294,12 @@
 !    must treated as a function of bins.
 
 !- ammonium ion settles like ammonium sulfate.
- call mpas_log_write('--- enter subroutine Chem_SettlingSimple NH4a:')
+!call mpas_log_write('--- enter subroutine Chem_SettlingSimple NH4a:')
  if(associated(self%nh4sd)) self%nh4sd  = 0._RKIND
  istat = 0
  rhflag_l = 3
- call mpas_log_write('--- rhop(nNH4a)   = $r',realArgs=(/self_params%rhop(nNH4a)/))
- call mpas_log_write('--- radius(nNH4a) = $r',realArgs=(/self_params%radius(nNH4a)/))
+!call mpas_log_write('--- rhop(nNH4a)   = $r',realArgs=(/self_params%rhop(nNH4a)/))
+!call mpas_log_write('--- radius(nNH4a) = $r',realArgs=(/self_params%radius(nNH4a)/))
  call Chem_SettlingSimple( &
            km      = self_params%km          , klid      = self_params%klid                , &
            flag    = rhFlag_l                , cdt       = self_params%cdt                 , &
@@ -314,17 +314,17 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NH4a.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_SettlingSimple NH4a.')
+!   call mpas_log_write('--- end subroutine Chem_SettlingSimple NH4a.')
  endif
 
 
 !- nitrate bin 1 settles like ammonium sulfate:
- call mpas_log_write('--- enter subroutine Chem_SettlingSimple NO3AN1:')
+!call mpas_log_write('--- enter subroutine Chem_SettlingSimple NO3AN1:')
  if(associated(self%nisd)) self%nisd(:,:,1) = 0._RKIND
  istat = 0
  rhflag_l = 3
- call mpas_log_write('--- rhop(nNO3AN1)   = $r',realArgs=(/self_params%rhop(nNO3AN1)/))
- call mpas_log_write('--- radius(nNO3AN1) = $r',realArgs=(/self_params%radius(nNO3AN1)/))
+!call mpas_log_write('--- rhop(nNO3AN1)   = $r',realArgs=(/self_params%rhop(nNO3AN1)/))
+!call mpas_log_write('--- radius(nNO3AN1) = $r',realArgs=(/self_params%radius(nNO3AN1)/))
  nullify(flux_ptr)
  if(associated(self%nisd)) flux_ptr => self%nisd(:,:,1)
  call Chem_SettlingSimple( &
@@ -341,17 +341,17 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NO3AN1.', &
            messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN1.')
+!   call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN1.')
  endif
 
 
 !- nitrate bin 2 settles like sea salt:
- call mpas_log_write('--- enter subroutine Chem_SettlingSimple NO3AN2:')
+!call mpas_log_write('--- enter subroutine Chem_SettlingSimple NO3AN2:')
  if(associated(self%nisd)) self%nisd(:,:,2) = 0._RKIND
  istat = 0
  rhflag_l = 2
- call mpas_log_write('--- rhop(nNO3AN2)   = $r',realArgs=(/self_params%rhop(nNO3AN2)/))
- call mpas_log_write('--- radius(nNO3AN2) = $r',realArgs=(/self_params%radius(nNO3AN2)/))
+!call mpas_log_write('--- rhop(nNO3AN2)   = $r',realArgs=(/self_params%rhop(nNO3AN2)/))
+!call mpas_log_write('--- radius(nNO3AN2) = $r',realArgs=(/self_params%radius(nNO3AN2)/))
  nullify(flux_ptr)
  if(associated(self%nisd)) flux_ptr => self%nisd(:,:,2)
  call Chem_SettlingSimple( &
@@ -368,17 +368,17 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NO3AN2.', &
            messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN2.')
+!   call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN2.')
  endif
 
 
 !- nitrate bin 3 settles like dust:
- call mpas_log_write('--- enter subroutine Chem_SettlingSimple NO3AN3:')
+!call mpas_log_write('--- enter subroutine Chem_SettlingSimple NO3AN3:')
  if(associated(self%nisd)) self%nisd(:,:,3) = 0._RKIND
  istat = 0
  rhflag_l = 0
- call mpas_log_write('--- rhop(nNO3AN3)   = $r',realArgs=(/self_params%rhop(nNO3AN3)/))
- call mpas_log_write('--- radius(nNO3AN3) = $r',realArgs=(/self_params%radius(nNO3AN3)/))
+!call mpas_log_write('--- rhop(nNO3AN3)   = $r',realArgs=(/self_params%rhop(nNO3AN3)/))
+!call mpas_log_write('--- radius(nNO3AN3) = $r',realArgs=(/self_params%radius(nNO3AN3)/))
  nullify(flux_ptr)
  if(associated(self%nisd)) flux_ptr => self%nisd(:,:,3)
  call Chem_SettlingSimple( &
@@ -395,12 +395,12 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Chem_SettlingSimple NO3AN3.', &
            messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN3.')
+!   call mpas_log_write('--- end subroutine Chem_SettlingSimple NO3AN3.')
  endif
 
 
 !--- NI2G dry deposition:
- call mpas_log_write('--- enter subroutine DryDeposition:')
+!call mpas_log_write('--- enter subroutine DryDeposition:')
  if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
  drydepf = 0._RKIND
@@ -462,12 +462,12 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine DryDeposition.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine DryDeposition.')
+!   call mpas_log_write('--- end subroutine DryDeposition.')
  endif
 
 
 !--- NI2G large-scale wet removal:
- call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NH3:')
+!call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NH3:')
  if(associated(self%nh3wt) .or. associated(self%nh4wt)) allocate(fluxoutWT(ubound(self%t,1),ubound(self%t,2),1))
 
  istat = 0
@@ -490,11 +490,11 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NH3.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH3.')
+!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH3.')
  endif
 
 
- call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NH4a:')
+!call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NH4a:')
  istat = 0
  KIN  = .true.
  fwet = 1._RKIND
@@ -516,11 +516,11 @@
                         messageType=MPAS_LOG_CRIT)
  else
     if(allocated(fluxoutWT)) deallocate(fluxoutWT)
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH4a.')
+!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH4a.')
  endif
 
 
- call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NO3AN1:')
+!call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NO3AN1:')
  istat = 0
  KIN  = .true.
  fwet = 1._RKIND
@@ -538,11 +538,11 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN1.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN1:')
+!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN1:')
  endif
 
 
- call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NO3AN2:')
+!call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NO3AN2:')
  istat = 0
  KIN  = .true.
  fwet = 1._RKIND
@@ -559,11 +559,11 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN2.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN2.')
+!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN2.')
  endif
 
 
- call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NO3AN3:')
+!call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NO3AN3:')
  istat = 0
  KIN  = .true.
  fwet = 0.3_RKIND
@@ -580,19 +580,19 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN3.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN3.')
+!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN3.')
  endif
 
 
 !--- NI2G diagnostics:
 !Certain variables are multiplied by 1.0e-9 to convert from nanometers to meters
- call mpas_log_write('--- nw_profile = $i',intArgs=(/nw_profile/))
- call mpas_log_write('--- nw_vertint = $i',intArgs=(/nw_vertint/))
+!call mpas_log_write('--- nw_profile = $i',intArgs=(/nw_profile/))
+!call mpas_log_write('--- nw_vertint = $i',intArgs=(/nw_vertint/))
 
  if(.not.allocated(aerosol)) allocate(aerosol(ubound(self%nh4a,1),ubound(self%nh4a,2),ubound(self%nh4a,3),3))
  aerosol(:,:,:,:) = 0._RKIND
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags NH4a:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags NH4a:')
  aerosol(:,:,:,1) = self%nh4a(:,:,:)
  if(associated(self%nh4smass)) self%nh4smass(:,:)  = 0._RKIND
  if(associated(self%nh4cmass)) self%nh4cmass(:,:)  = 0._RKIND
@@ -628,11 +628,11 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NH4a.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags NH4a.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags NH4a.')
  endif
 
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags NH3:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags NH3:')
  aerosol(:,:,:,1) = self%nh3(:,:,:)
  if(associated(self%nh3smass)) self%nh3smass(:,:)  = 0._RKIND
  if(associated(self%nh3cmass)) self%nh3cmass(:,:)  = 0._RKIND
@@ -668,11 +668,11 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NH3.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags NH3.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags NH3.')
  endif
 
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags NO3AN1:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags NO3AN1:')
  aerosol(:,:,:,1) = self%no3an1(:,:,:)
  if(associated(self%nismass25)) self%nismass25(:,:)  = 0._RKIND
  if(associated(self%nicmass25)) self%nicmass25(:,:)  = 0._RKIND
@@ -716,11 +716,11 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NO3AN1.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags NO3AN1.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags NO3AN1.')
  endif
 
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags NO3AN1 NO3AN2 NO3AN3:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags NO3AN1 NO3AN2 NO3AN3:')
  aerosol(:,:,:,1) = self%no3an1(:,:,:)
  aerosol(:,:,:,2) = self%no3an2(:,:,:)
  aerosol(:,:,:,3) = self%no3an3(:,:,:)
@@ -778,7 +778,7 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags NO3AN1 NO3AN2 NO3AN3.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags NO3AN1 NO3AN2 NO3AN3.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags NO3AN1 NO3AN2 NO3AN3.')
  endif
 
 
@@ -786,7 +786,7 @@
  j1 = lbound(self%rh2,2); j2 = ubound(self%rh2,2)
  km = ubound(self%rh2,3)
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
  if(.not.associated(self%niextcoefrh20)) self%niextcoefrh20(:,:,:,:) = 0._RKIND
  if(.not.associated(self%niscacoefrh20)) self%niscacoefrh20(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
@@ -818,11 +818,11 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags RH20.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
  endif
 
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
  if(.not.associated(self%niextcoefrh80)) self%niextcoefrh80(:,:,:,:) = 0._RKIND
  if(.not.associated(self%niscacoefrh80)) self%niscacoefrh80(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
@@ -854,7 +854,7 @@
     call mpas_log_write('--- NI2G_GridComp: error in subroutine Aero_Compute_Diags RH80.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
  endif
  if(allocated(rh20)) deallocate(rh20)
  if(allocated(rh80)) deallocate(rh80)

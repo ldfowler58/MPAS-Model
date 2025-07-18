@@ -76,8 +76,8 @@
 !--- initialization of wavelengths_profile and wavelengths_vertint:
  nw_profile = size(wavelengths_for_profile_aop_in_nm)
  nw_vertint = size(wavelengths_for_vertically_integrated_aop_in_nm)
- call mpas_log_write('--- nw_profile = $i',intArgs=(/nw_profile/))
- call mpas_log_write('--- nw_vertint = $i',intArgs=(/nw_vertint/))
+!call mpas_log_write('--- nw_profile = $i',intArgs=(/nw_profile/))
+!call mpas_log_write('--- nw_vertint = $i',intArgs=(/nw_vertint/))
 
  if(.not.allocated(self_params%wavelengths_profile)) allocate(self_params%wavelengths_profile(nw_profile)) 
  if(.not.allocated(self_params%wavelengths_vertint)) allocate(self_params%wavelengths_vertint(nw_vertint))
@@ -99,7 +99,7 @@
            exit
        endif
     enddo
-    call mpas_log_write('--- ind550     = $i',intArgs=(/ind550/))
+!   call mpas_log_write('--- ind550     = $i',intArgs=(/ind550/))
 
     if(ind550 == 0) then
        call mpas_log_write('550nm wavelength not in GOCART2G_instance: cannot compute TOTANGSTR', &
@@ -114,9 +114,9 @@
     c1 = -log(470./550.)
     c2 = -log(870./550.)
     c3 = -log(470./870.)
-    call mpas_log_write('--- c1 = $r',realArgs=(/c1/))
-    call mpas_log_write('--- c2 = $r',realArgs=(/c2/))
-    call mpas_log_write('--- c3 = $r',realArgs=(/c3/))
+!   call mpas_log_write('--- c1 = $r',realArgs=(/c1/))
+!   call mpas_log_write('--- c2 = $r',realArgs=(/c2/))
+!   call mpas_log_write('--- c3 = $r',realArgs=(/c3/))
  endif
 
 

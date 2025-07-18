@@ -169,8 +169,8 @@
 !--- extract nymd and nhms from clock:
  call MAPL_PackTime(nymd,iyr,imm,idd)
  call MAPL_PackTime(nhms,ihr,imn,isc)
- call mpas_log_write('--- nymd = $i',intArgs=(/nymd/))
- call mpas_log_write('--- nhms = $i',intArgs=(/nhms/))
+!call mpas_log_write('--- nymd = $i',intArgs=(/nymd/))
+!call mpas_log_write('--- nhms = $i',intArgs=(/nhms/))
 
 
  if(.not.allocated(biogvoc_src)) allocate(biogvoc_src(its:ite,jts:jte))
@@ -179,7 +179,7 @@
 
 !--- apply diurnal cycle to biomass burning if needed:
  if(self_params%diurnal_bb) then
-    call mpas_log_write('--- enter subroutine Chem_Biomass Diurnal:')
+!   call mpas_log_write('--- enter subroutine Chem_Biomass Diurnal:')
     biomass_src_ = self%oc_biomass
     call Chem_BiomassDiurnal( &
        cdt  = self_params%cdt,    &
@@ -189,13 +189,13 @@
        lons = self%lons*radTodeg, &
        lats = self%lats*radTodeg  &
                             )
-    call mpas_log_write('--- end subroutine Chem_Biomass Diurnal.')
+!   call mpas_log_write('--- end subroutine Chem_Biomass Diurnal.')
  endif
 
 
 !--- apply emissions to CA2G_oc: 
  istat = 0
- call mpas_log_write('--- enter subroutine CAEmission:')
+!call mpas_log_write('--- enter subroutine CAEmission:')
  call CAEmission( &
     mie               = self_params%diag_Mie,        &
     km                = self_params%km,              &
@@ -235,7 +235,7 @@
     call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine CAEmission.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine CAEmission.')
+!   call mpas_log_write('--- end subroutine CAEmission.')
  endif
 
 
@@ -271,7 +271,7 @@
  real(kind=RKIND),allocatable,dimension(:,:,:),target:: rh20,rh80
 
 !-----------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine processes_CA2G_oc_GridComp:')
 
 
@@ -310,7 +310,7 @@
 
 !--- add hoc transfer of hydrophobic to hydrophilic aerosols following Chin's parameterization:
 !    the rate constant is k = 4.63e-6 s-1 (.4 day-1; e-folding time = 2.5 days)
- call mpas_log_write('--- enter subroutine phobicTophilic:')
+!call mpas_log_write('--- enter subroutine phobicTophilic:')
  if(associated(self%ochyphil)) self%ochyphil(:,:) = 0._RKIND
  istat = 0
  call phobicTophilic( &
@@ -327,12 +327,12 @@
     call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine phobicTophilic.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine phobicTophilic.')
+!   call mpas_log_write('--- end subroutine phobicTophilic.')
  endif
 
 
 !--- CA2G_oc settling:
- call mpas_log_write('--- enter subroutine Chem_Settling:')
+!call mpas_log_write('--- enter subroutine Chem_Settling:')
  if(.not.allocated(qca2G)) allocate(qca2G(its:ite,jts:jte,kts:kte,self_params%nbins))
  do j = jts,jte
     do i = its,ite
@@ -371,12 +371,12 @@
     call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine Chem_Settling.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_Settling.')
+!   call mpas_log_write('--- end subroutine Chem_Settling.')
  endif
 
 
 !--- CA2G_oc dry deposition:
- call mpas_log_write('--- enter subroutine DryDeposition:')
+!call mpas_log_write('--- enter subroutine DryDeposition:')
  if(associated(self%ocDP)  ) self%ocdp(:,:,:) = 0._RKIND
  if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
@@ -411,7 +411,7 @@
                         messageType=MPAS_LOG_CRIT)
  else
     if(allocated(drydepf)) deallocate(drydepf)
-    call mpas_log_write('--- end subroutine DryDeposition.')
+!   call mpas_log_write('--- end subroutine DryDeposition.')
  endif
 
 
@@ -426,7 +426,7 @@
 
 
 !--- CA2G_oc large-scale wet removal (hydrophobic mode is removed):
- call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
+!call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
  if(associated(self%ocWT)) self%ocwt(:,:,:) = 0._RKIND
  KIN   = .true.
  fwet  = 1._RKIND
@@ -457,7 +457,7 @@
     call mpas_log_write('--- CA2G_oc_GridComp: error in subroutine WetRemovalGOCART2G.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
+!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
  endif
 
 
@@ -472,10 +472,10 @@
  enddo
  n_profile = size(self_params%wavelengths_profile)
  n_vertint = size(self_params%wavelengths_vertint)
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags:')
- call mpas_log_write('--- nbins     = $i',intArgs=(/nbins/))
- call mpas_log_write('--- n_profile = $i',intArgs=(/n_profile/))
- call mpas_log_write('--- n_vertint = $i',intArgs=(/n_vertint/))
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags:')
+!call mpas_log_write('--- nbins     = $i',intArgs=(/nbins/))
+!call mpas_log_write('--- n_profile = $i',intArgs=(/n_profile/))
+!call mpas_log_write('--- n_vertint = $i',intArgs=(/n_vertint/))
  if(associated(self%ocsmass)   ) self%ocsmass(:,:)       = 0._RKIND
  if(associated(self%occmass)   ) self%occmass(:,:)       = 0._RKIND
  if(associated(self%ocmass)    ) self%ocmass(:,:,:)      = 0._RKIND
@@ -532,7 +532,7 @@
     call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine Aero_Compute_Diags.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags.')
  endif
 
 
@@ -540,7 +540,7 @@
  j1 = lbound(self%rh2,2); j2 = ubound(self%rh2,2)
  km = ubound(self%rh2,3)
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
  if(associated(self%ocextcoefrh20)) self%ocextcoefrh20(:,:,:,:) = 0._RKIND
  if(associated(self%ocscacoefrh20)) self%ocscacoefrh20(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
@@ -573,11 +573,11 @@
     call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine Aero_Compute_Diags RH20.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
  endif
 
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
  if(associated(self%ocextcoefrh80)) self%ocextcoefrh80(:,:,:,:) = 0._RKIND
  if(associated(self%ocscacoefrh80)) self%ocscacoefrh80(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
@@ -610,7 +610,7 @@
     call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine Aero_Compute_Diags RH80', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
  endif
  if(allocated(rh20)) deallocate(rh20)
  if(allocated(rh80)) deallocate(rh80)

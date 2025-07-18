@@ -193,8 +193,8 @@
 !--- extract nymd and nhms from clock:
  call MAPL_PackTime(nymd,iyr,imm,idd)
  call MAPL_PackTime(nhms,ihr,imn,isc)
- call mpas_log_write('--- nymd = $i',intArgs=(/nymd/))
- call mpas_log_write('--- nhms = $i',intArgs=(/nhms/))
+!call mpas_log_write('--- nymd = $i',intArgs=(/nymd/))
+!call mpas_log_write('--- nhms = $i',intArgs=(/nhms/))
 
 
 !--- for now, we do not support volcanic emissions and point emissions:
@@ -203,7 +203,7 @@
 
 !--- apply diurnal cycle to biomass burning if needed:
  if(self_params%diurnal_bb ) then
-    call mpas_log_write('--- enter subroutine Chem_BiomassDiurnal:')
+!   call mpas_log_write('--- enter subroutine Chem_BiomassDiurnal:')
     so2biomass_src_ = self%su_biomass
     call Chem_BiomassDiurnal( &
        cdt  = self_params%cdt,    &
@@ -213,12 +213,12 @@
        lons = self%lons*radTodeg, &
        lats = self%lats*radTodeg  &
                             )
-    call mpas_log_write('--- end subroutine Chem_BiomassDiurnal.')
+!   call mpas_log_write('--- end subroutine Chem_BiomassDiurnal.')
  endif
 
 
 !--- apply emissions to SO2 and SO4:
- call mpas_log_write('--- enter subroutine SulfateDistributeEmissions:')
+!call mpas_log_write('--- enter subroutine SulfateDistributeEmissions:')
  istat = 0
  call SulfateDistributeEmissions( &
     km                = self_params%km,              &
@@ -264,12 +264,12 @@
     call mpas_log_write('--- SU2G_bc_GridComp: error in subroutine SulfateDistributeEmissions.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SulfateDistributionEmissions.')
+!   call mpas_log_write('--- end subroutine SulfateDistributionEmissions.')
  endif
 
 
  if(associated(self%DMS)) then
-    call mpas_log_write('--- enter subroutine DMSemission:')
+!   call mpas_log_write('--- enter subroutine DMSemission:')
     istat = 0
     call DMSemission( &
        km        = self_params%km,  &
@@ -291,7 +291,7 @@
        call mpas_log_write('--- SU2G_bc_GridComp: error in subroutine DMSEmission.', &
                            messageType=MPAS_LOG_CRIT)
     else
-       call mpas_log_write('--- end subroutine DMSEmission.')
+!      call mpas_log_write('--- end subroutine DMSEmission.')
     endif
  endif
 
@@ -332,7 +332,7 @@
  real(kind=RKIND),allocatable,dimension(:,:,:),target:: rh20,rh80
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine processes_SU2G_GridComp:')
 
  nw_profile = size(self_params%wavelengths_profile)
@@ -342,8 +342,8 @@
 !--- extract nymd and nhms from clock:
  call MAPL_PackTime(nymd,iyr,imm,idd)
  call MAPL_PackTime(nhms,ihr,imn,isc)
- call mpas_log_write('--- nymd = $i',intArgs=(/nymd/))
- call mpas_log_write('--- nhms = $i',intArgs=(/nhms/))
+!call mpas_log_write('--- nymd = $i',intArgs=(/nymd/))
+!call mpas_log_write('--- nhms = $i',intArgs=(/nhms/))
 
 
 !--- SU2G oxidants:
@@ -371,7 +371,7 @@
     enddo
  enddo
 
- call mpas_log_write('--- enter subroutine SulfateUpdateOxidants:')
+!call mpas_log_write('--- enter subroutine SulfateUpdateOxidants:')
  recycle_h2o2 = .true.
  nymd_last    = -1
  istat = 0
@@ -402,12 +402,12 @@
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SulfateUpdateOxidants.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SulfateChemOxidants.')
+!   call mpas_log_write('--- end subroutine SulfateChemOxidants.')
  endif
 
 
 !--- SU2G settling:
- call mpas_log_write('--- enter subroutine Chem_Settling:')
+!call mpas_log_write('--- enter subroutine Chem_Settling:')
  if(.not.allocated(qsu2G)) allocate(qsu2G(its:ite,jts:jte,kts:kte,self_params%nbins))
  do j = jts,jte
     do i = its,ite
@@ -461,12 +461,12 @@
        enddo
     enddo
     if(allocated(qsu2G)) deallocate(qsu2G)
-    call mpas_log_write('--- end subroutine Chem_Settling:')
+!   call mpas_log_write('--- end subroutine Chem_Settling:')
  endif
 
 
 !--- SU2G chem driver:
- call mpas_log_write('--- enter subroutine SulfateChemDriver:')
+!call mpas_log_write('--- enter subroutine SulfateChemDriver:')
  istat = 0
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
  call SulfateChemDriver( &
@@ -528,13 +528,13 @@
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SulfateChemDriver.', &
                         messageType=MPAS_LOG_CRIT)
  else
- !   if(allocated(drydepf)) deallocate(drydepf)
-    call mpas_log_write('--- end subroutine SulfateChemDriver.')
+!   if(allocated(drydepf)) deallocate(drydepf)
+!   call mpas_log_write('--- end subroutine SulfateChemDriver.')
  endif
 
 
 !--- SU2G wet removal:
- call mpas_log_write('--- enter subroutine SU_Wet_Removal:')
+!call mpas_log_write('--- enter subroutine SU_Wet_Removal:')
  istat = 0
  KIN = .true.
  call SU_Wet_Removal( &
@@ -575,15 +575,15 @@
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Wet_Removal.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SU_Wet_Removal.')
+!   call mpas_log_write('--- end subroutine SU_Wet_Removal.')
  endif
 
 
 !--- SU2G diagnostics:
 !Certain variables are multiplied by 1.0e-9 to convert from nanometers to meters
- call mpas_log_write('--- enter subroutine SU_Compute_Diags:')
- call mpas_log_write('--- nw_profile = $i',intArgs=(/nw_profile/))
- call mpas_log_write('--- nw_vertint = $i',intArgs=(/nw_vertint/))
+!call mpas_log_write('--- enter subroutine SU_Compute_Diags:')
+!call mpas_log_write('--- nw_profile = $i',intArgs=(/nw_profile/))
+!call mpas_log_write('--- nw_vertint = $i',intArgs=(/nw_vertint/))
  if(associated(self%dmssmass)  ) self%dmssmass   = 0._RKIND
  if(associated(self%dmscmass)  ) self%dmscmass   = 0._RKIND
  if(associated(self%msasmass)  ) self%msasmass   = 0._RKIND
@@ -659,7 +659,7 @@
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SU_Compute_Diags.')
+!   call mpas_log_write('--- end subroutine SU_Compute_Diags.')
  endif
 
 
@@ -667,7 +667,7 @@
  j1 = lbound(self%rh2,2); j2 = ubound(self%rh2,2) 
  km = ubound(self%rh2,3)                      
 
- call mpas_log_write('--- enter subroutine SU_Compute_Diags RH20:')
+!call mpas_log_write('--- enter subroutine SU_Compute_Diags RH20:')
  if(associated(self%suextcoefrh20)) self%suextcoefrh20(:,:,:,:) = 0._RKIND
  if(associated(self%suscacoefrh20)) self%suscacoefrh20(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
@@ -704,11 +704,11 @@
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags RH20.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SU_Compute_Diags RH20.')
+!   call mpas_log_write('--- end subroutine SU_Compute_Diags RH20.')
  endif
 
 
- call mpas_log_write('--- enter subroutine SU_Compute_Diags RH80:')
+!call mpas_log_write('--- enter subroutine SU_Compute_Diags RH80:')
  if(associated(self%suextcoefrh80)) self%suextcoefrh80(:,:,:,:) = 0._RKIND
  if(associated(self%suscacoefrh80)) self%suscacoefrh80(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
@@ -745,7 +745,7 @@
     call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Compute_Diags RH80.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SU_Compute_Diags RH80.')
+!   call mpas_log_write('--- end subroutine SU_Compute_Diags RH80.')
  endif
  if(allocated(rh20)) deallocate(rh20)
  if(allocated(rh80)) deallocate(rh80)
@@ -763,7 +763,6 @@
  if(allocated(msa_init)) deallocate(msa_init)
 
  call mpas_log_write('--- end subroutine processes_SU2G_GridComp.')
- call mpas_log_write(' ')
 
  end subroutine processes_SU2G_GridComp
 

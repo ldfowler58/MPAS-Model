@@ -77,7 +77,7 @@
  real(kind=RKIND),dimension(:,:,:),allocatable:: fanth 
 
 !------------------------------------------------------------------------------------------------------------------
-!call mpas_log_write(' ')
+ call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine emissions_SOA2G_GridComp:')
 
  cdt = self_params%cdt
@@ -204,8 +204,8 @@
  real(kind=RKIND),dimension(:,:),allocatable:: srcAnthro,srcBiomass,srcBiogenic
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine SOAemission:')
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine SOAemission:')
 
  allocate(srcAnthro(its:ite,jts:jte)  )
  allocate(srcBiomass(its:ite,jts:jte) )
@@ -313,7 +313,7 @@
  deallocate(p500)
  deallocate(ppbl)
 
- call mpas_log_write('--- end subroutine SOAemission.')
+!call mpas_log_write('--- end subroutine SOAemission.')
 
  end subroutine SOAemission
 

@@ -185,7 +185,7 @@
 
 
 !--- apply SST correction (Jaegle et al., 2011):
- call mpas_log_write('--- enter subroutine jeagleSSTcorrection:')
+!call mpas_log_write('--- enter subroutine jeagleSSTcorrection:')
  istat = 0
  call jeagleSSTcorrection( &
     sstEmisFlag = self_params%sstEmisFlag, &
@@ -197,12 +197,12 @@
     call mpas_log_write('--- SS2G_GridComp: error in subroutine jeagleSSTcorrection.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine jeagleSSTcorrection.')
+!   call mpas_log_write('--- end subroutine jeagleSSTcorrection.')
  endif
 
 
 !--- apply Weibull distribution to emissions wind speeds (Fan and Toon, 2011):
- call mpas_log_write('--- enter subroutine weibullDistribution:')
+!call mpas_log_write('--- enter subroutine weibullDistribution:')
  istat = 0
  call weibullDistribution( &
     gweibull    = gweibull,                &
@@ -215,12 +215,12 @@
     call mpas_log_write('--- SS2G_GridComp: error in subroutine weibullDistribution.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine weibullDistribution.')
+!   call mpas_log_write('--- end subroutine weibullDistribution.')
  endif
 
 
 !--- seasalt emission and possibly apply Hoppel correction (Fan and Toon, 2011):
- call mpas_log_write('--- enter subroutine SeasaltEmission:')
+!call mpas_log_write('--- enter subroutine SeasaltEmission:')
  fhoppel(:,:) = 1._RKIND
  do ibin = 1, self_params%nbins
     if(associated(self%SSEM)) self%SSEM(:,:,ibin) = 0._RKIND
@@ -270,7 +270,7 @@
     call mpas_log_write('--- SS2G_GridComp: error in subroutine SeasaltEmission.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine SeasaltEmission.')
+!   call mpas_log_write('--- end subroutine SeasaltEmission.')
  endif
 
 
@@ -311,11 +311,11 @@
  real(kind=RKIND),allocatable,dimension(:,:,:),target:: rh20,rh80
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine processes_SS2G_GridComp: nbins = $i',intArgs=(/self_params%nbins/))
 
 !--- SS2G settling:
- call mpas_log_write('--- enter subroutine Chem_Settling:')
+!call mpas_log_write('--- enter subroutine Chem_Settling:')
  do ibin = 1, self_params%nbins
     if(associated(self%sssd)) self%sssd(:,:,ibin) = 0._RKIND
     istat = 0
@@ -342,12 +342,12 @@
     call mpas_log_write('--- SS2G_GridComp: error in subroutine Chem_Settling.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_Settling.')
+!   call mpas_log_write('--- end subroutine Chem_Settling.')
  endif
 
 
 !--- SS2G dry deposition:
- call mpas_log_write('--- enter subroutine DryDeposition:')
+!call mpas_log_write('--- enter subroutine DryDeposition:')
  if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
  drydepf(:,:) = 0._RKIND
@@ -389,12 +389,12 @@
  else
     if(allocated(dqa)    ) deallocate(dqa    )
     if(allocated(drydepf)) deallocate(drydepf)
-    call mpas_log_write('--- end subroutine DryDeposition.')
+!   call mpas_log_write('--- end subroutine DryDeposition.')
  endif
 
 
 !--- SS2G large-scale wet removal:
- call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
+!call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
  do ibin = 1, self_params%nbins
     if(associated(self%sswt)) self%sswt(:,:,ibin) = 0._RKIND
     KIN   = .true.
@@ -427,17 +427,17 @@
     call mpas_log_write('--- SS2G_GridComp: error in subroutine WetRemovalGOCART2Gi.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
+!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
  endif
 
 
 !--- SS2G diagnostics:
  n_profile = size(self_params%wavelengths_profile)
  n_vertint = size(self_params%wavelengths_vertint)
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags:')
- call mpas_log_write('--- nbins     = $i',intArgs=(/nbins/))
- call mpas_log_write('--- n_profile = $i',intArgs=(/n_profile/))
- call mpas_log_write('--- n_vertint = $i',intArgs=(/n_vertint/))
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags:')
+!call mpas_log_write('--- nbins     = $i',intArgs=(/nbins/))
+!call mpas_log_write('--- n_profile = $i',intArgs=(/n_profile/))
+!call mpas_log_write('--- n_vertint = $i',intArgs=(/n_vertint/))
  if(associated(self%sssmass)   ) self%sssmass(:,:)       = 0._RKIND
  if(associated(self%sscmass)   ) self%sscmass(:,:)       = 0._RKIND
  if(associated(self%ssmass )   ) self%ssmass(:,:,:)      = 0._RKIND
@@ -507,7 +507,7 @@
     call mpas_log_write('--- SS2G_GridComp: error in subroutine Aero_Compute_Diags.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags.')
  endif
 
 
@@ -516,7 +516,7 @@
  km = ubound(self%rh2,3)
 
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
  if(associated(self%ssextcoefrh20)) self%ssextcoefrh20(:,:,:,:) = 0._RKIND
  if(associated(self%ssscacoefrh20)) self%ssscacoefrh20(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
@@ -549,11 +549,11 @@
     call mpas_log_write('--- SS2G_GridComp: error in subroutine Aero_Compute_Diags RH20.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
  endif
 
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
  if(associated(self%ssextcoefrh80)) self%ssextcoefrh80(:,:,:,:) = 0._RKIND
  if(associated(self%ssscacoefrh80)) self%ssscacoefrh80(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
@@ -586,7 +586,7 @@
     call mpas_log_write('--- SU2G_GridComp: error in subroutine Aero_Compute_Diags RH80.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
  endif
  if(allocated(rh20)) deallocate(rh20)
  if(allocated(rh80)) deallocate(rh80)

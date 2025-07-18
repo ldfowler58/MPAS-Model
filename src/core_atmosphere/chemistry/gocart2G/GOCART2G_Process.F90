@@ -5963,7 +5963,6 @@ K_LOOP: do k = km, 1, -1
 
     where(1.01*h2o2_clim(i1:i2,j1:j2,1:km) > undefval) h2o2_clim(i1:i2,j1:j2,1:km) = 0.
     where(     h2o2_clim(i1:i2,j1:j2,1:km) < 0       ) h2o2_clim(i1:i2,j1:j2,1:km) = 0.
-    call mpas_log_write('--- enter update emissions/production:')
 
 !   The first time through the reads we will save the h2o2 monthly
 !   average in the instantaneous field

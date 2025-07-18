@@ -307,11 +307,11 @@
  real(kind=RKIND),allocatable,dimension(:,:,:),target:: rh20,rh80
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
+!call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine processes_DU2G_GridComp: nbins = $i',intArgs=(/self_params%nbins/))
 
 !--- DU2G settling:
- call mpas_log_write('--- enter subroutine Chem_Settling:')
+!call mpas_log_write('--- enter subroutine Chem_Settling:')
  do ibin = 1, self_params%nbins
     if(associated(self%dusd)) self%dusd(:,:,ibin) = 0._RKIND
     istat = 0
@@ -338,12 +338,12 @@
     call mpas_log_write('--- DU2G_GridComp: error in subroutine Chem_Settling.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Chem_Settling.')
+!   call mpas_log_write('--- end subroutine Chem_Settling.')
  endif
 
 
 !--- DU2G dry deposition:
- call mpas_log_write('--- enter subroutine DryDeposition:')
+!call mpas_log_write('--- enter subroutine DryDeposition:')
  if(.not.allocated(dqa)    ) allocate(dqa(its:ite,jts:jte)    )
  if(.not.allocated(drydepf)) allocate(drydepf(its:ite,jts:jte))
  drydepf = 0._RKIND
@@ -379,12 +379,12 @@
  else
     if(allocated(dqa)    ) deallocate(dqa    )
     if(allocated(drydepf)) deallocate(drydepf)
-    call mpas_log_write('--- end subroutine DryDeposition.')
+!   call mpas_log_write('--- end subroutine DryDeposition.')
  endif
 
 
 !--- DU2G large-scale wet removal:
- call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
+!call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
  do ibin = 1, self_params%nbins
     if(associated(self%duwt)) self%duwt(:,:,ibin) = 0._RKIND
     KIN   = .true.
@@ -417,17 +417,17 @@
     call mpas_log_write('--- DU2G_GridComp: error in subroutine WetRemovalGOCART2G.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
+!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
  endif
 
 
 !--- DU2G  diagnostics:
  n_profile = size(self_params%wavelengths_profile)
  n_vertint = size(self_params%wavelengths_vertint)
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags:')
- call mpas_log_write('--- nbins     = $i',intArgs=(/nbins/))
- call mpas_log_write('--- n_profile = $i',intArgs=(/n_profile/))
- call mpas_log_write('--- n_vertint = $i',intArgs=(/n_vertint/))
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags:')
+!call mpas_log_write('--- nbins     = $i',intArgs=(/nbins/))
+!call mpas_log_write('--- n_profile = $i',intArgs=(/n_profile/))
+!call mpas_log_write('--- n_vertint = $i',intArgs=(/n_vertint/))
  if(associated(self%dusmass)   ) self%dusmass(:,:)       = 0._RKIND
  if(associated(self%ducmass)   ) self%ducmass(:,:)       = 0._RKIND
  if(associated(self%dumass )   ) self%dumass(:,:,:)      = 0._RKIND
@@ -496,7 +496,7 @@
     call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags.')
  endif
 
 
@@ -504,7 +504,7 @@
  j1 = lbound(self%rh2,2); j2 = ubound(self%rh2,2)
  km = ubound(self%rh2,3)
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH20:')
  if(associated(self%duextcoefrh20)) self%duextcoefrh20(:,:,:,:) = 0._RKIND
  if(associated(self%duscacoefrh20)) self%duscacoefrh20(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh20)) allocate(rh20(i1:i2,j1:j2,km))
@@ -537,11 +537,11 @@
     call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags RH20.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags RH20.')
  endif
 
 
- call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
+!call mpas_log_write('--- enter subroutine Aero_Compute_Diags RH80:')
  if(associated(self%duextcoefrh80)) self%duextcoefrh80(:,:,:,:) = 0._RKIND
  if(associated(self%duscacoefrh80)) self%duscacoefrh80(:,:,:,:) = 0._RKIND
  if(.not.allocated(rh80)) allocate(rh80(i1:i2,j1:j2,km))
@@ -574,7 +574,7 @@
     call mpas_log_write('--- DU2G_GridComp: error in subroutine Aero_Compute_Diags RH80.', &
                         messageType=MPAS_LOG_CRIT)
  else
-    call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
+!   call mpas_log_write('--- end subroutine Aero_Compute_Diags RH80.')
  endif
  if(allocated(rh20)) deallocate(rh20)
  if(allocated(rh80)) deallocate(rh80)
@@ -623,7 +623,7 @@
  real(kind=RKIND):: air_dens,soil_dens,diam,gwet1,w10m
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write('--- enter subroutine DustEmissionGOCART2G_revised:')
+!call mpas_log_write('--- enter subroutine DustEmissionGOCART2G_revised:')
 
 !--- get dimensions:
  nbins = size(radius)
@@ -679,7 +679,7 @@
 !   call mpas_log_write(' ')
  enddo
 
- call mpas_log_write('--- end subroutine DustEmissionGOCART2G_revised:')
+!call mpas_log_write('--- end subroutine DustEmissionGOCART2G_revised:')
 
  end subroutine DustEmissionGOCART2G_revised
 
