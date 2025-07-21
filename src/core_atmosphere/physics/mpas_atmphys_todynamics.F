@@ -245,21 +245,18 @@
  nchem_start = 0
  nchem_end   = 0
  if(num_chem > 0) then
+    call mpas_pool_get_dimension(state,'gocart2G_start',gocart2G_start)
+    call mpas_pool_get_dimension(state,'gocart2G_end'  ,gocart2G_end  )
     if(mynn_mixchems .or. ntiedtke_ctrchems) then
-       call mpas_pool_get_dimension(state,'gocart2G_start',gocart2G_start)
-       call mpas_pool_get_dimension(state,'gocart2G_end'  ,gocart2G_end  )
-       call mpas_pool_get_array(tend_physics,'bl_chemistry',rchemblten)
-       call mpas_pool_get_array(tend_physics,'cu_chemistry',rchemcuten)
-
-       if(.not.associated(rchemblten)) allocate(rchemblten(0,0,0))
-       if(.not.associated(rchemcuten)) allocate(rchemcuten(0,0,0))
-
        nchem = num_chem
        nchem_start = gocart2G_start
        nchem_end   = gocart2G_end
+       call mpas_pool_get_array(tend_physics,'bl_chemistry',rchemblten)
+       call mpas_pool_get_array(tend_physics,'cu_chemistry',rchemcuten)
     endif
  endif
-
+ if(.not.associated(rchemblten)) allocate(rchemblten(0,0,0))
+ if(.not.associated(rchemcuten)) allocate(rchemcuten(0,0,0))
  call mpas_log_write('--- nchem       = $i',intArgs=(/nchem/))
  call mpas_log_write('--- nchem_start = $i',intArgs=(/nchem_start/))
  call mpas_log_write('--- nchem_end   = $i',intArgs=(/nchem_end/))
@@ -269,7 +266,7 @@
               pbl_scheme,convection_scheme,microp_scheme,radt_lw_scheme,radt_sw_scheme,  &
               index_qv,index_qc,index_qr,index_qi,index_qs,                              &
               index_nc,index_ni,index_nifa,index_nwfa,                                   &
-              nchem_start,nchem_end,nchem,                                               &
+              nchem_start,nchem_end,nchem,mynn_mixchems,ntiedtke_ctrchems,               &
               mass,mass_edge,theta_m,scalars,                                            &
               rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,rqsblten,              &
               rncblten,rniblten,rnifablten,rnwfablten,rchemblten,rchemcuten,             &
@@ -320,7 +317,7 @@
                     pbl_scheme,convection_scheme,microp_scheme,radt_lw_scheme,radt_sw_scheme,  &
                     index_qv,index_qc,index_qr,index_qi,index_qs,                              &
                     index_nc,index_ni,index_nifa,index_nwfa,                                   &
-                    nchem_start,nchem_end,nchem,                                               &
+                    nchem_start,nchem_end,nchem,mynn_mixchems,ntiedtke_ctrchems,               &
                     mass,mass_edge,theta_m,scalars,                                            &
                     rublten,rvblten,rthblten,rqvblten,rqcblten,rqiblten,rqsblten,              &
                     rncblten,rniblten,rnifablten,rnwfablten,rchemblten,rchemcuten,             &
@@ -335,6 +332,8 @@
 
  type(block_type),intent(in)    :: block
  type(mpas_pool_type),intent(in):: mesh
+
+ logical,intent(in),pointer:: mynn_mixchems, ntiedtke_ctrchems
 
  character(len=StrKIND),intent(in):: convection_scheme
  character(len=StrKIND),intent(in):: microp_scheme
@@ -439,7 +438,7 @@
              enddo
           endif
 
-          if(nchem > 0) then
+          if(mynn_mixchems .and. nchem > 0) then
              ic = 0
              do ig = nchem_start, nchem_end
                 ic = ic+1
@@ -492,7 +491,7 @@
 
           cu2_select: select case(trim(convection_scheme))
               case('cu_ntiedtke')
-                 if(nchem > 0) then
+                 if(ntiedtke_ctrchems .and. nchem > 0) then
                     ic = 0
                     do ig = nchem_start, nchem_end
                        ic = ic+1
