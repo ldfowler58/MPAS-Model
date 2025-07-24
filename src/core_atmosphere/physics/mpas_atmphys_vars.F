@@ -686,9 +686,13 @@
  real(kind=RKIND),dimension(:,:),allocatable  ::   taod5502d_p!total aerosol optical depth at 550 nm           [-]
  real(kind=RKIND),dimension(:,:,:),allocatable::   taod5503d_p!aerosol optical depth at 550 nm                 [-]
 
- real(kind=RKIND),dimension(:,:,:,:),allocatable:: tauaer_p   !aerosol optical depth in RRTMG SW               [-]
- real(kind=RKIND),dimension(:,:,:,:),allocatable:: ssaaer_p   !aerosol single scatterin albedo in RRTMG SW     [-]
- real(kind=RKIND),dimension(:,:,:,:),allocatable:: asyaer_p   !aerosol asymmetry factor in RRTMG SW            [-]
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: tauaersw_p !aerosol optical depth in RRTMG SW               [-]
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: ssaaersw_p !aerosol single scatterin albedo in RRTMG SW     [-]
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: asyaersw_p !aerosol asymmetry factor in RRTMG SW            [-]
+
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: tauaerlw_p !aerosol optical depth in RRTMG LW               [-]
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: ssaaerlw_p !aerosol single scatterin albedo in RRTMG LW     [-]
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: asyaerlw_p !aerosol asymmetry factor in RRTMG LW            [-]
 
 !=================================================================================================================
 !... variables and arrays related to parameterization of short-wave radiation:

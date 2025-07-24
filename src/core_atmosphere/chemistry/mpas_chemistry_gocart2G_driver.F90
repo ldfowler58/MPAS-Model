@@ -15,6 +15,7 @@
                                                GOCART2G_diagnostics
  use mpas_chemistry_gocart2G_interface
  use mpas_chemistry_gocart2G_manager,only: iyear,imonth,iday,ihour,iminute,isecond
+ use mpas_chemistry_gocart2G_rrtmg,only: GOCART2G_rrtmg
  use mpas_chemistry_gocart2G_vars,only: mpas_gocart2G,           &
                                         mpas_chem_gocart2G,      &
                                         mpas_emis_gocart2G,      &
@@ -82,9 +83,11 @@
  logical:: do_GOCART2G
 
  logical,pointer:: to_MYNN
+ logical,pointer:: to_RRTMG
 
  integer:: time_lev
  integer:: i,its,ite,j,jts,jte,k,kts,kte,n,nerod
+ integer:: nbndlw,nbndsw
 
 !-----------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -103,6 +106,7 @@
  call mpas_pool_get_config(domain%configs,'config_gocart2G_do_SOA2G' ,do_SOA2G )
 
  call mpas_pool_get_config(domain%configs,'config_gocart2G_toMYNN'   ,to_MYNN  )
+ call mpas_pool_get_config(domain%configs,'config_gocart2G_toRRTMG'  ,to_RRTMG )
 
 
  block => domain % blocklist
@@ -140,18 +144,20 @@
     call mpas_gocart2G%gocart2G_dims(mesh)
     call mpas_gocart2G%gocart2G_allocate()
 
-    its   = mpas_gocart2G%its
-    ite   = mpas_gocart2G%ite
-    jts   = mpas_gocart2G%jts
-    jte   = mpas_gocart2G%jte
-    kts   = mpas_gocart2G%kts
-    kte   = mpas_gocart2G%kte
-    nerod = mpas_gocart2G%nerod
+    its    = mpas_gocart2G%its
+    ite    = mpas_gocart2G%ite
+    jts    = mpas_gocart2G%jts
+    jte    = mpas_gocart2G%jte
+    kts    = mpas_gocart2G%kts
+    kte    = mpas_gocart2G%kte
+    nerod  = mpas_gocart2G%nerod
+    nbndlw = mpas_gocart2G%nbndlw
+    nbndsw = mpas_gocart2G%nbndsw
 
 
     !--- fills local chemistry arrays with global chemistry arrays:
-    call mpas_gocart2G%gocart2G_fromMPAS(gocart2G_backgrounds,gocart2G_met,block%configs,mesh,diag,state, &
-                                         diag_physics,sfc_input,time_lev)
+    call mpas_gocart2G%gocart2G_fromMPAS(gocart2G_backgrounds,gocart2G_met,block%configs, &
+                                         mesh,diag,state,diag_physics,sfc_input,time_lev)
 
 
     !--- SOA2G:
@@ -231,6 +237,7 @@
        call CA2G_bc_params%emissions_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte, &
                                      iyear,imonth,iday,ihour,iminute,isecond)
        call CA2G_bc_params%processes_GridComp(CA2G_bc,to_MYNN,its,ite,jts,jte,kts,kte)
+       if(to_RRTMG) call CA2G_bc_params%rrtmg_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
        call CA2G_bc_diagnostics(mesh,CA2G_bc,CA2G_bc_diags,CA2G_bc_aops,its,ite,jts,jte,kts,kte)
@@ -284,6 +291,7 @@
        call CA2G_br_params%emissions_GridComp(CA2G_br,its,ite,jts,jte,kts,kte, &
                                      iyear,imonth,iday,ihour,iminute,isecond)
        call CA2G_br_params%processes_GridComp(CA2G_br,to_MYNN,its,ite,jts,jte,kts,kte)
+       if(to_RRTMG) call CA2G_br_params%rrtmg_GridComp(CA2G_br,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
        call CA2G_br_diagnostics(mesh,CA2G_br,CA2G_br_diags,CA2G_br_aops,its,ite,jts,jte,kts,kte)
@@ -339,6 +347,7 @@
        call CA2G_oc_params%emissions_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte, &
                                       iyear,imonth,iday,ihour,iminute,isecond)
        call CA2G_oc_params%processes_GridComp(CA2G_oc,to_MYNN,its,ite,jts,jte,kts,kte)
+       if(to_RRTMG) call CA2G_oc_params%rrtmg_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
        call CA2G_oc_diagnostics(mesh,CA2G_oc,CA2G_oc_diags,CA2G_oc_aops,its,ite,jts,jte,kts,kte)
@@ -375,6 +384,7 @@
        !--- gocart2G processes:
        call DU2G_params%emissions_GridComp(DU2G,its,ite,jts,jte,kts,kte,nerod)
        call DU2G_params%processes_GridComp(DU2G,to_MYNN,its,ite,jts,jte,kts,kte)
+       if(to_RRTMG) call DU2G_params%rrtmg_GridComp(DU2G,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
        call DU2G_diagnostics(mesh,DU2G,DU2G_diags,DU2G_aops,its,ite,jts,jte,kts,kte)
@@ -437,6 +447,7 @@
        !--- gocart2G processes:
        call NI2G_params%emissions_GridComp(NI2G,its,ite,jts,jte,kts,kte)
        call NI2G_params%processes_GridComp(NI2G,to_MYNN,its,ite,jts,jte,kts,kte)
+       if(to_RRTMG) call NI2G_params%rrtmg_GridComp(NI2G,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
        call NI2G_diagnostics(mesh,NI2G,NI2G_diags,NI2G_aops,its,ite,jts,jte,kts,kte)
@@ -474,6 +485,7 @@
        !--- gocart2G processes:
        call SS2G_params%emissions_GridComp(SS2G,its,ite,jts,jte,kts,kte)
        call SS2G_params%processes_GridComp(SS2G,to_MYNN,its,ite,jts,jte,kts,kte)
+       if(to_RRTMG) call SS2G_params%rrtmg_GridComp(SS2G,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
        call SS2G_diagnostics(mesh,SS2G,SS2G_diags,SS2G_aops,its,ite,jts,jte,kts,kte)
@@ -531,6 +543,7 @@
        call SU2G_params%emissions_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
        call SU2G_params%processes_GridComp(SU2G,to_MYNN,its,ite,jts,jte,kts,kte, &
                                            iyear,imonth,iday,ihour,iminute,isecond)
+       if(to_RRTMG) call SU2G_params%rrtmg_GridComp(SU2G,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
        call SU2G_diagnostics(mesh,SU2G,SU2G_diags,SU2G_aops,its,ite,jts,jte,kts,kte)
@@ -557,6 +570,10 @@
        call mpas_chem_gocart2G%gocart2G_dims(mesh,state)
        call mpas_chem_gocart2G%gocart2G_forMPASphys(diag_physics,CA2G_bc,CA2G_br,CA2G_oc, &
                                                     DU2G,NI2G,SS2G,SU2G,SOA2G)
+    endif
+    if(to_RRTMG) then
+       call GOCART2G_rrtmg(block%configs,mesh,diag_physics,CA2G_bc,CA2G_br,CA2G_oc,DU2G,NI2G,SS2G,SU2G, &
+                           its,ite,jts,jte,kts,kte)
     endif
 
     block => block % next

@@ -147,34 +147,34 @@
 
  radiation_sw_select: select case (trim(radt_sw_scheme))
     case("rrtmg_sw")
-       if(.not.allocated(recloud_p)    ) allocate(recloud_p(ims:ime,kms:kme,jms:jme)       )
-       if(.not.allocated(reice_p)      ) allocate(reice_p(ims:ime,kms:kme,jms:jme)         )
-       if(.not.allocated(resnow_p)     ) allocate(resnow_p(ims:ime,kms:kme,jms:jme)        )
+       if(.not.allocated(recloud_p)    ) allocate(recloud_p(ims:ime,kms:kme,jms:jme)        )
+       if(.not.allocated(reice_p)      ) allocate(reice_p(ims:ime,kms:kme,jms:jme)          )
+       if(.not.allocated(resnow_p)     ) allocate(resnow_p(ims:ime,kms:kme,jms:jme)         )
 
-       if(.not.allocated(alswvisdir_p) ) allocate(alswvisdir_p(ims:ime,jms:jme)            )
-       if(.not.allocated(alswvisdif_p) ) allocate(alswvisdif_p(ims:ime,jms:jme)            )
-       if(.not.allocated(alswnirdir_p) ) allocate(alswnirdir_p(ims:ime,jms:jme)            )
-       if(.not.allocated(alswnirdif_p) ) allocate(alswnirdif_p(ims:ime,jms:jme)            )
-       if(.not.allocated(swvisdir_p)   ) allocate(swvisdir_p(ims:ime,jms:jme)              )
-       if(.not.allocated(swvisdif_p)   ) allocate(swvisdif_p(ims:ime,jms:jme)              )
-       if(.not.allocated(swnirdir_p)   ) allocate(swnirdir_p(ims:ime,jms:jme)              )
-       if(.not.allocated(swnirdif_p)   ) allocate(swnirdif_p(ims:ime,jms:jme)              )
+       if(.not.allocated(alswvisdir_p) ) allocate(alswvisdir_p(ims:ime,jms:jme)             )
+       if(.not.allocated(alswvisdif_p) ) allocate(alswvisdif_p(ims:ime,jms:jme)             )
+       if(.not.allocated(alswnirdir_p) ) allocate(alswnirdir_p(ims:ime,jms:jme)             )
+       if(.not.allocated(alswnirdif_p) ) allocate(alswnirdif_p(ims:ime,jms:jme)             )
+       if(.not.allocated(swvisdir_p)   ) allocate(swvisdir_p(ims:ime,jms:jme)               )
+       if(.not.allocated(swvisdif_p)   ) allocate(swvisdif_p(ims:ime,jms:jme)               )
+       if(.not.allocated(swnirdir_p)   ) allocate(swnirdir_p(ims:ime,jms:jme)               )
+       if(.not.allocated(swnirdif_p)   ) allocate(swnirdif_p(ims:ime,jms:jme)               )
 
-       if(.not.allocated(swddir_p)     ) allocate(swddir_p(ims:ime,jms:jme)                )
-       if(.not.allocated(swddni_p)     ) allocate(swddni_p(ims:ime,jms:jme)                )
-       if(.not.allocated(swddif_p)     ) allocate(swddif_p(ims:ime,jms:jme)                )
+       if(.not.allocated(swddir_p)     ) allocate(swddir_p(ims:ime,jms:jme)                 )
+       if(.not.allocated(swddni_p)     ) allocate(swddni_p(ims:ime,jms:jme)                 )
+       if(.not.allocated(swddif_p)     ) allocate(swddif_p(ims:ime,jms:jme)                 )
 
-       if(.not.allocated(swdnflx_p)    ) allocate(swdnflx_p(ims:ime,kms:kme+1,jms:jme)     )
-       if(.not.allocated(swdnflxc_p)   ) allocate(swdnflxc_p(ims:ime,kms:kme+1,jms:jme)    )
-       if(.not.allocated(swupflx_p)    ) allocate(swupflx_p(ims:ime,kms:kme+1,jms:jme)     )
-       if(.not.allocated(swupflxc_p)   ) allocate(swupflxc_p(ims:ime,kms:kme+1,jms:jme)    )
+       if(.not.allocated(swdnflx_p)    ) allocate(swdnflx_p(ims:ime,kms:kme+1,jms:jme)      )
+       if(.not.allocated(swdnflxc_p)   ) allocate(swdnflxc_p(ims:ime,kms:kme+1,jms:jme)     )
+       if(.not.allocated(swupflx_p)    ) allocate(swupflx_p(ims:ime,kms:kme+1,jms:jme)      )
+       if(.not.allocated(swupflxc_p)   ) allocate(swupflxc_p(ims:ime,kms:kme+1,jms:jme)     )
 
-       if(.not.allocated(pin_p)        ) allocate(pin_p(num_oznlevels)                     )
-       if(.not.allocated(o3clim_p)     ) allocate(o3clim_p(ims:ime,1:num_oznlevels,jms:jme))
+       if(.not.allocated(pin_p)        ) allocate(pin_p(num_oznlevels)                      )
+       if(.not.allocated(o3clim_p)     ) allocate(o3clim_p(ims:ime,1:num_oznlevels,jms:jme) )
 
-       if(.not.allocated(tauaer_p)     ) allocate(tauaer_p(ims:ime,kms:kme,jms:jme,nbndsw) )
-       if(.not.allocated(ssaaer_p)     ) allocate(ssaaer_p(ims:ime,kms:kme,jms:jme,nbndsw) )
-       if(.not.allocated(asyaer_p)     ) allocate(asyaer_p(ims:ime,kms:kme,jms:jme,nbndsw) )
+       if(.not.allocated(tauaersw_p)   ) allocate(tauaersw_p(ims:ime,kms:kme,jms:jme,nbndsw))
+       if(.not.allocated(ssaaersw_p)   ) allocate(ssaaersw_p(ims:ime,kms:kme,jms:jme,nbndsw))
+       if(.not.allocated(asyaersw_p)   ) allocate(asyaersw_p(ims:ime,kms:kme,jms:jme,nbndsw))
 
        aerosol_select: select case(mp_scheme)
           case("mp_thompson_aerosols")
@@ -300,9 +300,9 @@
        if(allocated(pin_p)        ) deallocate(pin_p        )
        if(allocated(o3clim_p)     ) deallocate(o3clim_p     )
 
-       if(allocated(tauaer_p)     ) deallocate(tauaer_p     )
-       if(allocated(ssaaer_p)     ) deallocate(ssaaer_p     )
-       if(allocated(asyaer_p)     ) deallocate(asyaer_p     )
+       if(allocated(tauaersw_p)   ) deallocate(tauaersw_p   )
+       if(allocated(ssaaersw_p)   ) deallocate(ssaaersw_p   )
+       if(allocated(asyaersw_p)   ) deallocate(asyaersw_p   )
 
        aerosol_select: select case(mp_scheme)
           case("mp_thompson","mp_thompson_aerosols")
@@ -375,6 +375,7 @@
 !local pointers:
  logical,pointer:: config_o3climatology
  logical,pointer:: config_microp_re
+ logical,pointer:: to_RRTMG
  character(len=StrKIND),pointer:: radt_sw_scheme
  character(len=StrKIND),pointer:: microp_scheme
 
@@ -388,6 +389,7 @@
  real(kind=RKIND),dimension(:,:),pointer  :: re_cloud,re_ice,re_snow
  real(kind=RKIND),dimension(:,:),pointer  :: taod5503d
  real(kind=RKIND),dimension(:,:,:),pointer:: aerosols,ozmixm
+ real(kind=RKIND),dimension(:,:,:),pointer:: tauaer_sw,asyaer_sw,ssaaer_sw
 
 !-----------------------------------------------------------------------------------------------------------------
 
@@ -471,18 +473,40 @@
  enddo
  enddo
 
+!initialization of aerosol optical properties (AOPs). AOPS are calculated using the gocart2G chemistry
+!package activated with the compiling option GOCART2G=true:
+ call mpas_pool_get_config(configs,'config_gocart2G_toRRTMG',to_RRTMG)
+ call mpas_pool_get_array(diag_physics,'tauaer_sw',tauaer_sw)
+ call mpas_pool_get_array(diag_physics,'ssaaer_sw',ssaaer_sw)
+ call mpas_pool_get_array(diag_physics,'asyaer_sw',asyaer_sw)
  aer_opt = 0
- do n = 1,nbndsw
- do j = jts,jte
- do k = kts,kte
- do i = its,ite
-    tauaer_p(i,k,j,n) = 0._RKIND
-    ssaaer_p(i,k,j,n) = 1._RKIND
-    asyaer_p(i,k,j,n) = 0._RKIND
- enddo
- enddo
- enddo
- enddo
+ if(associated(tauaer_sw) .and. associated(asyaer_sw) .and. associated(ssaaer_sw)) then
+    if(to_RRTMG) aer_opt = 2
+    do n = 1,nbndsw
+       do j = jts,jte
+          do k = kts,kte
+             do i = its,ite
+                tauaersw_p(i,k,j,n) = tauaer_sw(n,k,i)
+                ssaaersw_p(i,k,j,n) = ssaaer_sw(n,k,i)
+                asyaersw_p(i,k,j,n) = asyaer_sw(n,k,i)
+             enddo
+          enddo
+       enddo
+    enddo
+ else
+    do n = 1,nbndsw
+       do j = jts,jte
+          do k = kts,kte
+             do i = its,ite
+                tauaersw_p(i,k,j,n) = 0._RKIND
+                ssaaersw_p(i,k,j,n) = 1._RKIND
+                asyaersw_p(i,k,j,n) = 0._RKIND
+             enddo
+          enddo
+       enddo
+    enddo
+ endif
+
 
  radiation_sw_select: select case (trim(radt_sw_scheme))
 
@@ -564,8 +588,8 @@
              call calc_aerosol_rrtmg_sw( &
                                ht       = ht_p         , dz8w     = dz_p        , &
                                p        = pres_hyd_p   , t3d      = t_p         , &
-                               qv3d     = qv_p         , tauaer   = tauaer_p    , &
-                               ssaaer   = ssaaer_p     , asyaer   = asyaer_p    , &
+                               qv3d     = qv_p         , tauaer   = tauaersw_p  , &
+                               ssaaer   = ssaaersw_p   , asyaer   = asyaersw_p  , &
                                aod5502d = taod5502d_p  , aod5503d = taod5503d_p , &
                                aer_type = taer_type_p  ,                                               &
                                aer_aod550_opt = taer_aod550_opt , aer_angexp_opt = taer_angexp_opt   , &
@@ -915,8 +939,8 @@
               gsw        = gsw_p         , swcf     = swcf_p      , rthratensw = rthratensw_p , &
               has_reqc   = has_reqc      , has_reqi = has_reqi    , has_reqs   = has_reqs     , &
               re_cloud   = recloud_p     , re_ice   = reice_p     , re_snow    = resnow_p     , &
-              aer_opt    = aer_opt       , tauaer3d = tauaer_p    , ssaaer3d   = ssaaer_p     , &
-              asyaer3d   = asyaer_p      , swupt    = swupt_p     , swuptc     = swuptc_p     , &
+              aer_opt    = aer_opt       , tauaer3d = tauaersw_p  , ssaaer3d   = ssaaersw_p   , &
+              asyaer3d   = asyaersw_p    , swupt    = swupt_p     , swuptc     = swuptc_p     , &
               swdnt      = swdnt_p       , swdntc   = swdntc_p    , swupb      = swupb_p      , &
               swupbc     = swupbc_p      , swdnb    = swdnb_p     , swdnbc     = swdnbc_p     , &
               swddir     = swddir_p      , swddni   = swddni_p    , swddif     = swddif_p     , &
