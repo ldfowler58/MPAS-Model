@@ -73,6 +73,7 @@
        procedure:: emissions_GridComp => emissions_CA2G_bc_GridComp
        procedure:: load_GridComp      => load_CA2G_bc_GridComp
        procedure:: processes_GridComp => processes_CA2G_bc_GridComp
+       procedure:: rrtmg_GridComp     => rrtmg_CA2G_bc_GridComp
  end type CA2G_bc_GridComp
 
  type wrap_
@@ -595,6 +596,133 @@
  call mpas_log_write('--- end subroutine processes_CA2G_bc_GridComp.')
 
  end subroutine processes_CA2G_bc_GridComp
+
+!==================================================================================================================
+ subroutine rrtmg_CA2G_bc_GridComp(self_params,self,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
+!==================================================================================================================
+
+!--- input arguments:
+ integer,intent(in):: its,ite,jts,jte,kts,kte
+ integer,intent(in):: nbndlw,nbndsw
+ class(CA2G_bc_GridComp),intent(in):: self_params
+
+!--- inout arguments:
+ class(CA2G_bc_State),intent(inout):: self
+
+!--- local variables:
+ integer:: nbands,km,nbins
+ integer:: istat
+ integer:: i,k,kk,j,n,nl,ns
+
+ real(kind=RKIND):: min_bctau_sw,min_bcasy_sw,min_bcssa_sw
+ real(kind=RKIND):: max_bctau_sw,max_bcasy_sw,max_bcssa_sw
+ real(kind=RKIND),dimension(:,:,:),allocatable :: asy_s,ext_s,ssa_s
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: qca2G
+
+!------------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine rrtmg_CA2G_bc_GridComp:')
+
+
+ km     = self_params%km
+ nbins  = self_params%nbins
+ nbands = self_params%rad_Mie%nch
+!call mpas_log_write('--- km     = $i',intArgs=(/km/))
+!call mpas_log_write('--- nbands = $i',intArgs=(/nbands/))
+
+
+ if(associated(self%bctau_sw)) self%bctau_sw(:,:,:,:) = 0._RKIND
+ if(associated(self%bcasy_sw)) self%bcasy_sw(:,:,:,:) = 0._RKIND
+ if(associated(self%bcssa_sw)) self%bcssa_sw(:,:,:,:) = 0._RKIND
+ if(associated(self%bctau_lw)) self%bctau_lw(:,:,:,:) = 0._RKIND
+ if(associated(self%bcasy_lw)) self%bcasy_lw(:,:,:,:) = 0._RKIND
+ if(associated(self%bcssa_lw)) self%bcssa_lw(:,:,:,:) = 0._RKIND
+
+ if(.not.allocated(asy_s)) allocate(asy_s(its:ite,jts:jte,kts:kte))
+ if(.not.allocated(ext_s)) allocate(ext_s(its:ite,jts:jte,kts:kte))
+ if(.not.allocated(ssa_s)) allocate(ssa_s(its:ite,jts:jte,kts:kte))
+ if(.not.allocated(qca2G)) allocate(qca2G(its:ite,jts:jte,kts:kte,nbins))
+
+ qca2G(:,:,:,1) = self%bcphobic(:,:,:)*self%delp(:,:,:)/grav
+ qca2G(:,:,:,2) = self%bcphilic(:,:,:)*self%delp(:,:,:)/grav
+
+
+ nl = 0
+ ns = 0
+ do n = 1, nbands
+    istat = 0
+    asy_s(:,:,:) = 0._RKIND
+    ext_s(:,:,:) = 0._RKIND
+    ssa_s(:,:,:) = 0._RKIND
+    call mie_(self_params%rad_Mie,its,ite,jts,jte,kts,kte,nbins,n,qca2G,self%rh2,ext_s,ssa_s,asy_s,istat)
+    if(istat /=0) then
+       call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine rrtmg_CA2G_bc_GridComp.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+       if(n .le. nbndsw) then
+          ns = ns+1
+          self%bctau_sw(:,:,:,ns) = real(ext_s(:,:,:),kind=RKIND)
+          self%bcasy_sw(:,:,:,ns) = real(asy_s(:,:,:),kind=RKIND)
+          self%bcssa_sw(:,:,:,ns) = real(ssa_s(:,:,:),kind=RKIND)
+       elseif(n .gt. nbndsw) then
+          nl = nl+1
+          self%bctau_lw(:,:,:,nl) = real(ext_s(:,:,:),kind=RKIND)
+          self%bcasy_lw(:,:,:,nl) = real(asy_s(:,:,:),kind=RKIND)
+          self%bcssa_lw(:,:,:,nl) = real(ssa_s(:,:,:),kind=RKIND)
+       endif
+    endif
+ enddo
+
+ if(allocated(asy_s)) deallocate(asy_s)
+ if(allocated(ext_s)) deallocate(ext_s)
+ if(allocated(ssa_s)) deallocate(ssa_s)
+ if(allocated(qca2G)) deallocate(qca2G)
+
+
+ call mpas_log_write('--- end subroutine rrtmg_CA2G_bc_GridComp.')
+
+ return
+
+
+ contains
+
+
+    subroutine mie_(mie,its,ite,jts,jte,kts,kte,nbins,ichannel,q,rh,bext_s,bssa_s,basy_s,rc)
+
+    type(GOCART2G_Mie),intent(in):: mie ! Mie table
+    integer,intent(in):: its,ite,jts,jte,kts,kte
+    integer,intent(in):: nbins          ! number of bins
+    integer,intent(in):: ichannel       ! channel
+    integer,intent(out) :: rc
+
+    real(kind=RKIND),intent(in),dimension(:,:,:):: rh  ! relative humidity
+    real(kind=RKIND),intent(in),dimension(:,:,:,:):: q ! aerosol
+    real(kind=RKIND),intent(out):: bext_s(size(ext_s,1),size(ext_s,2),size(ext_s,3)) ! dimensionless.
+    real(kind=RKIND),intent(out):: bssa_s(size(ext_s,1),size(ext_s,2),size(ext_s,3)) ! dimensionless.
+    real(kind=RKIND),intent(out):: basy_s(size(ext_s,1),size(ext_s,2),size(ext_s,3)) ! dimensionless.
+
+    !local variables and arrays:
+    integer:: l
+    real(kind=RKIND):: bext(size(ext_s,1),size(ext_s,2),size(ext_s,3))  ! extinction
+    real(kind=RKIND):: bssa (size(ext_s,1),size(ext_s,2),size(ext_s,3)) ! single scattering
+    real(kind=RKIND):: gasy(size(ext_s,1),size(ext_s,2),size(ext_s,3))  ! asymmetry parameter
+
+
+    bext_s(:,:,:) = 0._RKIND
+    bssa_s(:,:,:) = 0._RKIND
+    basy_s(:,:,:) = 0._RKIND
+
+    do l = 1, nbins
+       call mie%Query(ichannel,l,q(:,:,:,l),rh,tau=bext,gasym=gasy,ssa=bssa,rc=rc)
+       bext_s = bext_s + bext           ! extinction
+       bssa_s = bssa_s + bssa*bext      ! scattering extinction
+       basy_s = basy_s + gasy*bssa*bext ! asymetry parameter multiplied by scatering extiction
+    enddo
+
+
+    end subroutine mie_
+
+ end subroutine rrtmg_CA2G_bc_GridComp
 
 !==================================================================================================================
  end module CA2G_bc_GridCompMod

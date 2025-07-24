@@ -75,6 +75,7 @@
        procedure:: emissions_GridComp => emissions_NI2G_GridComp
        procedure:: load_GridComp      => load_NI2G_GridComp
        procedure:: processes_GridComp => processes_NI2G_GridComp
+       procedure:: rrtmg_GridComp     => rrtmg_NI2G_GridComp
  end type NI2G_GridComp
 
  type wrap_
@@ -872,6 +873,137 @@
  call mpas_log_write('--- end subroutine processes_NI2G_GridCOMP.')
 
  end subroutine processes_NI2G_GridComp
+
+!==================================================================================================================
+ subroutine rrtmg_NI2G_GridComp(self_params,self,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
+!==================================================================================================================
+!--- input arguments:
+ integer,intent(in):: its,ite,jts,jte,kts,kte
+ integer,intent(in):: nbndlw,nbndsw
+ class(NI2G_GridComp),intent(in):: self_params
+
+!--- inout arguments:
+ class(NI2G_State),intent(inout):: self
+
+!--- local variables:
+ integer:: nbands,km,nbins
+ integer:: istat
+ integer:: i,k,kk,j,n,nl,ns
+
+ real(kind=RKIND),dimension(:,:,:),allocatable :: asy_s,ext_s,ssa_s
+ real(kind=RKIND),dimension(:,:,:,:),allocatable:: qni3G
+
+!------------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine rrtmg_NI2G_GridComp:')
+
+
+!--- the calculation of the RRTMG optical properties only includes the three kinds of nitrate out of the five
+!    prognostic variables. therefore, we explicitly set nbins to three instead of self_params%nbins:
+ km     = self_params%km
+ nbins  = 3
+ nbands = self_params%rad_Mie%nch
+!call mpas_log_write('--- km     = $i',intArgs=(/km/))
+!call mpas_log_write('--- nbands = $i',intArgs=(/nbands/))
+
+
+ if(associated(self%nitau_sw)) self%nitau_sw(:,:,:,:) = 0._RKIND
+ if(associated(self%niasy_sw)) self%niasy_sw(:,:,:,:) = 0._RKIND
+ if(associated(self%nissa_sw)) self%nissa_sw(:,:,:,:) = 0._RKIND
+ if(associated(self%nitau_lw)) self%nitau_lw(:,:,:,:) = 0._RKIND
+ if(associated(self%niasy_lw)) self%niasy_lw(:,:,:,:) = 0._RKIND
+ if(associated(self%nissa_lw)) self%nissa_lw(:,:,:,:) = 0._RKIND
+
+ if(.not.allocated(asy_s)) allocate(asy_s(its:ite,jts:jte,kts:kte))
+ if(.not.allocated(ext_s)) allocate(ext_s(its:ite,jts:jte,kts:kte))
+ if(.not.allocated(ssa_s)) allocate(ssa_s(its:ite,jts:jte,kts:kte))
+ if(.not.allocated(qni3G)) allocate(qni3G(its:ite,jts:jte,kts:kte,nbins))
+
+ asy_s(:,:,:) = 0._RKIND
+ ext_s(:,:,:) = 0._RKIND
+ ssa_s(:,:,:) = 0._RKIND
+
+ qni3G(:,:,:,1) = self%no3an1(:,:,:)*self%delp(:,:,:)/grav
+ qni3G(:,:,:,2) = self%no3an2(:,:,:)*self%delp(:,:,:)/grav
+ qni3G(:,:,:,3) = self%no3an3(:,:,:)*self%delp(:,:,:)/grav
+
+
+ nl = 0
+ ns = 0
+ do n = 1, nbands
+    istat = 0
+    asy_s(:,:,:) = 0._RKIND
+    ext_s(:,:,:) = 0._RKIND
+    ssa_s(:,:,:) = 0._RKIND
+    call mie_(self_params%rad_Mie,its,ite,jts,jte,kts,kte,nbins,n,qni3G,self%rh2,ext_s,ssa_s,asy_s,istat)
+    if(istat /=0) then
+       call mpas_log_write('--- NI2G_GridComp: error in subroutine rrtmg_NI2G_GridComp.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+       if(n .le. nbndsw) then
+          ns = ns+1
+          self%nitau_sw(:,:,:,ns) = real(ext_s(:,:,:),kind=RKIND)
+          self%niasy_sw(:,:,:,ns) = real(asy_s(:,:,:),kind=RKIND)
+          self%nissa_sw(:,:,:,ns) = real(ssa_s(:,:,:),kind=RKIND)
+       elseif(n .gt. nbndsw) then
+          nl = nl+1
+          self%nitau_lw(:,:,:,nl) = real(ext_s(:,:,:),kind=RKIND)
+          self%niasy_lw(:,:,:,nl) = real(asy_s(:,:,:),kind=RKIND)
+          self%nissa_lw(:,:,:,nl) = real(ssa_s(:,:,:),kind=RKIND)
+       endif
+    endif
+ enddo
+
+
+ if(allocated(asy_s)) deallocate(asy_s)
+ if(allocated(ext_s)) deallocate(ext_s)
+ if(allocated(ssa_s)) deallocate(ssa_s)
+ if(allocated(qni3G)) deallocate(qni3G)
+
+ call mpas_log_write('--- end subroutine rrtmg_NI2G_GridComp.')
+
+ return
+
+
+ contains
+
+
+    subroutine mie_(mie,its,ite,jts,jte,kts,kte,nbins,ichannel,q,rh,bext_s,bssa_s,basy_s,rc)
+
+    type(GOCART2G_Mie),intent(in):: mie ! Mie table
+    integer,intent(in):: its,ite,jts,jte,kts,kte
+    integer,intent(in):: nbins          ! number of bins
+    integer,intent(in):: ichannel       ! channel
+    integer,intent(out) :: rc
+
+    real(kind=RKIND),intent(in),dimension(:,:,:):: rh  ! relative humidity
+    real(kind=RKIND),intent(in),dimension(:,:,:,:):: q ! aerosol
+    real(kind=RKIND),intent(out):: bext_s(size(ext_s,1),size(ext_s,2),size(ext_s,3)) ! dimensionless.
+    real(kind=RKIND),intent(out):: bssa_s(size(ext_s,1),size(ext_s,2),size(ext_s,3)) ! dimensionless.
+    real(kind=RKIND),intent(out):: basy_s(size(ext_s,1),size(ext_s,2),size(ext_s,3)) ! dimensionless.
+
+    !local variables and arrays:
+    integer:: l,n
+    real(kind=RKIND):: bext(size(ext_s,1),size(ext_s,2),size(ext_s,3))  ! extinction
+    real(kind=RKIND):: bssa (size(ext_s,1),size(ext_s,2),size(ext_s,3)) ! single scattering
+    real(kind=RKIND):: gasy(size(ext_s,1),size(ext_s,2),size(ext_s,3))  ! asymmetry parameter
+
+
+    bext_s(:,:,:) = 0._RKIND
+    bssa_s(:,:,:) = 0._RKIND
+    basy_s(:,:,:) = 0._RKIND
+
+    do l = 1, nbins
+       call mie%Query(ichannel,l,q(:,:,:,l),rh,tau=bext,gasym=gasy,ssa=bssa,rc=rc)
+       bext_s = bext_s + bext           ! extinction
+       bssa_s = bssa_s + bssa*bext      ! scattering extinction
+       basy_s = basy_s + gasy*bssa*bext ! asymetry parameter multiplied by scatering extiction
+    enddo
+
+
+    end subroutine mie_
+
+ end subroutine rrtmg_NI2G_GridComp
 
 !==================================================================================================================
  end module NI2G_GridCompMod
