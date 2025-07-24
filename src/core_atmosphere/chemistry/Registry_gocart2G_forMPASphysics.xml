@@ -109,6 +109,151 @@
            <var name="depv_qsoapbg" array_group="gocart2G_bl" units="kg kg^{-1}"
                 description="SOAPbg - tendency of lumped biogenic SOA precursor due to PBL and free-tropospheric mixing"/>
       </var_array>
+
+      <var name="tauaer_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Aerosol optical depth for the RRTMG longwave radiation code"/>
+
+      <var name="ssaaer_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Aerosol single scattering albedo for the RRTMG longwave radiation code"/>
+
+      <var name="asyaer_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Aerosol asymmetry factor for the RRTMG longwave radiation code"/>
+
+      <var name="tauaer_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Aerosol optical depth for the RRTMG shortwave radiation code"/>
+
+      <var name="ssaaer_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Aerosol single scattering albedo for the RRTMG shortwave radiation code"/>
+
+      <var name="asyaer_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Aerosol asymmetry factor for the RRTMG shortwave radiation code"/>
+
+      <var name="bctau_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Black carbon aerosol optical depth for the RRTMG longwave radiation code"/>
+
+      <var name="bcssa_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Black carbon aerosol single scattering albedo for the RRTMG longwave radiation code"/>
+
+      <var name="bcasy_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Black carbon aerosol asymmetry factor for the RRTMG longwave radiation code"/>
+
+      <var name="bctau_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Black carbon aerosol optical depth for the RRTMG shortwave radiation code"/>
+
+      <var name="bcssa_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Black carbon aerosol single scattering albedo for the RRTMG shortwave radiation code"/>
+
+      <var name="bcasy_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Black carbon aerosol asymmetry factor for the RRTMG shortwave radiation code"/>
+
+      <var name="brtau_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Brown carbon aerosol optical depth for the RRTMG longwave radiation code"/>
+
+      <var name="brssa_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Brown carbon aerosol single scattering albedo for the RRTMG longwave radiation code"/>
+
+      <var name="brasy_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Brown carbon aerosol asymmetry factor for the RRTMG longwave radiation code"/>
+
+      <var name="brtau_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Brown carbon aerosol optical depth for the RRTMG shortwave radiation code"/>
+
+      <var name="brssa_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Brown carbon aerosol single scattering albedo for the RRTMG shortwave radiation code"/>
+
+      <var name="brasy_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Brown carbon aerosol asymmetry factor for the RRTMG shortwave radiation code"/>
+
+      <var name="octau_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Organic carbon aerosol optical depth for the RRTMG longwave radiation code"/>
+
+      <var name="ocssa_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Organic carbon aerosol single scattering albedo for the RRTMG longwave radiation code"/>
+
+      <var name="ocasy_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Organic carbon aerosol asymmetry factor for the RRTMG longwave radiation code"/>
+
+      <var name="octau_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Organic carbon aerosol optical depth for the RRTMG shortwave radiation code"/>
+
+      <var name="ocssa_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Organic carbon aerosol single scattering albedo for the RRTMG shortwave radiation code"/>
+
+      <var name="ocasy_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Organic carbon aerosol asymmetry factor for the RRTMG shortwave radiation code"/>
+
+      <var name="dutau_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Mineral dust aerosol optical depth for the RRTMG longwave radiation code"/>
+
+      <var name="dussa_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Mineral dust aerosol single scattering albedo for the RRTMG longwave radiation code"/>
+
+      <var name="duasy_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Mineral dust aerosol asymmetry factor for the RRTMG longwave radiation code"/>
+
+      <var name="dutau_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Mineral dust aerosol optical depth for the RRTMG shortwave radiation code"/>
+
+      <var name="dussa_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Mineral dust aerosol single scattering albedo for the RRTMG shortwave radiation code"/>
+
+      <var name="duasy_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Mineral dust aerosol asymmetry factor for the RRTMG shortwave radiation code"/>
+
+      <var name="nitau_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Nitrate aerosol optical depth for the RRTMG longwave radiation code"/>
+
+      <var name="nissa_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Nitrate aerosol single scattering albedo for the RRTMG longwave radiation code"/>
+
+      <var name="niasy_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Nitrate aerosol asymmetry factor for the RRTMG longwave radiation code"/>
+
+      <var name="nitau_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Nitrate aerosol optical depth for the RRTMG shortwave radiation code"/>
+
+      <var name="nissa_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Nitrate aerosol single scattering albedo for the RRTMG shortwave radiation code"/>
+
+      <var name="niasy_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Nitrate aerosol asymmetry factor for the RRTMG shortwave radiation code"/>
+
+      <var name="sstau_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Sea salt aerosol optical depth for the RRTMG longwave radiation code"/>
+
+      <var name="ssssa_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Sea salt aerosol single scattering albedo for the RRTMG longwave radiation code"/>
+
+      <var name="ssasy_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Sea salt aerosol asymmetry factor for the RRTMG longwave radiation code"/>
+
+      <var name="sstau_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Sea salt aerosol optical depth for the RRTMG shortwave radiation code"/>
+
+      <var name="ssssa_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Sea salt aerosol single scattering albedo for the RRTMG shortwave radiation code"/>
+
+      <var name="ssasy_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Sea salt aerosol asymmetry factor for the RRTMG shortwave radiation code"/>
+
+      <var name="sutau_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Sulfate aerosol optical depth for the RRTMG longwave radiation code"/>
+
+      <var name="sussa_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Sulfate aerosol single scattering albedo for the RRTMG longwave radiation code"/>
+
+      <var name="suasy_lw" type="real" dimensions="nbndLW nVertLevels nCells Time" units="dimensionless"
+           description="Sulfate aerosol asymmetry factor for the RRTMG longwave radiation code"/>
+
+      <var name="sutau_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Sulfate aerosol optical depth for the RRTMG shortwave radiation code"/>
+
+      <var name="sussa_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Sulfate aerosol single scattering albedo for the RRTMG shortwave radiation code"/>
+
+      <var name="suasy_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
+           description="Sulfate aerosol asymmetry factor for the RRTMG shortwave radiation code"/>
+
  </var_struct>
 
 

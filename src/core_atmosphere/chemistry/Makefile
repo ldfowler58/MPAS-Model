@@ -26,6 +26,7 @@ OBJS = \
 	mpas_chemistry_gocart2G_init.o \
 	mpas_chemistry_gocart2G_interface.o \
 	mpas_chemistry_gocart2G_manager.o \
+	mpas_chemistry_gocart2G_rrtmg.o \
 	mpas_chemistry_gocart2G_update.o \
 	mpas_chemistry_gocart2G_vars.o
 
@@ -46,6 +47,7 @@ mpas_chemistry_gocart2G_driver.o: \
 	mpas_chemistry_gocart2G_diagnostics.o \
 	mpas_chemistry_gocart2G_interface.o \
 	mpas_chemistry_gocart2G_manager.o \
+	mpas_chemistry_gocart2G_rrtmg.o \
 	mpas_chemistry_gocart2G_vars.o
 
 mpas_chemistry_gocart2G_emissions_init.o: \
