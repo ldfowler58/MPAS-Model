@@ -10709,7 +10709,7 @@ contains
              cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr ,emis    , &
              inflglw ,iceflglw,liqflglw,cldfmcl , &
              taucmcl ,ciwpmcl ,clwpmcl , cswpmcl ,reicmcl ,relqmcl , resnmcl , &
-             tauaer  , &
+             aer_opt ,tauaer  , &
              uflx    ,dflx    ,hr      ,uflxc   ,dflxc,  hrc, &
              uflxcln ,dflxcln, calc_clean_atm_diag )
 
@@ -10805,6 +10805,7 @@ contains
 ! ----- Input -----
       integer(kind=im), intent(in) :: ncol            ! Number of horizontal columns
       integer(kind=im), intent(in) :: nlay            ! Number of model layers
+      integer(kind=im), intent(in) :: aer_opt         ! Aerosol option flag
       integer(kind=im), intent(inout) :: icld         ! Cloud overlap method
                                                       !    0: Clear only
                                                       !    1: Random
@@ -11057,8 +11058,9 @@ contains
 
 ! Set iaer to select aerosol option
 ! iaer = 0, no aerosols
-! icld = 10, input total aerosol optical depth (tauaer) directly
-      iaer = 10
+  if ( aer_opt.eq.0 .or. aer_opt.eq.2) then
+     iaer = 10
+  end if
 
 ! Call model and data initialization, compute lookup tables, perform
 ! reduction of g-points from 256 to 140 for input absorption coefficient 
@@ -11538,6 +11540,7 @@ contains
 MODULE module_ra_rrtmg_lw
 use mpas_atmphys_constants,only : cp,g=>gravity
 use module_ra_rrtmg_vinterp,only: vinterp_ozn
+use mpas_log
 
 use parrrtm, only : nbndlw, ngptlw
 use rrtmg_lw_init, only: rrtmg_lw_ini
@@ -11579,6 +11582,7 @@ CONTAINS
                        pin,o3clim,glw,olr,lwcf,rthratenlw,        &
                        has_reqc,has_reqi,has_reqs,re_cloud,       &
                        re_ice,re_snow,rre_cloud,rre_ice,rre_snow, &
+                       aer_opt,tauaer3d,ssaaer3d,asyaer3d,        &
                        lwupt,lwuptc,lwdnt,lwdntc,                 &
                        lwupb,lwupbc,lwdnb,lwdnbc,                 &
                        lwupflx, lwupflxc, lwdnflx, lwdnflxc,      &
@@ -11613,6 +11617,11 @@ CONTAINS
  integer,intent(in):: noznlevels
  real,intent(in),dimension(1:noznlevels),optional:: pin
  real,intent(in),dimension(ims:ime,1:noznlevels,jms:jme),optional:: o3clim
+
+!--- additional input arguments of the aerosol optical depth, single scattering albedo, and asymmetry factor.
+!    the longwave aerosol impact does not include scattering, and ssaaer3d and asyaer3d are not needed:
+ integer,intent(in),optional:: aer_opt
+ real,intent(in),dimension(ims:ime,kms:kme,jms:jme,1:nbndlw),optional:: tauaer3d,ssaaer3d,asyaer3d
 
 !--- inout arguments:
  real,intent(inout),dimension(ims:ime,jms:jme):: glw,olr,lwcf
@@ -11936,6 +11945,17 @@ CONTAINS
           ccl4vmr(ncol,k)  = ccl4
        enddo
 
+       !--- fill the local array of the aerosol optical depth if the input aerosol optical depth is available:
+       if(present(aer_opt) .and. present(tauaer3d)) then
+          do n = 1,ncol
+             do k = kts,kte
+                do nb = 1,nbndlw
+                   tauaer(n,k,nb) = tauaer3d(i,k,j,nb)
+                enddo
+             enddo
+          enddo
+       endif
+
        !--- compute height of each layer mid-point from layer thickness needed for icl=4 (exponential) and
        !    icld=5 (exponential-random) overlap. fill in height array above model top using dz1d from top
        !    layer:
@@ -12009,7 +12029,7 @@ CONTAINS
           ccl4vmr(ncol,k)  = ccl4vmr(ncol,kte) 
        enddo
 
-       !--- initialize the ozone voume mixing ratio:
+       !--- initialize the ozone volume mixing ratio:
        call inirad(o3mmr,plev,kts,nlayers-1)
        if(o3input .eq. 2) then
           do k = 1, noznlevels
@@ -12025,7 +12045,16 @@ CONTAINS
           enddo
        endif
 
-
+       !--- fill local aerosol optical depth between the top of the model and the top of the atmosphere:
+       if(present(aer_opt) .and. present(tauaer3d)) then
+          do n = 1,ncol
+             do k = kte+1,nlayers
+                do nb = 1,nbndlw
+                   tauaer(n,k,nb) = tauaer3d(i,kte,j,nb)
+                enddo
+             enddo
+          enddo
+       endif
 
        !--- CALCULATE CLOUD OPTICAL PROPERTIES:
        if(inflglw .gt. 0) then 
@@ -12204,9 +12233,8 @@ CONTAINS
                    n2ovmr  , o2vmr   , cfc11vmr , cfc12vmr , cfc22vmr , ccl4vmr , &
                    emis    , inflglw , iceflglw , liqflglw , cldfmcl  , taucmcl , & 
                    ciwpmcl , clwpmcl , cswpmcl  , reicmcl  , relqmcl  , resnmcl , &
-                   tauaer  , uflx    , dflx     , hr       , uflxc    , dflxc   , &
-                   hrc     , uflxcln , dflxcln  , calc_clean_atm_diag)
-
+                   aer_opt , tauaer  , uflx     , dflx     , hr       , uflxc   , &
+                   dflxc   , hrc     , uflxcln  , dflxcln  , calc_clean_atm_diag)
 
 
        !--- OUTPUTS:
