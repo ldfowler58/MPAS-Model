@@ -30,7 +30,9 @@
  public:: init_atm_static,           &
           init_atm_check_read_error, &
           nearest_cell,              &
-          sphere_distance
+          sphere_distance,           &
+          init_atm_map_static_data,  &
+          max_cell_diameter
 
 !constants
  integer, parameter :: nBdyLayers = 7   ! The number of relaxation layers plus the number of specified layers
@@ -1291,7 +1293,8 @@
  !> sub-pixels.
  !
  !-----------------------------------------------------------------------
- subroutine init_atm_map_static_data(mesh, mgr, kdtree, interp_criteria, accumulation_method, supersample_fac)
+ subroutine init_atm_map_static_data(mesh, mgr, kdtree, max_kdtree_distance2, interp_criteria, &
+                                     accumulation_method, supersample_fac)
 
     implicit none
 
@@ -1302,6 +1305,7 @@
     procedure (interp_criteria_function) :: interp_criteria
     procedure (interp_accumulation_function) :: accumulation_method
     integer, intent(in), optional :: supersample_fac
+    real(kind=RKIND), intent(in) :: max_kdtree_distance2
 
     ! Local variables
     integer, pointer :: nCells
@@ -1600,8 +1604,8 @@
     ter_integer(:) = 0
     nhs(:) = 0
 
-    call init_atm_map_static_data(mesh, mgr, kdtree, continuous_interp_criteria, terrain_interp_accumulation, &
-                                  supersample_fac=supersample_fac)
+    call init_atm_map_static_data(mesh, mgr, kdtree, max_kdtree_distance2, continuous_interp_criteria, &
+                                  terrain_interp_accumulation, supersample_fac=supersample_fac)
 
     do iCell = 1, nCells
        ter(iCell) = real(real(ter_integer(iCell), kind=R8KIND) / real(nhs(iCell), kind=R8KIND), kind=RKIND)
@@ -1691,7 +1695,8 @@
     soilcomp_int(:,:) = 0
     nhs(:) = 0
 
-    call init_atm_map_static_data(mesh, mgr, kdtree, continuous_interp_criteria, &
+    call init_atm_map_static_data(mesh, mgr, kdtree, max_kdtree_distance2, &
+                                  continuous_interp_criteria, &
                                   soilcomp_interp_accumulation, &
                                   supersample_fac=supersample_fac)
 
@@ -1835,8 +1840,8 @@
      allocate(ncat(category_min:category_max, nCells))
      ncat(:,:) = 0
 
-     call init_atm_map_static_data(mesh, mgr, kdtree, categorical_interp_criteria, categorical_interp_accumulation, &
-                                   supersample_fac=supersample_fac)
+     call init_atm_map_static_data(mesh, mgr, kdtree, max_kdtree_distance2, categorical_interp_criteria, &
+                                   categorical_interp_accumulation, supersample_fac=supersample_fac)
 
      do iCell = 1, nCells
          ! Because maxloc returns the location of the maximum value of an array as if the
@@ -1914,8 +1919,8 @@
      allocate(ncat(category_min:category_max, nCells))
      ncat(:,:) = 0
 
-     call init_atm_map_static_data(mesh, mgr, kdtree, categorical_interp_criteria, categorical_interp_accumulation, &
-                                   supersample_fac=supersample_fac)
+     call init_atm_map_static_data(mesh, mgr, kdtree, max_kdtree_distance2, categorical_interp_criteria, &
+                                   categorical_interp_accumulation,supersample_fac=supersample_fac)
 
      do iCell = 1, nCells
         ! Because maxloc returns the location of the maximum value of an array as if the
@@ -2157,7 +2162,8 @@
      allocate(ncat(category_min:category_max, nCells))
      ncat(:,:) = 0
 
-     call init_atm_map_static_data(mesh, mgr, kdtree, categorical_interp_criteria, &
+     call init_atm_map_static_data(mesh, mgr, kdtree, max_kdtree_distance2, &
+                                   categorical_interp_criteria, &
                                    categorical_interp_accumulation, &
                                    supersample_fac=supersample_fac)
 

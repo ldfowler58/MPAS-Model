@@ -12,7 +12,9 @@ OBJS_INIT = \
 	mpas_init_atm_hinterp.o \
 	mpas_init_atm_llxy.o \
 	mpas_init_atm_read_met.o \
+	mpas_init_atm_static.o \
         mpas_init_atm_vinterp.o \
+	mpas_kd_tree.o \
 	read_geogrid.o
 
 OBJS =  \
@@ -22,7 +24,6 @@ OBJS =  \
 	mpas_atm_advection.o \
 	mpas_init_atm_bitarray.o \
  	mpas_init_atm_queue.o \
-	mpas_init_atm_static.o \
 	mpas_init_atm_gwd.o \
 	mpas_gsl_oro_data_sm_scale.o \
 	mpas_gsl_oro_data_lg_scale.o \
@@ -36,7 +37,6 @@ OBJS =  \
 	mpas_atmphys_initialize_real.o \
 	mpas_atmphys_utilities.o \
 	mpas_stack.o \
-	mpas_kd_tree.o \
 	mpas_parse_geoindex.o \
 	mpas_geotile_manager.o
 
