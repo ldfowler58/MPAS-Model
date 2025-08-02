@@ -171,6 +171,10 @@
       <nml_option name="config_gocart2G_toRRTMG" type="logical" default_value="false"
            in_defaults="false" units="-"
            description="set to true to include the radiative impact of the gocart2G aerosols in RRTMG"
+
+      <nml_option name="config_gocart2G_toTHOM" type="logical" default_value="false"
+           in_defaults="false" units="-"
+           description="set to true to activate gocart2G aerosols as nwfa and nifa in THOMPSON cloud microphysics"
            possible_values="True,False"/>
 
  </nml_record>

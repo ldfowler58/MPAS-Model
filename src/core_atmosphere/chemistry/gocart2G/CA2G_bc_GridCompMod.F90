@@ -245,11 +245,11 @@
  end subroutine emissions_CA2G_bc_GridComp
 
 !==================================================================================================================
- subroutine processes_CA2G_bc_GridComp(self_params,self,to_MYNN,its,ite,jts,jte,kts,kte)
+ subroutine processes_CA2G_bc_GridComp(self_params,self,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte)
 !==================================================================================================================
 
 !--- input arguments:
- logical,intent(in):: to_MYNN
+ logical,intent(in):: to_MYNN,to_THOM
  integer,intent(in):: its,ite,jts,jte,kts,kte
  class(CA2G_bc_GridComp),intent(in):: self_params
 
@@ -403,10 +403,11 @@
 !--- CA2G_bc large-scale wet removal (hydrophilic mode is removed):
 !call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
  if(associated(self%bcwt)) self%bcwt(:,:,:) = 0._RKIND
- KIN   = .true.
- fwet  = 1._RKIND
- istat = 0
- call WetRemovalGOCART2G( &
+ if(.not. to_THOM) then
+    KIN   = .true.
+    fwet  = 1._RKIND
+    istat = 0
+    call WetRemovalGOCART2G( &
               km        = self_params%km    , &
               klid      = self_params%klid  , &
               n1        = self_params%nbins , &
@@ -428,11 +429,12 @@
               fluxout   = self%bcwt         , &
               rc        = istat               &
                         )
- if(istat /=0) then
-    call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine WetRemovalGOCART2G.', &
-                        messageType=MPAS_LOG_CRIT)
- else
-!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
+    if(istat /=0) then
+       call mpas_log_write('--- CA2G_bc_GridComp: error in subroutine WetRemovalGOCART2G.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+!      call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
+    endif
  endif
 
 

@@ -302,11 +302,12 @@
  end subroutine emissions_SU2G_GridComp
 
 !==================================================================================================================
- subroutine processes_SU2G_GridComp(self_params,self,to_MYNN,its,ite,jts,jte,kts,kte,iyr,imm,idd,ihr,imn,isc)
+ subroutine processes_SU2G_GridComp(self_params,self,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte, &
+                                    iyr,imm,idd,ihr,imn,isc)
 !==================================================================================================================
 
 !--- input arguments:
- logical,intent(in):: to_MYNN
+ logical,intent(in):: to_MYNN,to_THOM
  integer,intent(in):: its,ite,jts,jte,kts,kte
  integer,intent(in):: iyr,imm,idd,ihr,imn,isc
  class(SU2G_GridComp),intent(in):: self_params
@@ -540,9 +541,10 @@
 
 !--- SU2G wet removal:
 !call mpas_log_write('--- enter subroutine SU_Wet_Removal:')
- istat = 0
- KIN = .true.
- call SU_Wet_Removal( &
+ if(.not. to_THOM) then
+    istat = 0
+    KIN = .true.
+    call SU_Wet_Removal( &
               km              = self_params%km    , &
               nbins           = self_params%nbins , &
               klid            = self_params%klid  , &
@@ -576,11 +578,12 @@
               pso4wet         = self%pso4wet      , &
               rc              = istat               &
                     )
- if(istat /=0) then
-    call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Wet_Removal.', &
-                        messageType=MPAS_LOG_CRIT)
- else
-!   call mpas_log_write('--- end subroutine SU_Wet_Removal.')
+    if(istat /=0) then
+       call mpas_log_write('--- SU2G_GridComp: error in subroutine SU_Wet_Removal.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+!      call mpas_log_write('--- end subroutine SU_Wet_Removal.')
+    endif
  endif
 
 

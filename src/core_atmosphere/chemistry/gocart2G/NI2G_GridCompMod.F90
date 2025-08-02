@@ -204,11 +204,11 @@
  end subroutine emissions_NI2G_GridComp
 
 !==================================================================================================================
- subroutine processes_NI2G_GridComp(self_params,self,to_MYNN,its,ite,jts,jte,kts,kte)
+ subroutine processes_NI2G_GridComp(self_params,self,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte)
 !==================================================================================================================
 
 !--- input arguments:
- logical,intent(in):: to_MYNN
+ logical,intent(in):: to_MYNN,to_THOM
  integer,intent(in):: its,ite,jts,jte,kts,kte
  class(NI2G_GridComp),intent(in):: self_params
 
@@ -478,14 +478,14 @@
 !--- NI2G large-scale wet removal:
 !call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NH3:')
  if(associated(self%nh3wt) .or. associated(self%nh4wt)) allocate(fluxoutWT(ubound(self%t,1),ubound(self%t,2),1))
-
- istat = 0
- KIN  = .false.
- fwet = 1._RKIND
- nullify(fluxWT_ptr)
- if(associated(self%nh3wt)) self%nh3wt = 0._RKIND
- if(associated(self%nh3wt)) fluxWT_ptr => fluxoutWT
- call WetRemovalGOCART2G( &
+ if(.not. to_THOM) then
+    istat = 0
+    KIN  = .false.
+    fwet = 1._RKIND
+    nullify(fluxWT_ptr)
+    if(associated(self%nh3wt)) self%nh3wt = 0._RKIND
+    if(associated(self%nh3wt)) fluxWT_ptr => fluxoutWT
+    call WetRemovalGOCART2G( &
            km        = self_params%km    , klid    = self_params%klid , n1      = self_params%nbins , &
            n2        = self_params%nbins , bin_ind = 1                , cdt     = self_params%cdt   , &
            aero_type = 'NH3'             , kin     = KIN              , grav    = grav              , &
@@ -494,23 +494,25 @@
            pfilsan   = self%pfi_lsan     , precc   = self%cn_prcp     , precl   = self%ncn_prcp     , &
            fluxout   = fluxWT_ptr        , rc      = istat                                            &
                         )
- if (associated(self%nh3wt)) self%nh3wt = fluxWT_ptr(:,:,1)
- if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NH3.', &
-                        messageType=MPAS_LOG_CRIT)
- else
-!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH3.')
+    if (associated(self%nh3wt)) self%nh3wt = fluxWT_ptr(:,:,1)
+    if(istat /=0) then
+       call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NH3.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+!      call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH3.')
+    endif
  endif
 
 
 !call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NH4a:')
- istat = 0
- KIN  = .true.
- fwet = 1._RKIND
- nullify(fluxWT_ptr)
- if(associated(self%nh4wt)) self%nh4wt = 0._RKIND
- if(associated(self%nh4wt)) fluxWT_ptr => fluxoutWT
- call WetRemovalGOCART2G( &
+ if(.not. to_THOM) then
+    istat = 0
+    KIN  = .true.
+    fwet = 1._RKIND
+    nullify(fluxWT_ptr)
+    if(associated(self%nh4wt)) self%nh4wt = 0._RKIND
+    if(associated(self%nh4wt)) fluxWT_ptr => fluxoutWT
+    call WetRemovalGOCART2G( &
            km        = self_params%km    , klid    = self_params%klid , n1      = self_params%nbins , &
            n2        = self_params%nbins , bin_ind = 1                , cdt     = self_params%cdt   , &
            aero_type = 'NH4a'            , kin     = KIN              , grav    = grav              , &
@@ -519,22 +521,24 @@
            pfilsan   = self%pfi_lsan     , precc   = self%cn_prcp     , precl   = self%ncn_prcp     , &
            fluxout   = fluxWT_ptr        , rc      = istat                                            &
                         )
- if (associated(self%nh4wt)) self%nh4wt = fluxWT_ptr(:,:,1)
- if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NH4a.', &
-                        messageType=MPAS_LOG_CRIT)
- else
-    if(allocated(fluxoutWT)) deallocate(fluxoutWT)
-!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH4a.')
+    if (associated(self%nh4wt)) self%nh4wt = fluxWT_ptr(:,:,1)
+    if(istat /=0) then
+       call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NH4a.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+       if(allocated(fluxoutWT)) deallocate(fluxoutWT)
+!      call mpas_log_write('--- end subroutine WetRemovalGOCART2G NH4a.')
+    endif
  endif
 
 
 !call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NO3AN1:')
- istat = 0
- KIN  = .true.
- fwet = 1._RKIND
- if(associated(self%niwt)) self%niwt = 0._RKIND
- call WetRemovalGOCART2G( &
+ if(.not. to_THOM) then
+    istat = 0
+    KIN  = .true.
+    fwet = 1._RKIND
+    if(associated(self%niwt)) self%niwt = 0._RKIND
+    call WetRemovalGOCART2G( &
            km        = self_params%km    , klid    = self_params%klid , n1      = self_params%nbins , &
            n2        = self_params%nbins , bin_ind = 1                , cdt     = self_params%cdt   , &
            aero_type = 'nitrate'         , kin     = KIN              , grav    = grav              , &
@@ -543,19 +547,21 @@
            pfilsan   = self%pfi_lsan     , precc   = self%cn_prcp     , precl   = self%ncn_prcp     , &
            fluxout   = self%niwt         , rc      = istat                                            &
                         )
- if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN1.', &
-                        messageType=MPAS_LOG_CRIT)
- else
-!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN1:')
+    if(istat /=0) then
+       call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN1.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+!      call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN1:')
+    endif
  endif
 
 
 !call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NO3AN2:')
- istat = 0
- KIN  = .true.
- fwet = 1._RKIND
- call WetRemovalGOCART2G( &
+ if(.not. to_THOM) then
+    istat = 0
+    KIN  = .true.
+    fwet = 1._RKIND
+    call WetRemovalGOCART2G( &
            km        = self_params%km    , klid    = self_params%klid , n1      = self_params%nbins , &
            n2        = self_params%nbins , bin_ind = 2                , cdt     = self_params%cdt   , &
            aero_type = 'nitrate'         , kin     = KIN              , grav    = grav              , &
@@ -564,19 +570,21 @@
            pfilsan   = self%pfi_lsan     , precc   = self%cn_prcp     , precl   = self%ncn_prcp     , &
            fluxout   = self%niwt         , rc      = istat                                            &
                         )
- if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN2.', &
-                        messageType=MPAS_LOG_CRIT)
- else
-!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN2.')
+    if(istat /=0) then
+       call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN2.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+!      call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN2.')
+    endif
  endif
 
 
 !call mpas_log_write('--- enter subroutine WetRemovalGOCART2G NO3AN3:')
- istat = 0
- KIN  = .true.
- fwet = 0.3_RKIND
- call WetRemovalGOCART2G( &
+ if(.not. to_THOM) then
+    istat = 0
+    KIN  = .true.
+    fwet = 0.3_RKIND
+    call WetRemovalGOCART2G( &
            km        = self_params%km    , klid    = self_params%klid , n1      = self_params%nbins , &
            n2        = self_params%nbins , bin_ind = 3                , cdt     = self_params%cdt   , &
            aero_type = 'nitrate'         , kin     = KIN              , grav    = grav              , &
@@ -585,11 +593,12 @@
            pfilsan   = self%pfi_lsan     , precc   = self%cn_prcp     , precl   = self%ncn_prcp     , &
            fluxout   = self%niwt         , rc      = istat                                            &
                         )
- if(istat /=0) then
-    call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN3.', &
-                        messageType=MPAS_LOG_CRIT)
- else
-!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN3.')
+    if(istat /=0) then
+       call mpas_log_write('--- NI2G_GridComp: error in subroutine WetRemovalGOCART2G NO3AN3.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+!      call mpas_log_write('--- end subroutine WetRemovalGOCART2G NO3AN3.')
+    endif
  endif
 
 

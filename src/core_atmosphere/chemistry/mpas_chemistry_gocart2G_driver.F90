@@ -84,6 +84,7 @@
 
  logical,pointer:: to_MYNN
  logical,pointer:: to_RRTMG
+ logical,pointer:: to_THOM
 
  integer:: time_lev
  integer:: i,its,ite,j,jts,jte,k,kts,kte,n,nerod
@@ -107,6 +108,7 @@
 
  call mpas_pool_get_config(domain%configs,'config_gocart2G_toMYNN'   ,to_MYNN  )
  call mpas_pool_get_config(domain%configs,'config_gocart2G_toRRTMG'  ,to_RRTMG )
+ call mpas_pool_get_config(domain%configs,'config_gocart2G_toTHOM'   ,to_THOM  )
 
 
  block => domain % blocklist
@@ -236,7 +238,7 @@
        !--- gocart2G processes:
        call CA2G_bc_params%emissions_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte, &
                                      iyear,imonth,iday,ihour,iminute,isecond)
-       call CA2G_bc_params%processes_GridComp(CA2G_bc,to_MYNN,its,ite,jts,jte,kts,kte)
+       call CA2G_bc_params%processes_GridComp(CA2G_bc,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte)
        if(to_RRTMG) call CA2G_bc_params%rrtmg_GridComp(CA2G_bc,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
@@ -290,7 +292,7 @@
        !--- gocart2G processes:
        call CA2G_br_params%emissions_GridComp(CA2G_br,its,ite,jts,jte,kts,kte, &
                                      iyear,imonth,iday,ihour,iminute,isecond)
-       call CA2G_br_params%processes_GridComp(CA2G_br,to_MYNN,its,ite,jts,jte,kts,kte)
+       call CA2G_br_params%processes_GridComp(CA2G_br,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte)
        if(to_RRTMG) call CA2G_br_params%rrtmg_GridComp(CA2G_br,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
@@ -346,7 +348,7 @@
        !--- gocart2G processes:
        call CA2G_oc_params%emissions_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte, &
                                       iyear,imonth,iday,ihour,iminute,isecond)
-       call CA2G_oc_params%processes_GridComp(CA2G_oc,to_MYNN,its,ite,jts,jte,kts,kte)
+       call CA2G_oc_params%processes_GridComp(CA2G_oc,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte)
        if(to_RRTMG) call CA2G_oc_params%rrtmg_GridComp(CA2G_oc,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
@@ -383,7 +385,7 @@
 
        !--- gocart2G processes:
        call DU2G_params%emissions_GridComp(DU2G,its,ite,jts,jte,kts,kte,nerod)
-       call DU2G_params%processes_GridComp(DU2G,to_MYNN,its,ite,jts,jte,kts,kte)
+       call DU2G_params%processes_GridComp(DU2G,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte)
        if(to_RRTMG) call DU2G_params%rrtmg_GridComp(DU2G,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
@@ -446,7 +448,7 @@
 
        !--- gocart2G processes:
        call NI2G_params%emissions_GridComp(NI2G,its,ite,jts,jte,kts,kte)
-       call NI2G_params%processes_GridComp(NI2G,to_MYNN,its,ite,jts,jte,kts,kte)
+       call NI2G_params%processes_GridComp(NI2G,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte)
        if(to_RRTMG) call NI2G_params%rrtmg_GridComp(NI2G,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
@@ -484,7 +486,7 @@
 
        !--- gocart2G processes:
        call SS2G_params%emissions_GridComp(SS2G,its,ite,jts,jte,kts,kte)
-       call SS2G_params%processes_GridComp(SS2G,to_MYNN,its,ite,jts,jte,kts,kte)
+       call SS2G_params%processes_GridComp(SS2G,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte)
        if(to_RRTMG) call SS2G_params%rrtmg_GridComp(SS2G,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
        !--- global diagnostics:
@@ -541,7 +543,7 @@
 
        !--- gocart2G processes:
        call SU2G_params%emissions_GridComp(SU2G,its,ite,jts,jte,kts,kte,iyear,imonth,iday,ihour,iminute,isecond)
-       call SU2G_params%processes_GridComp(SU2G,to_MYNN,its,ite,jts,jte,kts,kte, &
+       call SU2G_params%processes_GridComp(SU2G,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte, &
                                            iyear,imonth,iday,ihour,iminute,isecond)
        if(to_RRTMG) call SU2G_params%rrtmg_GridComp(SU2G,its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
@@ -566,7 +568,7 @@
 
 
     !--- feedbacks to physics:
-    if(to_MYNN) then
+    if(to_MYNN .or. to_THOM) then
        call mpas_chem_gocart2G%gocart2G_dims(mesh,state)
        call mpas_chem_gocart2G%gocart2G_forMPASphys(diag_physics,CA2G_bc,CA2G_br,CA2G_oc, &
                                                     DU2G,NI2G,SS2G,SU2G,SOA2G)

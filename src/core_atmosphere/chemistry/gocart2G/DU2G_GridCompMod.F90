@@ -284,11 +284,11 @@
  end subroutine emissions_DU2G_GridComp
 
 !==================================================================================================================
- subroutine processes_DU2G_GridComp(self_params,self,to_MYNN,its,ite,jts,jte,kts,kte)
+ subroutine processes_DU2G_GridComp(self_params,self,to_MYNN,to_THOM,its,ite,jts,jte,kts,kte)
 !==================================================================================================================
 
 !--- input arguments:
- logical,intent(in):: to_MYNN
+ logical,intent(in):: to_MYNN,to_THOM
  integer,intent(in):: its,ite,jts,jte,kts,kte
  class(DU2G_GridComp),intent(in):: self_params
 
@@ -394,12 +394,13 @@
 
 !--- DU2G large-scale wet removal:
 !call mpas_log_write('--- enter subroutine WetRemovalGOCART2G:')
- do ibin = 1, self_params%nbins
-    if(associated(self%duwt)) self%duwt(:,:,ibin) = 0._RKIND
-    KIN   = .true.
-    fwet  = 0.8_RKIND
-    istat = 0
-    call WetRemovalGOCART2G( &
+ if(.not. to_THOM) then
+    do ibin = 1, self_params%nbins
+       if(associated(self%duwt)) self%duwt(:,:,ibin) = 0._RKIND
+       KIN   = .true.
+       fwet  = 0.8_RKIND
+       istat = 0
+       call WetRemovalGOCART2G( &
               km        = self_params%km      , &
               klid      = self_params%klid    , &
               n1        = self_params%nbins   , &
@@ -421,12 +422,13 @@
               fluxout   = self%duwt           , &
               rc        = istat                 &
                         )
- enddo
- if(istat /=0) then
-    call mpas_log_write('--- DU2G_GridComp: error in subroutine WetRemovalGOCART2G.', &
-                        messageType=MPAS_LOG_CRIT)
- else
-!   call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
+    enddo
+    if(istat /=0) then
+       call mpas_log_write('--- DU2G_GridComp: error in subroutine WetRemovalGOCART2G.', &
+                           messageType=MPAS_LOG_CRIT)
+    else
+!      call mpas_log_write('--- end subroutine WetRemovalGOCART2G.')
+    endif
  endif
 
 
