@@ -181,9 +181,6 @@
  errmsg = ' '
  errflg = 0
 
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine cu_ntiedtke_driver:')
-
  call cu_ntiedtke_init( &
                        con_cp  = cp  , con_rd = rd   , con_rv   = rv   , con_xlv = xlv    , &
                        con_xls = xls , con_xlf = xlf , con_grav = grav , errmsg  = errmsg , &
@@ -355,8 +352,6 @@
 #endif
 
  enddo
-
- call mpas_log_write('--- end subroutine cu_ntiedtke_driver.')
 
  end subroutine cu_ntiedtke_driver
 
