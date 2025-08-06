@@ -48,6 +48,7 @@
 
  logical,pointer:: to_MYNN
  logical,pointer:: to_NTIEDTKE
+ logical,pointer:: to_THOM
 
  integer:: its,ite,jts,jte,kts,kte,nerod
  integer:: nbndlw,nbndsw
@@ -84,6 +85,7 @@
 
  call mpas_pool_get_config(configs,'config_gocart2G_toMYNN'    ,to_MYNN    )
  call mpas_pool_get_config(configs,'config_gocart2G_toNTIEDTKE',to_NTIEDTKE)
+ call mpas_pool_get_config(configs,'config_gocart2G_toTHOM'    ,to_THOM    )
 
 
 !--- reads input wavelengths from LUT:
@@ -383,7 +385,7 @@
 
 
 !--- FEEBACKS TO PHYSICS:
- if(to_MYNN .or. to_NTIEDTKE) then
+ if(to_MYNN .or. to_NTIEDTKE .or. to_THOM) then
     call mpas_chem_gocart2G%gocart2G_dims(mesh,state)
     call mpas_chem_gocart2G%gocart2G_allocate()
     call mpas_chem_gocart2G%gocart2G_forMPASphys_init(CA2G_bc_params,CA2G_br_params,CA2G_oc_params, &

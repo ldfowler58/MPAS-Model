@@ -254,6 +254,12 @@
       <var name="suasy_sw" type="real" dimensions="nbndSW nVertLevels nCells Time" units="dimensionless"
            description="Sulfate aerosol asymmetry factor for the RRTMG shortwave radiation code"/>
 
+      <var name="gocart2G_nwfa" type="real" dimensions="nVertLevels nCells Time" units="nb kg^{-1}"
+           description="gocart2G Water-friendly aerosol number concentration"/>
+
+      <var name="gocart2G_nifa" type="real" dimensions="nVertLevels nCells Time" units="nb kg^{-1}"
+           description="gocart2G Ice-friendly aerosol number concentration"/>
+
  </var_struct>
 
 
