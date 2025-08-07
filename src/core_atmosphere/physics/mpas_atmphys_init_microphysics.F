@@ -92,13 +92,14 @@
  end subroutine init_thompson_clouddroplets_forMPAS 
 
 !=================================================================================================================
- subroutine init_thompson_aerosols_forMPAS(do_restart,dminfo,mesh,state,time_lev,diag_physics)
+ subroutine init_thompson_aerosols_forMPAS(do_restart,do_gocart2G,dminfo,mesh,state,time_lev,diag_physics)
 !=================================================================================================================
 
 !input variables:
  type(dm_info),intent(in):: dminfo
  type(mpas_pool_type),intent(in):: mesh
  logical,intent(in):: do_restart
+ logical,intent(in):: do_gocart2G
  integer,intent(in):: time_lev
 
 !inout variables:
@@ -140,6 +141,9 @@
 !... if do_restart is true, then we do not need to check the initialization of nwfa, nifa, and nwfa2d. If false,
 !    then, we proceed with the initialization:
  if(do_restart) return
+
+!... if do_gocart2G is true, then we do not need to proceed further with the initialization:
+ if(do_gocart2G) return
 
  call mpas_pool_get_dimension(mesh,'nCellsSolve',nCellsSolve)
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)

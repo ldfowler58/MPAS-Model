@@ -16,6 +16,10 @@
  use mpas_atmphys_interface
  use mpas_atmphys_vars
 
+#ifdef DO_GOCART2G
+ use mpas_chemistry_gocart2G_vars
+#endif
+
 !wrf physics:
  use module_mp_kessler
  use module_mp_thompson
@@ -127,7 +131,7 @@
  if(.not.allocated(rainncv_p)) allocate(rainncv_p(ims:ime,jms:jme))
 
  microp_select: select case(trim(microp_scheme))
-    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+    case ("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G","mp_wsm6")
        !mass mixing ratios:
        if(.not.allocated(qi_p)) allocate(qi_p(ims:ime,kms:kme,jms:jme))
        if(.not.allocated(qs_p)) allocate(qs_p(ims:ime,kms:kme,jms:jme))
@@ -150,7 +154,7 @@
        if(.not.allocated(evapprod_p)) allocate(evapprod_p(ims:ime,kms:kme,jms:jme))
 
     microp2_select: select case(trim(microp_scheme))
-       case("mp_thompson","mp_thompson_aerosols")
+       case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G")
           if(.not.allocated(ntc_p)) allocate(ntc_p(ims:ime,jms:jme))
           if(.not.allocated(muc_p)) allocate(muc_p(ims:ime,jms:jme))
           if(.not.allocated(ni_p) ) allocate(ni_p(ims:ime,kms:kme,jms:jme))
@@ -168,6 +172,9 @@
                 if(.not.allocated(nc_p)    ) allocate(nc_p(ims:ime,kms:kme,jms:jme)  )
                 if(.not.allocated(nifa_p)  ) allocate(nifa_p(ims:ime,kms:kme,jms:jme))
                 if(.not.allocated(nwfa_p)  ) allocate(nwfa_p(ims:ime,kms:kme,jms:jme))
+
+              case("mp_thompson_gocart2G")
+                if(.not.allocated(nc_p)) allocate(nc_p(ims:ime,kms:kme,jms:jme))
 
              case default
           end select microp3_select
@@ -213,7 +220,7 @@
  if(allocated(rainncv_p)) deallocate(rainncv_p)
 
  microp_select: select case(trim(microp_scheme))
-    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+    case ("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G","mp_wsm6")
        !mass mixing ratios:
        if(allocated(qi_p)) deallocate(qi_p)
        if(allocated(qs_p)) deallocate(qs_p)
@@ -236,7 +243,7 @@
        if(allocated(evapprod_p)) deallocate(evapprod_p)
 
     microp2_select: select case(trim(microp_scheme))
-       case("mp_thompson","mp_thompson_aerosols")
+       case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G")
           if(allocated(ntc_p)) deallocate(ntc_p)
           if(allocated(muc_p)) deallocate(muc_p)
           if(allocated(ni_p) ) deallocate(ni_p )
@@ -254,6 +261,9 @@
                 if(allocated(nc_p)    ) deallocate(nc_p    )
                 if(allocated(nifa_p)  ) deallocate(nifa_p  )
                 if(allocated(nwfa_p)  ) deallocate(nwfa_p  )
+
+              case("mp_thompson_gocart2G")
+                if(allocated(nc_p)) deallocate(nc_p)
 
              case default
           end select microp3_select
@@ -282,6 +292,7 @@
  type(mpas_pool_type),intent(inout):: state
 
 !local pointer:
+ logical:: do_gocart2G
  logical,pointer:: do_restart
  character(len=StrKIND),pointer:: microp_scheme
 
@@ -301,13 +312,15 @@
  call mpas_pool_get_config(configs,'config_do_restart'   ,do_restart   )
 
  microp_select: select case(trim(microp_scheme))
-    case("mp_thompson","mp_thompson_aerosols")
+    case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G")
        call thompson_init(l_mp_tables)
        call init_thompson_clouddroplets_forMPAS(mesh,sfc_input,diag_physics)
 
        microp2_select: select case(trim(microp_scheme))
-          case("mp_thompson_aerosols")
-             call init_thompson_aerosols_forMPAS(do_restart,dminfo,mesh,state,time_lev,diag_physics)
+          case("mp_thompson_aerosols","mp_thompson_gocart2G")
+             do_gocart2G = .false.
+             if(trim(microp_scheme) == "mp_thompson_gocart2G") do_gocart2G = .true.
+             call init_thompson_aerosols_forMPAS(do_restart,do_gocart2G,dminfo,mesh,state,time_lev,diag_physics)
 
           case default
        end select microp2_select
@@ -446,6 +459,40 @@
           enddo
           call mpas_timer_stop('mp_thompson_aerosols')
 
+    case ("mp_thompson_gocart2G")
+       call mpas_timer_start('mp_thompson_gocart2G')
+#ifdef DO_GOCART2G
+!      call mpas_chem_gocart2G%gocart2G_dims(mesh,state)
+!      call mpas_chem_gocart2G%gocart2G_allocate
+       call mpas_chem_gocart2G%gocart2G_forMPASthom(state,time_lev)
+       istep = 1
+       do while (istep .le. n_microp)
+       call mp_gt_driver( &
+                  th       = th_p        , qv        = qv_p        , qc         = qc_p         , &
+                  qr       = qr_p        , qi        = qi_p        , qs         = qs_p         , &
+                  qg       = qg_p        , ni        = ni_p        , nr         = nr_p         , &
+                  pii      = pi_p        , p         = pres_p      , dz         = dz_p         , &
+                  w        = w_p         , dt_in     = dt_microp   , itimestep  = itimestep    , &
+                  rainnc   = rainnc_p    , rainncv   = rainncv_p   , snownc     = snownc_p     , &
+                  snowncv  = snowncv_p   , graupelnc = graupelnc_p , graupelncv = graupelncv_p , &
+                  sr       = sr_p        , rainprod  = rainprod_p  , evapprod   = evapprod_p   , &
+                  re_cloud = recloud_p   , re_ice    = reice_p     , re_snow    = resnow_p     , &
+                  has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
+                  nc       = nc_p        , ntc       = ntc_p       , muc        = muc_p        , &
+                  pflrain  = prcpfluxr_p , pflice    = prcpfluxi_p , pflsnow    = prcpfluxs_p  , &
+                  pflgraul = prcpfluxg_p ,                                                       &
+                  nwfa = mpas_chem_gocart2G%chem_nwfa,                                           &
+                  nifa = mpas_chem_gocart2G%chem_nifa,                                           &
+                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde        , &
+                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
+                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
+                           )
+       istep = istep + 1
+       enddo
+       call mpas_chem_gocart2G%gocart2G_fromMPASthom(state,time_lev)
+#endif
+       call mpas_timer_stop('mp_thompson_aerosols')
+
     case ("mp_wsm6")
        call mpas_timer_start('mp_wsm6')
        call wsm6( &
@@ -479,9 +526,10 @@
  if (l_diags) then
     !ensure that we only call compute_radar_reflectivity() if we are using an MPS that supports
     !the computation of simulated radar reflectivity:
-    if(trim(microp_scheme) == "mp_wsm6"     .or. &
-       trim(microp_scheme) == "mp_thompson" .or. &
-       trim(microp_scheme) == "mp_thompson_aerosols") then
+    if(trim(microp_scheme) == "mp_wsm6"              .or. &
+       trim(microp_scheme) == "mp_thompson"          .or. &
+       trim(microp_scheme) == "mp_thompson_aerosols" .or. &
+       trim(microp_scheme) == "mp_thompson_gocart2G") then
        call compute_radar_reflectivity(configs,diag_physics,its,ite)
     else
        call mpas_log_write('*** NOTICE: NOT computing simulated radar reflectivity')
@@ -553,7 +601,7 @@
 
 !variables specific to different cloud microphysics schemes:
  microp_select: select case(trim(microp_scheme))
-    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+    case ("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G","mp_wsm6")
        do j = jts, jte
        do i = its, ite
           snowncv_p(i,j)    = 0._RKIND
@@ -645,7 +693,7 @@
 
 !variables specific to different cloud microphysics schemes:
  microp_select: select case(trim(microp_scheme))
-    case ("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+    case ("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G","mp_wsm6")
        do j = jts,jte
        do i = its,ite
           !time-step precipitation:
@@ -747,7 +795,7 @@
        if(allocated(dBz1d)) deallocate(dBZ1d)
        if(allocated(zp)   ) deallocate(zp   )
 
-    case ("mp_thompson","mp_thompson_aerosols")
+    case ("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G")
        if(.not.allocated(p1d)  ) allocate(p1d(kts:kte)  )
        if(.not.allocated(t1d)  ) allocate(t1d(kts:kte)  )
        if(.not.allocated(qv1d) ) allocate(qv1d(kts:kte) )

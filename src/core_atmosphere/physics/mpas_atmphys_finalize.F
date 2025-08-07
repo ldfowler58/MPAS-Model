@@ -56,8 +56,9 @@
  if(trim(config_lsm_scheme) == 'sf_noahmp') &
     call sf_noahmp_deallocate
 
- if(trim(config_microp_scheme) == 'mp_thompson'         .or. &
-    trim(config_microp_scheme) == 'mp_thompson_aerosols') then
+ if(trim(config_microp_scheme) == 'mp_thompson'          .or. &
+    trim(config_microp_scheme) == 'mp_thompson_aerosols' .or. &
+    trim(config_microp_scheme) == 'mp_thompson_gocart2G') then
     call mp_thompson_deallocate
  endif
 

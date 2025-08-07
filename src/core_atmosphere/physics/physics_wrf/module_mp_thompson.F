@@ -1024,8 +1024,13 @@
                             its,ite, jts,jte, kts,kte
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
                           qv, qc, qr, qi, qs, qg, ni, nr, th
+#ifdef DO_GOCART2G
+      real,dimension(its:ite,kts:kte),intent(inout),optional:: nwfa,nifa
+      real,dimension(ims:ime,kms:kme,jms:jme),intent(inout),optional:: nc
+#else
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
                           nc, nwfa, nifa
+#endif
       REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(IN):: nwfa2d, nifa2d
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
                           re_cloud, re_ice, re_snow
@@ -1074,6 +1079,10 @@
 !     CHARACTER*256:: mp_debug
 
 !+---+
+
+!     call mpas_log_write(' ')
+!     call mpas_log_write('--- enter subroutine mp_gt_driver - is_aerosol_aware = $l', &
+!                         logicArgs=(/is_aerosol_aware/))
 
       i_start = its
       j_start = jts
@@ -1174,12 +1183,20 @@
             rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
          enddo
          if (is_aerosol_aware) then
+#ifdef DO_GOCART2G
+            do k = kts, kte
+               nc1d(k)   = nc(i,k,j)
+               nwfa1d(k) = nwfa(i,k)
+               nifa1d(k) = nifa(i,k)
+            enddo
+#else
             do k = kts, kte
                nc1d(k) = nc(i,k,j)
                nwfa1d(k) = nwfa(i,k,j)
                nifa1d(k) = nifa(i,k,j)
             enddo
             nwfa1 = nwfa2d(i,j)
+#endif
          else
             do k = kts, kte
                nc1d(k) = Nt_c/rho(k)
@@ -1212,8 +1229,6 @@
          ENDIF
          SR(i,j) = (pptsnow + pptgraul + pptice)/(RAINNCV(i,j)+1.e-12)
 
-
-
          if(present(pflrain) .and. present(pflice) .and. &
             present(pflsnow) .and. present(pflgraul)) then
             do k = kts, kte
@@ -1228,6 +1243,13 @@
 !.. Changed 13 May 2013 to fake emissions in which nwfa2d is aerosol
 !.. number tendency (number per kg per second).
          if (is_aerosol_aware) then
+#ifdef DO_GOCART2G
+            do k = kts, kte
+               nc(i,k,j) = nc1d(k)
+               nwfa(i,k) = nwfa1d(k)
+               nifa(i,k) = nifa1d(k)
+            enddo
+#else
 !-GT        nwfa1d(kts) = nwfa1
             nwfa1d(kts) = nwfa1d(kts) + nwfa2d(i,j)*dt_in
             nifa1d(kts) = nifa1d(kts) + nifa2d(i,j)*dt_in
@@ -1237,6 +1259,7 @@
                nwfa(i,k,j) = nwfa1d(k)
                nifa(i,k,j) = nifa1d(k)
             enddo
+#endif
          endif
 
          do k = kts, kte

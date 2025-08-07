@@ -37,7 +37,7 @@
  character(len=StrKIND),pointer:: config_convection_scheme
  character(len=StrKIND),pointer:: config_pbl_scheme
  character(len=StrKIND),pointer:: config_lsm_scheme
- logical,pointer:: mp_kessler_in,mp_thompson_in,mp_thompson_aers_in,mp_wsm6_in
+ logical,pointer:: mp_kessler_in,mp_gocart2G_in,mp_thompson_in,mp_thompson_aers_in,mp_wsm6_in
  logical,pointer:: cu_grell_freitas_in,cu_kain_fritsch_in,cu_ntiedtke_in
  logical,pointer:: bl_mynn_in,bl_ysu_in
  logical,pointer:: sf_noahmp_in
@@ -60,6 +60,9 @@
  nullify(mp_kessler_in)
  call mpas_pool_get_package(packages,'mp_kessler_inActive',mp_kessler_in)
 
+ nullify(mp_gocart2G_in)
+ call mpas_pool_get_package(packages,'mp_gocart2G_inActive',mp_gocart2G_in)
+
  nullify(mp_thompson_in)
  call mpas_pool_get_package(packages,'mp_thompson_inActive',mp_thompson_in)
 
@@ -69,7 +72,8 @@
  nullify(mp_wsm6_in)
  call mpas_pool_get_package(packages,'mp_wsm6_inActive',mp_wsm6_in)
 
- if(.not.associated(mp_kessler_in      )  .or. &
+ if(.not.associated(mp_kessler_in      ) .or. &
+    .not.associated(mp_gocart2G_in     ) .or. &
     .not.associated(mp_thompson_in     ) .or. &
     .not.associated(mp_thompson_aers_in) .or. &
     .not.associated(mp_wsm6_in)) then
@@ -81,6 +85,7 @@
  endif
 
  mp_kessler_in       = .false.
+ mp_gocart2G_in      = .false.
  mp_thompson_in      = .false.
  mp_thompson_aers_in = .false.
  mp_wsm6_in          = .false.
@@ -91,11 +96,14 @@
     mp_thompson_in = .true.
  elseif(config_microp_scheme == 'mp_thompson_aerosols') then
     mp_thompson_aers_in = .true.
+ elseif(config_microp_scheme == 'mp_thompson_gocart2G') then
+    mp_gocart2G_in = .true.
  elseif(config_microp_scheme == 'mp_wsm6') then
     mp_wsm6_in = .true.
  endif
 
  call mpas_log_write('    mp_kessler_in           = $l', logicArgs=(/mp_kessler_in/))
+ call mpas_log_write('    mp_gocart2G_in          = $l', logicArgs=(/mp_gocart2G_in/))
  call mpas_log_write('    mp_thompson_in          = $l', logicArgs=(/mp_thompson_in/))
  call mpas_log_write('    mp_thompson_aers_in     = $l', logicArgs=(/mp_thompson_aers_in/))
  call mpas_log_write('    mp_wsm6_in              = $l', logicArgs=(/mp_wsm6_in/))

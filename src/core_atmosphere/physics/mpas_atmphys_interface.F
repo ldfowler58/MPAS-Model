@@ -627,7 +627,7 @@
 
 !initialize cloud water species and aerosols as function of cloud microphysics scheme:
  mp_select: select case(trim(mp_scheme))
-    case("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+    case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G","mp_wsm6")
        call mpas_pool_get_dimension(state,'index_qi',index_qi)
        call mpas_pool_get_dimension(state,'index_qs',index_qs)
        call mpas_pool_get_dimension(state,'index_qg',index_qg)
@@ -658,7 +658,7 @@
        enddo
 
        mp2_select: select case(trim(mp_scheme))
-          case("mp_thompson","mp_thompson_aerosols")
+          case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G")
              call mpas_pool_get_dimension(state,'index_ni',index_ni)
              call mpas_pool_get_dimension(state,'index_nr',index_nr)
              ni   => scalars(index_ni,:,:)
@@ -704,6 +704,17 @@
                 enddo
                 enddo
 
+             case("mp_thompson_gocart2G")
+                call mpas_pool_get_dimension(state,'index_nc',index_nc)
+                nc => scalars(index_nc,:,:)
+                do j = jts,jte
+                do k = kts, kte
+                do i = its, ite
+                   nc_p(i,k,j) = nc(k,i)
+                enddo
+                enddo
+                enddo
+
              case default
           end select mp3_select
 
@@ -712,10 +723,19 @@
 
     case default
  end select mp_select
+!call mpas_log_write('--- end subroutine microphysics_from_MPAS:')
+!do j = jts,jte
+!   do i = its,ite
+!      do k = kts,kte
+!         call mpas_log_write('$i $i $r',intArgs=(/i,k/),realArgs=(/nc_p(i,k,j)/))
+!      enddo
+!      call mpas_log_write(' ')
+!   enddo
+!enddo
 
 !begin calculation of cloud microphysics tendencies:
  mp_tend_select: select case(trim(mp_scheme))
-    case("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+    case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G","mp_wsm6")
        call mpas_pool_get_array(tend_physics,'rthmpten',rthmpten)
        call mpas_pool_get_array(tend_physics,'rqvmpten',rqvmpten)
        call mpas_pool_get_array(tend_physics,'rqcmpten',rqcmpten)
@@ -737,7 +757,7 @@
        enddo
 
        mp2_tend_select: select case(trim(mp_scheme))
-          case("mp_thompson","mp_thompson_aerosols")
+          case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G")
              call mpas_pool_get_array(tend_physics,'rnimpten',rnimpten)
              call mpas_pool_get_array(tend_physics,'rnrmpten',rnrmpten)
 
@@ -759,6 +779,15 @@
                       rncmpten(k,i) = nc(k,i)
                       rnifampten(k,i) = nifa(k,i)
                       rnwfampten(k,i) = nwfa(k,i)
+                   enddo
+                   enddo
+
+                case("mp_thompson_gocart2G")
+                   call mpas_pool_get_array(tend_physics,'rncmpten',rncmpten)
+
+                   do k = kts,kte
+                   do i = its,ite
+                      rncmpten(k,i) = nc(k,i)
                    enddo
                    enddo
 
@@ -902,7 +931,7 @@
 
 !update cloud water species and aerosols as functions of cloud microphysics schemes:
  mp_select: select case(trim(mp_scheme))
-    case("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+    case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G","mp_wsm6")
        call mpas_pool_get_dimension(state,'index_qi',index_qi)
        call mpas_pool_get_dimension(state,'index_qs',index_qs)
        call mpas_pool_get_dimension(state,'index_qg',index_qg)
@@ -933,7 +962,7 @@
        enddo
 
        mp2_select: select case(trim(mp_scheme))
-          case("mp_thompson","mp_thompson_aerosols")
+          case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G")
              call mpas_pool_get_dimension(state,'index_ni',index_ni)
              call mpas_pool_get_dimension(state,'index_nr',index_nr)
              ni   => scalars(index_ni,:,:)
@@ -988,6 +1017,18 @@
                    enddo
                    enddo
 
+                case("mp_thompson_gocart2G")
+                   call mpas_pool_get_dimension(state,'index_nc'  ,index_nc  )
+                   nc => scalars(index_nc,:,:)
+
+                   do j = jts,jte
+                   do k = kts, kte
+                   do i = its, ite
+                      nc(k,i)   = nc_p(i,k,j)
+                   enddo
+                   enddo
+                   enddo
+
                 case default
              end select mp3_select
 
@@ -999,7 +1040,7 @@
 
 !end calculation of cloud microphysics tendencies:
  mp_tend_select: select case(trim(mp_scheme))
-    case("mp_thompson","mp_thompson_aerosols","mp_wsm6")
+    case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G","mp_wsm6")
        call mpas_pool_get_array(tend_physics,'rthmpten',rthmpten)
        call mpas_pool_get_array(tend_physics,'rqvmpten',rqvmpten)
        call mpas_pool_get_array(tend_physics,'rqcmpten',rqcmpten)
@@ -1021,7 +1062,7 @@
        enddo
 
        mp2_tend_select: select case(trim(mp_scheme))
-          case("mp_thompson","mp_thompson_aerosols")
+          case("mp_thompson","mp_thompson_aerosols","mp_thompson_gocart2G")
              call mpas_pool_get_array(tend_physics,'rnimpten',rnimpten)
              call mpas_pool_get_array(tend_physics,'rnrmpten',rnrmpten)
 
@@ -1043,6 +1084,15 @@
                       rncmpten(k,i)   = (nc(k,i)-rncmpten(k,i))/dt_dyn
                       rnifampten(k,i) = (nifa(k,i)-rnifampten(k,i))/dt_dyn
                       rnwfampten(k,i) = (nwfa(k,i)-rnwfampten(k,i))/dt_dyn
+                   enddo
+                   enddo
+
+                case("mp_thompson_gocart2G")
+                   call mpas_pool_get_array(tend_physics,'rncmpten',rncmpten)
+
+                   do k = kts,kte
+                   do i = its,ite
+                      rncmpten(k,i)   = (nc(k,i)-rncmpten(k,i))/dt_dyn
                    enddo
                    enddo
 
