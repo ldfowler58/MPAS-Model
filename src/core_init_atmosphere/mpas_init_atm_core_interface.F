@@ -377,10 +377,6 @@ module init_atm_core_interface
       if (config_init_case == 7) then
          if (config_gocart2G_static) then
             gocart2G_static_out = .true.
-            gwd_stage_in        = .true.
-            gwd_stage_out       = .true.
-            vertical_stage_in   = .true.
-            met_stage_in        = .true.
          elseif(.not. config_gocart2G_static .and. (config_vertical_grid .or.  config_met_interp)) then
             gocart2G_static_in  = .true.
             gocart2G_static_out = .true.
