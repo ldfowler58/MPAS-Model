@@ -11,9 +11,8 @@
  use mpas_kind_types
  use mpas_pool_routines
  use mpas_stream_manager
- use mpas_timekeeping,only: sub_t_t
- use mpas_derived_types,only     : mpas_time_type,mpas_timeinterval_type
- use mpas_timekeeping,only       : mpas_get_clock_time,mpas_set_time,mpas_get_timeInterval
+ use mpas_derived_types,only: mpas_time_type,mpas_timeinterval_type
+ use mpas_timekeeping,only  : mpas_get_clock_time,mpas_set_time,mpas_get_timeInterval,sub_t_t
 
 
  implicit none
@@ -58,7 +57,7 @@
  integer:: iCell
  real(kind=RKIND):: total_dt,before_dt,after_dt
 
- real(kind=RKIND),dimension(:),pointer:: anth_less100m,anth_less500m,anth_ship,anth_aviation_lto, &
+ real(kind=RKIND),dimension(:),pointer:: anth_less100m,anth_less500m,anth_biofuel,anth_ship,anth_aviation_lto, &
                                          anth_aviation_cds,anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: anth_aircraft
 
@@ -68,8 +67,8 @@
                                          bc_anth_swd,bc_anth_tnr,bc_anth_tro
 
 !gocart2G anthropogenic emissions:
- real(kind=RKIND),dimension(:),pointer:: bc_anth_less100m,bc_anth_less500m,bc_anth_ship,bc_anth_aviation_lto, &
-                                         bc_anth_aviation_cds,bc_anth_aviation_crs
+ real(kind=RKIND),dimension(:),pointer:: bc_anth_less100m,bc_anth_less500m,bc_anth_biofuel,bc_anth_ship, &
+                                         bc_anth_aviation_lto,bc_anth_aviation_cds,bc_anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: bc_anth_aircraft
 
 !------------------------------------------------------------------------------------------------------------------
@@ -84,6 +83,7 @@
 
  allocate(anth_less100m(nCells+1)    )
  allocate(anth_less500m(nCells+1)    )
+ allocate(anth_biofuel(nCells+1)     )
  allocate(anth_ship(nCells+1)        )
  allocate(anth_aviation_lto(nCells+1))
  allocate(anth_aviation_cds(nCells+1))
@@ -98,6 +98,7 @@
 
  call mpas_pool_get_array(anth_emissions,'bc_anth_less100m'    ,bc_anth_less100m    )
  call mpas_pool_get_array(anth_emissions,'bc_anth_less500m'    ,bc_anth_less500m    )
+ call mpas_pool_get_array(anth_emissions,'bc_anth_biofuel'     ,bc_anth_biofuel     )
  call mpas_pool_get_array(anth_emissions,'bc_anth_ship'        ,bc_anth_ship        )
  call mpas_pool_get_array(anth_emissions,'bc_anth_aviation_lto',bc_anth_aviation_lto)
  call mpas_pool_get_array(anth_emissions,'bc_anth_aviation_cds',bc_anth_aviation_cds)
@@ -105,6 +106,7 @@
  call mpas_pool_get_array(anth_emissions,'bc_anth_aircraft'    ,bc_anth_aircraft    )
  bc_anth_less100m(:)     = 0._RKIND
  bc_anth_less500m(:)     = 0._RKIND
+ bc_anth_biofuel(:)      = 0._RKIND
  bc_anth_ship(:)         = 0._RKIND
  bc_anth_aviation_lto(:) = 0._RKIND
  bc_anth_aviation_cds(:) = 0._RKIND
@@ -131,8 +133,8 @@
  call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
  call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
 
-
- anth_less100m(1:nCells) = bc_anth_sum(1:nCells)
+ anth_biofuel(1:nCells)  = bc_anth_res(1:nCells)
+ anth_less100m(1:nCells) = bc_anth_sum(1:nCells) - bc_anth_res(1:nCells)
 
 
  call mpas_stream_mgr_read(stream_manager,'anth_bc_emissions',rightNow=.true., &
@@ -158,7 +160,9 @@
 
 !interpolation of surface emissions to the current time:
  if(total_dt > 0.0_RKIND) then
-    bc_anth_less100m(:) = (after_dt/total_dt)*anth_less100m(:) + (before_dt/total_dt)*bc_anth_sum(:)
+    bc_anth_biofuel(:)  = (after_dt/total_dt)*anth_biofuel(:) + (before_dt/total_dt)*bc_anth_res(:)
+    bc_anth_less100m(:) = (after_dt/total_dt)*anth_less100m(:) &
+                        + (before_dt/total_dt)*(bc_anth_sum(:)-bc_anth_res(:))
  endif
 
 
@@ -197,7 +201,7 @@
  integer:: iCell
  real(kind=RKIND):: total_dt,before_dt,after_dt
 
- real(kind=RKIND),dimension(:),pointer:: anth_less100m,anth_less500m,anth_ship,anth_aviation_lto, &
+ real(kind=RKIND),dimension(:),pointer:: anth_less100m,anth_less500m,anth_biofuel,anth_ship,anth_aviation_lto, &
                                          anth_aviation_cds,anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: anth_aircraft
 
@@ -207,8 +211,8 @@
                                          oc_anth_swd,oc_anth_tnr,oc_anth_tro
 
 !gocart2G anthropogenic emissions:
- real(kind=RKIND),dimension(:),pointer:: oc_anth_less100m,oc_anth_less500m,oc_anth_ship,oc_anth_aviation_lto, &
-                                         oc_anth_aviation_cds,oc_anth_aviation_crs
+ real(kind=RKIND),dimension(:),pointer:: oc_anth_less100m,oc_anth_less500m,oc_anth_biofuel,oc_anth_ship, &
+                                         oc_anth_aviation_lto,oc_anth_aviation_cds,oc_anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: oc_anth_aircraft
 
 !------------------------------------------------------------------------------------------------------------------
@@ -224,7 +228,9 @@
 
  allocate(anth_less100m(nCells+1)    )
  allocate(anth_less500m(nCells+1)    )
+ allocate(anth_biofuel(nCells+1)     )
  allocate(anth_ship(nCells+1)        )
+ allocate(anth_biofuel(nCells+1)     )
  allocate(anth_aviation_lto(nCells+1))
  allocate(anth_aviation_cds(nCells+1))
  allocate(anth_aviation_crs(nCells+1))
@@ -238,6 +244,7 @@
 
  call mpas_pool_get_array(anth_emissions,'oc_anth_less100m'    ,oc_anth_less100m    )
  call mpas_pool_get_array(anth_emissions,'oc_anth_less500m'    ,oc_anth_less500m    )
+ call mpas_pool_get_array(anth_emissions,'oc_anth_biofuel'     ,oc_anth_biofuel     )
  call mpas_pool_get_array(anth_emissions,'oc_anth_ship'        ,oc_anth_ship        )
  call mpas_pool_get_array(anth_emissions,'oc_anth_aviation_lto',oc_anth_aviation_lto)
  call mpas_pool_get_array(anth_emissions,'oc_anth_aviation_cds',oc_anth_aviation_cds)
@@ -245,6 +252,7 @@
  call mpas_pool_get_array(anth_emissions,'oc_anth_aircraft'    ,oc_anth_aircraft    )
  oc_anth_less100m(:)     = 0._RKIND
  oc_anth_less500m(:)     = 0._RKIND
+ oc_anth_biofuel(:)      = 0._RKIND
  oc_anth_ship(:)         = 0._RKIND
  oc_anth_aviation_lto(:) = 0._RKIND
  oc_anth_aviation_cds(:) = 0._RKIND
@@ -272,7 +280,8 @@
  call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
 
 
- anth_less100m(1:nCells) = oc_anth_sum(1:nCells)
+ anth_biofuel(1:nCells)  = oc_anth_res(1:nCells)
+ anth_less100m(1:nCells) = oc_anth_sum(1:nCells) - oc_anth_res(1:nCells)
 
 
  call mpas_stream_mgr_read(stream_manager,'anth_oc_emissions',rightNow=.true., &
@@ -298,7 +307,9 @@
 
 !interpolation of surface emissions to the current time:
  if(total_dt > 0.0_RKIND) then
-    oc_anth_less100m(:) = (after_dt/total_dt)*anth_less100m(:) + (before_dt/total_dt)*oc_anth_sum(:)
+    oc_anth_biofuel(:)  = (after_dt/total_dt)*anth_biofuel(:) + (before_dt/total_dt)*oc_anth_res(:)
+    oc_anth_less100m(:) = (after_dt/total_dt)*anth_less100m(:) &
+                        + (before_dt/total_dt)*(oc_anth_sum(:)-oc_anth_res(:))
  endif
 
 

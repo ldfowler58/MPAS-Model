@@ -23,6 +23,11 @@
  real(kind=RKIND),parameter:: voc_BiogIsopFactor    = 0.015 ! (-)
  real(kind=RKIND),parameter:: voc_BiogMonxFactor    = 0.050 ! (-)
 
+!--- parameters used in the equation to compute the emission of brown carbon as a function of the biofuel
+!    emissions of black carbon and organic carbon:
+ real(kind=RKIND),parameter:: alpha_forBRemis       = 0.8396 ! mid-latitude winter cloudy conditions.
+ real(kind=RKIND),parameter:: beta_forBRemis        = 0.2119 ! mid-latitude winter cloudy conditions.
+
 
  type,public:: emis_gocart2G
     integer:: its,ite,jts,jte,kts,kte
@@ -291,14 +296,14 @@
  class(emis_gocart2G),intent(inout):: self
 
 !--- local variables and pointers:
- real(kind=RKIND),dimension(:),pointer:: bc_anth_less100m,bc_anth_less500m,bc_anth_ship,bc_anth_aviation_lto, &
-                                         bc_anth_aviation_cds,bc_anth_aviation_crs
+ real(kind=RKIND),dimension(:),pointer:: bc_anth_less100m,bc_anth_less500m,bc_anth_biofuel,bc_anth_ship, &
+                                         bc_anth_aviation_lto,bc_anth_aviation_cds,bc_anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: bc_anth_aircraft
- real(kind=RKIND),dimension(:),pointer:: br_anth_less100m,br_anth_less500m,br_anth_ship,br_anth_aviation_lto, &
-                                         br_anth_aviation_cds,br_anth_aviation_crs
+ real(kind=RKIND),dimension(:),pointer:: br_anth_less100m,br_anth_less500m,br_anth_biofuel,br_anth_ship, &
+                                         br_anth_aviation_lto,br_anth_aviation_cds,br_anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: br_anth_aircraft
- real(kind=RKIND),dimension(:),pointer:: oc_anth_less100m,oc_anth_less500m,oc_anth_ship,oc_anth_aviation_lto, &
-                                         oc_anth_aviation_cds,oc_anth_aviation_crs
+ real(kind=RKIND),dimension(:),pointer:: oc_anth_less100m,oc_anth_less500m,oc_anth_biofuel,oc_anth_ship, &
+                                         oc_anth_aviation_lto,oc_anth_aviation_cds,oc_anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: oc_anth_aircraft
  real(kind=RKIND),dimension(:),pointer:: nh3_anth_ag,nh3_anth_bb,nh3_anth_en,nh3_anth_in, &
                                          nh3_anth_oc,nh3_anth_re,nh3_anth_tr
@@ -330,6 +335,7 @@
 !--- anthropogenic emissions:
  call mpas_pool_get_array(anth_emissions,'bc_anth_less100m'    ,bc_anth_less100m    )
  call mpas_pool_get_array(anth_emissions,'bc_anth_less500m'    ,bc_anth_less500m    )
+ call mpas_pool_get_array(anth_emissions,'bc_anth_biofuel'     ,bc_anth_biofuel     )
  call mpas_pool_get_array(anth_emissions,'bc_anth_ship'        ,bc_anth_ship        )
  call mpas_pool_get_array(anth_emissions,'bc_anth_aviation_lto',bc_anth_aviation_lto)
  call mpas_pool_get_array(anth_emissions,'bc_anth_aviation_cds',bc_anth_aviation_cds)
@@ -338,6 +344,7 @@
 
  call mpas_pool_get_array(anth_emissions,'br_anth_less100m'    ,br_anth_less100m    )
  call mpas_pool_get_array(anth_emissions,'br_anth_less500m'    ,br_anth_less500m    )
+ call mpas_pool_get_array(anth_emissions,'br_anth_biofuel'     ,br_anth_biofuel     )
  call mpas_pool_get_array(anth_emissions,'br_anth_ship'        ,br_anth_ship        )
  call mpas_pool_get_array(anth_emissions,'br_anth_aviation_lto',br_anth_aviation_lto)
  call mpas_pool_get_array(anth_emissions,'br_anth_aviation_cds',br_anth_aviation_cds)
@@ -346,6 +353,7 @@
 
  call mpas_pool_get_array(anth_emissions,'oc_anth_less100m'    ,oc_anth_less100m    )
  call mpas_pool_get_array(anth_emissions,'oc_anth_less500m'    ,oc_anth_less500m    )
+ call mpas_pool_get_array(anth_emissions,'oc_anth_biofuel'     ,oc_anth_biofuel     )
  call mpas_pool_get_array(anth_emissions,'oc_anth_ship'        ,oc_anth_ship        )
  call mpas_pool_get_array(anth_emissions,'oc_anth_aviation_lto',oc_anth_aviation_lto)
  call mpas_pool_get_array(anth_emissions,'oc_anth_aviation_cds',oc_anth_aviation_cds)
@@ -468,9 +476,14 @@
 !--- biofuel emissions:
  do j = jts,jte
     do i = its,ite
-       self%bc_biofuel(i,j) = 0._RKIND
-       self%br_biofuel(i,j) = 0._RKIND
-       self%oc_biofuel(i,j) = 0._RKIND
+       self%bc_biofuel(i,j) = bc_anth_biofuel(i)
+       self%oc_biofuel(i,j) = oc_anth_biofuel(i)
+
+       if(self%oc_biofuel(i,j) .gt. 0._RKIND) then
+          self%br_biofuel(i,j) = (self%bc_biofuel(i,j)/(1.4*self%oc_biofuel(i,j)))**beta_forBRemis
+          self%br_biofuel(i,j) = alpha_forBRemis*self%br_biofuel(i,j)*self%oc_biofuel(i,j)
+          self%oc_biofuel(i,j) = self%oc_biofuel(i,j) - self%br_biofuel(i,j)
+       endif
 
        !--- secondary organic aerosols:
        self%soap_biofuel(i,j) = 0._RKIND
