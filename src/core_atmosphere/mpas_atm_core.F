@@ -1045,8 +1045,8 @@ module atm_core
       call atm_timestep(domain, dt, currTime, itimestep, exchange_halo_group)
 
 #ifdef DO_GOCART2G
-      call gocart2G_timetracker(domain,clock)
-      call gocart2G_driver(domain,itimestep,xtime_s)
+      call gocart2G_timetracker(domain, clock, domain % streamManager)
+      call gocart2G_driver(domain, itimestep, xtime_s)
 #endif
 
    end subroutine atm_do_timestep

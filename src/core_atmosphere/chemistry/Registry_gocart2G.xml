@@ -33,6 +33,21 @@
            description="time interval between updates to H2O2, OH, NO3, and PTROP climatological fields"
            possible_values="`DD_HH:MM:SS' or `none'"/>
 
+      <nml_option name="config_gocart2G_anthemis_interval" type="character" default_value="01_00:00:00"
+           units="-"
+           description="time interval between updates to anthropogenic surface emissions"
+           possible_values="`DD_HH:MM:SS' or `none'"/>
+
+      <nml_option name="config_gocart2G_biobemis_interval" type="character" default_value="01_00:00:00"
+           units="-"
+           description="time interval between updates to biomass burning surface emissions"
+           possible_values="`DD_HH:MM:SS' or `none'"/>
+
+      <nml_option name="config_gocart2G_biogemis_interval" type="character" default_value="01_00:00:00"
+           units="-"
+           description="time interval between updates to biogenic surface emissions"
+           possible_values="`DD_HH:MM:SS' or `none'"/>
+
       <nml_option name="config_gocart2G_do_CA2Gbc" type="logical" default_value="false"
            units="-"
            description="set to true to apply gocart2G chemistry processes for black carbon; false otherwise"
@@ -418,6 +433,7 @@
  </var_struct>
 
 
+#include "Registry_gocart2G_emissions_update.xml"
 #include "Registry_gocart2G_emissions.xml"
 #include "Registry_gocart2G_AOPs.xml"
 #include "Registry_gocart2G_CA_bc.xml"

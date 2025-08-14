@@ -12,6 +12,7 @@
  use mpas_timekeeping
  use mpas_stream_manager
 
+ use mpas_chemistry_gocart2G_emissions_update
  use mpas_chemistry_gocart2G_update
 
 
@@ -19,7 +20,10 @@
  private
  public:: gocart2G_timetracker,init_gocart2G_timetracker
 
- character(len=*), parameter:: gocart2GAlarmID = 'gocart2G'
+ character(len=*),parameter:: gocart2GAlarmID     = 'gocart2G'
+ character(len=*),parameter:: gocart2GanthAlarmID = 'gocart2G_anth'
+ character(len=*),parameter:: gocart2GbiobAlarmID = 'gocart2G_biob'
+ character(len=*),parameter:: gocart2GbiogAlarmID = 'gocart2G_biog'
 
  integer,public:: iyear
  integer,public:: imonth
@@ -33,12 +37,13 @@
 
 
 !==================================================================================================================
- subroutine gocart2G_timetracker(domain,clock)
+ subroutine gocart2G_timetracker(domain,clock,stream_manager)
 !==================================================================================================================
 
 !--- inout arguments:
  type(MPAS_Clock_type),intent(inout):: clock
  type(domain_type),intent(inout):: domain
+ type(MPAS_streamManager_type),intent(inout):: stream_manager
 
 !--- local variables:
  type(block_type),pointer:: block
@@ -46,9 +51,14 @@
  type(mpas_pool_type),pointer:: mesh
  type(mpas_pool_type),pointer:: gocart2G_met
  type(mpas_pool_type),pointer:: gocart2G_backgrounds
+ type(mpas_pool_type),pointer:: anth_emissions
+ type(mpas_pool_type),pointer:: CAMS_anth_emissions
 
  character(len=StrKIND):: timeStamp
  character(len=StrKIND),pointer:: backg_interval
+ character(len=StrKIND),pointer:: anth_interval
+ character(len=StrKIND),pointer:: biob_interval
+ character(len=StrKIND),pointer:: biog_interval
 
  integer:: ierr
 
@@ -87,6 +97,54 @@
  end do
 
 
+!--- check to see if it is time to update anthropogenic, biomass burning, and biogenic emissions:
+ block => domain%blocklist
+ do while(associated(block))
+
+    call mpas_pool_get_config(domain%blocklist%configs,'config_gocart2G_anthemis_interval',anth_interval)
+    call mpas_pool_get_config(domain%blocklist%configs,'config_gocart2G_biobemis_interval',biob_interval)
+    call mpas_pool_get_config(domain%blocklist%configs,'config_gocart2G_biogemis_interval',biog_interval)
+
+    call mpas_log_write(' ')
+    call mpas_log_write('--- config_gocart2G_anthemis_interval = '//anth_interval)
+    call mpas_log_write('--- config_gocart2G_biobemis_interval = '//biob_interval)
+    call mpas_log_write('--- config_gocart2G_biogemis_interval = '//biog_interval)
+
+    call mpas_pool_get_subpool(block%structs,'mesh'                ,mesh              )
+    call mpas_pool_get_subpool(block%structs,'CAMS_anth_emissions',CAMS_anth_emissions)
+    call mpas_pool_get_subpool(block%structs,'anth_emissions'     ,anth_emissions     )
+
+    if(mpas_is_alarm_ringing(clock,gocart2GanthAlarmID,ierr=ierr)) then
+       call mpas_reset_clock_alarm(clock,gocart2GanthAlarmID,ierr=ierr)
+       call mpas_log_write(' ')
+       call mpas_log_write('--- time to update gocart2G anthropogenic surface emissions:')
+       call update_anth_emissions_bc(clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+       call update_anth_emissions_oc(clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+       call update_anth_emissions_nh3(clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+       call update_anth_emissions_su(clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+       call update_anth_emissions_iso(clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+       call update_anth_emissions_mnt(clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
+    endif
+
+!   if(mpas_is_alarm_ringing(clock,gocart2GbiobAlarmID,ierr=ierr)) then
+!      call mpas_reset_clock_alarm(clock,gocart2GbiobAlarmID,ierr=ierr)
+!      call mpas_log_write(' ')
+!      call mpas_log_write('--- time to update gocart2G biomass burning surface emissions:')
+!      call update_gocart2G_climatology(timeStamp,mesh,gocart2G_met,gocart2G_backgrounds)
+!   endif
+
+!   if(mpas_is_alarm_ringing(clock,gocart2GbiogAlarmID,ierr=ierr)) then
+!      call mpas_reset_clock_alarm(clock,gocart2GbiogAlarmID,ierr=ierr)
+!      call mpas_log_write(' ')
+!      call mpas_log_write('--- time to update gocart2G biogenic surface emissions:')
+!      call update_gocart2G_climatology(timeStamp,mesh,gocart2G_met,gocart2G_backgrounds)
+!   endif
+
+    block => block%next
+
+ end do
+
+
  call mpas_log_write('--- end subroutine gocart2G_timetracker.')
  call mpas_log_write(' ')
 
@@ -97,14 +155,18 @@
 !==================================================================================================================
 
 !--- input arguments:
- type(MPAS_Clock_type):: clock
  type(mpas_pool_type),intent(in):: configs
 
 !--- local variables:
+ type(MPAS_Clock_type),intent(inout):: clock
  type(MPAS_Time_Type):: startTime,alarmStartTime
  type(MPAS_TimeInterval_Type):: alarmTimeStep
 
  character(len=StrKIND),pointer:: backg_interval
+ character(len=StrKIND),pointer:: anth_interval
+ character(len=StrKIND),pointer:: biob_interval
+ character(len=StrKIND),pointer:: biog_interval
+
  integer:: ierr
 
 !------------------------------------------------------------------------------------------------------------------
@@ -142,7 +204,39 @@
  call mpas_add_clock_alarm(clock,gocart2GAlarmID,alarmStartTime,alarmTimeStep,ierr=ierr)
  if(ierr /= 0) &
  call mpas_log_write('--- gocart2G_timetracker_init: error creating gocart2GAlarmID', &
-                           messageType=MPAS_LOG_CRIT)
+                          messageType=MPAS_LOG_CRIT)
+
+
+!--- initializes alarm to update anthropogenic, biomass burning, and biogenic surface emissions:
+ call mpas_pool_get_config(configs,'config_gocart2G_anthemis_interval',anth_interval)
+ call mpas_pool_get_config(configs,'config_gocart2G_biobemis_interval',biob_interval)
+ call mpas_pool_get_config(configs,'config_gocart2G_biogemis_interval',biog_interval)
+
+ ierr = 0
+ call mpas_set_timeInterval(alarmTimeStep,timeString=anth_interval,ierr=ierr)
+ alarmStartTime = startTime
+ call mpas_add_clock_alarm(clock,gocart2GanthAlarmID,alarmStartTime,alarmTimeStep,ierr=ierr)
+ if(ierr /= 0) &
+ call mpas_log_write('--- gocart2G_timetracker_init: error creating gocart2GanthAlarmID', &
+                          messageType=MPAS_LOG_CRIT)
+
+
+ ierr = 0
+ call mpas_set_timeInterval(alarmTimeStep,timeString=biob_interval,ierr=ierr)
+ alarmStartTime = startTime
+ call mpas_add_clock_alarm(clock,gocart2GbiobAlarmID,alarmStartTime,alarmTimeStep,ierr=ierr)
+ if(ierr /= 0) &
+ call mpas_log_write('--- gocart2G_timetracker_init: error creating gocart2GbiobAlarmID', &
+                          messageType=MPAS_LOG_CRIT)
+
+
+ ierr = 0
+ call mpas_set_timeInterval(alarmTimeStep,timeString=biog_interval,ierr=ierr)
+ alarmStartTime = startTime
+ call mpas_add_clock_alarm(clock,gocart2GbiogAlarmID,alarmStartTime,alarmTimeStep,ierr=ierr)
+ if(ierr /= 0) &
+ call mpas_log_write('--- gocart2G_timetracker_init: error creating gocart2GbiogAlarmID', &
+                          messageType=MPAS_LOG_CRIT)
 
 
  call mpas_log_write('--- end subroutine gocart2G_timetracker_init.')
