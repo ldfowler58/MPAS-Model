@@ -478,6 +478,7 @@
     do i = its,ite
        self%bc_biofuel(i,j) = bc_anth_biofuel(i)
        self%oc_biofuel(i,j) = oc_anth_biofuel(i)
+       self%br_biofuel(i,j) = 0._RKIND
 
        if(self%oc_biofuel(i,j) .gt. 0._RKIND) then
           self%br_biofuel(i,j) = (self%bc_biofuel(i,j)/(1.4*self%oc_biofuel(i,j)))**beta_forBRemis
