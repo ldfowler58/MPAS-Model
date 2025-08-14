@@ -68,3 +68,49 @@
            description="Monoterpenes surface emission - sector SUM"/>
 
  </var_struct>
+
+
+ <var_struct name="CAMS_biog_emissions" time_levs="1">
+
+      <var name="co_biog_megan" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Carbon monoxide biogenic surface emission"/>
+
+      <var name="iso_biog_megan" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Isoprene biogenic surface emission"/>
+
+      <var name="mnt_biog_megan" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Other monoterpenes biogenic surface emission"/>
+
+      <var name="mnta_biog_megan" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Alpha-pinene biogenic surface emission"/>
+
+      <var name="mntb_biog_megan" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
+           description="Beta-pinene biogenic surface emission"/>
+
+ </var_struct>
+
+
+ <var_struct name="FINN_biob_emissions" time_levs="1">
+
+      <var name="bc_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Black carbon biomass burning emission"/>
+
+      <var name="oc_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Organic carbon biomass burning emission"/>
+
+      <var name="nh3_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Nitrate biomass burning emission"/>
+
+      <var name="so2_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Sulphur dioxide biomass burning emission"/>
+
+      <var name="co_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Carbon monoxide biomass burning emission"/>
+
+      <var name="iso_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Isoprene biomass burning emission"/>
+
+      <var name="mnt_biob_modis" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
+           description="Monoterpenes biomass burning emission"/>
+
+ </var_struct>

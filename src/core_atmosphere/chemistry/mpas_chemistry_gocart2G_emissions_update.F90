@@ -18,17 +18,19 @@
 
  implicit none
  private
- public:: update_anth_emissions_bc,  &
-          update_anth_emissions_co,  &
-          update_anth_emissions_oc,  &
-          update_anth_emissions_nh3, &
-          update_anth_emissions_su,  &
-          update_anth_emissions_iso, &
-          update_anth_emissions_mnt
+ public:: update_anth_emissions_bc,         &
+          update_anth_emissions_co,         &
+          update_anth_emissions_oc,         &
+          update_anth_emissions_nh3,        &
+          update_anth_emissions_su,         &
+          update_anth_emissions_iso,        &
+          update_anth_emissions_mnt,        &
+          update_biomass_burning_emissions, &
+          update_biog_emissions
 
 
 !update of anthropogenic emissions.
-!laura D. Fowler (laura@ucar.edu) / 2025-08-12.
+!Laura D. Fowler (laura@ucar.edu) / 2025-08-12.
 
 
  contains
@@ -717,6 +719,431 @@
  call mpas_log_write('--- end subroutine update_anth_emissions_mnt.')
 
  end subroutine update_anth_emissions_mnt
+
+!==================================================================================================================
+ subroutine update_biog_emissions(clock,stream_manager,mesh,CAMS_biog_emissions,biog_emissions)
+!==================================================================================================================
+
+!input arguments:
+ type(mpas_Clock_type),intent(in):: clock
+ type(mpas_pool_type),intent(in),pointer:: mesh
+ type(mpas_pool_type),intent(inout),pointer:: CAMS_biog_emissions
+
+!inout arguments:
+ type(MPAS_streamManager_type),intent(inout):: stream_manager
+ type(mpas_pool_type),intent(inout),pointer:: biog_emissions
+
+!local variables and arrays:
+ type(mpas_time_type):: beforeTime,afterTime,currTime
+ type(mpas_timeinterval_type):: beforeDelta,afterDelta,totalDelta
+
+ character(len=StrKIND):: actualTimeStamp
+ integer,pointer:: nCells
+ integer:: iCell
+ real(kind=RKIND):: total_dt,before_dt,after_dt
+
+ real(kind=RKIND),dimension(:),pointer:: biog_megan
+
+!CAMS biogenic emissions:
+ real(kind=RKIND),dimension(:),pointer:: co_biog_megan
+ real(kind=RKIND),dimension(:),pointer:: iso_biog_megan
+ real(kind=RKIND),dimension(:),pointer:: mnt_biog_megan
+ real(kind=RKIND),dimension(:),pointer:: mnta_biog_megan
+ real(kind=RKIND),dimension(:),pointer:: mntb_biog_megan
+
+!gocart2G biogenic emissions:
+ real(kind=RKIND),dimension(:),pointer:: co_biog_em
+ real(kind=RKIND),dimension(:),pointer:: iso_biog_em
+ real(kind=RKIND),dimension(:),pointer:: mnt_biog_em
+ real(kind=RKIND),dimension(:),pointer:: mnta_biog_em
+ real(kind=RKIND),dimension(:),pointer:: mntb_biog_em
+
+!------------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine update_biog_emissions:')
+
+
+ call mpas_pool_get_dimension(mesh,'nCells',nCells)
+ call mpas_log_write('    nCells = $i',intArgs=(/nCells/))
+
+ allocate(biog_megan(nCells+1))
+
+
+!MEGAN biogenic emissions:
+ call mpas_pool_get_array(biog_emissions,'co_biog_em'  ,co_biog_em  )
+ call mpas_pool_get_array(biog_emissions,'iso_biog_em' ,iso_biog_em )
+ call mpas_pool_get_array(biog_emissions,'mnt_biog_em' ,mnt_biog_em )
+ call mpas_pool_get_array(biog_emissions,'mnta_biog_em',mnta_biog_em)
+ call mpas_pool_get_array(biog_emissions,'mntb_biog_em',mntb_biog_em)
+ co_biog_em(:)   = 0._RKIND
+ iso_biog_em(:)  = 0._RKIND
+ mnt_biog_em(:)  = 0._RKIND
+ mnta_biog_em(:) = 0._RKIND
+ mntb_biog_em(:) = 0._RKIND
+
+
+ call mpas_pool_get_array(CAMS_biog_emissions,'co_biog_megan'  ,co_biog_megan  )
+ call mpas_pool_get_array(CAMS_biog_emissions,'iso_biog_megan' ,iso_biog_megan )
+ call mpas_pool_get_array(CAMS_biog_emissions,'mnt_biog_megan' ,mnt_biog_megan )
+ call mpas_pool_get_array(CAMS_biog_emissions,'mnta_biog_megan',mnta_biog_megan)
+ call mpas_pool_get_array(CAMS_biog_emissions,'mntb_biog_megan',mntb_biog_megan)
+
+!biogenic emission of carbon monoxide:
+ call mpas_stream_mgr_read(stream_manager,'biog_co_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biog_megan(1:nCells) = co_biog_megan(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biog_co_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_log_write('    earliest time after is '//trim(actualTimestamp))
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+
+!get current time and calculate time deltas between the times that were actually read and the current time.
+!retrieve time deltas as real values:
+ currTime = mpas_get_clock_time(clock,MPAS_NOW)
+ totalDelta  = sub_t_t(afterTime,beforeTime)
+ beforeDelta = sub_t_t(currTime,beforeTime)
+ afterDelta  = sub_t_t(afterTime,currTime)
+
+ call mpas_get_timeInterval(totalDelta ,dt=total_dt)
+ call mpas_get_timeInterval(beforeDelta,dt=before_dt)
+ call mpas_get_timeInterval(afterDelta , dt=after_dt)
+ call mpas_log_write('    totalDelta  = $r',realArgs=(/total_dt/))
+ call mpas_log_write('    beforeDelta = $r',realArgs=(/before_dt/))
+ call mpas_log_write('    afterDelta  = $r',realArgs=(/after_dt/))
+
+!interpolation of black carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    co_biog_em(:) = (after_dt/total_dt)*biog_megan(:) + (before_dt/total_dt)*co_biog_megan(:)
+ endif
+
+
+!biogenic emission of isoprene:
+ call mpas_stream_mgr_read(stream_manager,'biog_iso_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+!call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biog_megan(1:nCells) = iso_biog_megan(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biog_iso_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+!call mpas_log_write('    earliest time after is '//trim(actualTimestamp))
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of black carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    iso_biog_em(:) = (after_dt/total_dt)*biog_megan(:) + (before_dt/total_dt)*iso_biog_megan(:)
+ endif
+
+
+!biogenic emission of monoterpenes:
+ call mpas_stream_mgr_read(stream_manager,'biog_mnt_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+!call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biog_megan(1:nCells) = mnt_biog_megan(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biog_mnt_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+!call mpas_log_write('    earliest time after is '//trim(actualTimestamp))
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of black carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    mnt_biog_em(:) = (after_dt/total_dt)*biog_megan(:) + (before_dt/total_dt)*mnt_biog_megan(:)
+ endif
+
+
+!biogenic emission of alpha-pinene:
+ call mpas_stream_mgr_read(stream_manager,'biog_apinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+!call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biog_megan(1:nCells) = mnta_biog_megan(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biog_apinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+!call mpas_log_write('    earliest time after is '//trim(actualTimestamp))
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of black carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    mnta_biog_em(:) = (after_dt/total_dt)*biog_megan(:) + (before_dt/total_dt)*mnta_biog_megan(:)
+ endif
+
+
+!biogenic emission of beta-pinene:
+ call mpas_stream_mgr_read(stream_manager,'biog_bpinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+!call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biog_megan(1:nCells) = mntb_biog_megan(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biog_bpinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+!call mpas_log_write('    earliest time after is '//trim(actualTimestamp))
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of black carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    mntb_biog_em(:) = (after_dt/total_dt)*biog_megan(:) + (before_dt/total_dt)*mnta_biog_megan(:)
+ endif
+
+
+!biogenic emission of beta-pinene:
+ call mpas_stream_mgr_read(stream_manager,'biog_bpinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+!call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biog_megan(1:nCells) = mntb_biog_megan(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biog_bpinene_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+!call mpas_log_write('    earliest time after is '//trim(actualTimestamp))
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of black carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    mntb_biog_em(:) = (after_dt/total_dt)*biog_megan(:) + (before_dt/total_dt)*mnta_biog_megan(:)
+ endif
+
+
+ deallocate(biog_megan)
+
+ call mpas_log_write('--- end subroutine update_biog_emissions.')
+
+ end subroutine update_biog_emissions
+
+!==================================================================================================================
+ subroutine update_biomass_burning_emissions(clock,stream_manager,mesh,FINN_biob_emissions,biob_emissions)
+!==================================================================================================================
+
+!input arguments:
+ type(mpas_Clock_type),intent(in):: clock
+ type(mpas_pool_type),intent(in),pointer:: mesh
+ type(mpas_pool_type),intent(in),pointer:: FINN_biob_emissions
+
+!inout arguments:
+ type(MPAS_streamManager_type),intent(inout):: stream_manager
+ type(mpas_pool_type),intent(inout),pointer:: biob_emissions
+
+!local variables and arrays:
+ type(mpas_time_type):: beforeTime,afterTime,currTime
+ type(mpas_timeinterval_type):: beforeDelta,afterDelta,totalDelta
+
+ character(len=StrKIND):: actualTimeStamp
+ integer:: iCell
+ integer,pointer:: nCells
+ real(kind=RKIND):: total_dt,before_dt,after_dt
+
+ real(kind=RKIND),dimension(:),pointer:: biob_modis
+
+!FINN biomass burning emissions:
+ real(kind=RKIND),dimension(:),pointer:: bc_biob_modis
+ real(kind=RKIND),dimension(:),pointer:: oc_biob_modis
+ real(kind=RKIND),dimension(:),pointer:: nh3_biob_modis
+ real(kind=RKIND),dimension(:),pointer:: so2_biob_modis
+ real(kind=RKIND),dimension(:),pointer:: co_biob_modis
+ real(kind=RKIND),dimension(:),pointer:: iso_biob_modis
+ real(kind=RKIND),dimension(:),pointer:: mnt_biob_modis
+
+!gocart2G biomass burning emissions:
+ real(kind=RKIND),dimension(:),pointer:: bc_biob_em
+ real(kind=RKIND),dimension(:),pointer:: br_biob_em
+ real(kind=RKIND),dimension(:),pointer:: oc_biob_em
+ real(kind=RKIND),dimension(:),pointer:: ni_biob_em
+ real(kind=RKIND),dimension(:),pointer:: su_biob_em
+ real(kind=RKIND),dimension(:),pointer:: co_biob_em
+ real(kind=RKIND),dimension(:),pointer:: iso_biob_em
+ real(kind=RKIND),dimension(:),pointer:: mnt_biob_em
+
+!------------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine update_biomass_burning_emissions:')
+
+
+ call mpas_pool_get_dimension(mesh,'nCells',nCells)
+ call mpas_log_write('    nCells = $i',intArgs=(/nCells/))
+
+ allocate(biob_modis(nCells+1))
+
+
+!--- FINN biomass burning emissions:
+ call mpas_pool_get_array(biob_emissions,'bc_biob_em' ,bc_biob_em )
+ call mpas_pool_get_array(biob_emissions,'br_biob_em' ,br_biob_em )
+ call mpas_pool_get_array(biob_emissions,'oc_biob_em' ,oc_biob_em )
+ call mpas_pool_get_array(biob_emissions,'ni_biob_em' ,ni_biob_em )
+ call mpas_pool_get_array(biob_emissions,'su_biob_em' ,su_biob_em )
+ call mpas_pool_get_array(biob_emissions,'co_biob_em' ,co_biob_em )
+ call mpas_pool_get_array(biob_emissions,'iso_biob_em',iso_biob_em)
+ call mpas_pool_get_array(biob_emissions,'mnt_biob_em',mnt_biob_em)
+ bc_biob_em(:)  = 0._RKIND
+ br_biob_em(:)  = 0._RKIND
+ oc_biob_em(:)  = 0._RKIND
+ ni_biob_em(:)  = 0._RKIND
+ su_biob_em(:)  = 0._RKIND
+ co_biob_em(:)  = 0._RKIND
+ iso_biob_em(:) = 0._RKIND
+ mnt_biob_em(:) = 0._RKIND
+
+
+ call mpas_pool_get_array(FINN_biob_emissions,'bc_biob_modis' ,bc_biob_modis )
+ call mpas_pool_get_array(FINN_biob_emissions,'oc_biob_modis' ,oc_biob_modis )
+ call mpas_pool_get_array(FINN_biob_emissions,'nh3_biob_modis',nh3_biob_modis)
+ call mpas_pool_get_array(FINN_biob_emissions,'so2_biob_modis',so2_biob_modis)
+ call mpas_pool_get_array(FINN_biob_emissions,'co_biob_modis' ,co_biob_modis )
+ call mpas_pool_get_array(FINN_biob_emissions,'iso_biob_modis',iso_biob_modis)
+ call mpas_pool_get_array(FINN_biob_emissions,'mnt_biob_modis',mnt_biob_modis)
+
+
+!biomass burning of black carbon:
+ call mpas_stream_mgr_read(stream_manager,'biob_bc_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_log_write('    latest time before is  '//trim(actualTimestamp))
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biob_modis(1:nCells) = bc_biob_modis(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biob_bc_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_log_write('    earliest time after is '//trim(actualTimestamp))
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+
+!get current time and calculate time deltas between the times that were actually read and the current time.
+!retrieve time deltas as real values:
+ currTime = mpas_get_clock_time(clock,MPAS_NOW)
+ totalDelta  = sub_t_t(afterTime,beforeTime)
+ beforeDelta = sub_t_t(currTime,beforeTime)
+ afterDelta  = sub_t_t(afterTime,currTime)
+
+ call mpas_get_timeInterval(totalDelta ,dt=total_dt)
+ call mpas_get_timeInterval(beforeDelta,dt=before_dt)
+ call mpas_get_timeInterval(afterDelta , dt=after_dt)
+ call mpas_log_write('    totalDelta  = $r',realArgs=(/total_dt/))
+ call mpas_log_write('    beforeDelta = $r',realArgs=(/before_dt/))
+ call mpas_log_write('    afterDelta  = $r',realArgs=(/after_dt/))
+
+!interpolation of black carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    bc_biob_em(:) = (after_dt/total_dt)*biob_modis(:) + (before_dt/total_dt)*bc_biob_modis(:)
+ endif
+
+!biomass burning of organic carbon:
+ call mpas_stream_mgr_read(stream_manager,'biob_oc_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biob_modis(1:nCells) = oc_biob_modis(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biob_oc_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of organic carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    oc_biob_em(:) = (after_dt/total_dt)*biob_modis(:) + (before_dt/total_dt)*oc_biob_modis(:)
+ endif
+
+
+!biomass burning of nitrate:
+ call mpas_stream_mgr_read(stream_manager,'biob_ni_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biob_modis(1:nCells) = nh3_biob_modis(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biob_ni_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of organic carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    ni_biob_em(:) = (after_dt/total_dt)*biob_modis(:) + (before_dt/total_dt)*nh3_biob_modis(:)
+ endif
+
+
+!biomass burning of sulphur dioxide:
+ call mpas_stream_mgr_read(stream_manager,'biob_su_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biob_modis(1:nCells) = so2_biob_modis(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biob_su_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of organic carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    su_biob_em(:) = (after_dt/total_dt)*biob_modis(:) + (before_dt/total_dt)*so2_biob_modis(:)
+ endif
+
+
+!biomass burning of carbon monoxide:
+ call mpas_stream_mgr_read(stream_manager,'biob_co_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biob_modis(1:nCells) = co_biob_modis(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biob_co_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of organic carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    co_biob_em(:) = (after_dt/total_dt)*biob_modis(:) + (before_dt/total_dt)*co_biob_modis(:)
+ endif
+
+
+!biomass burning of isoprene:
+ call mpas_stream_mgr_read(stream_manager,'biob_iso_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biob_modis(1:nCells) = iso_biob_modis(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biob_iso_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of organic carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    iso_biob_em(:) = (after_dt/total_dt)*biob_modis(:) + (before_dt/total_dt)*iso_biob_modis(:)
+ endif
+
+
+!biomass burning of monoterpenes:
+ call mpas_stream_mgr_read(stream_manager,'biob_mnt_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_LATEST_BEFORE,actualWhen=actualTimestamp)
+ call mpas_set_time(beforeTime,dateTimeString=trim(actualTimestamp))
+
+ biob_modis(1:nCells) = mnt_biob_modis(1:nCells)
+
+ call mpas_stream_mgr_read(stream_manager,'biob_mnt_emissions',rightNow=.true., &
+                  whence=MPAS_STREAM_EARLIEST_AFTER,actualWhen=actualTimestamp)
+ call mpas_set_time(afterTime,dateTimeString=trim(actualTimestamp))
+
+!interpolation of organic carbon biomass burning emissions to the current time:
+ if(total_dt > 0.0_RKIND) then
+    mnt_biob_em(:) = (after_dt/total_dt)*biob_modis(:) + (before_dt/total_dt)*mnt_biob_modis(:)
+ endif
+
+ deallocate(biob_modis)
+
+ call mpas_log_write('--- end subroutine update_biomass_burning_emissions.')
+
+ end subroutine update_biomass_burning_emissions
 
 !=================================================================================================================
  end module mpas_chemistry_gocart2G_emissions_update

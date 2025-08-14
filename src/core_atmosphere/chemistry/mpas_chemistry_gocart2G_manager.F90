@@ -52,7 +52,11 @@
  type(mpas_pool_type),pointer:: gocart2G_met
  type(mpas_pool_type),pointer:: gocart2G_backgrounds
  type(mpas_pool_type),pointer:: anth_emissions
+ type(mpas_pool_type),pointer:: biob_emissions
+ type(mpas_pool_type),pointer:: biog_emissions
  type(mpas_pool_type),pointer:: CAMS_anth_emissions
+ type(mpas_pool_type),pointer:: CAMS_biog_emissions
+ type(mpas_pool_type),pointer:: FINN_biob_emissions
 
  character(len=StrKIND):: timeStamp
  character(len=StrKIND),pointer:: backg_interval
@@ -112,7 +116,11 @@
 
     call mpas_pool_get_subpool(block%structs,'mesh'                ,mesh              )
     call mpas_pool_get_subpool(block%structs,'CAMS_anth_emissions',CAMS_anth_emissions)
+    call mpas_pool_get_subpool(block%structs,'CAMS_biog_emissions',CAMS_biog_emissions)
+    call mpas_pool_get_subpool(block%structs,'FINN_biob_emissions',FINN_biob_emissions)
     call mpas_pool_get_subpool(block%structs,'anth_emissions'     ,anth_emissions     )
+    call mpas_pool_get_subpool(block%structs,'biob_emissions'     ,biob_emissions     )
+    call mpas_pool_get_subpool(block%structs,'biog_emissions'     ,biog_emissions     )
 
     if(mpas_is_alarm_ringing(clock,gocart2GanthAlarmID,ierr=ierr)) then
        call mpas_reset_clock_alarm(clock,gocart2GanthAlarmID,ierr=ierr)
@@ -126,19 +134,19 @@
        call update_anth_emissions_mnt(clock,stream_manager,mesh,CAMS_anth_emissions,anth_emissions)
     endif
 
-!   if(mpas_is_alarm_ringing(clock,gocart2GbiobAlarmID,ierr=ierr)) then
-!      call mpas_reset_clock_alarm(clock,gocart2GbiobAlarmID,ierr=ierr)
-!      call mpas_log_write(' ')
-!      call mpas_log_write('--- time to update gocart2G biomass burning surface emissions:')
-!      call update_gocart2G_climatology(timeStamp,mesh,gocart2G_met,gocart2G_backgrounds)
-!   endif
+    if(mpas_is_alarm_ringing(clock,gocart2GbiobAlarmID,ierr=ierr)) then
+       call mpas_reset_clock_alarm(clock,gocart2GbiobAlarmID,ierr=ierr)
+       call mpas_log_write(' ')
+       call mpas_log_write('--- time to update gocart2G biomass burning surface emissions:')
+       call update_biomass_burning_emissions(clock,stream_manager,mesh,FINN_biob_emissions,biob_emissions)
+    endif
 
-!   if(mpas_is_alarm_ringing(clock,gocart2GbiogAlarmID,ierr=ierr)) then
-!      call mpas_reset_clock_alarm(clock,gocart2GbiogAlarmID,ierr=ierr)
-!      call mpas_log_write(' ')
-!      call mpas_log_write('--- time to update gocart2G biogenic surface emissions:')
-!      call update_gocart2G_climatology(timeStamp,mesh,gocart2G_met,gocart2G_backgrounds)
-!   endif
+    if(mpas_is_alarm_ringing(clock,gocart2GbiogAlarmID,ierr=ierr)) then
+       call mpas_reset_clock_alarm(clock,gocart2GbiogAlarmID,ierr=ierr)
+       call mpas_log_write(' ')
+       call mpas_log_write('--- time to update gocart2G biogenic surface emissions:')
+       call update_biog_emissions(clock,stream_manager,mesh,CAMS_biog_emissions,biog_emissions)
+    endif
 
     block => block%next
 
