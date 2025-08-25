@@ -887,8 +887,9 @@
 			<var name="background_no3"/>
 			<var name="background_hno3"/>
 			<var name="background_ptrop"/>
-                        <var_array name="bl_chemistry"/>
-                        <var_array name="bl_drydepv"/>
+			<var_array name="bl_chemistry"/>
+			<var_array name="bl_drydepv"/>
+			<var_array name="cu_chemistry"/>
 #endif
 		</stream>
 
