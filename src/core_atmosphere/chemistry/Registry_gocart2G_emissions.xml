@@ -28,29 +28,8 @@
       <var name="bc_anth_aircraft" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
            description="Black carbon anthropogenic emission from aircrafts"/>
 
-      <var name="br_anth_less100m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="Brown carbon anthropogenic emission in levels less than 100 m from non-energy sectors"/>
-
-      <var name="br_anth_less500m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="Brown carbon anthropogenic emission in levels less 500 m from energy sectors"/>
-
       <var name="br_anth_biofuel" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Brown carbon anthropogenic biofuel emission"/>
-
-      <var name="br_anth_ship" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="Brown carbon anthropogenic emission from ships"/>
-
-      <var name="br_anth_aviation_lto" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="Brown carbon anthropogenic emission from landing/take off of aircrafts"/>
-
-      <var name="br_anth_aviation_cds" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="Brown carbon anthropogenic emission from clim/descent of aircrafts"/>
-
-      <var name="br_anth_aviation_crs" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
-           description="Brown carbon anthropogenic emission from cruising altitude of aircrafts"/>
-
-      <var name="br_anth_aircraft" type="real" dimensions="nVertLevels nCells Time" units="kg m^{-2} s^{-1}"
-           description="Brown carbon anthropogenic emission from aircrafts"/>
 
       <var name="oc_anth_less100m" type="real" dimensions="nCells Time" units="kg m^{-2} s^{-1}"
            description="Organic carbon anthropogenic emission in levels less than 100 m from non-energy sectors"/>

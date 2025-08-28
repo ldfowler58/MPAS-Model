@@ -299,9 +299,7 @@
  real(kind=RKIND),dimension(:),pointer:: bc_anth_less100m,bc_anth_less500m,bc_anth_biofuel,bc_anth_ship, &
                                          bc_anth_aviation_lto,bc_anth_aviation_cds,bc_anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: bc_anth_aircraft
- real(kind=RKIND),dimension(:),pointer:: br_anth_less100m,br_anth_less500m,br_anth_biofuel,br_anth_ship, &
-                                         br_anth_aviation_lto,br_anth_aviation_cds,br_anth_aviation_crs
- real(kind=RKIND),dimension(:,:),pointer:: br_anth_aircraft
+ real(kind=RKIND),dimension(:),pointer:: br_anth_biofuel
  real(kind=RKIND),dimension(:),pointer:: oc_anth_less100m,oc_anth_less500m,oc_anth_biofuel,oc_anth_ship, &
                                          oc_anth_aviation_lto,oc_anth_aviation_cds,oc_anth_aviation_crs
  real(kind=RKIND),dimension(:,:),pointer:: oc_anth_aircraft
@@ -341,14 +339,7 @@
  call mpas_pool_get_array(anth_emissions,'bc_anth_aviation_crs',bc_anth_aviation_crs)
  call mpas_pool_get_array(anth_emissions,'bc_anth_aircraft'    ,bc_anth_aircraft    )
 
- call mpas_pool_get_array(anth_emissions,'br_anth_less100m'    ,br_anth_less100m    )
- call mpas_pool_get_array(anth_emissions,'br_anth_less500m'    ,br_anth_less500m    )
  call mpas_pool_get_array(anth_emissions,'br_anth_biofuel'     ,br_anth_biofuel     )
- call mpas_pool_get_array(anth_emissions,'br_anth_ship'        ,br_anth_ship        )
- call mpas_pool_get_array(anth_emissions,'br_anth_aviation_lto',br_anth_aviation_lto)
- call mpas_pool_get_array(anth_emissions,'br_anth_aviation_cds',br_anth_aviation_cds)
- call mpas_pool_get_array(anth_emissions,'br_anth_aviation_crs',br_anth_aviation_crs)
- call mpas_pool_get_array(anth_emissions,'br_anth_aircraft'    ,br_anth_aircraft    )
 
  call mpas_pool_get_array(anth_emissions,'oc_anth_less100m'    ,oc_anth_less100m    )
  call mpas_pool_get_array(anth_emissions,'oc_anth_less500m'    ,oc_anth_less500m    )
@@ -393,14 +384,14 @@
        enddo
 
        !--- brown carbon:
-       self%br_antebr1(i,j)      = br_anth_less100m(i)
-       self%br_antebr2(i,j)      = br_anth_less500m(i)
-       self%br_ship(i,j)         = br_anth_ship(i)
-       self%br_aviation_lto(i,j) = br_anth_aviation_lto(i)
-       self%br_aviation_cds(i,j) = br_anth_aviation_cds(i)
-       self%br_aviation_crs(i,j) = br_anth_aviation_crs(i)
+       self%br_antebr1(i,j)      = 0._RKIND
+       self%br_antebr2(i,j)      = 0._RKIND
+       self%br_ship(i,j)         = 0._RKIND
+       self%br_aviation_lto(i,j) = 0._RKIND
+       self%br_aviation_cds(i,j) = 0._RKIND
+       self%br_aviation_crs(i,j) = 0._RKIND
        do k = kts,kte
-          self%br_aircraft(i,j,k) = br_anth_aircraft(k,i)
+          self%br_aircraft(i,j,k) = 0._RKIND
        enddo
 
        !--- organic carbon:
