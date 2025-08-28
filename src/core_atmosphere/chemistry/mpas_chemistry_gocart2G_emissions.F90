@@ -312,8 +312,7 @@
  real(kind=RKIND),dimension(:,:),pointer:: su_anth_aircraft
  real(kind=RKIND),dimension(:),pointer:: co_anth_em
 
- real(kind=RKIND),dimension(:),pointer:: bc_biob_em,br_biob_em,oc_biob_em,ni_biob_em,su_biob_em, &
-                                         co_biob_em
+ real(kind=RKIND),dimension(:),pointer:: bc_biob_em,oc_biob_em,ni_biob_em,su_biob_em,co_biob_em
 
  real(kind=RKIND),dimension(:),pointer:: iso_biog_em,mnt_biog_em,mnta_biog_em,mntb_biog_em
 
@@ -444,7 +443,6 @@
 
 !--- biomass burning emissions:
  call mpas_pool_get_array(biob_emissions,'bc_biob_em',bc_biob_em)
- call mpas_pool_get_array(biob_emissions,'br_biob_em',br_biob_em)
  call mpas_pool_get_array(biob_emissions,'oc_biob_em',oc_biob_em)
  call mpas_pool_get_array(biob_emissions,'ni_biob_em',ni_biob_em)
  call mpas_pool_get_array(biob_emissions,'su_biob_em',su_biob_em)
@@ -453,17 +451,24 @@
  do j = jts,jte
     do i = its,ite
        self%bc_biomass(i,j) = bc_biob_em(i)
-       self%br_biomass(i,j) = br_biob_em(i)
        self%oc_biomass(i,j) = oc_biob_em(i)
        self%su_biomass(i,j) = su_biob_em(i)
        self%nh3_bb(i,j)     = ni_biob_em(i)
 
        !--- conversion from molecules/cm^2/s to kg/m^2/s:
        self%bc_biomass(i,j) = 10.*(fMassBC/Avogadro)*self%bc_biomass(i,j)
-       self%br_biomass(i,j) = 10.*(fMassBR/Avogadro)*self%br_biomass(i,j)
        self%oc_biomass(i,j) = 10.*(fMassOC/Avogadro)*self%oc_biomass(i,j)
        self%su_biomass(i,j) = 10.*(fMassSO2/Avogadro)*self%su_biomass(i,j)
        self%nh3_bb(i,j)     = 10.*(fMassNH3/Avogadro)*self%nh3_bb(i,j)
+
+       !--- brown carbon:
+       self%br_biomass(i,j) = 0._RKIND
+
+       if(self%oc_biomass(i,j) .gt. 0._RKIND) then
+          self%br_biomass(i,j) = (self%bc_biomass(i,j)/(1.4*self%oc_biomass(i,j)))**beta_forBRemis
+          self%br_biomass(i,j) = alpha_forBRemis*self%br_biomass(i,j)*self%oc_biomass(i,j)
+          self%oc_biomass(i,j) = self%oc_biomass(i,j) - self%br_biomass(i,j)
+       endif
 
        !--- secondary organic aerosols:
        self%soap_biomass(i,j) = voc_BiomassBurnFactor*co_biob_em(i)

@@ -141,9 +141,6 @@
       <var name="bc_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Black carbon hydrophobic biomass burning emission"/>
 
-      <var name="br_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
-           description="Brown carbon hydrophobic biomass burning emission"/>
-
       <var name="oc_biob_em" type="real" dimensions="nCells Time" units="molecules cm^{-2} s^{-1}"
            description="Organic carbon hydrophobic biomass burning emission"/>
 

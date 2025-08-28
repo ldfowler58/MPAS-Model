@@ -958,7 +958,6 @@
 
 !gocart2G biomass burning emissions:
  real(kind=RKIND),dimension(:),pointer:: bc_biob_em
- real(kind=RKIND),dimension(:),pointer:: br_biob_em
  real(kind=RKIND),dimension(:),pointer:: oc_biob_em
  real(kind=RKIND),dimension(:),pointer:: ni_biob_em
  real(kind=RKIND),dimension(:),pointer:: su_biob_em
@@ -979,7 +978,6 @@
 
 !--- FINN biomass burning emissions:
  call mpas_pool_get_array(biob_emissions,'bc_biob_em' ,bc_biob_em )
- call mpas_pool_get_array(biob_emissions,'br_biob_em' ,br_biob_em )
  call mpas_pool_get_array(biob_emissions,'oc_biob_em' ,oc_biob_em )
  call mpas_pool_get_array(biob_emissions,'ni_biob_em' ,ni_biob_em )
  call mpas_pool_get_array(biob_emissions,'su_biob_em' ,su_biob_em )
@@ -987,7 +985,6 @@
  call mpas_pool_get_array(biob_emissions,'iso_biob_em',iso_biob_em)
  call mpas_pool_get_array(biob_emissions,'mnt_biob_em',mnt_biob_em)
  bc_biob_em(:)  = 0._RKIND
- br_biob_em(:)  = 0._RKIND
  oc_biob_em(:)  = 0._RKIND
  ni_biob_em(:)  = 0._RKIND
  su_biob_em(:)  = 0._RKIND
