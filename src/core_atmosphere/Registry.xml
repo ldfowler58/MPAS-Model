@@ -2456,17 +2456,17 @@
                      description="=0:activatevmixing of moisture species separately;= 1:activate mixing of total water in the mynn PBL scheme"
                      possible_values="0,1"/>
 
-                <nml_option name="config_mynn_mixchems" type="logical" default_value="false" in_defaults="false"
+                <nml_option name="config_mynn_mixchems" type="logical" default_value="false" in_defaults="true"
                      units="-"
                      description="true:activate mixing of aerosols;=false:do not activate mixing of aerosols in the mynn PBL scheme"
                      possible_values=".true. or .false."/>
 
-                <nml_option name="config_ntiedtke_ctrchems" type="logical" default_value="false" in_defaults="false"
+                <nml_option name="config_ntiedtke_ctrchems" type="logical" default_value="false" in_defaults="true"
                      units="-"
                      description="true:activate convective transport of aerosols;=false:do not activate convective transport of aerosols"
                      possible_values=".true. or .false."/>
 
-                <nml_option name="config_ntiedtke_scavchems" type="logical" default_value="false" in_defaults="false"
+                <nml_option name="config_ntiedtke_scavchems" type="logical" default_value="false" in_defaults="true"
                      units="-"
                      description="true:activate wet scavenging of aerosols;=false:do not activate wet scavenging of aerosols"
                      possible_values=".true. or .false."/>
