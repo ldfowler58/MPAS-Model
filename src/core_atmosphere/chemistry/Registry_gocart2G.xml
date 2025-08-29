@@ -159,24 +159,74 @@
            possible_values="`opticsBands_SU.v1_3.RRTMG.nc'"/>
 
       <nml_option name="config_gocart2G_toMYNN" type="logical" default_value="false"
-           in_defaults="false" units="-"
+           units="-"
            description="set to true to include the mixing in the PBL and free-troposphere in MYNN"
            possible_values="True,False"/>
 
       <nml_option name="config_gocart2G_toNTIEDTKE" type="logical" default_value="false"
-           in_defaults="false" units="-"
+           units="-"
            description="set to true to include convective transport and wet scavenging in NTIEDTKE"
            possible_values="True,False"/>
 
       <nml_option name="config_gocart2G_toRRTMG" type="logical" default_value="false"
-           in_defaults="false" units="-"
+           units="-"
            description="set to true to include the radiative impact of the gocart2G aerosols in RRTMG"
            possible_values="True,False"/>
 
       <nml_option name="config_gocart2G_toTHOM" type="logical" default_value="false"
-           in_defaults="false" units="-"
+           units="-"
            description="set to true to activate gocart2G aerosols as nwfa and nifa in THOMPSON cloud microphysics"
            possible_values="True,False"/>
+
+      <nml_option name="config_gocart2G_agingBC" type="real" default_value="0.8"
+           units="-"
+           description="hydrophobic to hydrophilic aging fraction for black carbon"
+           possible_values="0. to 1."/>
+
+      <nml_option name="config_gocart2G_agingBR" type="real" default_value="0.5"
+           units="-"
+           description="hydrophobic to hydrophilic aging fraction for brown carbon"
+           possible_values="0. to 1."/>
+
+      <nml_option name="config_gocart2G_agingOC" type="real" default_value="0.5"
+           units="-"
+           description="hydrophobic to hydrophilic aging fraction for brown carbon"
+           possible_values="0. to 1."/>
+
+      <nml_option name="config_gocart2G_wetscavBC" type="real" default_value="0.4"
+           units="-"
+           description="parameterized convection wet scavenging coefficient for black carbon"
+           possible_values="0. to 1."/>
+
+      <nml_option name="config_gocart2G_wetscavBR" type="real" default_value="0.4"
+           units="-"
+           description="parameterized convection wet scavenging coefficient for brown carbon"
+           possible_values="0. to 1."/>
+
+      <nml_option name="config_gocart2G_wetscavOC" type="real" default_value="0.4"
+           units="-"
+           description="parameterized convection wet scavenging coefficient for organic carbon"
+           possible_values="0. to 1."/>
+
+      <nml_option name="config_gocart2G_wetscavDU" type="real" default_value="0.2"
+           units="-"
+           description="parameterized convection wet scavenging coefficient for mineral dust"
+           possible_values="0. to 1."/>
+
+      <nml_option name="config_gocart2G_wetscavNI" type="real" default_value="0.4"
+           units="-"
+           description="parameterized convection wet scavenging coefficient for nitrate"
+           possible_values="0. to 1."/>
+
+      <nml_option name="config_gocart2G_wetscavSS" type="real" default_value="0.4"
+           units="-"
+           description="parameterized convection wet scavenging coefficient for sea salt"
+           possible_values="0. to 1."/>
+
+      <nml_option name="config_gocart2G_wetscavSU" type="real" default_value="0.4"
+           units="-"
+           description="parameterized convection wet scavenging coefficient for sulfate"
+           possible_values="0. to 1."/>
 
  </nml_record>
 

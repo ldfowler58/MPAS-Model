@@ -52,7 +52,10 @@
 
  integer:: its,ite,jts,jte,kts,kte,nerod
  integer:: nbndlw,nbndsw
- integer:: ic,ch_size
+ integer:: ic,ch_size,n
+
+ real(kind=RKIND),pointer:: agingBC,agingBR,agingOC
+ real(kind=RKIND),pointer:: wetscavBC,wetscavBR,wetscavOC,wetscavDU,wetscavNI,wetscavSS,wetscavSU
  real(kind=RKIND),dimension(:),allocatable:: channels
 
 !------------------------------------------------------------------------------------------------------------------
@@ -86,6 +89,17 @@
  call mpas_pool_get_config(configs,'config_gocart2G_toMYNN'    ,to_MYNN    )
  call mpas_pool_get_config(configs,'config_gocart2G_toNTIEDTKE',to_NTIEDTKE)
  call mpas_pool_get_config(configs,'config_gocart2G_toTHOM'    ,to_THOM    )
+
+ call mpas_pool_get_config(configs,'config_gocart2G_agingBC'  ,agingBC  )
+ call mpas_pool_get_config(configs,'config_gocart2G_agingBR'  ,agingBR  )
+ call mpas_pool_get_config(configs,'config_gocart2G_agingOC'  ,agingOC  )
+ call mpas_pool_get_config(configs,'config_gocart2G_wetscavBC',wetscavBC)
+ call mpas_pool_get_config(configs,'config_gocart2G_wetscavBR',wetscavBR)
+ call mpas_pool_get_config(configs,'config_gocart2G_wetscavOC',wetscavOC)
+ call mpas_pool_get_config(configs,'config_gocart2G_wetscavDU',wetscavDU)
+ call mpas_pool_get_config(configs,'config_gocart2G_wetscavNI',wetscavNI)
+ call mpas_pool_get_config(configs,'config_gocart2G_wetscavSS',wetscavSS)
+ call mpas_pool_get_config(configs,'config_gocart2G_wetscavSU',wetscavSU)
 
 
 !--- reads input wavelengths from LUT:
@@ -121,6 +135,9 @@
 
 !initializes and allocates all parameters and arrays related to CA2G_bc:
  call CA2G_bc_params%load_GridComp(kts,kte)
+ if(CA2G_bc_params%fHydrophobic /= agingBC) CA2G_bc_params%fHydrophobic = agingBC
+ if(CA2G_bc_params%fscav(2) /= wetscavBC) CA2G_bc_params%fscav(2) = wetscavBC
+
  call CA2G_bc%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_CA2Gbc) then
@@ -156,6 +173,9 @@
 
 !initializes and allocates all parameters and arrays related to CA2G_br:
  call CA2G_br_params%load_GridComp(kts,kte)
+ if(CA2G_br_params%fHydrophobic /= agingBR) CA2G_br_params%fHydrophobic = agingBR
+ if(CA2G_br_params%fscav(2) /= wetscavBR) CA2G_br_params%fscav(2) = wetscavBR
+
  call CA2G_br%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_CA2Gbr) then
@@ -191,6 +211,9 @@
 
 !initializes and allocates all parameters and arrays related to CA2G_oc:
  call CA2G_oc_params%load_GridComp(kts,kte)
+ if(CA2G_oc_params%fHydrophobic /= agingOC) CA2G_oc_params%fHydrophobic = agingOC
+ if(CA2G_oc_params%fscav(2) /= wetscavOC) CA2G_oc_params%fscav(2) = wetscavOC
+
  call CA2G_oc%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_CA2Goc) then
@@ -226,6 +249,12 @@
 
 !initializes and allocates all parameters and arrays related to DU2G:
  call DU2G_params%load_GridComp(kts,kte)
+ if(DU2G_params%fscav(1) /= wetscavDU) then
+    do n = 1,DU2G_params%nbins
+       DU2G_params%fscav(n) = wetscavDU
+    enddo
+ endif
+
  call DU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nerod,nbndlw,nbndsw)
 
  if(do_DU2G) then
@@ -263,7 +292,14 @@
  call DU2G_params%load_GridComp(kts,kte)
  call SS2G_params%load_GridComp(kts,kte)
  call NI2G_params%load_GridComp(DU2G_params,SS2G_params,kts,kte)
+ if(NI2G_params%fscav(2) /= wetscavNI) then
+    do n = 2,NI2G_params%nbins
+       NI2G_params%fscav(n) = wetscavNI
+    enddo
+ endif
+
  call NI2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
+
 
  if(do_NI2G) then
     !create radiation Mie table for SU2G:
@@ -298,6 +334,12 @@
 
 !initializes and allocates all parameters and arrays related to SS2G:
  call SS2G_params%load_GridComp(kts,kte)
+ if(SS2G_params%fscav(1) /= wetscavSS) then
+    do n = 1,SS2G_params%nbins
+       SS2G_params%fscav(n) = wetscavSS
+    enddo
+ endif
+
  call SS2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_SS2G) then
@@ -333,6 +375,8 @@
 
 !initializes and allocates all parameters and arrays related to SU2G:
  call SU2G_params%load_GridComp(kts,kte)
+ if(SU2G_params%fscav(3) /= wetscavSU) SU2G_params%fscav(3) = wetscavSU
+
  call SU2G%gocart2G_allocate(its,ite,jts,jte,kts,kte,nbndlw,nbndsw)
 
  if(do_SU2G) then
@@ -392,6 +436,9 @@
                                                  DU2G_params,NI2G_params,SS2G_params,SU2G_params)
     call mpas_chem_gocart2G%gocart2G_forMPASphys_mr(state)
  endif
+
+
+ deallocate(channels)
 
 
  call mpas_log_write('--- end subroutine init_gocart2G_chemistry.')
