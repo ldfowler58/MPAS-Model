@@ -123,6 +123,7 @@ module init_atm_core_interface
       logical, pointer :: mp_thompson_aers_in
       integer, pointer :: config_init_case
       logical, pointer :: noahmp, config_noahmp_static
+      logical, pointer :: O3prog, config_use_O3prog
 
 
       ierr = init_atm_setup_packages_when(configs, packages)
@@ -170,6 +171,10 @@ module init_atm_core_interface
       nullify(mp_thompson_aers_in)
       call mpas_pool_get_package(packages, 'mp_thompson_aers_inActive', mp_thompson_aers_in)
 
+      nullify(O3prog)
+      call mpas_pool_get_package(packages, 'O3progActive', O3prog)
+
+
       if (.not. associated(initial_conds) .or. &
           .not. associated(sfc_update) .or. &
           .not. associated(gwd_stage_in) .or. &
@@ -179,7 +184,8 @@ module init_atm_core_interface
           .not. associated(vertical_stage_out) .or. &
           .not. associated(met_stage_in) .or. &
           .not. associated(met_stage_out) .or. &
-          .not. associated(mp_thompson_aers_in)) then
+          .not. associated(mp_thompson_aers_in) .or. &
+          .not. associated(O3prog)) then
          call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
          call mpas_log_write('* Error while setting up packages for init_atmosphere core.',                      messageType=MPAS_LOG_ERR)
          call mpas_log_write('********************************************************************************', messageType=MPAS_LOG_ERR)
@@ -229,6 +235,10 @@ module init_atm_core_interface
          mp_thompson_aers_in = .false.
          inquire(file="QNWFA_QNIFA_SIGMA_MONTHLY.dat",exist=lexist)
          if((lexist .and. met_stage_out) .or. (lexist .and. met_stage_in)) mp_thompson_aers_in = .true.
+
+         O3prog = .false.
+         call mpas_pool_get_config(configs, 'config_use_O3prog', config_use_O3prog)
+         if(config_use_O3prog) O3prog = .true.
 
       else if (config_init_case == 8) then
          gwd_stage_in = .false.

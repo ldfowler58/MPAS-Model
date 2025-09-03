@@ -216,6 +216,11 @@
                      description="Whether to use specific-humidity as the first-guess moisture variable. If this option is False, relative humidity will be used."
                      possible_values="true or false"/>
 
+                <nml_option name="config_use_O3prog"            type="logical"       default_value="false"
+                     units="-"
+                     description="Whether to initialize ozone as the first-guess ozone variable."
+                     possible_values="true or false"/>
+
         </nml_record>
 
         <nml_record name="vertical_grid" in_defaults="true">
@@ -376,6 +381,7 @@
                 <package name="first_guess_field" description="3-d atmospheric or land-surface fields on first-guess levels"/>
                 <package name="mp_thompson_aers_in" description="initialization of GOCART-based Thompson water- and ice-friendly aerosols"/>
                 <package name="noahmp" description="Whether to process, read, and write static fields only required by Noah-MP"/>
+                <package name="O3prog" description="Whether to interpolate and write first-guess meteorological ozone mixing ratio"/>
         </packages>
 
 
@@ -1173,7 +1179,8 @@
                              packages="mp_thompson_aers_in"/>
 
                         <var name="qo3" array_group="passive" units="kg kg^{-1}"
-                             description="Ozone mixing ratio"/>
+                             description="Ozone mixing ratio"
+                             packages="O3prog"/>
                 </var_array>
 
                 <!-- Climatology for ocean mixed-layer depth -->
@@ -1252,7 +1259,8 @@
                      packages="first_guess_field"/>
 
                 <var name="o3mr_fg" name_in_code="o3" type="real" dimensions="nFGLevels nCells Time" units="kg kg^{-1}"
-                     description="First guess ozone mixing ratio"/>
+                     description="First guess ozone mixing ratio"
+                     packages="first_guess_field;O3prog"/>
 
                 <var name="soilz_fg" name_in_code="soilz" type="real" dimensions="nCells Time" units="m"
                      description="First guess soil height"

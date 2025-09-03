@@ -11,7 +11,7 @@
  use mpas_dmpar
  use mpas_derived_types,only: mpas_pool_type
  use mpas_pool_routines,only: mpas_pool_get_config,mpas_pool_get_dimension,mpas_pool_get_array
-
+ use mpas_sort
  use init_atm_read_met
  use init_atm_hinterp
  use init_atm_llxy
@@ -182,16 +182,16 @@
  icount = 0
  do while(istatus == 0)
 
-    interp_list(1) = FOUR_POINT
-    interp_list(2) = W_AVERAGE4
-    interp_list(3) = W_AVERAGE16
-    interp_list(4) = SEARCH
+    interp_list(1) = SIXTEEN_POINT
+    interp_list(2) = SEARCH
+    interp_list(3) = 0
+    interp_list(4) = 0
     interp_list(5) = 0
 
     maskval = -1.0
     masked  = -1
     fillval = 0.0
-    msgval  = 0.0
+    msgval  = -1.e30
 
     mask_array => landmask
 
@@ -257,6 +257,11 @@
                 lon = lon - 360.0
                 call latlon_to_ij(proj,lat,lon,x,y)
              endif
+             if(y < 0.5) then
+                y = 1.0
+             elseif(y >= real(field%ny)+0.5) then
+                y = real(field%ny)
+             endif
 
              if(maskval /= -1.0) then
                 destField2d(k,iCell) = interp_sequence(x,y,1,rslab,-2,field%nx+3,1,field%ny,1,1,msgval, \
@@ -297,11 +302,11 @@
 !local variables and arrays:
  integer,pointer:: nCells,nFGLevels,nVertLevels
  integer,pointer:: index_qo3
- integer:: iCell,k,kk
+ integer:: iCell,k
 
- real(kind=RKIND):: target_p
- real(kind=RKIND),dimension(:,:),pointer  :: o3mr_fg,p_fg
- real(kind=RKIND),dimension(:,:),pointer  :: pressure,qo3
+ real(kind=RKIND):: target_z
+ real(kind=RKIND),dimension(:,:),pointer  :: o3mr_fg,z_fg
+ real(kind=RKIND),dimension(:,:),pointer  :: qo3,zgrid
  real(kind=RKIND),dimension(:,:,:),pointer:: scalars
  real(kind=RKIND),dimension(:,:),allocatable:: sorted_arr
 
@@ -313,10 +318,9 @@
  call mpas_pool_get_dimension(mesh,'nCells'     ,nCells     )
  call mpas_pool_get_dimension(mesh,'nVertLevels',nVertLevels)
 
- call mpas_pool_get_array(fg,'p' ,p_fg   )
+ call mpas_pool_get_array(mesh,'zgrid',zgrid)
+ call mpas_pool_get_array(fg,'z' ,z_fg   )
  call mpas_pool_get_array(fg,'o3',o3mr_fg)
-
- call mpas_pool_get_array(diag,'pressure_base',pressure)
 
  call mpas_pool_get_dimension(state,'index_qo3',index_qo3)
  call mpas_pool_get_array(state,'scalars',scalars)
@@ -326,18 +330,17 @@
 
 !--- vertical interpolation to the MPAS levels:
  do iCell = 1, nCells
-    sorted_arr(1,1:nFGLevels) = 0._RKIND
-    sorted_arr(1,1:nFGLevels) = 0._RKIND
-    do k = 1, nFGLevels
-       kk = nFGLevels + 1 -k
-       sorted_arr(1,kk) = p_fg(k,iCell)
-       sorted_arr(2,kk) = o3mr_fg(k,iCell)
-    enddo
-    do k = nVertLevels, 1, -1
-       target_p = pressure(k,iCell)
-       qo3(k,iCell) = vertical_interp(target_p,nFGLevels-1, &
-                                sorted_arr(:,1:nFGLevels-1),order=1,extrap=0)
-       if(target_p >= p_fg(1,iCell) .and. k < nVertLevels) qo3(k,iCell) = qo3(k+1,iCell)
+    do k = 1, NFGLevels
+       sorted_arr(1,k) = z_fg(k,iCell)
+       if(k == 1) sorted_arr(1,k) = 99999._RKIND
+       sorted_arr(2,k) = max(0._RKIND,o3mr_fg(k,iCell))
+    end do
+    call mpas_quicksort(NFGLevels,sorted_arr)
+    qo3(:,iCell) = 0._RKIND
+    do k = nVertLevels,1,-1
+       target_z = 0.5*(zgrid(k,iCell) + zgrid(k+1,iCell))
+       qo3(k,iCell) = vertical_interp(target_z,NFGLevels,sorted_arr(:,1:NFGLevels-1),order=1,extrap=0)
+       if(target_z < z_fg(1,iCell) .and. k < nVertLevels) qo3(k,iCell) = qo3(k+1,iCell)
     enddo
  enddo
 
