@@ -15,8 +15,9 @@ dummy:
 
 OBJS = \
 	mpas_chemistry_init_gocart2G_climatology.o \
-	mpas_chemistry_init_gocart2G_interp.o \
 	mpas_chemistry_init_gocart2G_emissions.o \
+	mpas_chemistry_init_gocart2G_interp.o \
+	mpas_chemistry_init_gocart2G_lbcs.o \
 	mpas_chemistry_init_gocart2G_static.o
 
 
@@ -25,6 +26,8 @@ core_gocart2G: $(OBJS)
 
 
 # DEPENDENCIES:
+mpas_chemistry_init_gocart2G_lbcs.o : \
+	mpas_chemistry_init_gocart2G_interp.o
 
 
 clean:

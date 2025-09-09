@@ -36,6 +36,7 @@ module init_atm_cases
                                                     init_biomass_burning_emissions, &
                                                     init_biog_emissions
    use mpas_chemistry_init_gocart2G_interp,only: init_gocart2G_aerosols
+   use mpas_chemistry_init_gocart2G_lbcs,only  : init_gocart2G_aerosols_lbcs
    use mpas_chemistry_init_gocart2G_static,only: init_gocart2G_static
 #endif
 
@@ -446,6 +447,10 @@ module init_atm_cases
 
                call mpas_get_time(start_time, dateTimeString=timeStart)
                call init_atm_thompson_aerosols_lbc(timeString, timeStart, block_ptr, mesh, diag, lbc_state)
+
+#ifdef DO_GOCART2G
+               call init_gocart2G_aerosols_lbcs(timeString, timeStart, block_ptr % configs, mesh, fg, diag, lbc_state)
+#endif
 
                block_ptr => block_ptr % next
             end do

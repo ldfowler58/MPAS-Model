@@ -322,5 +322,103 @@
 
  </var_struct>
 
+
+ <var_struct name="lbc_state" time_levs="1">
+
+      <var_array name="lbc_scalars" type="real" dimensions="nVertLevels nCells Time" packages="lbcs">
+           <var name="lbc_qbcphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BCPHOBIC - black carbon hydrophobic mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qbcphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BCPHILIC - black carbon hydrophilic mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qbrphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BRPHOBIC - brown carbon hydrophobic mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qbrphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="BRPHILIC - brown carbon hydrophilic mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qocphobic" array_group="gocart2G" units="kg kg^{-1}"
+                description="OCPHOBIC - organic carbon hydrophobic mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qocphilic" array_group="gocart2G" units="kg kg^{-1}"
+                description="OCPHILIC - organic carbon hydrophilic mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qdust1" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU001 - mineral dust size bin 1 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qdust2" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU002 - mineral dust size bin 2 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qdust3" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU003 - mineral dust size bin 3 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qdust4" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU004 - mineral dust size bin 4 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qdust5" array_group="gocart2G" units="kg kg^{-1}"
+                description="DU005 - mineral dust size bin 5 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qni1" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI001 - nitrate size bin 1 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qni2" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI002 - nitrate size bin 2 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qni3" array_group="gocart2G" units="kg kg^{-1}"
+                description="NI003 - nitrate size bin 3 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qso2" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO2 - sulfur dioxide mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qso2v" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO2v - sulfur dioxide (volcanic) mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qso4" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO4 - sulfate mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qso4v" array_group="gocart2G" units="kg kg^{-1}"
+                description="SO4v - sulfate (volcanic) mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qseas1" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS001 - sea-salt size bin 1 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qseas2" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS002 - sea-salt size bin 2 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qseas3" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS003 - sea-salt size bin 3 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qseas4" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS004 - sea-salt size bin 4 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qseas5" array_group="gocart2G" units="kg kg^{-1}"
+                description="SS005 - sea-salt size bin 5 mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qdms" array_group="gocart2G" units="kg kg^{-1}"
+                description="DMS - dimethyl sulfide mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qmsa" array_group="gocart2G" units="kg kg^{-1}"
+                description="MSA - methanesulfonic acid mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qnh3" array_group="gocart2G" units="kg kg^{-1}"
+                description="NH3 - ammonia mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qnh4a" array_group="gocart2G" units="kg kg^{-1}"
+                description="NH4a - ammonium ion mass mixing ratio on lateral boundary cells"/>
+
+           <var name="lbc_qsoapa" array_group="gocart2G" units="kg kg^{-1}"
+                description="SOAPa - lumped SOA precursor mass mixing ratio on lateral boundary cells from anthropogenic emissions"/>
+
+           <var name="lbc_qsoapbb" array_group="gocart2G" units="kg kg^{-1}"
+                description="SOAPbb - lumped SOA precursor mass mixing ratio on lateral boundary cells from biomass burning emissions"/>
+
+           <var name="lbc_qsoapbg" array_group="gocart2G" units="kg kg^{-1}"
+                description="SOAPbg - lumped SOA precursor mass mixing ratio on lateral boundary cells from biogenic burning emissions"/>
+      </var_array>
+
+ </var_struct>
+
+
 #include "Registry_init_gocart2G_emissions.xml"
 #include "Registry_gocart2G_emissions.xml"
