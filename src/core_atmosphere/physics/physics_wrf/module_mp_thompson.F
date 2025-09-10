@@ -1005,7 +1005,6 @@
                          SNOWNC, SNOWNCV,                        &
                          GRAUPELNC, GRAUPELNCV, SR,              &
                          rainprod, evapprod,                     &
-                         refl_10cm, diagflag, do_radar_ref,      &
                          re_cloud, re_ice, re_snow,              &
                          has_reqc, has_reqi, has_reqs,           &
 #if defined(mpas)
@@ -1042,12 +1041,7 @@
       REAL, DIMENSION(ims:ime, jms:jme), INTENT(IN):: &
                           ntc,muc
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT), OPTIONAL:: &
-                          refl_10cm
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT), OPTIONAL:: &
                           pflrain,pflice,pflsnow,pflgraul
-#else
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT)::       &
-                          refl_10cm
 #endif
       REAL, INTENT(IN):: dt_in
       INTEGER, INTENT(IN):: itimestep
@@ -1066,8 +1060,6 @@
       REAL:: nwfa1
       INTEGER:: i, j, k
       INTEGER:: i_start, j_start, i_end, j_end
-      LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
-      INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
 
 !+---+
 
