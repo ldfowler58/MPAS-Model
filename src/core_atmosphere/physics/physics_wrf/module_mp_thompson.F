@@ -998,25 +998,25 @@
 !+---+-----------------------------------------------------------------+
 !..This is a wrapper routine designed to transfer values from 3D to 1D.
 !+---+-----------------------------------------------------------------+
-      SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, ni, nr, nc,     &
-                              nwfa, nifa, nwfa2d, nifa2d,             &
-                              th, pii, p, w, dz, dt_in, itimestep,    &
-                              RAINNC, RAINNCV,                        &
-                              SNOWNC, SNOWNCV,                        &
-                              GRAUPELNC, GRAUPELNCV, SR,              &
-                              rainprod, evapprod,                     &
-                              refl_10cm, diagflag, do_radar_ref,      &
-                              re_cloud, re_ice, re_snow,              &
-                              has_reqc, has_reqi, has_reqs,           &
-#if defined(mpas) || defined(DO_GOCART2G)
-                              ntc,muc,                                &
-                              pflrain,pflice,pflsnow,pflgraul,        &
+ subroutine mp_gt_driver(qv, qc, qr, qi, qs, qg, ni, nr, nc,     &
+                         nwfa, nifa, nwfa2d, nifa2d,             &
+                         th, pii, p, w, dz, dt_in, itimestep,    &
+                         RAINNC, RAINNCV,                        &
+                         SNOWNC, SNOWNCV,                        &
+                         GRAUPELNC, GRAUPELNCV, SR,              &
+                         rainprod, evapprod,                     &
+                         refl_10cm, diagflag, do_radar_ref,      &
+                         re_cloud, re_ice, re_snow,              &
+                         has_reqc, has_reqi, has_reqs,           &
+#if defined(mpas)
+                         ntc,muc,                                &
+                         pflrain,pflice,pflsnow,pflgraul,        &
 #endif
-                              ids,ide, jds,jde, kds,kde, &             ! domain dims
-                              ims,ime, jms,jme, kms,kme, &             ! memory dims
-                              its,ite, jts,jte, kts,kte)               ! tile dims
+                         ids,ide, jds,jde, kds,kde, &             ! domain dims
+                         ims,ime, jms,jme, kms,kme, &             ! memory dims
+                         its,ite, jts,jte, kts,kte)               ! tile dims
 
-      implicit none
+ implicit none
 
 !..Subroutine arguments
       INTEGER, INTENT(IN):: ids,ide, jds,jde, kds,kde, &
@@ -1065,13 +1065,9 @@
       REAL:: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
       REAL:: nwfa1
       INTEGER:: i, j, k
-      INTEGER:: imax_qc,imax_qr,imax_qi,imax_qs,imax_qg,imax_ni,imax_nr
-      INTEGER:: jmax_qc,jmax_qr,jmax_qi,jmax_qs,jmax_qg,jmax_ni,jmax_nr
-      INTEGER:: kmax_qc,kmax_qr,kmax_qi,kmax_qs,kmax_qg,kmax_ni,kmax_nr
       INTEGER:: i_start, j_start, i_end, j_end
       LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
       INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
-!     CHARACTER*256:: mp_debug
 
 !+---+
 
@@ -1080,55 +1076,8 @@
       i_end   = MIN(ite, ide-1)
       j_end   = MIN(jte, jde-1)
 
-!..For idealized testing by developer.
-!     if ( (ide-ids+1).gt.4 .and. (jde-jds+1).lt.4 .and.                &
-!          ids.eq.its.and.ide.eq.ite.and.jds.eq.jts.and.jde.eq.jte) then
-!        i_start = its + 2
-!        i_end   = ite
-!        j_start = jts
-!        j_end   = jte
-!     endif
-
       dt = dt_in
    
-      qc_max = 0.
-      qr_max = 0.
-      qs_max = 0.
-      qi_max = 0.
-      qg_max = 0
-      ni_max = 0.
-      nr_max = 0.
-      imax_qc = 0
-      imax_qr = 0
-      imax_qi = 0
-      imax_qs = 0
-      imax_qg = 0
-      imax_ni = 0
-      imax_nr = 0
-      jmax_qc = 0
-      jmax_qr = 0
-      jmax_qi = 0
-      jmax_qs = 0
-      jmax_qg = 0
-      jmax_ni = 0
-      jmax_nr = 0
-      kmax_qc = 0
-      kmax_qr = 0
-      kmax_qi = 0
-      kmax_qs = 0
-      kmax_qg = 0
-      kmax_ni = 0
-      kmax_nr = 0
-!     do i = 1, 256
-!        mp_debug(i:i) = char(0)
-!     enddo
-
-!     if (.NOT. is_aerosol_aware .AND. PRESENT(nc) .AND. PRESENT(nwfa)  &
-!               .AND. PRESENT(nifa) .AND. PRESENT(nwfa2d)) then
-!        write(mp_debug,*) 'WARNING, nc-nwfa-nifa-nwfa2d present but is_aerosol_aware is FALSE'
-!        CALL wrf_debug(0, mp_debug)
-!     endif
-
       j_loop:  do j = j_start, j_end
       i_loop:  do i = i_start, i_end
 
@@ -1253,121 +1202,7 @@
             rainprod(i,k,j) = rainprod1d(k)
             evapprod(i,k,j) = evapprod1d(k)
 #endif
-            if (qc1d(k) .gt. qc_max) then
-             imax_qc = i
-             jmax_qc = j
-             kmax_qc = k
-             qc_max = qc1d(k)
-            elseif (qc1d(k) .lt. 0.0) then
-             call mpas_log_write('--- WARNING, negative qc $r at i,j,k = $i $i $i ', &
-                       realArgs=(/qc1d(k)/),intArgs=(/i,j,k/))
-!            write(mp_debug,*) 'WARNING, negative qc ', qc1d(k),        &
-!                       ' at i,j,k=', i,j,k
-!            CALL wrf_debug(150, mp_debug)
-            endif
-            if (qr1d(k) .gt. qr_max) then
-             imax_qr = i
-             jmax_qr = j
-             kmax_qr = k
-             qr_max = qr1d(k)
-            elseif (qr1d(k) .lt. 0.0) then
-             call mpas_log_write('--- WARNING, negative qr $r at i,j,k = $i $i $i ', &
-                       realArgs=(/qr1d(k)/),intArgs=(/i,j,k/))
-!            write(mp_debug,*) 'WARNING, negative qr ', qr1d(k),        &
-!                       ' at i,j,k=', i,j,k
-!            CALL wrf_debug(150, mp_debug)
-            endif
-            if (nr1d(k) .gt. nr_max) then
-             imax_nr = i
-             jmax_nr = j
-             kmax_nr = k
-             nr_max = nr1d(k)
-            elseif (nr1d(k) .lt. 0.0) then
-             call mpas_log_write('--- WARNING, negative nr $r at i,j,k = $i $i $i ', &
-                       realArgs=(/nr1d(k)/),intArgs=(/i,j,k/))
-!            write(mp_debug,*) 'WARNING, negative nr ', nr1d(k),        &
-!                       ' at i,j,k=', i,j,k
-!            CALL wrf_debug(150, mp_debug)
-            endif
-            if (qs1d(k) .gt. qs_max) then
-             imax_qs = i
-             jmax_qs = j
-             kmax_qs = k
-             qs_max = qs1d(k)
-            elseif (qs1d(k) .lt. 0.0) then
-             call mpas_log_write('--- WARNING, negative qs $r at i,j,k = $i $i $i ', &
-                       realArgs=(/qs1d(k)/),intArgs=(/i,j,k/))
-!            write(mp_debug,*) 'WARNING, negative qs ', qs1d(k),        &
-!                       ' at i,j,k=', i,j,k
-!            CALL wrf_debug(150, mp_debug)
-            endif
-            if (qi1d(k) .gt. qi_max) then
-             imax_qi = i
-             jmax_qi = j
-             kmax_qi = k
-             qi_max = qi1d(k)
-            elseif (qi1d(k) .lt. 0.0) then
-             call mpas_log_write('--- WARNING, negative qi $r at i,j,k = $i $i $i ', &
-                       realArgs=(/qi1d(k)/),intArgs=(/i,j,k/))
-!            write(mp_debug,*) 'WARNING, negative qi ', qi1d(k),        &
-!                       ' at i,j,k=', i,j,k
-!            CALL wrf_debug(150, mp_debug)
-            endif
-            if (qg1d(k) .gt. qg_max) then
-             imax_qg = i
-             jmax_qg = j
-             kmax_qg = k
-             qg_max = qg1d(k)
-            elseif (qg1d(k) .lt. 0.0) then
-             call mpas_log_write('--- WARNING, negative qg $r at i,j,k = $i $i $i ', &
-                       realArgs=(/qg1d(k)/),intArgs=(/i,j,k/))
-!            write(mp_debug,*) 'WARNING, negative qg ', qg1d(k),        &
-!                       ' at i,j,k=', i,j,k
-!            CALL wrf_debug(150, mp_debug)
-            endif
-            if (ni1d(k) .gt. ni_max) then
-             imax_ni = i
-             jmax_ni = j
-             kmax_ni = k
-             ni_max = ni1d(k)
-            elseif (ni1d(k) .lt. 0.0) then
-             call mpas_log_write('--- WARNING, negative qni $r at i,j,k = $i $i $i ', &
-                       realArgs=(/ni1d(k)/),intArgs=(/i,j,k/))
-!            write(mp_debug,*) 'WARNING, negative ni ', ni1d(k),        &
-!                       ' at i,j,k=', i,j,k
-!            CALL wrf_debug(150, mp_debug)
-            endif
-            if (qv1d(k) .lt. 0.0) then
-             call mpas_log_write('--- WARNING, negative qv $r at i,j,k = $i $i $i ', &
-                       realArgs=(/qv1d(k)/),intArgs=(/i,j,k/))
-             if (k.lt.kte-2 .and. k.gt.kts+1) then
-                call mpas_log_write('-- below and above are: $r $r',realArgs=(/qv(i,k-1,j), qv(i,k+1,j)/))
-                qv(i,k,j) = MAX(1.E-7, 0.5*(qv(i,k-1,j) + qv(i,k+1,j)))
-             else
-                qv(i,k,j) = 1.E-7
-             endif
-!            write(mp_debug,*) 'WARNING, negative qv ', qv1d(k),        &
-!                       ' at i,j,k=', i,j,k
-!            CALL wrf_debug(150, mp_debug)
-!            if (k.lt.kte-2 .and. k.gt.kts+1) then
-!               write(mp_debug,*) '   below and above are: ', qv(i,k-1,j), qv(i,k+1,j)
-!               CALL wrf_debug(150, mp_debug)
-!               qv(i,k,j) = MAX(1.E-7, 0.5*(qv(i,k-1,j) + qv(i,k+1,j)))
-!            else
-!               qv(i,k,j) = 1.E-7
-!            endif
-            endif
          enddo
-
-!        IF ( PRESENT (diagflag) ) THEN
-!        if (diagflag .and. do_radar_ref == 1) then
-!         call calc_refl10cm (qv1d, qc1d, qr1d, nr1d, qs1d, qg1d,       &
-!                     t1d, p1d, dBZ, kts, kte, i, j)
-!         do k = kts, kte
-!            refl_10cm(i,k,j) = MAX(-35., dBZ(k))
-!         enddo
-!        endif
-!        ENDIF
 
          IF (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) THEN
           do k = kts, kte
@@ -1387,23 +1222,7 @@
       enddo i_loop
       enddo j_loop
 
-! DEBUG - GT
-!     write(mp_debug,'(a,7(a,e13.6,1x,a,i3,a,i3,a,i3,a,1x))') 'MP-GT:', &
-!        'qc: ', qc_max, '(', imax_qc, ',', jmax_qc, ',', kmax_qc, ')', &
-!        'qr: ', qr_max, '(', imax_qr, ',', jmax_qr, ',', kmax_qr, ')', &
-!        'qi: ', qi_max, '(', imax_qi, ',', jmax_qi, ',', kmax_qi, ')', &
-!        'qs: ', qs_max, '(', imax_qs, ',', jmax_qs, ',', kmax_qs, ')', &
-!        'qg: ', qg_max, '(', imax_qg, ',', jmax_qg, ',', kmax_qg, ')', &
-!        'ni: ', ni_max, '(', imax_ni, ',', jmax_ni, ',', kmax_ni, ')', &
-!        'nr: ', nr_max, '(', imax_nr, ',', jmax_nr, ',', kmax_nr, ')'
-!     CALL wrf_debug(150, mp_debug)
-! END DEBUG - GT
-
-!     do i = 1, 256
-!        mp_debug(i:i) = char(0)
-!     enddo
-
-      END SUBROUTINE mp_gt_driver
+ end subroutine mp_gt_driver
 
 !+---+-----------------------------------------------------------------+
 !ctrlL
