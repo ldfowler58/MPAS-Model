@@ -998,6 +998,8 @@
 !+---+-----------------------------------------------------------------+
 !..This is a wrapper routine designed to transfer values from 3D to 1D.
 !+---+-----------------------------------------------------------------+
+
+!==================================================================================================================
  subroutine mp_gt_driver(qv, qc, qr, qi, qs, qg, ni, nr, nc,     &
                          nwfa, nifa, nwfa2d, nifa2d,             &
                          th, pii, p, w, dz, dt_in, itimestep,    &
@@ -1016,50 +1018,59 @@
 
  implicit none
 
-!..Subroutine arguments
-      INTEGER, INTENT(IN):: ims,ime, jms,jme, kms,kme, &
-                            its,ite, jts,jte, kts,kte
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
-                          qv, qc, qr, qi, qs, qg, ni, nr, th
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
-                          nc, nwfa, nifa
-      REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(IN):: nwfa2d, nifa2d
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
-                          re_cloud, re_ice, re_snow
-      INTEGER, INTENT(IN):: has_reqc, has_reqi, has_reqs
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(IN):: &
-                          pii, p, w, dz
-      REAL, DIMENSION(ims:ime, jms:jme), INTENT(INOUT):: &
-                          RAINNC, RAINNCV, SR
-      REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(INOUT)::      &
-                          SNOWNC, SNOWNCV, GRAUPELNC, GRAUPELNCV
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
-                          rainprod,evapprod
+!==================================================================================================================
+
+!--- input arguments:
+ integer,intent(in):: ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte
+ integer,intent(in):: has_reqc,has_reqi,has_reqs
+ integer,intent(in):: itimestep
+
+ real(kind=RKIND),intent(in):: dt_in
+ real(kind=RKIND),intent(in),dimension(ims:ime,jms:jme),optional:: nwfa2d,nifa2d
+ real(kind=RKIND),intent(in),dimension(ims:ime,kms:kme,jms:jme):: pii,p,w,dz
+
 #if defined(mpas)
-      REAL, DIMENSION(ims:ime, jms:jme), INTENT(IN):: &
-                          ntc,muc
-      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT), OPTIONAL:: &
-                          pflrain,pflice,pflsnow,pflgraul
+ real(kind=RKIND),intent(in),dimension(ims:ime,jms:jme):: ntc,muc
 #endif
-      REAL, INTENT(IN):: dt_in
-      INTEGER, INTENT(IN):: itimestep
 
-!..Local variables
-      REAL, DIMENSION(kts:kte):: &
-                          qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, ni1d,     &
-                          nr1d, nc1d, nwfa1d, nifa1d,                   &
-                          t1d, p1d, w1d, dz1d, rho, dBZ
-      REAL, DIMENSION(kts:kte):: re_qc1d, re_qi1d, re_qs1d
-      REAL, DIMENSION(kts:kte):: rainprod1d, evapprod1d
-      REAL, DIMENSION(kts:kte):: ppfr1d,ppfi1d,ppfs1d,ppfg1d
-      REAL, DIMENSION(its:ite, jts:jte):: pcp_ra, pcp_sn, pcp_gr, pcp_ic
-      REAL:: dt, pptrain, pptsnow, pptgraul, pptice
-      REAL:: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
-      REAL:: nwfa1
-      INTEGER:: i, j, k
-      INTEGER:: i_start, j_start, i_end, j_end
+!--- inout arguments:
+ real(kind=RKIND),intent(inout),dimension(ims:ime,jms:jme):: rainnc,rainncv,sr
+ real(kind=RKIND),intent(inout),dimension(ims:ime,jms:jme),optional:: snownc,snowncv,graupelnc,graupelncv
 
-!+---+
+ real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme):: th,qv,qc,qr,qi,qs,qg,ni,nr
+ real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme):: re_cloud,re_ice,re_snow
+ real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: rainprod,evapprod
+
+#if defined(mpas)
+ real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: pflrain,pflice,pflsnow,pflgraul
+#endif
+
+#ifdef DO_GOCART2G
+ real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte),optional:: nwfa,nifa
+ real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: nc
+#else
+ real(kind=RKIND),intent(inout),dimension(ims:ime,kms:kme,jms:jme),optional:: nc,nwfa,nifa
+#endif
+
+!--- local variables and arrays:
+ integer:: i,j,k
+ integer:: i_start,j_start,i_end,j_end
+
+ real(kind=RKIND):: nwfa1
+ real(kind=RKIND):: dt
+ real(kind=RKIND):: pptrain,pptsnow,pptgraul,pptice
+ real(kind=RKIND),dimension(kts:kte):: qv1d,qc1d,qi1d,qr1d,qs1d,qg1d
+ real(kind=RKIND),dimension(kts:kte):: ni1d,nr1d,nc1d,nwfa1d,nifa1d
+ real(kind=RKIND),dimension(kts:kte):: t1d,p1d,w1d,dz1d,rho
+ real(kind=RKIND),dimension(kts:kte):: re_qc1d,re_qi1d,re_qs1d
+ real(kind=RKIND),dimension(kts:kte):: rainprod1d, evapprod1d
+ real(kind=RKIND),dimension(kts:kte):: ppfr1d,ppfi1d,ppfs1d,ppfg1d
+ real(kind=RKIND),dimension(its:ite,jts:jte):: pcp_ra,pcp_sn,pcp_gr,pcp_ic
+
+!------------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine mp_gt_driver - is_aerosol_aware = $l', &
+!                    logicArgs=(/is_aerosol_aware/))
 
       i_start = its
       j_start = jts
@@ -1068,8 +1079,8 @@
 
       dt = dt_in
    
-      j_loop:  do j = j_start, j_end
-      i_loop:  do i = i_start, i_end
+ j_loop: do j = j_start,j_end
+    i_loop: do i = i_start,i_end
 
          pptrain = 0.
          pptsnow = 0.
