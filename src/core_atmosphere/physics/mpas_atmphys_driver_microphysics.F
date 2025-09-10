@@ -429,7 +429,6 @@
                   has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
                   ntc      = ntc_p       , muc       = muc_p       , pflrain    = prcpfluxr_p  , &
                   pflice   = prcpfluxi_p , pflsnow   = prcpfluxs_p , pflgraul   = prcpfluxg_p  , &
-                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde        , &
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
                            )
@@ -456,7 +455,6 @@
                   nifa2d   = nifa2d_p    , nwfa2d    = nwfa2d_p    , ntc        = ntc_p        , &
                   muc      = muc_p       , pflrain   = prcpfluxr_p , pflice     = prcpfluxi_p  , &
                   pflsnow  = prcpfluxs_p , pflgraul  = prcpfluxg_p                             , &
-                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde        , &
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
                            )
@@ -491,8 +489,9 @@
                   has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
                   nc       = nc_p        , ntc       = ntc_p       , muc        = muc_p        , &
                   pflrain  = prcpfluxr_p , pflice    = prcpfluxi_p , pflsnow    = prcpfluxs_p  , &
-                  pflgraul = prcpfluxg_p , nwfa      = nwfa_p      , nifa       = nifa_p       , &
-                  ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde        , &
+                  pflgraul = prcpfluxg_p ,                                                       &
+                  nwfa = mpas_chem_gocart2G%chem_nwfa,                                           &
+                  nifa = mpas_chem_gocart2G%chem_nifa,                                           &
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
                            )

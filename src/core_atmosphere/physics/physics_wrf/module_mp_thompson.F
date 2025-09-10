@@ -1011,15 +1011,13 @@
                          ntc,muc,                                &
                          pflrain,pflice,pflsnow,pflgraul,        &
 #endif
-                         ids,ide, jds,jde, kds,kde, &             ! domain dims
                          ims,ime, jms,jme, kms,kme, &             ! memory dims
                          its,ite, jts,jte, kts,kte)               ! tile dims
 
  implicit none
 
 !..Subroutine arguments
-      INTEGER, INTENT(IN):: ids,ide, jds,jde, kds,kde, &
-                            ims,ime, jms,jme, kms,kme, &
+      INTEGER, INTENT(IN):: ims,ime, jms,jme, kms,kme, &
                             its,ite, jts,jte, kts,kte
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
                           qv, qc, qr, qi, qs, qg, ni, nr, th
@@ -1065,8 +1063,8 @@
 
       i_start = its
       j_start = jts
-      i_end   = MIN(ite, ide-1)
-      j_end   = MIN(jte, jde-1)
+      i_end   = ite
+      j_end   = jte
 
       dt = dt_in
    
