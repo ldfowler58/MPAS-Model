@@ -1065,23 +1065,26 @@
  real(kind=RKIND),dimension(kts:kte):: re_qc1d,re_qi1d,re_qs1d
  real(kind=RKIND),dimension(kts:kte):: rainprod1d, evapprod1d
  real(kind=RKIND),dimension(kts:kte):: ppfr1d,ppfi1d,ppfs1d,ppfg1d
- real(kind=RKIND),dimension(its:ite,jts:jte):: pcp_ra,pcp_sn,pcp_gr,pcp_ic
 
+ real(kind=RKIND),dimension(its:ite):: rainnc_hv,graupelnc_hv,snownc_hv,sr_hv
+ real(kind=RKIND),dimension(its:ite):: rainncv_hv,graupelncv_hv,snowncv_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: th_hv,dz_hv,pi_hv,p_hv,w_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qr_hv,qi_hv,qs_hv,qg_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: ni_hv,nr_hv
+ real(kind=RKIND),dimension(its:ite,kts:kte):: rainprod_hv,evapprod_hv
+ real(kind=RKIND),dimension(its:ite,kts:kte):: pflrain_hv,pflice_hv,pflsnow_hv,pflgraul_hv
 
 !------------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
 !call mpas_log_write('--- enter subroutine mp_gt_driver - is_aerosol_aware = $l', &
 !                    logicArgs=(/is_aerosol_aware/))
 
-      i_start = its
-      j_start = jts
-      i_end   = ite
-      j_end   = jte
+ i_start = its
+ j_start = jts
+ i_end   = ite
+ j_end   = jte
 
-      dt = dt_in
+ dt = dt_in
    
  j_loop: do j = j_start,j_end
 
@@ -1096,6 +1099,8 @@
        enddo
 
        !--- inout arguments:
+       rainnc_hv(i) = rainnc(i,j)
+
        do k = kts,kte
           th_hv(i,k) = th(i,k,j)
           qv_hv(i,k) = qv(i,k,j)
@@ -1109,52 +1114,59 @@
        enddo
     enddo
 
+    if(present(snownc)) then
+       do i = its,ite
+          snownc_hv(i) = snownc(i,j)
+       enddo
+    endif
+    if(present(graupelnc)) then
+       do i = its,ite
+          graupelnc_hv(i) = graupelnc(i,j)
+       enddo
+    endif
+
 
     !--- BEGIN CLOUD MICROPHYSICS SCHEME:
     i_loop: do i = i_start,i_end
 
-         pptrain = 0.
-         pptsnow = 0.
-         pptgraul = 0.
-         pptice = 0.
-         RAINNCV(i,j) = 0.
-         IF ( PRESENT (snowncv) ) THEN
-            SNOWNCV(i,j) = 0.
-         ENDIF
-         IF ( PRESENT (graupelncv) ) THEN
-            GRAUPELNCV(i,j) = 0.
-         ENDIF
-         SR(i,j) = 0.
+       pptrain  = 0._RKIND
+       pptsnow  = 0._RKIND
+       pptgraul = 0._RKIND
+       pptice   = 0._RKIND
+
+       rainncv_hv(i)    = 0._RKIND
+       snowncv_hv(i)    = 0._RKIND
+       graupelncv_hv(i) = 0._RKIND
+       sr_hv(i)         = 0._RKIND
 
 #if defined(mpas)
          Nt_c = ntc(i,j)
          mu_c = muc(i,j)
 #endif
-         do k = kts,kte
-            rainprod1d(k) = 0.
-            evapprod1d(k) = 0.
-            ppfr1d(k) = 0.
-            ppfi1d(k) = 0.
-            ppfs1d(k) = 0.
-            ppfg1d(k) = 0.
-         enddo
 
-         !--- initialization of 1D column arrays:
-         do k = kts, kte
-            t1d(k)  = th_hv(i,k)*pi_hv(i,k)
-            p1d(k)  = p_hv(i,k)
-            w1d(k)  = w_hv(i,k)
-            dz1d(k) = dz_hv(i,k)
-            qv1d(k) = qv_hv(i,k)
-            qc1d(k) = qc_hv(i,k)
-            qi1d(k) = qi_hv(i,k)
-            qr1d(k) = qr_hv(i,k)
-            qs1d(k) = qs_hv(i,k)
-            qg1d(k) = qg_hv(i,k)
-            ni1d(k) = ni_hv(i,k)
-            nr1d(k) = nr_hv(i,k)
-            rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
-         enddo
+       !--- initialization of 1D column arrays:
+       do k = kts, kte
+          t1d(k)  = th_hv(i,k)*pi_hv(i,k)
+          p1d(k)  = p_hv(i,k)
+          w1d(k)  = w_hv(i,k)
+          dz1d(k) = dz_hv(i,k)
+          qv1d(k) = qv_hv(i,k)
+          qc1d(k) = qc_hv(i,k)
+          qi1d(k) = qi_hv(i,k)
+          qr1d(k) = qr_hv(i,k)
+          qs1d(k) = qs_hv(i,k)
+          qg1d(k) = qg_hv(i,k)
+          ni1d(k) = ni_hv(i,k)
+          nr1d(k) = nr_hv(i,k)
+          rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
+
+          rainprod1d(k) = 0._RKIND
+          evapprod1d(k) = 0._RKIND
+          ppfr1d(k)     = 0._RKIND
+          ppfi1d(k)     = 0._RKIND
+          ppfs1d(k)     = 0._RKIND
+          ppfg1d(k)     = 0._RKIND
+       enddo
 
          if (is_aerosol_aware) then
             do k = kts, kte
@@ -1179,31 +1191,22 @@
                       ppfr1d, ppfi1d, ppfs1d, ppfg1d,                   &
                       kts, kte, dt, i, j)
 
-         pcp_ra(i,j) = pptrain
-         pcp_sn(i,j) = pptsnow
-         pcp_gr(i,j) = pptgraul
-         pcp_ic(i,j) = pptice
-         RAINNCV(i,j) = pptrain + pptsnow + pptgraul + pptice
-         RAINNC(i,j) = RAINNC(i,j) + pptrain + pptsnow + pptgraul + pptice
-         IF ( PRESENT(snowncv) .AND. PRESENT(snownc) ) THEN
-            SNOWNCV(i,j) = pptsnow + pptice
-            SNOWNC(i,j) = SNOWNC(i,j) + pptsnow + pptice
-         ENDIF
-         IF ( PRESENT(graupelncv) .AND. PRESENT(graupelnc) ) THEN
-            GRAUPELNCV(i,j) = pptgraul
-            GRAUPELNC(i,j) = GRAUPELNC(i,j) + pptgraul
-         ENDIF
-         SR(i,j) = (pptsnow + pptgraul + pptice)/(RAINNCV(i,j)+1.e-12)
+       rainncv_hv(i)    = pptrain + pptsnow + pptgraul + pptice
+       rainnc_hv(i)     = rainnc_hv(i) + pptrain + pptsnow + pptgraul + pptice
+       snowncv_hv(i)    = pptsnow + pptice
+       snownc_hv(i)     = snownc_hv(i) + pptsnow + pptice
+       graupelncv_hv(i) = pptgraul
+       graupelnc_hv(i)  = graupelnc_hv(i) + pptgraul
+       sr_hv(i)         = (pptsnow + pptgraul + pptice)/(rainncv_hv(i)+1.e-12)
 
-         if(present(pflrain) .and. present(pflice) .and. &
-            present(pflsnow) .and. present(pflgraul)) then
-            do k = kts, kte
-               pflrain(i,k,j)  = ppfr1d(k)
-               pflice(i,k,j)   = ppfi1d(k)
-               pflsnow(i,k,j)  = ppfs1d(k)
-               pflgraul(i,k,j) = ppfg1d(k)
-            enddo
-         endif
+       do k = kts,kte
+          rainprod_hv(i,k) = rainprod1d(k)
+          evapprod_hv(i,k) = evapprod1d(k)
+          pflrain_hv(i,k)  = ppfr1d(k)
+          pflice_hv(i,k)   = ppfi1d(k)
+          pflsnow_hv(i,k)  = ppfs1d(k)
+          pflgraul_hv(i,k) = ppfg1d(k)
+       enddo
 
 !..Reset lowest model level to initial state aerosols (fake sfc source).
 !.. Changed 13 May 2013 to fake emissions in which nwfa2d is aerosol
@@ -1235,12 +1238,6 @@
             nr_hv(i,k) = nr1d(k)
          enddo
 
-#if defined(mpas)
-         do k = kts, kte
-            rainprod(i,k,j) = rainprod1d(k)
-            evapprod(i,k,j) = evapprod1d(k)
-         enddo
-#endif
 
          IF (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) THEN
           do k = kts, kte
@@ -1262,6 +1259,11 @@
 !--- END CLOUD MICROPHYSICS SCHEME:
 
     do i = its,ite
+
+       rainnc(i,j)  = rainnc_hv(i)
+       rainncv(i,j) = rainncv_hv(i)
+       sr(i,j)      = sr_hv(i)
+
        do k = kts,kte
           th(i,k,j) = th_hv(i,k)
           qv(i,k,j) = qv_hv(i,k)
@@ -1274,6 +1276,49 @@
           nr(i,k,j) = nr_hv(i,k)
        enddo
     enddo
+
+    if(present(snowncv)) then
+       do i = its,ite
+          snowncv(i,j) = snowncv_hv(i)
+       enddo
+    endif
+    if(present(snownc)) then
+       do i = its,ite
+          snownc(i,j) = snownc_hv(i)
+       enddo
+    endif
+
+    if(present(graupelncv)) then
+       do i = its,ite
+          graupelncv(i,j) = graupelncv_hv(i)
+       enddo
+    endif
+    if(present(graupelnc)) then
+       do i = its,ite
+          graupelnc(i,j) = graupelnc_hv(i)
+       enddo
+    endif
+
+    if(present(rainprod) .and. present(evapprod)) then
+       do i = its,ite
+          do k = kts,kte
+             rainprod(i,k,j) = rainprod_hv(i,k)
+             evapprod(i,k,j) = evapprod_hv(i,k)
+          enddo
+       enddo
+    endif
+
+    if(present(pflrain) .and. present(pflice) .and. present(pflsnow) .and. present(pflgraul)) then
+       do i = its,ite
+          do k = kts,kte
+             pflrain(i,k,j)  = pflrain_hv(i,k)
+             pflice(i,k,j)   = pflice_hv(i,k)
+             pflsnow(i,k,j)  = pflsnow_hv(i,k)
+             pflgraul(i,k,j) = pflgraul_hv(i,k)
+          enddo
+       enddo
+    endif
+
 
  enddo j_loop
 
