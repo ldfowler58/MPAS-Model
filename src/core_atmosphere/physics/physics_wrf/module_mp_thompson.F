@@ -1067,6 +1067,10 @@
  real(kind=RKIND),dimension(kts:kte):: ppfr1d,ppfi1d,ppfs1d,ppfg1d
  real(kind=RKIND),dimension(its:ite,jts:jte):: pcp_ra,pcp_sn,pcp_gr,pcp_ic
 
+ real(kind=RKIND),dimension(its:ite,kts:kte):: th_hv,dz_hv,pi_hv,p_hv,w_hv
+ real(kind=RKIND),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qr_hv,qi_hv,qs_hv,qg_hv
+ real(kind=RKIND),dimension(its:ite,kts:kte):: ni_hv,nr_hv
+
 !------------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
 !call mpas_log_write('--- enter subroutine mp_gt_driver - is_aerosol_aware = $l', &
@@ -1080,6 +1084,33 @@
       dt = dt_in
    
  j_loop: do j = j_start,j_end
+
+
+    do i = its,ite
+       !--- input arguments:
+       do k = kts,kte
+          pi_hv(i,k) = pii(i,k,j)
+          p_hv(i,k)  = p(i,k,j)
+          dz_hv(i,k) = dz(i,k,j)
+          w_hv(i,k)  = w(i,k,j)
+       enddo
+
+       !--- inout arguments:
+       do k = kts,kte
+          th_hv(i,k) = th(i,k,j)
+          qv_hv(i,k) = qv(i,k,j)
+          qc_hv(i,k) = qc(i,k,j)
+          qr_hv(i,k) = qr(i,k,j)
+          qi_hv(i,k) = qi(i,k,j)
+          qs_hv(i,k) = qs(i,k,j)
+          qg_hv(i,k) = qg(i,k,j)
+          ni_hv(i,k) = ni(i,k,j)
+          nr_hv(i,k) = nr(i,k,j)
+       enddo
+    enddo
+
+
+    !--- BEGIN CLOUD MICROPHYSICS SCHEME:
     i_loop: do i = i_start,i_end
 
          pptrain = 0.
@@ -1108,21 +1139,23 @@
             ppfg1d(k) = 0.
          enddo
 
+         !--- initialization of 1D column arrays:
          do k = kts, kte
-            t1d(k) = th(i,k,j)*pii(i,k,j)
-            p1d(k) = p(i,k,j)
-            w1d(k) = w(i,k,j)
-            dz1d(k) = dz(i,k,j)
-            qv1d(k) = qv(i,k,j)
-            qc1d(k) = qc(i,k,j)
-            qi1d(k) = qi(i,k,j)
-            qr1d(k) = qr(i,k,j)
-            qs1d(k) = qs(i,k,j)
-            qg1d(k) = qg(i,k,j)
-            ni1d(k) = ni(i,k,j)
-            nr1d(k) = nr(i,k,j)
+            t1d(k)  = th_hv(i,k)*pi_hv(i,k)
+            p1d(k)  = p_hv(i,k)
+            w1d(k)  = w_hv(i,k)
+            dz1d(k) = dz_hv(i,k)
+            qv1d(k) = qv_hv(i,k)
+            qc1d(k) = qc_hv(i,k)
+            qi1d(k) = qi_hv(i,k)
+            qr1d(k) = qr_hv(i,k)
+            qs1d(k) = qs_hv(i,k)
+            qg1d(k) = qg_hv(i,k)
+            ni1d(k) = ni_hv(i,k)
+            nr1d(k) = nr_hv(i,k)
             rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
          enddo
+
          if (is_aerosol_aware) then
             do k = kts, kte
                nc1d(k) = nc(i,k,j)
@@ -1189,21 +1222,25 @@
             enddo
          endif
 
+         !--- update 2D arrays after call to cloud microphysics:
          do k = kts, kte
-            qv(i,k,j) = qv1d(k)
-            qc(i,k,j) = qc1d(k)
-            qi(i,k,j) = qi1d(k)
-            qr(i,k,j) = qr1d(k)
-            qs(i,k,j) = qs1d(k)
-            qg(i,k,j) = qg1d(k)
-            ni(i,k,j) = ni1d(k)
-            nr(i,k,j) = nr1d(k)
-            th(i,k,j) = t1d(k)/pii(i,k,j)
+            th_hv(i,k) = t1d(k)/pi_hv(i,k)
+            qv_hv(i,k) = qv1d(k)
+            qc_hv(i,k) = qc1d(k)
+            qi_hv(i,k) = qi1d(k)
+            qr_hv(i,k) = qr1d(k)
+            qs_hv(i,k) = qs1d(k)
+            qg_hv(i,k) = qg1d(k)
+            ni_hv(i,k) = ni1d(k)
+            nr_hv(i,k) = nr1d(k)
+         enddo
+
 #if defined(mpas)
+         do k = kts, kte
             rainprod(i,k,j) = rainprod1d(k)
             evapprod(i,k,j) = evapprod1d(k)
-#endif
          enddo
+#endif
 
          IF (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) THEN
           do k = kts, kte
@@ -1220,8 +1257,25 @@
           enddo
          ENDIF
 
-      enddo i_loop
-      enddo j_loop
+    enddo i_loop
+
+!--- END CLOUD MICROPHYSICS SCHEME:
+
+    do i = its,ite
+       do k = kts,kte
+          th(i,k,j) = th_hv(i,k)
+          qv(i,k,j) = qv_hv(i,k)
+          qc(i,k,j) = qc_hv(i,k)
+          qr(i,k,j) = qr_hv(i,k)
+          qi(i,k,j) = qi_hv(i,k)
+          qs(i,k,j) = qs_hv(i,k)
+          qg(i,k,j) = qg_hv(i,k)
+          ni(i,k,j) = ni_hv(i,k)
+          nr(i,k,j) = nr_hv(i,k)
+       enddo
+    enddo
+
+ enddo j_loop
 
  end subroutine mp_gt_driver
 
@@ -4188,7 +4242,7 @@
       end subroutine table_dropEvap
 !
 !ctrlL
-#if !defined (mpas)
+#if !defined (mpas) || !defined(DO_GOCART2G)
 !+---+-----------------------------------------------------------------+
 !..Fill the table of CCN activation data created from parcel model run
 !.. by Trude Eidhammer with inputs of aerosol number concentration,
