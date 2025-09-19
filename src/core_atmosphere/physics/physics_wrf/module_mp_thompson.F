@@ -1054,7 +1054,6 @@
 
 !--- local variables and arrays:
  integer:: i,j,k
- integer:: i_start,j_start,i_end,j_end
 
  real(kind=RKIND):: nwfa1
  real(kind=RKIND):: dt
@@ -1066,11 +1065,14 @@
  real(kind=RKIND),dimension(kts:kte):: rainprod1d, evapprod1d
  real(kind=RKIND),dimension(kts:kte):: ppfr1d,ppfi1d,ppfs1d,ppfg1d
 
+ real(kind=RKIND),dimension(its:ite):: muc_hv,ntc_hv
+ real(kind=RKIND),dimension(its:ite):: nifa2d_hv,nwfa2d_hv
  real(kind=RKIND),dimension(its:ite):: rainnc_hv,graupelnc_hv,snownc_hv,sr_hv
  real(kind=RKIND),dimension(its:ite):: rainncv_hv,graupelncv_hv,snowncv_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: th_hv,dz_hv,pi_hv,p_hv,w_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qr_hv,qi_hv,qs_hv,qg_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: ni_hv,nr_hv
+ real(kind=RKIND),dimension(its:ite,kts:kte):: nc_hv,nwfa_hv,nifa_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: rainprod_hv,evapprod_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: pflrain_hv,pflice_hv,pflsnow_hv,pflgraul_hv
 
@@ -1079,18 +1081,15 @@
 !call mpas_log_write('--- enter subroutine mp_gt_driver - is_aerosol_aware = $l', &
 !                    logicArgs=(/is_aerosol_aware/))
 
- i_start = its
- j_start = jts
- i_end   = ite
- j_end   = jte
-
  dt = dt_in
    
- j_loop: do j = j_start,j_end
-
+ do j = jts,jte
 
     do i = its,ite
        !--- input arguments:
+       muc_hv(i) = muc(i,j)
+       ntc_hv(i) = ntc(i,j)
+
        do k = kts,kte
           pi_hv(i,k) = pii(i,k,j)
           p_hv(i,k)  = p(i,k,j)
@@ -1114,6 +1113,28 @@
        enddo
     enddo
 
+    if(present(nc) .and. present(nwfa) .and. present(nifa)) then
+       do i = its,ite
+          do k = kts,kte
+             nc_hv(i,k)   = nc(i,k,j)
+             nwfa_hv(i,k) = nwfa(i,k)
+             nifa_hv(i,k) = nifa(i,k)
+          enddo
+       enddo
+    endif
+
+    if(present(nwfa2d) .and. present(nifa2d)) then
+       do i = its,ite
+          nifa2d_hv(i) = nifa2d(i,j)
+          nwfa2d_hv(i) = nwfa2d(i,j)
+       enddo
+    else
+       do i = its,ite
+          nifa2d_hv(i) = 0._RKIND
+          nwfa2d_hv(i) = 0._RKIND
+       enddo
+    endif
+
     if(present(snownc)) then
        do i = its,ite
           snownc_hv(i) = snownc(i,j)
@@ -1127,7 +1148,7 @@
 
 
     !--- BEGIN CLOUD MICROPHYSICS SCHEME:
-    i_loop: do i = i_start,i_end
+    do i = its,ite
 
        pptrain  = 0._RKIND
        pptsnow  = 0._RKIND
@@ -1139,10 +1160,8 @@
        graupelncv_hv(i) = 0._RKIND
        sr_hv(i)         = 0._RKIND
 
-#if defined(mpas)
-         Nt_c = ntc(i,j)
-         mu_c = muc(i,j)
-#endif
+       Nt_c = ntc_hv(i)
+       mu_c = muc_hv(i)
 
        !--- initialization of 1D column arrays:
        do k = kts, kte
@@ -1168,28 +1187,28 @@
           ppfg1d(k)     = 0._RKIND
        enddo
 
-         if (is_aerosol_aware) then
-            do k = kts, kte
-               nc1d(k) = nc(i,k,j)
-               nwfa1d(k) = nwfa(i,k,j)
-               nifa1d(k) = nifa(i,k,j)
-            enddo
-!-GT        nwfa1 = nwfa2d(i,j)
-         else
-            do k = kts, kte
-               nc1d(k) = Nt_c/rho(k)
-               nwfa1d(k) = 11.1E6/rho(k)
-               nifa1d(k) = naIN1*0.01/rho(k)
-            enddo
-!-GT        nwfa1 = 11.1E6
-         endif
+       if(is_aerosol_aware) then
+          do k = kts,kte
+             nc1d(k)   = nc_hv(i,k)
+             nwfa1d(k) = nwfa_hv(i,k)
+             nifa1d(k) = nifa_hv(i,k)
+          enddo
+       else
+          do k = kts, kte
+             nc1d(k)   = Nt_c/rho(k)
+             nwfa1d(k) = 11.1E6/rho(k)
+             nifa1d(k) = naIN1*0.01/rho(k)
+          enddo
+       endif
 
-         call mp_thompson(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, ni1d,     &
-                      nr1d, nc1d, nwfa1d, nifa1d, t1d, p1d, w1d, dz1d,  &
-                      pptrain, pptsnow, pptgraul, pptice,               &
-                      rainprod1d, evapprod1d,                           &
-                      ppfr1d, ppfi1d, ppfs1d, ppfg1d,                   &
-                      kts, kte, dt, i, j)
+
+       !--- call to 1D Thompson cloud microphysics scheme:
+       call mp_thompson( &
+               qv1d   , qc1d    , qi1d    , qr1d     , qs1d   , qg1d       , ni1d       , &
+               nr1d   , nc1d    , nwfa1d  , nifa1d   , t1d    , p1d        , w1d        , &
+               dz1d   , pptrain , pptsnow , pptgraul , pptice , rainprod1d , evapprod1d , &
+               ppfr1d , ppfi1d  , ppfs1d  , ppfg1d   , kts    , kte        , dt         , &
+               i, j    )
 
        rainncv_hv(i)    = pptrain + pptsnow + pptgraul + pptice
        rainnc_hv(i)     = rainnc_hv(i) + pptrain + pptsnow + pptgraul + pptice
@@ -1199,6 +1218,7 @@
        graupelnc_hv(i)  = graupelnc_hv(i) + pptgraul
        sr_hv(i)         = (pptsnow + pptgraul + pptice)/(rainncv_hv(i)+1.e-12)
 
+       !--- update 2D arrays after call to cloud microphysics:
        do k = kts,kte
           rainprod_hv(i,k) = rainprod1d(k)
           evapprod_hv(i,k) = evapprod1d(k)
@@ -1208,35 +1228,28 @@
           pflgraul_hv(i,k) = ppfg1d(k)
        enddo
 
-!..Reset lowest model level to initial state aerosols (fake sfc source).
-!.. Changed 13 May 2013 to fake emissions in which nwfa2d is aerosol
-!.. number tendency (number per kg per second).
-         if (is_aerosol_aware) then
-            if (present(nwfa2d) .and. present(nifa2d)) then
-!-GT           nwfa1d(kts) = nwfa1
-               nwfa1d(kts) = nwfa1d(kts) + nwfa2d(i,j)*dt_in
-               nifa1d(kts) = nifa1d(kts) + nifa2d(i,j)*dt_in
-            endif
+       do k = kts, kte
+          th_hv(i,k) = t1d(k)/pi_hv(i,k)
+          qv_hv(i,k) = qv1d(k)
+          qc_hv(i,k) = qc1d(k)
+          qi_hv(i,k) = qi1d(k)
+          qr_hv(i,k) = qr1d(k)
+          qs_hv(i,k) = qs1d(k)
+          qg_hv(i,k) = qg1d(k)
+          ni_hv(i,k) = ni1d(k)
+          nr_hv(i,k) = nr1d(k)
+       enddo
 
-            do k = kts, kte
-               nc(i,k,j) = nc1d(k)
-               nwfa(i,k,j) = nwfa1d(k)
-               nifa(i,k,j) = nifa1d(k)
-            enddo
-         endif
+       if(is_aerosol_aware) then
+          nwfa1d(kts) = nwfa1d(kts) + nwfa2d_hv(i)*dt_in
+          nifa1d(kts) = nifa1d(kts) + nifa2d_hv(i)*dt_in
 
-         !--- update 2D arrays after call to cloud microphysics:
-         do k = kts, kte
-            th_hv(i,k) = t1d(k)/pi_hv(i,k)
-            qv_hv(i,k) = qv1d(k)
-            qc_hv(i,k) = qc1d(k)
-            qi_hv(i,k) = qi1d(k)
-            qr_hv(i,k) = qr1d(k)
-            qs_hv(i,k) = qs1d(k)
-            qg_hv(i,k) = qg1d(k)
-            ni_hv(i,k) = ni1d(k)
-            nr_hv(i,k) = nr1d(k)
-         enddo
+          do k = kts,kte
+             nc_hv(i,k)   = nc1d(k)
+             nwfa_hv(i,k) = nwfa1d(k)
+             nifa_hv(i,k) = nifa1d(k)
+          enddo
+       endif
 
 
          IF (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) THEN
@@ -1254,12 +1267,12 @@
           enddo
          ENDIF
 
-    enddo i_loop
+    enddo ! end i loop
+
 
 !--- END CLOUD MICROPHYSICS SCHEME:
 
     do i = its,ite
-
        rainnc(i,j)  = rainnc_hv(i)
        rainncv(i,j) = rainncv_hv(i)
        sr(i,j)      = sr_hv(i)
@@ -1276,6 +1289,16 @@
           nr(i,k,j) = nr_hv(i,k)
        enddo
     enddo
+
+    if(present(nc) .and. present(nwfa) .and. present(nifa)) then
+       do i = its,ite
+          do k = kts,kte
+             nc(i,k,j) = nc_hv(i,k)
+             nwfa(i,k) = nwfa_hv(i,k)
+             nifa(i,k) = nifa_hv(i,k)
+          enddo
+       enddo
+    endif
 
     if(present(snowncv)) then
        do i = its,ite
@@ -1319,8 +1342,7 @@
        enddo
     endif
 
-
- enddo j_loop
+ enddo ! end j loop
 
  end subroutine mp_gt_driver
 
