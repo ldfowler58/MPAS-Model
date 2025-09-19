@@ -1075,6 +1075,7 @@
  real(kind=RKIND),dimension(its:ite,kts:kte):: nc_hv,nwfa_hv,nifa_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: rainprod_hv,evapprod_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: pflrain_hv,pflice_hv,pflsnow_hv,pflgraul_hv
+ real(kind=RKIND),dimension(its:ite,kts:kte):: recloud_hv,reice_hv,resnow_hv
 
 !------------------------------------------------------------------------------------------------------------------
 !call mpas_log_write(' ')
@@ -1110,6 +1111,10 @@
           qg_hv(i,k) = qg(i,k,j)
           ni_hv(i,k) = ni(i,k,j)
           nr_hv(i,k) = nr(i,k,j)
+
+          recloud_hv(i,k) = re_cloud(i,k,j)
+          reice_hv(i,k)   = re_ice(i,k,j)
+          resnow_hv(i,k)  = re_snow(i,k,j)
        enddo
     enddo
 
@@ -1238,6 +1243,10 @@
           qg_hv(i,k) = qg1d(k)
           ni_hv(i,k) = ni1d(k)
           nr_hv(i,k) = nr1d(k)
+
+          re_cloud(i,k,j) = recloud_hv(i,k)
+          re_ice(i,k,j)   = reice_hv(i,k)
+          re_snow(i,k,j)  = resnow_hv(i,k)
        enddo
 
        if(is_aerosol_aware) then
@@ -1251,19 +1260,19 @@
           enddo
        endif
 
-
-         IF (has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) THEN
-          do k = kts, kte
+       !--- calculate effective radius of cloud water, cloud ice, and snow:
+       if(has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) then
+          do k = kts,kte
              re_qc1d(k) = 2.49E-6
              re_qi1d(k) = 4.99E-6
              re_qs1d(k) = 9.99E-6
           enddo
-          call calc_effectRad (t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d,  &
-                      re_qc1d, re_qi1d, re_qs1d, kts, kte)
+          call calc_effectRad (t1d, p1d , qv1d    , qc1d    , nc1d , qi1d , ni1d , qs1d ,  &
+                               re_qc1d  , re_qi1d , re_qs1d , kts  , kte)
           do k = kts, kte
-             re_cloud(i,k,j) = MAX(2.49E-6, MIN(re_qc1d(k), 50.E-6))
-             re_ice(i,k,j)   = MAX(4.99E-6, MIN(re_qi1d(k), 125.E-6))
-             re_snow(i,k,j)  = MAX(9.99E-6, MIN(re_qs1d(k), 999.E-6))
+             recloud_hv(i,k) = MAX(2.49E-6, MIN(re_qc1d(k),50.E-6))
+             reice_hv(i,k)   = MAX(4.99E-6, MIN(re_qi1d(k),125.E-6))
+             resnow_hv(i,k)  = MAX(9.99E-6, MIN(re_qs1d(k),999.E-6))
           enddo
          ENDIF
 
