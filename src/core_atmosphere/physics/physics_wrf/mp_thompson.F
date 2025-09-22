@@ -1,72 +1,31 @@
-!=================================================================================================================
-!.. This subroutine computes the moisture tendencies of water vapor,
-!.. cloud droplets, rain, cloud ice (pristine), snow, and graupel.
-!.. Prior to WRFv2.2 this code was based on Reisner et al (1998), but
-!.. few of those pieces remain.  A complete description is now found in
-!.. Thompson, G., P. R. Field, R. M. Rasmussen, and W. D. Hall, 2008:
-!.. Explicit Forecasts of winter precipitation using an improved bulk
-!.. microphysics scheme. Part II: Implementation of a new snow
-!.. parameterization.  Mon. Wea. Rev., 136, 5095-5115.
-!.. Prior to WRFv3.1, this code was single-moment rain prediction as
-!.. described in the reference above, but in v3.1 and higher, the
-!.. scheme is two-moment rain (predicted rain number concentration).
-!..
-!.. Beginning with WRFv3.6, this is also the "aerosol-aware" scheme as
-!.. described in Thompson, G. and T. Eidhammer, 2014:  A study of
-!.. aerosol impacts on clouds and precipitation development in a large
-!.. winter cyclone.  J. Atmos. Sci., 71, 3636-3658.  Setting WRF
-!.. namelist option mp_physics=8 utilizes the older one-moment cloud
-!.. water with constant droplet concentration set as Nt_c (found below)
-!.. while mp_physics=28 uses double-moment cloud droplet number
-!.. concentration, which is not permitted to exceed Nt_c_max below.
-!..
-!.. Most importantly, users may wish to modify the prescribed number of
-!.. cloud droplets (Nt_c; see guidelines mentioned below).  Otherwise,
-!.. users may alter the rain and graupel size distribution parameters
-!.. to use exponential (Marshal-Palmer) or generalized gamma shape.
-!.. The snow field assumes a combination of two gamma functions (from
-!.. Field et al. 2005) and would require significant modifications
-!.. throughout the entire code to alter its shape as well as accretion
-!.. rates.  Users may also alter the constants used for density of rain,
-!.. graupel, ice, and snow, but the latter is not constant when using
-!.. Paul Field's snow distribution and moments methods.  Other values
-!.. users can modify include the constants for mass and/or velocity
-!.. power law relations and assumed capacitances used in deposition/
-!.. sublimation/evaporation/melting.
-!.. Remaining values should probably be left alone.
-!..
-!..Author: Greg Thompson, NCAR-RAL, gthompsn@ucar.edu, 303-497-2805
-!..Last modified: 24 Jan 2018   Aerosol additions to v3.5.1 code 9/2013
-!..                 Cloud fraction additions 11/2014 part of pre-v3.7
-!+---+-----------------------------------------------------------------+
-!wrft:model_layer:physics
-!+---+-----------------------------------------------------------------+
-!
-      MODULE mp_thompson
+!==================================================================================================================
+ module mp_thompson
 
-      use mpas_log
-      use mpas_kind_types
-      use mpas_atmphys_functions, only: gammp,wgamma,rslf,rsif
-      use mpas_atmphys_utilities
-      use mpas_io_units, only : mpas_new_unit, mpas_release_unit
-      use mp_radar
+ use mpas_log
+ use mpas_kind_types
+ use mpas_atmphys_functions, only: gammp,wgamma,rslf,rsif
+ use mpas_atmphys_utilities
+ use mpas_io_units, only : mpas_new_unit, mpas_release_unit
+ use mp_radar
 
-      implicit none
-      logical, parameter, private:: iiwarm = .false.
-      logical, public:: is_aerosol_aware = .false.
+ implicit none
 
-      LOGICAL, PARAMETER, PRIVATE:: dustyIce = .true.
-      LOGICAL, PARAMETER, PRIVATE:: homogIce = .true.
 
-      INTEGER, PARAMETER, PRIVATE:: IFDRY = 0
-      REAL, PARAMETER, PRIVATE:: T_0 = 273.15
-      REAL, PARAMETER, PRIVATE:: PI = 3.1415926536
+ logical,parameter,private:: iiwarm = .false.
+ logical,public:: is_aerosol_aware = .false.
+
+ logical,parameter,private:: dustyIce = .true.
+ logical,parameter,private:: homogIce = .true.
+
+ integer,parameter,private:: ifdry = 0
+ real(kind=RKIND),parameter,private:: t_0 = 273.15
+ real(kind=RKIND),parameter,private:: pi = 3.1415926536
 
 !..Densities of rain, snow, graupel, and cloud ice.
-      REAL, PARAMETER, PRIVATE:: rho_w = 1000.0
-      REAL, PARAMETER, PRIVATE:: rho_s = 100.0
-      REAL, PARAMETER, PRIVATE:: rho_g = 500.0
-      REAL, PARAMETER, PRIVATE:: rho_i = 890.0
+ real(kind=RKIND),parameter,private:: rho_w = 1000.0
+ real(kind=RKIND),parameter,private:: rho_s = 100.0
+ real(kind=RKIND),parameter,private:: rho_g = 500.0
+ real(kind=RKIND),parameter,private:: rho_i = 890.0
 
 !..Prescribed number of cloud droplets.  Set according to known data or
 !.. roughly 100 per cc (100.E6 m^-3) for Maritime cases and
@@ -77,332 +36,327 @@
 !.. droplet number concentration.
 !.. MPAS: Nt_c is initialized to 100.E6 over oceans and 300.E6 over land as
 !   a function of landmask in subroutine init_thompson_clouddroplets_forMPAS.
-!     REAL, PARAMETER, PRIVATE:: Nt_c = 100.E6
-      REAL, PARAMETER, PRIVATE:: Nt_c_max = 1999.E6
-      REAL, PRIVATE:: Nt_c
+!real(kind=RKIND),parameter,private:: Nt_c = 100.E6
+ real(kind=RKIND),parameter,private:: Nt_c_max = 1999.E6
+ real(kind=RKIND),private:: Nt_c
 
 !..Declaration of constants for assumed CCN/IN aerosols when none in
 !.. the input data.  Look inside the init routine for modifications
 !.. due to surface land-sea points or vegetation characteristics.
 !.. MPAS: naIN0, naIN1, naCCN0, and naCCN1 are used in init_thompson_aerosols_forMPAS
 !.. for initialization of nwfa. and nifa.
-      REAL, PARAMETER, PUBLIC:: naIN0 = 1.5E6
-      REAL, PARAMETER, PUBLIC:: naIN1 = 0.5E6
-      REAL, PARAMETER, PUBLIC:: naCCN0 = 300.0E6
-      REAL, PARAMETER, PUBLIC:: naCCN1 = 50.0E6
+ real(kind=RKIND),parameter, PUBLIC:: naIN0 = 1.5E6
+ real(kind=RKIND),parameter, PUBLIC:: naIN1 = 0.5E6
+ real(kind=RKIND),parameter, PUBLIC:: naCCN0 = 300.0E6
+ real(kind=RKIND),parameter, PUBLIC:: naCCN1 = 50.0E6
 
 !..Generalized gamma distributions for rain, graupel and cloud ice.
 !.. N(D) = N_0 * D**mu * exp(-lamda*D);  mu=0 is exponential.
-      REAL, PARAMETER, PRIVATE:: mu_r = 0.0
-      REAL, PARAMETER, PRIVATE:: mu_g = 0.0
-      REAL, PARAMETER, PRIVATE:: mu_i = 0.0
-      REAL, PRIVATE:: mu_c
+ real(kind=RKIND),parameter,private:: mu_r = 0.0
+ real(kind=RKIND),parameter,private:: mu_g = 0.0
+ real(kind=RKIND),parameter,private:: mu_i = 0.0
+ real(kind=RKIND),private:: mu_c
 
 !..Sum of two gamma distrib for snow (Field et al. 2005).
 !.. N(D) = M2**4/M3**3 * [Kap0*exp(-M2*Lam0*D/M3)
 !..    + Kap1*(M2/M3)**mu_s * D**mu_s * exp(-M2*Lam1*D/M3)]
 !.. M2 and M3 are the (bm_s)th and (bm_s+1)th moments respectively
 !.. calculated as function of ice water content and temperature.
-      REAL, PARAMETER, PRIVATE:: mu_s = 0.6357
-      REAL, PARAMETER, PRIVATE:: Kap0 = 490.6
-      REAL, PARAMETER, PRIVATE:: Kap1 = 17.46
-      REAL, PARAMETER, PRIVATE:: Lam0 = 20.78
-      REAL, PARAMETER, PRIVATE:: Lam1 = 3.29
+ real(kind=RKIND),parameter,private:: mu_s = 0.6357
+ real(kind=RKIND),parameter,private:: Kap0 = 490.6
+ real(kind=RKIND),parameter,private:: Kap1 = 17.46
+ real(kind=RKIND),parameter,private:: Lam0 = 20.78
+ real(kind=RKIND),parameter,private:: Lam1 = 3.29
 
 !..Y-intercept parameter for graupel is not constant and depends on
 !.. mixing ratio.  Also, when mu_g is non-zero, these become equiv
 !.. y-intercept for an exponential distrib and proper values are
 !.. computed based on same mixing ratio and total number concentration.
-      REAL, PARAMETER, PRIVATE:: gonv_min = 1.E4
-      REAL, PARAMETER, PRIVATE:: gonv_max = 3.E6
+ real(kind=RKIND),parameter,private:: gonv_min = 1.E4
+ real(kind=RKIND),parameter,private:: gonv_max = 3.E6
 
 !..Mass power law relations:  mass = am*D**bm
 !.. Snow from Field et al. (2005), others assume spherical form.
-      REAL, PARAMETER, PRIVATE:: am_r = PI*rho_w/6.0
-      REAL, PARAMETER, PRIVATE:: bm_r = 3.0
-      REAL, PARAMETER, PRIVATE:: am_s = 0.069
-      REAL, PARAMETER, PRIVATE:: bm_s = 2.0
-      REAL, PARAMETER, PRIVATE:: am_g = PI*rho_g/6.0
-      REAL, PARAMETER, PRIVATE:: bm_g = 3.0
-      REAL, PARAMETER, PRIVATE:: am_i = PI*rho_i/6.0
-      REAL, PARAMETER, PRIVATE:: bm_i = 3.0
+ real(kind=RKIND),parameter,private:: am_r = PI*rho_w/6.0
+ real(kind=RKIND),parameter,private:: bm_r = 3.0
+ real(kind=RKIND),parameter,private:: am_s = 0.069
+ real(kind=RKIND),parameter,private:: bm_s = 2.0
+ real(kind=RKIND),parameter,private:: am_g = PI*rho_g/6.0
+ real(kind=RKIND),parameter,private:: bm_g = 3.0
+ real(kind=RKIND),parameter,private:: am_i = PI*rho_i/6.0
+ real(kind=RKIND),parameter,private:: bm_i = 3.0
 
 !..Fallspeed power laws relations:  v = (av*D**bv)*exp(-fv*D)
 !.. Rain from Ferrier (1994), ice, snow, and graupel from
 !.. Thompson et al (2008). Coefficient fv is zero for graupel/ice.
-      REAL, PARAMETER, PRIVATE:: av_r = 4854.0
-      REAL, PARAMETER, PRIVATE:: bv_r = 1.0
-      REAL, PARAMETER, PRIVATE:: fv_r = 195.0
-      REAL, PARAMETER, PRIVATE:: av_s = 40.0
-      REAL, PARAMETER, PRIVATE:: bv_s = 0.55
-      REAL, PARAMETER, PRIVATE:: fv_s = 100.0
-      REAL, PARAMETER, PRIVATE:: av_g = 442.0
-      REAL, PARAMETER, PRIVATE:: bv_g = 0.89
-      REAL, PARAMETER, PRIVATE:: av_i = 1847.5
-      REAL, PARAMETER, PRIVATE:: bv_i = 1.0
-      REAL, PARAMETER, PRIVATE:: av_c = 0.316946E8
-      REAL, PARAMETER, PRIVATE:: bv_c = 2.0
+ real(kind=RKIND),parameter,private:: av_r = 4854.0
+ real(kind=RKIND),parameter,private:: bv_r = 1.0
+ real(kind=RKIND),parameter,private:: fv_r = 195.0
+ real(kind=RKIND),parameter,private:: av_s = 40.0
+ real(kind=RKIND),parameter,private:: bv_s = 0.55
+ real(kind=RKIND),parameter,private:: fv_s = 100.0
+ real(kind=RKIND),parameter,private:: av_g = 442.0
+ real(kind=RKIND),parameter,private:: bv_g = 0.89
+ real(kind=RKIND),parameter,private:: av_i = 1847.5
+ real(kind=RKIND),parameter,private:: bv_i = 1.0
+ real(kind=RKIND),parameter,private:: av_c = 0.316946E8
+ real(kind=RKIND),parameter,private:: bv_c = 2.0
 
 !..Capacitance of sphere and plates/aggregates: D**3, D**2
-      REAL, PARAMETER, PRIVATE:: C_cube = 0.5
-      REAL, PARAMETER, PRIVATE:: C_sqrd = 0.15
+ real(kind=RKIND),parameter,private:: C_cube = 0.5
+ real(kind=RKIND),parameter,private:: C_sqrd = 0.15
 
 !..Collection efficiencies.  Rain/snow/graupel collection of cloud
 !.. droplets use variables (Ef_rw, Ef_sw, Ef_gw respectively) and
 !.. get computed elsewhere because they are dependent on stokes
 !.. number.
-      REAL, PARAMETER, PRIVATE:: Ef_si = 0.05
-      REAL, PARAMETER, PRIVATE:: Ef_rs = 0.95
-      REAL, PARAMETER, PRIVATE:: Ef_rg = 0.75
-      REAL, PARAMETER, PRIVATE:: Ef_ri = 0.95
+ real(kind=RKIND),parameter,private:: Ef_si = 0.05
+ real(kind=RKIND),parameter,private:: Ef_rs = 0.95
+ real(kind=RKIND),parameter,private:: Ef_rg = 0.75
+ real(kind=RKIND),parameter,private:: Ef_ri = 0.95
 
 !..Minimum microphys values
 !.. R1 value, 1.E-12, cannot be set lower because of numerical
 !.. problems with Paul Field's moments and should not be set larger
 !.. because of truncation problems in snow/ice growth.
-      REAL, PARAMETER, PRIVATE:: R1 = 1.E-12
-      REAL, PARAMETER, PRIVATE:: R2 = 1.E-6
-      REAL, PARAMETER, PRIVATE:: eps = 1.E-15
+ real(kind=RKIND),parameter,private:: R1 = 1.E-12
+ real(kind=RKIND),parameter,private:: R2 = 1.E-6
+ real(kind=RKIND),parameter,private:: eps = 1.E-15
 
 !..Constants in Cooper curve relation for cloud ice number.
-      REAL, PARAMETER, PRIVATE:: TNO = 5.0
-      REAL, PARAMETER, PRIVATE:: ATO = 0.304
+ real(kind=RKIND),parameter,private:: TNO = 5.0
+ real(kind=RKIND),parameter,private:: ATO = 0.304
 
 !..Rho_not used in fallspeed relations (rho_not/rho)**.5 adjustment.
-      REAL, PARAMETER, PRIVATE:: rho_not = 101325.0/(287.05*298.0)
+ real(kind=RKIND),parameter,private:: rho_not = 101325.0/(287.05*298.0)
 
 !..Schmidt number
-      REAL, PARAMETER, PRIVATE:: Sc = 0.632
-      REAL, PRIVATE:: Sc3
+ real(kind=RKIND),parameter,private:: Sc = 0.632
+ real(kind=RKIND),private:: Sc3
 
 !..Homogeneous freezing temperature
-      REAL, PARAMETER, PRIVATE:: HGFR = 235.16
+ real(kind=RKIND),parameter,private:: HGFR = 235.16
 
 !..Water vapor and air gas constants at constant pressure
-      REAL, PARAMETER, PRIVATE:: Rv = 461.5
-      REAL, PARAMETER, PRIVATE:: oRv = 1./Rv
-      REAL, PARAMETER, PRIVATE:: R = 287.04
-      REAL, PARAMETER, PRIVATE:: Cp = 1004.0
-      REAL, PARAMETER, PRIVATE:: R_uni = 8.314                           ! J (mol K)-1
+ real(kind=RKIND),parameter,private:: Rv = 461.5
+ real(kind=RKIND),parameter,private:: oRv = 1./Rv
+ real(kind=RKIND),parameter,private:: R = 287.04
+ real(kind=RKIND),parameter,private:: Cp = 1004.0
+ real(kind=RKIND),parameter,private:: R_uni = 8.314                    !J (mol K)-1
 
-      DOUBLE PRECISION, PARAMETER, PRIVATE:: k_b = 1.38065E-23           ! Boltzmann constant [J/K]
-      DOUBLE PRECISION, PARAMETER, PRIVATE:: M_w = 18.01528E-3           ! molecular mass of water [kg/mol]
-      DOUBLE PRECISION, PARAMETER, PRIVATE:: M_a = 28.96E-3              ! molecular mass of air [kg/mol]
-      DOUBLE PRECISION, PARAMETER, PRIVATE:: N_avo = 6.022E23            ! Avogadro number [1/mol]
-      DOUBLE PRECISION, PARAMETER, PRIVATE:: ma_w = M_w / N_avo          ! mass of water molecule [kg]
-      REAL, PARAMETER, PRIVATE:: ar_volume = 4./3.*PI*(2.5e-6)**3        ! assume radius of 0.025 micrometer, 2.5e-6 cm
+ real(kind=R8KIND),parameter,private:: k_b = 1.38065E-23               !Boltzmann constant [J/K]
+ real(kind=R8KIND),parameter,private:: M_w = 18.01528E-3               !molecular mass of water [kg/mol]
+ real(kind=R8KIND),parameter,private:: M_a = 28.96E-3                  !molecular mass of air [kg/mol]
+ real(kind=R8KIND),parameter,private:: N_avo = 6.022E23                !Avogadro number [1/mol]
+ real(kind=R8KIND),parameter,private:: ma_w = M_w / N_avo              !mass of water molecule [kg]
+ real(kind=RKIND),parameter,private:: ar_volume = 4./3.*PI*(2.5e-6)**3 !assume radius of 0.025 micrometer, 2.5e-6 cm
 
 !..Enthalpy of sublimation, vaporization, and fusion at 0C.
-      REAL, PARAMETER, PRIVATE:: lsub = 2.834E6
-      REAL, PARAMETER, PRIVATE:: lvap0 = 2.5E6
-      REAL, PARAMETER, PRIVATE:: lfus = lsub - lvap0
-      REAL, PARAMETER, PRIVATE:: olfus = 1./lfus
+ real(kind=RKIND),parameter,private:: lsub = 2.834E6
+ real(kind=RKIND),parameter,private:: lvap0 = 2.5E6
+ real(kind=RKIND),parameter,private:: lfus = lsub - lvap0
+ real(kind=RKIND),parameter,private:: olfus = 1./lfus
 
 !..Ice initiates with this mass (kg), corresponding diameter calc.
 !..Min diameters and mass of cloud, rain, snow, and graupel (m, kg).
-      REAL, PARAMETER, PRIVATE:: xm0i = 1.E-12
-      REAL, PARAMETER, PRIVATE:: D0c = 1.E-6
-      REAL, PARAMETER, PRIVATE:: D0r = 50.E-6
-      REAL, PARAMETER, PRIVATE:: D0s = 200.E-6
-      REAL, PARAMETER, PRIVATE:: D0g = 250.E-6
-      REAL, PRIVATE:: D0i, xm0s, xm0g
+ real(kind=RKIND),parameter,private:: xm0i = 1.E-12
+ real(kind=RKIND),parameter,private:: D0c = 1.E-6
+ real(kind=RKIND),parameter,private:: D0r = 50.E-6
+ real(kind=RKIND),parameter,private:: D0s = 200.E-6
+ real(kind=RKIND),parameter,private:: D0g = 250.E-6
+ real(kind=RKIND),private:: D0i, xm0s, xm0g
 
 !..Lookup table dimensions
-      INTEGER, PARAMETER, PRIVATE:: nbins = 100
-      INTEGER, PARAMETER, PRIVATE:: nbc = nbins
-      INTEGER, PARAMETER, PRIVATE:: nbi = nbins
-      INTEGER, PARAMETER, PRIVATE:: nbr = nbins
-      INTEGER, PARAMETER, PRIVATE:: nbs = nbins
-      INTEGER, PARAMETER, PRIVATE:: nbg = nbins
-      INTEGER, PARAMETER, PRIVATE:: ntb_c = 37
-      INTEGER, PARAMETER, PRIVATE:: ntb_i = 64
-      INTEGER, PARAMETER, PRIVATE:: ntb_r = 37
-      INTEGER, PARAMETER, PRIVATE:: ntb_s = 28
-      INTEGER, PARAMETER, PRIVATE:: ntb_g = 28
-      INTEGER, PARAMETER, PRIVATE:: ntb_g1 = 28
-      INTEGER, PARAMETER, PRIVATE:: ntb_r1 = 37
-      INTEGER, PARAMETER, PRIVATE:: ntb_i1 = 55
-      INTEGER, PARAMETER, PRIVATE:: ntb_t = 9
-      INTEGER, PRIVATE:: nic1, nic2, nii2, nii3, nir2, nir3, nis2, nig2, nig3
-      INTEGER, PARAMETER, PUBLIC:: ntb_arc = 7
-      INTEGER, PARAMETER, PUBLIC:: ntb_arw = 9
-      INTEGER, PARAMETER, PUBLIC:: ntb_art = 7
-      INTEGER, PARAMETER, PUBLIC:: ntb_arr = 5
-      INTEGER, PARAMETER, PUBLIC:: ntb_ark = 4
-      INTEGER, PARAMETER, PUBLIC:: ntb_IN = 55
-      INTEGER, PRIVATE:: niIN2
+ integer,parameter,private:: nbins = 100
+ integer,parameter,private:: nbc = nbins
+ integer,parameter,private:: nbi = nbins
+ integer,parameter,private:: nbr = nbins
+ integer,parameter,private:: nbs = nbins
+ integer,parameter,private:: nbg = nbins
+ integer,parameter,private:: ntb_c = 37
+ integer,parameter,private:: ntb_i = 64
+ integer,parameter,private:: ntb_r = 37
+ integer,parameter,private:: ntb_s = 28
+ integer,parameter,private:: ntb_g = 28
+ integer,parameter,private:: ntb_g1 = 28
+ integer,parameter,private:: ntb_r1 = 37
+ integer,parameter,private:: ntb_i1 = 55
+ integer,parameter,private:: ntb_t = 9
+ integer,private:: nic1, nic2, nii2, nii3, nir2, nir3, nis2, nig2, nig3
+ integer,parameter,public:: ntb_arc = 7
+ integer,parameter,public:: ntb_arw = 9
+ integer,parameter,public:: ntb_art = 7
+ integer,parameter,public:: ntb_arr = 5
+ integer,parameter,public:: ntb_ark = 4
+ integer,parameter,public:: ntb_IN = 55
+ integer,private:: niIN2
 
-      DOUBLE PRECISION, DIMENSION(nbins+1):: xDx
-      DOUBLE PRECISION, DIMENSION(nbc):: Dc, dtc
-      DOUBLE PRECISION, DIMENSION(nbi):: Di, dti
-      DOUBLE PRECISION, DIMENSION(nbr):: Dr, dtr
-      DOUBLE PRECISION, DIMENSION(nbs):: Ds, dts
-      DOUBLE PRECISION, DIMENSION(nbg):: Dg, dtg
-      DOUBLE PRECISION, DIMENSION(nbc):: t_Nc
+ real(kind=R8KIND),dimension(nbins+1):: xDx
+ real(kind=R8KIND),dimension(nbc):: Dc, dtc
+ real(kind=R8KIND),dimension(nbi):: Di, dti
+ real(kind=R8KIND),dimension(nbr):: Dr, dtr
+ real(kind=R8KIND),dimension(nbs):: Ds, dts
+ real(kind=R8KIND),dimension(nbg):: Dg, dtg
+ real(kind=R8KIND),dimension(nbc):: t_Nc
 
 !..Lookup tables for cloud water content (kg/m**3).
-      REAL, DIMENSION(ntb_c), PARAMETER, PRIVATE:: &
-      r_c = (/1.e-6,2.e-6,3.e-6,4.e-6,5.e-6,6.e-6,7.e-6,8.e-6,9.e-6, &
-              1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
-              1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
-              1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
-              1.e-2/)
+ real(kind=RKIND),dimension(ntb_c),parameter,private:: &
+ r_c = (/1.e-6,2.e-6,3.e-6,4.e-6,5.e-6,6.e-6,7.e-6,8.e-6,9.e-6, &
+         1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
+         1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
+         1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
+         1.e-2/)
 
 !..Lookup tables for cloud ice content (kg/m**3).
-      REAL, DIMENSION(ntb_i), PARAMETER, PRIVATE:: &
-      r_i = (/1.e-10,2.e-10,3.e-10,4.e-10, &
-              5.e-10,6.e-10,7.e-10,8.e-10,9.e-10, &
-              1.e-9,2.e-9,3.e-9,4.e-9,5.e-9,6.e-9,7.e-9,8.e-9,9.e-9, &
-              1.e-8,2.e-8,3.e-8,4.e-8,5.e-8,6.e-8,7.e-8,8.e-8,9.e-8, &
-              1.e-7,2.e-7,3.e-7,4.e-7,5.e-7,6.e-7,7.e-7,8.e-7,9.e-7, &
-              1.e-6,2.e-6,3.e-6,4.e-6,5.e-6,6.e-6,7.e-6,8.e-6,9.e-6, &
-              1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
-              1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
-              1.e-3/)
+ real(kind=RKIND),dimension(ntb_i),parameter,private:: &
+ r_i = (/1.e-10,2.e-10,3.e-10,4.e-10, &
+         5.e-10,6.e-10,7.e-10,8.e-10,9.e-10, &
+         1.e-9,2.e-9,3.e-9,4.e-9,5.e-9,6.e-9,7.e-9,8.e-9,9.e-9, &
+         1.e-8,2.e-8,3.e-8,4.e-8,5.e-8,6.e-8,7.e-8,8.e-8,9.e-8, &
+         1.e-7,2.e-7,3.e-7,4.e-7,5.e-7,6.e-7,7.e-7,8.e-7,9.e-7, &
+         1.e-6,2.e-6,3.e-6,4.e-6,5.e-6,6.e-6,7.e-6,8.e-6,9.e-6, &
+         1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
+         1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
+         1.e-3/)
 
 !..Lookup tables for rain content (kg/m**3).
-      REAL, DIMENSION(ntb_r), PARAMETER, PRIVATE:: &
-      r_r = (/1.e-6,2.e-6,3.e-6,4.e-6,5.e-6,6.e-6,7.e-6,8.e-6,9.e-6, &
-              1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
-              1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
-              1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
-              1.e-2/)
+ real(kind=RKIND),dimension(ntb_r),parameter,private:: &
+ r_r = (/1.e-6,2.e-6,3.e-6,4.e-6,5.e-6,6.e-6,7.e-6,8.e-6,9.e-6, &
+         1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
+         1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
+         1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
+         1.e-2/)
 
 !..Lookup tables for graupel content (kg/m**3).
-      REAL, DIMENSION(ntb_g), PARAMETER, PRIVATE:: &
-      r_g = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
-              1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
-              1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
-              1.e-2/)
+ real(kind=RKIND),dimension(ntb_g),parameter,private:: &
+ r_g = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
+         1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
+         1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
+         1.e-2/)
 
 !..Lookup tables for snow content (kg/m**3).
-      REAL, DIMENSION(ntb_s), PARAMETER, PRIVATE:: &
-      r_s = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
-              1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
-              1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
-              1.e-2/)
+ real(kind=RKIND),dimension(ntb_s),parameter,private:: &
+ r_s = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
+         1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
+         1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
+         1.e-2/)
 
 !..Lookup tables for rain y-intercept parameter (/m**4).
-      REAL, DIMENSION(ntb_r1), PARAMETER, PRIVATE:: &
-      N0r_exp = (/1.e6,2.e6,3.e6,4.e6,5.e6,6.e6,7.e6,8.e6,9.e6, &
-                  1.e7,2.e7,3.e7,4.e7,5.e7,6.e7,7.e7,8.e7,9.e7, &
-                  1.e8,2.e8,3.e8,4.e8,5.e8,6.e8,7.e8,8.e8,9.e8, &
-                  1.e9,2.e9,3.e9,4.e9,5.e9,6.e9,7.e9,8.e9,9.e9, &
-                  1.e10/)
+ real(kind=RKIND),dimension(ntb_r1),parameter,private:: &
+ N0r_exp = (/1.e6,2.e6,3.e6,4.e6,5.e6,6.e6,7.e6,8.e6,9.e6, &
+             1.e7,2.e7,3.e7,4.e7,5.e7,6.e7,7.e7,8.e7,9.e7, &
+             1.e8,2.e8,3.e8,4.e8,5.e8,6.e8,7.e8,8.e8,9.e8, &
+             1.e9,2.e9,3.e9,4.e9,5.e9,6.e9,7.e9,8.e9,9.e9, &
+             1.e10/)
 
 !..Lookup tables for graupel y-intercept parameter (/m**4).
-      REAL, DIMENSION(ntb_g1), PARAMETER, PRIVATE:: &
-      N0g_exp = (/1.e4,2.e4,3.e4,4.e4,5.e4,6.e4,7.e4,8.e4,9.e4, &
-                  1.e5,2.e5,3.e5,4.e5,5.e5,6.e5,7.e5,8.e5,9.e5, &
-                  1.e6,2.e6,3.e6,4.e6,5.e6,6.e6,7.e6,8.e6,9.e6, &
-                  1.e7/)
+ real(kind=RKIND),dimension(ntb_g1),parameter,private:: &
+ N0g_exp = (/1.e4,2.e4,3.e4,4.e4,5.e4,6.e4,7.e4,8.e4,9.e4, &
+             1.e5,2.e5,3.e5,4.e5,5.e5,6.e5,7.e5,8.e5,9.e5, &
+             1.e6,2.e6,3.e6,4.e6,5.e6,6.e6,7.e6,8.e6,9.e6, &
+             1.e7/)
 
 !..Lookup tables for ice number concentration (/m**3).
-      REAL, DIMENSION(ntb_i1), PARAMETER, PRIVATE:: &
-      Nt_i = (/1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0, &
-               1.e1,2.e1,3.e1,4.e1,5.e1,6.e1,7.e1,8.e1,9.e1, &
-               1.e2,2.e2,3.e2,4.e2,5.e2,6.e2,7.e2,8.e2,9.e2, &
-               1.e3,2.e3,3.e3,4.e3,5.e3,6.e3,7.e3,8.e3,9.e3, &
-               1.e4,2.e4,3.e4,4.e4,5.e4,6.e4,7.e4,8.e4,9.e4, &
-               1.e5,2.e5,3.e5,4.e5,5.e5,6.e5,7.e5,8.e5,9.e5, &
-               1.e6/)
+ real(kind=RKIND),dimension(ntb_i1),parameter,private:: &
+ Nt_i = (/1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0, &
+          1.e1,2.e1,3.e1,4.e1,5.e1,6.e1,7.e1,8.e1,9.e1, &
+          1.e2,2.e2,3.e2,4.e2,5.e2,6.e2,7.e2,8.e2,9.e2, &
+          1.e3,2.e3,3.e3,4.e3,5.e3,6.e3,7.e3,8.e3,9.e3, &
+          1.e4,2.e4,3.e4,4.e4,5.e4,6.e4,7.e4,8.e4,9.e4, &
+          1.e5,2.e5,3.e5,4.e5,5.e5,6.e5,7.e5,8.e5,9.e5, &
+          1.e6/)
 
 !..Aerosol table parameter: Number of available aerosols, vertical
 !.. velocity, temperature, aerosol mean radius, and hygroscopicity.
-      REAL, DIMENSION(ntb_arc), PARAMETER, PRIVATE:: &
-      ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)
-      REAL, DIMENSION(ntb_arw), PARAMETER, PRIVATE:: &
-      ta_Ww = (/0.01, 0.0316, 0.1, 0.316, 1.0, 3.16, 10.0, 31.6, 100.0/)
-      REAL, DIMENSION(ntb_art), PARAMETER, PRIVATE:: &
-      ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)
-      REAL, DIMENSION(ntb_arr), PARAMETER, PRIVATE:: &
-      ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)
-      REAL, DIMENSION(ntb_ark), PARAMETER, PRIVATE:: &
-      ta_Ka = (/0.2, 0.4, 0.6, 0.8/)
+ real(kind=RKIND),dimension(ntb_arc),parameter,private:: &
+    ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)
+ real(kind=RKIND),dimension(ntb_arw),parameter,private:: &
+    ta_Ww = (/0.01, 0.0316, 0.1, 0.316, 1.0, 3.16, 10.0, 31.6, 100.0/)
+ real(kind=RKIND),dimension(ntb_art),parameter,private:: &
+    ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)
+ real(kind=RKIND),dimension(ntb_arr),parameter,private:: &
+    ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)
+ real(kind=RKIND),dimension(ntb_ark),parameter,private:: &
+    ta_Ka = (/0.2, 0.4, 0.6, 0.8/)
 
 !..Lookup tables for IN concentration (/m**3) from 0.001 to 1000/Liter.
-      REAL, DIMENSION(ntb_IN), PARAMETER, PRIVATE:: &
-      Nt_IN = (/1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0, &
-               1.e1,2.e1,3.e1,4.e1,5.e1,6.e1,7.e1,8.e1,9.e1, &
-               1.e2,2.e2,3.e2,4.e2,5.e2,6.e2,7.e2,8.e2,9.e2, &
-               1.e3,2.e3,3.e3,4.e3,5.e3,6.e3,7.e3,8.e3,9.e3, &
-               1.e4,2.e4,3.e4,4.e4,5.e4,6.e4,7.e4,8.e4,9.e4, &
-               1.e5,2.e5,3.e5,4.e5,5.e5,6.e5,7.e5,8.e5,9.e5, &
-               1.e6/)
+ real(kind=RKIND),dimension(ntb_IN),parameter,private:: &
+    Nt_IN = (/1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0, &
+              1.e1,2.e1,3.e1,4.e1,5.e1,6.e1,7.e1,8.e1,9.e1, &
+              1.e2,2.e2,3.e2,4.e2,5.e2,6.e2,7.e2,8.e2,9.e2, &
+              1.e3,2.e3,3.e3,4.e3,5.e3,6.e3,7.e3,8.e3,9.e3, &
+              1.e4,2.e4,3.e4,4.e4,5.e4,6.e4,7.e4,8.e4,9.e4, &
+              1.e5,2.e5,3.e5,4.e5,5.e5,6.e5,7.e5,8.e5,9.e5, &
+              1.e6/)
 
 !..For snow moments conversions (from Field et al. 2005)
-      REAL, DIMENSION(10), PARAMETER, PRIVATE:: &
-      sa = (/ 5.065339, -0.062659, -3.032362, 0.029469, -0.000285, &
-              0.31255,   0.000204,  0.003199, 0.0,      -0.015952/)
-      REAL, DIMENSION(10), PARAMETER, PRIVATE:: &
-      sb = (/ 0.476221, -0.015896,  0.165977, 0.007468, -0.000141, &
-              0.060366,  0.000079,  0.000594, 0.0,      -0.003577/)
+ real(kind=RKIND),dimension(10),parameter,private:: &
+    sa = (/ 5.065339, -0.062659, -3.032362, 0.029469, -0.000285, &
+            0.31255,   0.000204,  0.003199, 0.0,      -0.015952/)
+ real(kind=RKIND),dimension(10),parameter,private:: &
+    sb = (/ 0.476221, -0.015896,  0.165977, 0.007468, -0.000141, &
+            0.060366,  0.000079,  0.000594, 0.0,      -0.003577/)
 
 !..Temperatures (5 C interval 0 to -40) used in lookup tables.
-      REAL, DIMENSION(ntb_t), PARAMETER, PRIVATE:: &
-      Tc = (/-0.01, -5., -10., -15., -20., -25., -30., -35., -40./)
+ real(kind=RKIND),dimension(ntb_t),parameter,private:: &
+    Tc = (/-0.01, -5., -10., -15., -20., -25., -30., -35., -40./)
 
 !..Lookup tables for various accretion/collection terms.
 !.. ntb_x refers to the number of elements for rain, snow, graupel,
 !.. and temperature array indices.  Variables beginning with t-p/c/m/n
 !.. represent lookup tables.  Save compile-time memory by making
 !.. allocatable (2009Jun12, J. Michalakes).
-!     INTEGER, PARAMETER, PRIVATE:: R8SIZE = 8
-!     INTEGER, PARAMETER, PRIVATE:: R4SIZE = 4
-      INTEGER, PARAMETER, PRIVATE:: R8SIZE = R8KIND
-      INTEGER, PARAMETER, PRIVATE:: R4SIZE = R4KIND
-      REAL (KIND=R8SIZE), ALLOCATABLE, DIMENSION(:,:,:,:)::             &
-                tcg_racg, tmr_racg, tcr_gacr, tmg_gacr,                 &
-                tnr_racg, tnr_gacr
-      REAL (KIND=R8SIZE), ALLOCATABLE, DIMENSION(:,:,:,:)::             &
-                tcs_racs1, tmr_racs1, tcs_racs2, tmr_racs2,             &
-                tcr_sacr1, tms_sacr1, tcr_sacr2, tms_sacr2,             &
-                tnr_racs1, tnr_racs2, tnr_sacr1, tnr_sacr2
-      REAL (KIND=R8SIZE), ALLOCATABLE, DIMENSION(:,:,:,:)::             &
-                tpi_qcfz, tni_qcfz
-      REAL (KIND=R8SIZE), ALLOCATABLE, DIMENSION(:,:,:,:)::             &
-                tpi_qrfz, tpg_qrfz, tni_qrfz, tnr_qrfz
-      REAL (KIND=R8SIZE), ALLOCATABLE, DIMENSION(:,:)::                 &
-                tps_iaus, tni_iaus, tpi_ide
-      REAL (KIND=R8SIZE), ALLOCATABLE, DIMENSION(:,:):: t_Efrw
-      REAL (KIND=R8SIZE), ALLOCATABLE, DIMENSION(:,:):: t_Efsw
-      REAL (KIND=R8SIZE), ALLOCATABLE, DIMENSION(:,:,:):: tnr_rev
-      REAL (KIND=R8SIZE), ALLOCATABLE, DIMENSION(:,:,:)::               &
-                tpc_wev, tnc_wev
-      REAL (KIND=R4SIZE), ALLOCATABLE, DIMENSION(:,:,:,:,:):: tnccn_act
+!integer,parameter,private:: R8SIZE = 8
+!integer,parameter,private:: R4SIZE = 4
+ integer,parameter,private:: R8SIZE = R8KIND
+ integer,parameter,private:: R4SIZE = R4KIND
+ real(kind=R8SIZE),allocatable,dimension(:,:,:,:):: &
+    tcg_racg,tmr_racg,tcr_gacr,tmg_gacr, &
+    tnr_racg,tnr_gacr
+ real(kind=R8SIZE),allocatable,dimension(:,:,:,:):: &
+    tcs_racs1,tmr_racs1,tcs_racs2, tmr_racs2, &
+    tcr_sacr1,tms_sacr1,tcr_sacr2, tms_sacr2, &
+    tnr_racs1,tnr_racs2,tnr_sacr1, tnr_sacr2
+ real(kind=R8SIZE),allocatable,dimension(:,:,:,:):: &
+    tpi_qcfz,tni_qcfz
+ real(kind=R8SIZE),allocatable,dimension(:,:,:,:):: &
+    tpi_qrfz,tpg_qrfz,tni_qrfz,tnr_qrfz
+ real(kind=R8SIZE),allocatable,dimension(:,:):: &
+    tps_iaus,tni_iaus,tpi_ide
+ real(kind=R8SIZE),allocatable,dimension(:,:):: t_Efrw
+ real(kind=R8SIZE),allocatable,dimension(:,:):: t_Efsw
+ real(kind=R8SIZE),allocatable,dimension(:,:,:):: tnr_rev
+ real(kind=R8SIZE),allocatable,dimension(:,:,:):: &
+    tpc_wev,tnc_wev
+ real(kind=R4SIZE),allocatable,dimension(:,:,:,:,:):: tnccn_act
 
 !..Variables holding a bunch of exponents and gamma values (cloud water,
 !.. cloud ice, rain, snow, then graupel).
-      REAL, DIMENSION(5,15), PRIVATE:: cce, ccg
-      REAL, DIMENSION(15), PRIVATE::  ocg1, ocg2
-      REAL, DIMENSION(7), PRIVATE:: cie, cig
-      REAL, PRIVATE:: oig1, oig2, obmi
-      REAL, DIMENSION(13), PRIVATE:: cre, crg
-      REAL, PRIVATE:: ore1, org1, org2, org3, obmr
-      REAL, DIMENSION(18), PRIVATE:: cse, csg
-      REAL, PRIVATE:: oams, obms, ocms
-      REAL, DIMENSION(12), PRIVATE:: cge, cgg
-      REAL, PRIVATE:: oge1, ogg1, ogg2, ogg3, oamg, obmg, ocmg
+ real(kind=RKIND),dimension(5,15),private:: cce, ccg
+ real(kind=RKIND),dimension(15),private::  ocg1, ocg2
+ real(kind=RKIND),dimension(7),private:: cie, cig
+ real(kind=RKIND),private:: oig1, oig2, obmi
+ real(kind=RKIND),dimension(13),private:: cre, crg
+ real(kind=RKIND),private:: ore1, org1, org2, org3, obmr
+ real(kind=RKIND),dimension(18),private:: cse, csg
+ real(kind=RKIND),private:: oams, obms, ocms
+ real(kind=RKIND),dimension(12),private:: cge, cgg
+ real(kind=RKIND),private:: oge1, ogg1, ogg2, ogg3, oamg, obmg, ocmg
 
 !..Declaration of precomputed constants in various rate eqns.
-      REAL:: t1_qr_qc, t1_qr_qi, t2_qr_qi, t1_qg_qc, t1_qs_qc, t1_qs_qi
-      REAL:: t1_qr_ev, t2_qr_ev
-      REAL:: t1_qs_sd, t2_qs_sd, t1_qg_sd, t2_qg_sd
-      REAL:: t1_qs_me, t2_qs_me, t1_qg_me, t2_qg_me
+ real(kind=RKIND):: t1_qr_qc, t1_qr_qi, t2_qr_qi, t1_qg_qc, t1_qs_qc, t1_qs_qi
+ real(kind=RKIND):: t1_qr_ev, t2_qr_ev
+ real(kind=RKIND):: t1_qs_sd, t2_qs_sd, t1_qg_sd, t2_qg_sd
+ real(kind=RKIND):: t1_qs_me, t2_qs_me, t1_qg_me, t2_qg_me
 
-!+---+
-!+---+-----------------------------------------------------------------+
-!..END DECLARATIONS
-!+---+-----------------------------------------------------------------+
-!+---+
-!ctrlL
 
-      CONTAINS
+ contains
 
-!=================================================================================================================
+
+!==================================================================================================================
  subroutine thompson_init(l_mp_tables)
  implicit none
-!=================================================================================================================
+!==================================================================================================================
 
 !input arguments:
  logical,intent(in):: l_mp_tables
@@ -416,7 +370,7 @@
 !..Allocate space for lookup tables (J. Michalakes 2009Jun08).
       micro_init = .FALSE.
 
-!=================================================================================================================
+!==================================================================================================================
 
 !..Allocate space for lookup tables (J. Michalakes 2009Jun08).
 
@@ -1004,18 +958,6 @@
  real(kind=RKIND),dimension(kts:kte):: re_qc1d,re_qi1d,re_qs1d
  real(kind=RKIND),dimension(kts:kte):: rainprod1d, evapprod1d
  real(kind=RKIND),dimension(kts:kte):: ppfr1d,ppfi1d,ppfs1d,ppfg1d
-
-!real(kind=RKIND),dimension(its:ite):: muc_hv,ntc_hv
-!real(kind=RKIND),dimension(its:ite):: nifa2d_hv,nwfa2d_hv
-!real(kind=RKIND),dimension(its:ite):: rainnc_hv,graupelnc_hv,snownc_hv,sr_hv
-!real(kind=RKIND),dimension(its:ite):: rainncv_hv,graupelncv_hv,snowncv_hv
-!real(kind=RKIND),dimension(its:ite,kts:kte):: th_hv,dz_hv,pi_hv,p_hv,w_hv
-!real(kind=RKIND),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qr_hv,qi_hv,qs_hv,qg_hv
-!real(kind=RKIND),dimension(its:ite,kts:kte):: ni_hv,nr_hv
-!real(kind=RKIND),dimension(its:ite,kts:kte):: nc_hv,nwfa_hv,nifa_hv
-!real(kind=RKIND),dimension(its:ite,kts:kte):: rainprod_hv,evapprod_hv
-!real(kind=RKIND),dimension(its:ite,kts:kte):: pflrain_hv,pflice_hv,pflsnow_hv,pflgraul_hv
-!real(kind=RKIND),dimension(its:ite,kts:kte):: recloud_hv,reice_hv,resnow_hv
 
 !------------------------------------------------------------------------------------------------------------------
 
@@ -4109,75 +4051,6 @@
 !                    * odts))
 
       end subroutine table_dropEvap
-!
-!ctrlL
-#if !defined (mpas) || !defined(DO_GOCART2G)
-!+---+-----------------------------------------------------------------+
-!..Fill the table of CCN activation data created from parcel model run
-!.. by Trude Eidhammer with inputs of aerosol number concentration,
-!.. vertical velocity, temperature, lognormal mean aerosol radius, and
-!.. hygroscopicity, kappa.  The data are read from external file and
-!.. contain activated fraction of CCN for given conditions.
-!+---+-----------------------------------------------------------------+
-
-      subroutine table_ccnAct
-
-      USE module_domain
-      USE module_dm
-      implicit none
-
-      LOGICAL, EXTERNAL:: wrf_dm_on_monitor
-
-!..Local variables
-      INTEGER:: iunit_mp_th1, i
-      LOGICAL:: opened
-      CHARACTER*64 errmess
-
-      iunit_mp_th1 = -1
-      IF ( wrf_dm_on_monitor() ) THEN
-        DO i = 20,99
-          INQUIRE ( i , OPENED = opened )
-          IF ( .NOT. opened ) THEN
-            iunit_mp_th1 = i
-            GOTO 2010
-          ENDIF
-        ENDDO
- 2010   CONTINUE
-      ENDIF
-#if defined(DM_PARALLEL) && !defined(STUBMPI)
-      CALL wrf_dm_bcast_bytes ( iunit_mp_th1 , IWORDSIZE )
-#endif
-      IF ( iunit_mp_th1 < 0 ) THEN
-        CALL wrf_error_fatal ( 'module_mp_thompson: table_ccnAct: '//   &
-           'Can not find unused fortran unit to read in lookup table.')
-      ENDIF
-
-      IF ( wrf_dm_on_monitor() ) THEN
-        WRITE(errmess, '(A,I2)') 'module_mp_thompson: opening CCN_ACTIVATE.BIN on unit ',iunit_mp_th1
-!       CALL wrf_debug(150, errmess)
-        OPEN(iunit_mp_th1,FILE='CCN_ACTIVATE.BIN',                      &
-             FORM='UNFORMATTED',STATUS='OLD',ERR=9009)
-      ENDIF
-
-#define DM_BCAST_MACRO(A) CALL wrf_dm_bcast_bytes(A, size(A)*R4SIZE)
-
-      IF ( wrf_dm_on_monitor() ) READ(iunit_mp_th1,ERR=9010) tnccn_act
-#if defined(DM_PARALLEL) && !defined(STUBMPI)
-      DM_BCAST_MACRO(tnccn_act)
-#endif
-
-
-      RETURN
- 9009 CONTINUE
-      WRITE( errmess , '(A,I2)' ) 'module_mp_thompson: error opening CCN_ACTIVATE.BIN on unit ',iunit_mp_th1
-      CALL wrf_error_fatal(errmess)
-      RETURN
- 9010 CONTINUE
-      WRITE( errmess , '(A,I2)' ) 'module_mp_thompson: error reading CCN_ACTIVATE.BIN on unit ',iunit_mp_th1
-      CALL wrf_error_fatal(errmess)
-
-      end subroutine table_ccnAct
-#endif
 !
 !+---+-----------------------------------------------------------------+
 !..Retrieve fraction of CCN that gets activated given the model temp,
