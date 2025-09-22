@@ -12,8 +12,10 @@
  use mpas_timer, only : mpas_timer_start, mpas_timer_stop
 
  use mpas_atmphys_constants
+ use mpas_atmphys_functions,only: rsif,rslf
  use mpas_atmphys_init_microphysics
  use mpas_atmphys_interface
+ use mpas_atmphys_utilities,only: physics_error_fatal
  use mpas_atmphys_vars
 
 #ifdef DO_GOCART2G
@@ -22,7 +24,8 @@
 
 !wrf physics:
  use module_mp_kessler
- use module_mp_thompson
+ use mp_thompson,only: calc_refl10cm,thompson_init
+ use module_mp_thompson,only: mp_thompson_driver
  use module_mp_wsm6,only: wsm6
  use mp_wsm6,only: mp_wsm6_init,refl10cm_wsm6
 
@@ -412,55 +415,58 @@
                    )
        call mpas_timer_stop('mp_kessler')
 
-    case ("mp_thompson")
-       call mpas_timer_start('mp_thompson')
-       istep = 1
-       do while (istep .le. n_microp)
-       call mp_gt_driver( &
-                  th       = th_p        , qv        = qv_p        , qc         = qc_p         , &
-                  qr       = qr_p        , qi        = qi_p        , qs         = qs_p         , &
-                  qg       = qg_p        , ni        = ni_p        , nr         = nr_p         , &
-                  pii      = pi_p        , p         = pres_p      , dz         = dz_p         , &
-                  w        = w_p         , dt_in     = dt_microp   , itimestep  = itimestep    , &
-                  rainnc   = rainnc_p    , rainncv   = rainncv_p   , snownc     = snownc_p     , &
-                  snowncv  = snowncv_p   , graupelnc = graupelnc_p , graupelncv = graupelncv_p , &
-                  sr       = sr_p        , rainprod  = rainprod_p  , evapprod   = evapprod_p   , &
-                  re_cloud = recloud_p   , re_ice    = reice_p     , re_snow    = resnow_p     , &
-                  has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
-                  ntc      = ntc_p       , muc       = muc_p       , pflrain    = prcpfluxr_p  , &
-                  pflice   = prcpfluxi_p , pflsnow   = prcpfluxs_p , pflgraul   = prcpfluxg_p  , &
-                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
-                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
-                           )
-       istep = istep + 1
-       enddo
-       call mpas_timer_stop('mp_thompson')
+!   case ("mp_thompson")
+!      call mpas_timer_start('mp_thompson')
+!      istep = 1
+!      do while (istep .le. n_microp)
+!      call mp_gt_driver( &
+!                 th       = th_p        , qv        = qv_p        , qc         = qc_p         , &
+!                 qr       = qr_p        , qi        = qi_p        , qs         = qs_p         , &
+!                 qg       = qg_p        , ni        = ni_p        , nr         = nr_p         , &
+!                 pii      = pi_p        , p         = pres_p      , dz         = dz_p         , &
+!                 w        = w_p         , dt_in     = dt_microp   , itimestep  = itimestep    , &
+!                 rainnc   = rainnc_p    , rainncv   = rainncv_p   , snownc     = snownc_p     , &
+!                 snowncv  = snowncv_p   , graupelnc = graupelnc_p , graupelncv = graupelncv_p , &
+!                 sr       = sr_p        , rainprod  = rainprod_p  , evapprod   = evapprod_p   , &
+!                 re_cloud = recloud_p   , re_ice    = reice_p     , re_snow    = resnow_p     , &
+!                 has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
+!                 ntc      = ntc_p       , muc       = muc_p       , pflrain    = prcpfluxr_p  , &
+!                 pflice   = prcpfluxi_p , pflsnow   = prcpfluxs_p , pflgraul   = prcpfluxg_p  , &
+!                 ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
+!                 its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
+!                          )
 
-    case ("mp_thompson_aerosols")
-       call mpas_timer_start('mp_thompson_aerosols')
-       istep = 1
-       do while (istep .le. n_microp)
-       call mp_gt_driver( &
-                  th       = th_p        , qv        = qv_p        , qc         = qc_p         , &
-                  qr       = qr_p        , qi        = qi_p        , qs         = qs_p         , &
-                  qg       = qg_p        , ni        = ni_p        , nr         = nr_p         , &
-                  pii      = pi_p        , p         = pres_p      , dz         = dz_p         , &
-                  w        = w_p         , dt_in     = dt_microp   , itimestep  = itimestep    , &
-                  rainnc   = rainnc_p    , rainncv   = rainncv_p   , snownc     = snownc_p     , &
-                  snowncv  = snowncv_p   , graupelnc = graupelnc_p , graupelncv = graupelncv_p , &
-                  sr       = sr_p        , rainprod  = rainprod_p  , evapprod   = evapprod_p   , &
-                  re_cloud = recloud_p   , re_ice    = reice_p     , re_snow    = resnow_p     , &
-                  has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
-                  nc       = nc_p        , nifa      = nifa_p      , nwfa       = nwfa_p       , &
-                  nifa2d   = nifa2d_p    , nwfa2d    = nwfa2d_p    , ntc        = ntc_p        , &
-                  muc      = muc_p       , pflrain   = prcpfluxr_p , pflice     = prcpfluxi_p  , &
-                  pflsnow  = prcpfluxs_p , pflgraul  = prcpfluxg_p                             , &
-                  ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
-                  its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
-                           )
-          istep = istep + 1
-          enddo
-          call mpas_timer_stop('mp_thompson_aerosols')
+
+
+!      istep = istep + 1
+!      enddo
+!      call mpas_timer_stop('mp_thompson')
+
+!   case ("mp_thompson_aerosols")
+!      call mpas_timer_start('mp_thompson_aerosols')
+!      istep = 1
+!      do while (istep .le. n_microp)
+!      call mp_gt_driver( &
+!                 th       = th_p        , qv        = qv_p        , qc         = qc_p         , &
+!                 qr       = qr_p        , qi        = qi_p        , qs         = qs_p         , &
+!                 qg       = qg_p        , ni        = ni_p        , nr         = nr_p         , &
+!                 pii      = pi_p        , p         = pres_p      , dz         = dz_p         , &
+!                 w        = w_p         , dt_in     = dt_microp   , itimestep  = itimestep    , &
+!                 rainnc   = rainnc_p    , rainncv   = rainncv_p   , snownc     = snownc_p     , &
+!                 snowncv  = snowncv_p   , graupelnc = graupelnc_p , graupelncv = graupelncv_p , &
+!                 sr       = sr_p        , rainprod  = rainprod_p  , evapprod   = evapprod_p   , &
+!                 re_cloud = recloud_p   , re_ice    = reice_p     , re_snow    = resnow_p     , &
+!                 has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
+!                 nc       = nc_p        , nifa      = nifa_p      , nwfa       = nwfa_p       , &
+!                 nifa2d   = nifa2d_p    , nwfa2d    = nwfa2d_p    , ntc        = ntc_p        , &
+!                 muc      = muc_p       , pflrain   = prcpfluxr_p , pflice     = prcpfluxi_p  , &
+!                 pflsnow  = prcpfluxs_p , pflgraul  = prcpfluxg_p                             , &
+!                 ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
+!                 its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
+!                          )
+!         istep = istep + 1
+!         enddo
+!         call mpas_timer_stop('mp_thompson_aerosols')
 
     case ("mp_thompson_gocart2G")
        call mpas_timer_start('mp_thompson_gocart2G')
@@ -476,25 +482,45 @@
        enddo
        istep = 1
        do while (istep .le. n_microp)
-       call mp_gt_driver( &
+!      call mp_gt_driver( &
+!                 th       = th_p        , qv        = qv_p        , qc         = qc_p         , &
+!                 qr       = qr_p        , qi        = qi_p        , qs         = qs_p         , &
+!                 qg       = qg_p        , ni        = ni_p        , nr         = nr_p         , &
+!                 pii      = pi_p        , p         = pres_p      , dz         = dz_p         , &
+!                 w        = w_p         , dt_in     = dt_microp   , itimestep  = itimestep    , &
+!                 rainnc   = rainnc_p    , rainncv   = rainncv_p   , snownc     = snownc_p     , &
+!                 snowncv  = snowncv_p   , graupelnc = graupelnc_p , graupelncv = graupelncv_p , &
+!                 sr       = sr_p        , rainprod  = rainprod_p  , evapprod   = evapprod_p   , &
+!                 re_cloud = recloud_p   , re_ice    = reice_p     , re_snow    = resnow_p     , &
+!                 has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
+!                 nc       = nc_p        , ntc       = ntc_p       , muc        = muc_p        , &
+!                 pflrain  = prcpfluxr_p , pflice    = prcpfluxi_p , pflsnow    = prcpfluxs_p  , &
+!                 pflgraul = prcpfluxg_p ,                                                       &
+!                 nwfa = mpas_chem_gocart2G%chem_nwfa,                                           &
+!                 nifa = mpas_chem_gocart2G%chem_nifa,                                           &
+!                 ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
+!                 its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
+!                          )
+
+       call mp_thompson_driver( &
                   th       = th_p        , qv        = qv_p        , qc         = qc_p         , &
                   qr       = qr_p        , qi        = qi_p        , qs         = qs_p         , &
                   qg       = qg_p        , ni        = ni_p        , nr         = nr_p         , &
+                  nc       = nc_p        , ntc       = ntc_p       , muc        = muc_p        , &
                   pii      = pi_p        , p         = pres_p      , dz         = dz_p         , &
-                  w        = w_p         , dt_in     = dt_microp   , itimestep  = itimestep    , &
+                  w        = w_p         , dt        = dt_microp   ,                             &
                   rainnc   = rainnc_p    , rainncv   = rainncv_p   , snownc     = snownc_p     , &
                   snowncv  = snowncv_p   , graupelnc = graupelnc_p , graupelncv = graupelncv_p , &
                   sr       = sr_p        , rainprod  = rainprod_p  , evapprod   = evapprod_p   , &
                   re_cloud = recloud_p   , re_ice    = reice_p     , re_snow    = resnow_p     , &
                   has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
-                  nc       = nc_p        , ntc       = ntc_p       , muc        = muc_p        , &
                   pflrain  = prcpfluxr_p , pflice    = prcpfluxi_p , pflsnow    = prcpfluxs_p  , &
                   pflgraul = prcpfluxg_p ,                                                       &
                   nwfa = mpas_chem_gocart2G%chem_nwfa,                                           &
                   nifa = mpas_chem_gocart2G%chem_nifa,                                           &
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
-                           )
+                              )
        istep = istep + 1
        enddo
        do j = jts,jte

@@ -7,7 +7,7 @@
 !
 !=================================================================================================================
  module atmphys_build_tables_thompson
- use module_mp_thompson
+ use mp_thompson
 
  implicit none
  private

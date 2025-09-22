@@ -15,8 +15,8 @@
  use mpas_pool_routines
 
  use mpas_atmphys_utilities
- use module_mp_thompson, only: is_aerosol_aware,naCCN0,naCCN1,naIN0,naIN1,ntb_arc,ntb_arw,ntb_art,ntb_arr, &
-                               ntb_ark,tnccn_act
+ use mp_thompson, only: is_aerosol_aware,naCCN0,naCCN1,naIN0,naIN1,ntb_arc,ntb_arw,ntb_art,ntb_arr, &
+                        ntb_ark,tnccn_act
 
  implicit none
  private

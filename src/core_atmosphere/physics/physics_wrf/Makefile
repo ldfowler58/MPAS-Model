@@ -52,6 +52,7 @@ OBJS = \
 	cu_ntiedtke_ctrans_pre.o       \
 	cu_ntiedtke_post.o             \
 	cu_ntiedtke_pre.o	       \
+	mp_thompson.o                  \
 	sf_mynn_pre.o                  \
 	sf_sfclayrev_pre.o
 

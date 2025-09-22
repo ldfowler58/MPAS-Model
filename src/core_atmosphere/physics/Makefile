@@ -139,8 +139,10 @@ mpas_atmphys_driver_lsm_noahmp.o: \
 
 mpas_atmphys_driver_microphysics.o: \
 	mpas_atmphys_constants.o \
+	mpas_atmphys_functions.o \
 	mpas_atmphys_init_microphysics.o \
 	mpas_atmphys_interface.o \
+	mpas_atmphys_utilities.o \
 	mpas_atmphys_vars.o
 
 mpas_atmphys_driver_oml.o: \

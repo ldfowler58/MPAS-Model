@@ -10,7 +10,7 @@
  use mpas_pool_routines
 
  use mpas_atmphys_lsm_noahmpfinalize,only: sf_noahmp_deallocate
- use module_mp_thompson
+ use mp_thompson
  use cires_ugwpv1_module
 
  implicit none

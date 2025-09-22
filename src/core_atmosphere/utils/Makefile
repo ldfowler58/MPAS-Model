@@ -15,7 +15,7 @@ build_tables.o: \
 	atmphys_build_tables_thompson.o
 
 atmphys_build_tables_thompson.o: \
-	../physics/physics_wrf/module_mp_thompson.o
+	../physics/physics_wrf/mp_thompson.o
 
 clean:
 	$(RM) ../../../build_tables
