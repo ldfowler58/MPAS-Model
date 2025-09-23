@@ -663,258 +663,251 @@
 !..Create lookup tables for most costly calculations.
 !+---+-----------------------------------------------------------------+
 
-      do m = 1, ntb_r
-         do k = 1, ntb_r1
-            do j = 1, ntb_g
-               do i = 1, ntb_g1
-                  tcg_racg(i,j,k,m) = 0.0d0
-                  tmr_racg(i,j,k,m) = 0.0d0
-                  tcr_gacr(i,j,k,m) = 0.0d0
-                  tmg_gacr(i,j,k,m) = 0.0d0
-                  tnr_racg(i,j,k,m) = 0.0d0
-                  tnr_gacr(i,j,k,m) = 0.0d0
-               enddo
-            enddo
-         enddo
-      enddo
+    do m = 1,ntb_r
+       do k = 1,ntb_r1
+          do j = 1,ntb_g
+             do i = 1,ntb_g1
+                tcg_racg(i,j,k,m) = 0._R8KIND
+                tmr_racg(i,j,k,m) = 0._R8KIND
+                tcr_gacr(i,j,k,m) = 0._R8KIND
+                tmg_gacr(i,j,k,m) = 0._R8KIND
+                tnr_racg(i,j,k,m) = 0._R8KIND
+                tnr_gacr(i,j,k,m) = 0._R8KIND
+             enddo
+          enddo
+       enddo
+    enddo
 
-      do m = 1, ntb_r
-         do k = 1, ntb_r1
-            do j = 1, ntb_t
-               do i = 1, ntb_s
-                  tcs_racs1(i,j,k,m) = 0.0d0
-                  tmr_racs1(i,j,k,m) = 0.0d0
-                  tcs_racs2(i,j,k,m) = 0.0d0
-                  tmr_racs2(i,j,k,m) = 0.0d0
-                  tcr_sacr1(i,j,k,m) = 0.0d0
-                  tms_sacr1(i,j,k,m) = 0.0d0
-                  tcr_sacr2(i,j,k,m) = 0.0d0
-                  tms_sacr2(i,j,k,m) = 0.0d0
-                  tnr_racs1(i,j,k,m) = 0.0d0
-                  tnr_racs2(i,j,k,m) = 0.0d0
-                  tnr_sacr1(i,j,k,m) = 0.0d0
-                  tnr_sacr2(i,j,k,m) = 0.0d0
-               enddo
-            enddo
-         enddo
-      enddo
+    do m = 1,ntb_r
+       do k = 1,ntb_r1
+          do j = 1,ntb_t
+             do i = 1,ntb_s
+                tcs_racs1(i,j,k,m) = 0._R8KIND
+                tmr_racs1(i,j,k,m) = 0._R8KIND
+                tcs_racs2(i,j,k,m) = 0._R8KIND
+                tmr_racs2(i,j,k,m) = 0._R8KIND
+                tcr_sacr1(i,j,k,m) = 0._R8KIND
+                tms_sacr1(i,j,k,m) = 0._R8KIND
+                tcr_sacr2(i,j,k,m) = 0._R8KIND
+                tms_sacr2(i,j,k,m) = 0._R8KIND
+                tnr_racs1(i,j,k,m) = 0._R8KIND
+                tnr_racs2(i,j,k,m) = 0._R8KIND
+                tnr_sacr1(i,j,k,m) = 0._R8KIND
+                tnr_sacr2(i,j,k,m) = 0._R8KIND
+             enddo
+          enddo
+       enddo
+    enddo
 
-      do m = 1, ntb_IN
-         do k = 1, 45
-            do j = 1, ntb_r1
-               do i = 1, ntb_r
-                  tpi_qrfz(i,j,k,m) = 0.0d0
-                  tni_qrfz(i,j,k,m) = 0.0d0
-                  tpg_qrfz(i,j,k,m) = 0.0d0
-                  tnr_qrfz(i,j,k,m) = 0.0d0
-               enddo
-            enddo
-            do j = 1, nbc
-               do i = 1, ntb_c
-                  tpi_qcfz(i,j,k,m) = 0.0d0
-                  tni_qcfz(i,j,k,m) = 0.0d0
-               enddo
-            enddo
-         enddo
-      enddo
+    do m = 1,ntb_IN
+       do k = 1,45
+          do j = 1,ntb_r1
+             do i = 1,ntb_r
+                tpi_qrfz(i,j,k,m) = 0._R8KIND
+                tni_qrfz(i,j,k,m) = 0._R8KIND
+                tpg_qrfz(i,j,k,m) = 0._R8KIND
+                tnr_qrfz(i,j,k,m) = 0._R8KIND
+             enddo
+          enddo
+          do j = 1,nbc
+             do i = 1,ntb_c
+                tpi_qcfz(i,j,k,m) = 0._R8KIND
+                tni_qcfz(i,j,k,m) = 0._R8KIND
+             enddo
+          enddo
+       enddo
+    enddo
 
-      do j = 1, ntb_i1
-         do i = 1, ntb_i
-            tps_iaus(i,j) = 0.0d0
-            tni_iaus(i,j) = 0.0d0
-            tpi_ide(i,j) = 0.0d0
-         enddo
-      enddo
+    do j = 1,ntb_i1
+       do i = 1,ntb_i
+          tps_iaus(i,j) = 0._R8KIND
+          tni_iaus(i,j) = 0._R8KIND
+          tpi_ide(i,j) = 0._R8KIND
+       enddo
+    enddo
 
-      do j = 1, nbc
-         do i = 1, nbr
-            t_Efrw(i,j) = 0.0
-         enddo
-         do i = 1, nbs
-            t_Efsw(i,j) = 0.0
-         enddo
-      enddo
+    do j = 1,nbc
+       do i = 1, nbr
+          t_Efrw(i,j) = 0._RKIND
+       enddo
+       do i = 1,nbs
+          t_Efsw(i,j) = 0._RKIND
+       enddo
+    enddo
 
-      do k = 1, ntb_r
-         do j = 1, ntb_r1
-            do i = 1, nbr
-               tnr_rev(i,j,k) = 0.0d0
-            enddo
-         enddo
-      enddo
+    do k = 1,ntb_r
+       do j = 1,ntb_r1
+          do i = 1,nbr
+             tnr_rev(i,j,k) = 0._R8KIND
+          enddo
+       enddo
+    enddo
 
-      do k = 1, nbc
-         do j = 1, ntb_c
-            do i = 1, nbc
-               tpc_wev(i,j,k) = 0.0d0
-               tnc_wev(i,j,k) = 0.0d0
-            enddo
-         enddo
-      enddo
+    do k = 1,nbc
+       do j = 1,ntb_c
+          do i = 1,nbc
+             tpc_wev(i,j,k) = 0._R8KIND
+             tnc_wev(i,j,k) = 0._R8KIND
+          enddo
+       enddo
+    enddo
 
-      do m = 1, ntb_ark
-         do l = 1, ntb_arr
-            do k = 1, ntb_art
-               do j = 1, ntb_arw
-                  do i = 1, ntb_arc
-                     tnccn_act(i,j,k,l,m) = 1.0
-                  enddo
-               enddo
-            enddo
-         enddo
-      enddo
+    do m = 1,ntb_ark
+       do l = 1,ntb_arr
+          do k = 1,ntb_art
+             do j = 1,ntb_arw
+                do i = 1,ntb_arc
+                   tnccn_act(i,j,k,l,m) = 1._RKIND
+                enddo
+             enddo
+          enddo
+       enddo
+    enddo
 
 !..Check that the look-up tables are available.
-      if(.not. l_mp_tables) return
+    if(.not. l_mp_tables) return
 
 !..Collision efficiency between rain/snow and cloud water.
-!     call physics_message('--- creating qc collision eff tables')
-      call table_Efrw
-      call table_Efsw
+!   call physics_message('--- creating qc collision eff tables')
+    call table_Efrw
+    call table_Efsw
 
 !..Drop evaporation.
-!     call physics_message('--- creating rain evap table')
-      call table_dropEvap
+!   call physics_message('--- creating rain evap table')
+    call table_dropEvap
 
 !..Rain collecting graupel & graupel collecting rain.
-      call mpas_new_unit(mp_unit, unformatted = .true.)
-      open(unit=mp_unit,file='MP_THOMPSON_QRacrQG_DATA.DBL',form='UNFORMATTED',status='OLD',action='READ', &
-           iostat = istat)
-      if(istat /= open_OK) &
-         call physics_error_fatal('subroutine thompson_init: ' // &
-                                  'failure opening MP_THOMPSON_QRacrQG.DBL')
-      read(mp_unit) tcg_racg
-      read(mp_unit) tmr_racg
-      read(mp_unit) tcr_gacr
-      read(mp_unit) tmg_gacr
-      read(mp_unit) tnr_racg
-      read(mp_unit) tnr_gacr
-      close(unit=mp_unit)
-!     write(0,*) '--- end read MP_THOMPSON_QRacrQG.DBL'
-!     write(0,*) 'max tcg_racg =',maxval(tcg_racg)
-!     write(0,*) 'min tcg_racg =',minval(tcg_racg)
-!     write(0,*) 'max tmr_racg =',maxval(tmr_racg)
-!     write(0,*) 'min tmr_racg =',minval(tmr_racg)
-!     write(0,*) 'max tcr_gacr =',maxval(tcr_gacr)
-!     write(0,*) 'min tcr_gacr =',minval(tcr_gacr)
-!     write(0,*) 'max tmg_gacr =',maxval(tmg_gacr)
-!     write(0,*) 'min tmg_gacr =',minval(tmg_gacr)
-!     write(0,*) 'max tnr_racg =',maxval(tnr_racg)
-!     write(0,*) 'min tnr_racg =',minval(tnr_racg)
-!     write(0,*) 'max tnr_gacr =',maxval(tnr_gacr)
-!     write(0,*) 'min tnr_gacr =',minval(tnr_gacr)
+    call mpas_new_unit(mp_unit, unformatted = .true.)
+    open(unit=mp_unit,file='MP_THOMPSON_QRacrQG_DATA.DBL',form='UNFORMATTED',status='OLD',action='READ', &
+         iostat = istat)
+    if(istat /= open_OK) &
+       call physics_error_fatal('subroutine thompson_init: ' // &
+                                'failure opening MP_THOMPSON_QRacrQG.DBL')
+    read(mp_unit) tcg_racg
+    read(mp_unit) tmr_racg
+    read(mp_unit) tcr_gacr
+    read(mp_unit) tmg_gacr
+    read(mp_unit) tnr_racg
+    read(mp_unit) tnr_gacr
+    close(unit=mp_unit)
+!   call mpas_log_write('--- end read MP_THOMPSON_QRacrQG.DBL')
+!   call mpas_log_write('max tcg_racg =',realArgs=(/maxval(tcg_racg)/))
+!   call mpas_log_write('min tcg_racg =',realArgs=(/minval(tcg_racg)/))
+!   call mpas_log_write('max tmr_racg =',realArgs=(/maxval(tmr_racg)/))
+!   call mpas_log_write('min tmr_racg =',realArgs=(/minval(tmr_racg)/))
+!   call mpas_log_write('max tcr_gacr =',realArgs=(/maxval(tcr_gacr)/))
+!   call mpas_log_write('min tcr_gacr =',realArgs=(/minval(tcr_gacr)/))
+!   call mpas_log_write('max tmg_gacr =',realArgs=(/maxval(tmg_gacr)/))
+!   call mpas_log_write('min tmg_gacr =',realArgs=(/minval(tmg_gacr)/))
+!   call mpas_log_write('max tnr_racg =',realArgs=(/maxval(tnr_racg)/))
+!   call mpas_log_write('min tnr_racg =',realArgs=(/minval(tnr_racg)/))
+!   call mpas_log_write('max tnr_gacr =',realArgs=(/maxval(tnr_gacr)/))
+!   call mpas_log_write('min tnr_gacr =',realArgs=(/minval(tnr_gacr)/))
 
 !..Rain collecting snow & snow collecting rain.
-      open(unit=mp_unit,file='MP_THOMPSON_QRacrQS_DATA.DBL',form='UNFORMATTED',status='OLD',action='READ', &
-           iostat=istat)
-      if(istat /= open_OK) &
-         call physics_error_fatal('subroutine thompson_init: ' // &
-                                  'failure opening MP_THOMPSON_QRacrQS.DBL')
-      read(mp_unit) tcs_racs1
-      read(mp_unit) tmr_racs1
-      read(mp_unit) tcs_racs2
-      read(mp_unit) tmr_racs2
-      read(mp_unit) tcr_sacr1
-      read(mp_unit) tms_sacr1
-      read(mp_unit) tcr_sacr2
-      read(mp_unit) tms_sacr2
-      read(mp_unit) tnr_racs1
-      read(mp_unit) tnr_racs2
-      read(mp_unit) tnr_sacr1
-      read(mp_unit) tnr_sacr2
-      close(unit=mp_unit)
-!     write(0,*) '--- end read MP_THOMPSON_QRacrQS.DBL'
-!     write(0,*) 'max tcs_racs1 =',maxval(tcs_racs1)
-!     write(0,*) 'min tcs_racs1 =',minval(tcs_racs1)
-!     write(0,*) 'max tmr_racs1 =',maxval(tmr_racs1)
-!     write(0,*) 'min tmr_racs1 =',minval(tmr_racs1)
-!     write(0,*) 'max tcs_racs2 =',maxval(tcs_racs2)
-!     write(0,*) 'min tcs_racs2 =',minval(tcs_racs2)
-!     write(0,*) 'max tmr_racs2 =',maxval(tmr_racs2)
-!     write(0,*) 'min tmr_racs2 =',minval(tmr_racs2)
-!     write(0,*) 'max tcr_sacr1 =',maxval(tcr_sacr1)
-!     write(0,*) 'min tcr_sacr1 =',minval(tcr_sacr1)
-!     write(0,*) 'max tms_sacr1 =',maxval(tms_sacr1)
-!     write(0,*) 'min tms_sacr1 =',minval(tms_sacr1)
-!     write(0,*) 'max tcr_sacr2 =',maxval(tcr_sacr2)
-!     write(0,*) 'min tcr_sacr2 =',minval(tcr_sacr2)
-!     write(0,*) 'max tms_sacr2 =',maxval(tms_sacr2)
-!     write(0,*) 'min tms_sacr2 =',minval(tms_sacr2)
-!     write(0,*) 'max tnr_racs1 =',maxval(tnr_racs1)
-!     write(0,*) 'min tnr_racs1 =',minval(tnr_racs1)
-!     write(0,*) 'max tnr_racs2 =',maxval(tnr_racs2)
-!     write(0,*) 'min tnr_racs2 =',minval(tnr_racs2)
-!     write(0,*) 'max tnr_sacr1 =',maxval(tnr_sacr1)
-!     write(0,*) 'min tnr_sacr1 =',minval(tnr_sacr1)
-!     write(0,*) 'max tnr_sacr2 =',maxval(tnr_sacr2)
-!     write(0,*) 'min tnr_sacr2 =',minval(tnr_sacr2)
+    open(unit=mp_unit,file='MP_THOMPSON_QRacrQS_DATA.DBL',form='UNFORMATTED',status='OLD',action='READ', &
+         iostat=istat)
+    if(istat /= open_OK) &
+       call physics_error_fatal('subroutine thompson_init: ' // &
+                                'failure opening MP_THOMPSON_QRacrQS.DBL')
+    read(mp_unit) tcs_racs1
+    read(mp_unit) tmr_racs1
+    read(mp_unit) tcs_racs2
+    read(mp_unit) tmr_racs2
+    read(mp_unit) tcr_sacr1
+    read(mp_unit) tms_sacr1
+    read(mp_unit) tcr_sacr2
+    read(mp_unit) tms_sacr2
+    read(mp_unit) tnr_racs1
+    read(mp_unit) tnr_racs2
+    read(mp_unit) tnr_sacr1
+    read(mp_unit) tnr_sacr2
+    close(unit=mp_unit)
+!   call mpas_log_write('--- end read MP_THOMPSON_QRacrQS.DBL')
+!   call mpas_log_write('max tcs_racs1 =',realArgs=(/maxval(tcs_racs1)/))
+!   call mpas_log_write('min tcs_racs1 =',realArgs=(/minval(tcs_racs1)/))
+!   call mpas_log_write('max tmr_racs1 =',realArgs=(/maxval(tmr_racs1)/))
+!   call mpas_log_write('min tmr_racs1 =',realArgs=(/minval(tmr_racs1)/))
+!   call mpas_log_write('max tcs_racs2 =',realArgs=(/maxval(tcs_racs2)/))
+!   call mpas_log_write('min tcs_racs2 =',realArgs=(/minval(tcs_racs2)/))
+!   call mpas_log_write('max tmr_racs2 =',realArgs=(/maxval(tmr_racs2)/))
+!   call mpas_log_write('min tmr_racs2 =',realArgs=(/minval(tmr_racs2)/))
+!   call mpas_log_write('max tcr_sacr1 =',realArgs=(/maxval(tcr_sacr1)/))
+!   call mpas_log_write('min tcr_sacr1 =',realArgs=(/minval(tcr_sacr1)/))
+!   call mpas_log_write('max tms_sacr1 =',realArgs=(/maxval(tms_sacr1)/))
+!   call mpas_log_write('min tms_sacr1 =',realArgs=(/minval(tms_sacr1)/))
+!   call mpas_log_write('max tcr_sacr2 =',realArgs=(/maxval(tcr_sacr2)/))
+!   call mpas_log_write('min tcr_sacr2 =',realArgs=(/minval(tcr_sacr2)/))
+!   call mpas_log_write('max tms_sacr2 =',realArgs=(/maxval(tms_sacr2)/))
+!   call mpas_log_write('min tms_sacr2 =',realArgs=(/minval(tms_sacr2)/))
+!   call mpas_log_write('max tnr_racs1 =',realArgs=(/maxval(tnr_racs1)/))
+!   call mpas_log_write('min tnr_racs1 =',realArgs=(/minval(tnr_racs1)/))
+!   call mpas_log_write('max tnr_racs2 =',realArgs=(/maxval(tnr_racs2)/))
+!   call mpas_log_write('min tnr_racs2 =',realArgs=(/minval(tnr_racs2)/))
+!   call mpas_log_write('max tnr_sacr1 =',realArgs=(/maxval(tnr_sacr1)/))
+!   call mpas_log_write('min tnr_sacr1 =',realArgs=(/minval(tnr_sacr1)/))
+!   call mpas_log_write('max tnr_sacr2 =',realArgs=(/maxval(tnr_sacr2)/))
+!   call mpas_log_write('min tnr_sacr2 =',realArgs=(/minval(tnr_sacr2)/))
 
 !..Cloud water and rain freezing (Bigg, 1953).
-      open(unit=mp_unit,file='MP_THOMPSON_freezeH2O_DATA.DBL',form='UNFORMATTED',status='OLD',action='READ', &
-           iostat=istat)
-      if(istat /= open_OK) &
-         call physics_error_fatal('subroutine thompson_init: ' // &
-                                  'failure opening MP_THOMPSON_freezeH2O.DBL')
-      read(mp_unit) tpi_qrfz
-      read(mp_unit) tni_qrfz
-      read(mp_unit) tpg_qrfz
-      read(mp_unit) tnr_qrfz
-      read(mp_unit) tpi_qcfz
-      read(mp_unit) tni_qcfz
-      close(unit=mp_unit)
-!     write(0,*) '--- end read MP_THOMPSON_freezeH2O.DBL:'
-!     write(0,*) 'max tpi_qrfz =',maxval(tpi_qrfz)
-!     write(0,*) 'min tpi_qrfz =',minval(tpi_qrfz)
-!     write(0,*) 'max tni_qrfz =',maxval(tni_qrfz)
-!     write(0,*) 'min tni_qrfz =',minval(tni_qrfz)
-!     write(0,*) 'max tpg_qrfz =',maxval(tpg_qrfz)
-!     write(0,*) 'min tpg_qrfz =',minval(tpg_qrfz)
-!     write(0,*) 'max tnr_qrfz =',maxval(tnr_qrfz)
-!     write(0,*) 'min tnr_qrfz =',minval(tnr_qrfz)
-!     write(0,*) 'max tpi_qcfz =',maxval(tpi_qcfz)
-!     write(0,*) 'min tpi_qcfz =',minval(tpi_qcfz)
-!     write(0,*) 'max tni_qcfz =',maxval(tni_qcfz)
-!     write(0,*) 'min tni_qcfz =',minval(tni_qcfz)
+    open(unit=mp_unit,file='MP_THOMPSON_freezeH2O_DATA.DBL',form='UNFORMATTED',status='OLD',action='READ', &
+         iostat=istat)
+    if(istat /= open_OK) &
+       call physics_error_fatal('subroutine thompson_init: ' // &
+                                'failure opening MP_THOMPSON_freezeH2O.DBL')
+    read(mp_unit) tpi_qrfz
+    read(mp_unit) tni_qrfz
+    read(mp_unit) tpg_qrfz
+    read(mp_unit) tnr_qrfz
+    read(mp_unit) tpi_qcfz
+    read(mp_unit) tni_qcfz
+    close(unit=mp_unit)
+!   call mpas_log_write('--- end read MP_THOMPSON_freezeH2O.DBL:')
+!   call mpas_log_write('max tpi_qrfz =',realArgs=(/maxval(tpi_qrfz)/))
+!   call mpas_log_write('min tpi_qrfz =',realArgs=(/minval(tpi_qrfz)/))
+!   call mpas_log_write('max tni_qrfz =',realArgs=(/maxval(tni_qrfz)/))
+!   call mpas_log_write('min tni_qrfz =',realArgs=(/minval(tni_qrfz)/))
+!   call mpas_log_write('max tpg_qrfz =',realArgs=(/maxval(tpg_qrfz)/))
+!   call mpas_log_write('min tpg_qrfz =',realArgs=(/minval(tpg_qrfz)/))
+!   call mpas_log_write('max tnr_qrfz =',realArgs=(/maxval(tnr_qrfz)/))
+!   call mpas_log_write('min tnr_qrfz =',realArgs=(/minval(tnr_qrfz)/))
+!   call mpas_log_write('max tpi_qcfz =',realArgs=(/maxval(tpi_qcfz)/))
+!   call mpas_log_write('min tpi_qcfz =',realArgs=(/minval(tpi_qcfz)/))
+!   call mpas_log_write('max tni_qcfz =',realArgs=(/maxval(tni_qcfz)/))
+!   call mpas_log_write('min tni_qcfz =',realArgs=(/minval(tni_qcfz)/))
 
 !..Conversion of some ice mass into snow category.
-      open(unit=mp_unit,file='MP_THOMPSON_QIautQS_DATA.DBL',form='UNFORMATTED',status='OLD',action='READ', &
-           iostat=istat)
-      if(istat /= open_OK) &
-         call physics_error_fatal('subroutine thompson_init: ' // &
-                                  'failure opening MP_THOMPSON_QIautQS.DBL')
-      read(mp_unit) tpi_ide
-      read(mp_unit) tps_iaus
-      read(mp_unit) tni_iaus
-      close(unit=mp_unit)
-      call mpas_release_unit(mp_unit)
-!     write(0,*) '--- end read MP_THOMPSON_QIautQS.DBL '
-!     write(0,*) 'max tps_iaus =',maxval(tps_iaus)
-!     write(0,*) 'min tps_iaus =',minval(tps_iaus)
-!     write(0,*) 'max tni_iaus =',maxval(tni_iaus)
-!     write(0,*) 'min tni_iaus =',minval(tni_iaus)
+    open(unit=mp_unit,file='MP_THOMPSON_QIautQS_DATA.DBL',form='UNFORMATTED',status='OLD',action='READ', &
+         iostat=istat)
+    if(istat /= open_OK) &
+       call physics_error_fatal('subroutine thompson_init: ' // &
+                                'failure opening MP_THOMPSON_QIautQS.DBL')
+    read(mp_unit) tpi_ide
+    read(mp_unit) tps_iaus
+    read(mp_unit) tni_iaus
+    close(unit=mp_unit)
+    call mpas_release_unit(mp_unit)
+!   call mpas_log_write('--- end read MP_THOMPSON_QIautQS.DBL')
+!   call mpas_log_write('max tps_iaus =',realArgs=(/maxval(tps_iaus)/))
+!   call mpas_log_write('min tps_iaus =',realArgs=(/minval(tps_iaus)/))
+!   call mpas_log_write('max tni_iaus =',realArgs=(/maxval(tni_iaus)/))
+!   call mpas_log_write('min tni_iaus =',realArgs=(/minval(tni_iaus)/))
 
 !..Initialize various constants for computing radar reflectivity.
-      xam_r = am_r
-      xbm_r = bm_r
-      xmu_r = mu_r
-      xam_s = am_s
-      xbm_s = bm_s
-      xmu_s = mu_s
-      xam_g = am_g
-      xbm_g = bm_g
-      xmu_g = mu_g
-      call radar_init
+    xam_r = am_r
+    xbm_r = bm_r
+    xmu_r = mu_r
+    xam_s = am_s
+    xbm_s = bm_s
+    xmu_s = mu_s
+    xam_g = am_g
+    xbm_g = bm_g
+    xmu_g = mu_g
+    call radar_init
 
  endif ! end "if(micro_init)"
 
  end subroutine thompson_init
-!
-!+---+-----------------------------------------------------------------+
-!+---+-----------------------------------------------------------------+
-!ctrlL
-!+---+-----------------------------------------------------------------+
-!..This is a wrapper routine designed to transfer values from 3D to 1D.
-!+---+-----------------------------------------------------------------+
 
 !==================================================================================================================
  subroutine mp_thompson_run(qv,qc,qr,qi,qs,qg,ni,nr,nc,nwfa,nifa,nwfa2d,nifa2d, &
