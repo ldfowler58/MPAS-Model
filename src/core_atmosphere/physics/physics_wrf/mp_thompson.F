@@ -368,59 +368,58 @@
  integer:: mp_unit
 
 !..Allocate space for lookup tables (J. Michalakes 2009Jun08).
-      micro_init = .FALSE.
+ micro_init = .false.
 
 !==================================================================================================================
 
-!..Allocate space for lookup tables (J. Michalakes 2009Jun08).
+ if(.not. allocated(tcg_racg) ) then
+    allocate(tcg_racg(ntb_g1,ntb_g,ntb_r1,ntb_r))
+    micro_init = .true.
+ endif
 
-      if (.NOT. ALLOCATED(tcg_racg) ) then
-         ALLOCATE(tcg_racg(ntb_g1,ntb_g,ntb_r1,ntb_r))
-         micro_init = .TRUE.
-      endif
+ if(.not.allocated(tmr_racg)) allocate(tmr_racg(ntb_g1,ntb_g,ntb_r1,ntb_r))
+ if(.not.allocated(tcr_gacr)) allocate(tcr_gacr(ntb_g1,ntb_g,ntb_r1,ntb_r))
+ if(.not.allocated(tmg_gacr)) allocate(tmg_gacr(ntb_g1,ntb_g,ntb_r1,ntb_r))
+ if(.not.allocated(tnr_racg)) allocate(tnr_racg(ntb_g1,ntb_g,ntb_r1,ntb_r))
+ if(.not.allocated(tnr_gacr)) allocate(tnr_gacr(ntb_g1,ntb_g,ntb_r1,ntb_r))
 
-      if (.NOT. ALLOCATED(tmr_racg)) ALLOCATE(tmr_racg(ntb_g1,ntb_g,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tcr_gacr)) ALLOCATE(tcr_gacr(ntb_g1,ntb_g,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tmg_gacr)) ALLOCATE(tmg_gacr(ntb_g1,ntb_g,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tnr_racg)) ALLOCATE(tnr_racg(ntb_g1,ntb_g,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tnr_gacr)) ALLOCATE(tnr_gacr(ntb_g1,ntb_g,ntb_r1,ntb_r))
+ if(.not.allocated(tcs_racs1)) allocate(tcs_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tmr_racs1)) allocate(tmr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tcs_racs2)) allocate(tcs_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tmr_racs2)) allocate(tmr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tcr_sacr1)) allocate(tcr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tms_sacr1)) allocate(tms_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tcr_sacr2)) allocate(tcr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tms_sacr2)) allocate(tms_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tnr_racs1)) allocate(tnr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tnr_racs2)) allocate(tnr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tnr_sacr1)) allocate(tnr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tnr_sacr2)) allocate(tnr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
 
-      if (.NOT. ALLOCATED(tcs_racs1)) ALLOCATE(tcs_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tmr_racs1)) ALLOCATE(tmr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tcs_racs2)) ALLOCATE(tcs_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tmr_racs2)) ALLOCATE(tmr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tcr_sacr1)) ALLOCATE(tcr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tms_sacr1)) ALLOCATE(tms_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tcr_sacr2)) ALLOCATE(tcr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tms_sacr2)) ALLOCATE(tms_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tnr_racs1)) ALLOCATE(tnr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tnr_racs2)) ALLOCATE(tnr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tnr_sacr1)) ALLOCATE(tnr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
-      if (.NOT. ALLOCATED(tnr_sacr2)) ALLOCATE(tnr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
+ if(.not.allocated(tpi_qcfz)) allocate(tpi_qcfz(ntb_c,nbc,45,ntb_IN))
+ if(.not.allocated(tni_qcfz)) allocate(tni_qcfz(ntb_c,nbc,45,ntb_IN))
 
-      if (.NOT. ALLOCATED(tpi_qcfz)) ALLOCATE(tpi_qcfz(ntb_c,nbc,45,ntb_IN))
-      if (.NOT. ALLOCATED(tni_qcfz)) ALLOCATE(tni_qcfz(ntb_c,nbc,45,ntb_IN))
+ if(.not.allocated(tpi_qrfz)) allocate(tpi_qrfz(ntb_r,ntb_r1,45,ntb_IN))
+ if(.not.allocated(tpg_qrfz)) allocate(tpg_qrfz(ntb_r,ntb_r1,45,ntb_IN))
+ if(.not.allocated(tni_qrfz)) allocate(tni_qrfz(ntb_r,ntb_r1,45,ntb_IN))
+ if(.not.allocated(tnr_qrfz)) allocate(tnr_qrfz(ntb_r,ntb_r1,45,ntb_IN))
 
-      if (.NOT. ALLOCATED(tpi_qrfz)) ALLOCATE(tpi_qrfz(ntb_r,ntb_r1,45,ntb_IN))
-      if (.NOT. ALLOCATED(tpg_qrfz)) ALLOCATE(tpg_qrfz(ntb_r,ntb_r1,45,ntb_IN))
-      if (.NOT. ALLOCATED(tni_qrfz)) ALLOCATE(tni_qrfz(ntb_r,ntb_r1,45,ntb_IN))
-      if (.NOT. ALLOCATED(tnr_qrfz)) ALLOCATE(tnr_qrfz(ntb_r,ntb_r1,45,ntb_IN))
+ if(.not.allocated(tps_iaus)) allocate(tps_iaus(ntb_i,ntb_i1))
+ if(.not.allocated(tni_iaus)) allocate(tni_iaus(ntb_i,ntb_i1))
+ if(.not.allocated(tpi_ide)) allocate(tpi_ide(ntb_i,ntb_i1))
 
-      if (.NOT. ALLOCATED(tps_iaus)) ALLOCATE(tps_iaus(ntb_i,ntb_i1))
-      if (.NOT. ALLOCATED(tni_iaus)) ALLOCATE(tni_iaus(ntb_i,ntb_i1))
-      if (.NOT. ALLOCATED(tpi_ide)) ALLOCATE(tpi_ide(ntb_i,ntb_i1))
+ if(.not.allocated(t_Efrw)) allocate(t_Efrw(nbr,nbc))
+ if(.not.allocated(t_Efsw)) allocate(t_Efsw(nbs,nbc))
 
-      if (.NOT. ALLOCATED(t_Efrw)) ALLOCATE(t_Efrw(nbr,nbc))
-      if (.NOT. ALLOCATED(t_Efsw)) ALLOCATE(t_Efsw(nbs,nbc))
+ if(.not.allocated(tnr_rev)) allocate(tnr_rev(nbr, ntb_r1, ntb_r))
+ if(.not.allocated(tpc_wev)) allocate(tpc_wev(nbc,ntb_c,nbc))
+ if(.not.allocated(tnc_wev)) allocate(tnc_wev(nbc,ntb_c,nbc))
+ 
+ if(.not.allocated(tnccn_act)) &
+    allocate(tnccn_act(ntb_arc,ntb_arw,ntb_art,ntb_arr,ntb_ark))
 
-      if (.NOT. ALLOCATED(tnr_rev)) ALLOCATE(tnr_rev(nbr, ntb_r1, ntb_r))
-      if (.NOT. ALLOCATED(tpc_wev)) ALLOCATE(tpc_wev(nbc,ntb_c,nbc))
-      if (.NOT. ALLOCATED(tnc_wev)) ALLOCATE(tnc_wev(nbc,ntb_c,nbc))
 
-      if (.NOT. ALLOCATED(tnccn_act))                                   &
-            ALLOCATE(tnccn_act(ntb_arc,ntb_arw,ntb_art,ntb_arr,ntb_ark))
-
-      if (micro_init) then
+ if(micro_init) then
 
 !..From Martin et al. (1994), assign gamma shape parameter mu for cloud
 !.. drops according to general dispersion characteristics (disp=~0.25
@@ -428,169 +427,169 @@
 !.. disp=SQRT((mu+2)/(mu+1) - 1) so mu varies from 15 for Maritime
 !.. to 2 for really dirty air.  This not used in 2-moment cloud water
 !.. scheme and nu_c used instead and varies from 2 to 15 (integer-only).
-!     mu_c = MIN(15., (1000.E6/Nt_c + 2.))
+!   mu_c = MIN(15., (1000.E6/Nt_c + 2.))
 
 !..Schmidt number to one-third used numerous times.
-      Sc3 = Sc**(1./3.)
+    Sc3 = Sc**(1./3.)
 
 !..Compute min ice diam from mass, min snow/graupel mass from diam.
-      D0i = (xm0i/am_i)**(1./bm_i)
-      xm0s = am_s * D0s**bm_s
-      xm0g = am_g * D0g**bm_g
+    D0i = (xm0i/am_i)**(1./bm_i)
+    xm0s = am_s * D0s**bm_s
+    xm0g = am_g * D0g**bm_g
 
 !..These constants various exponents and gamma() assoc with cloud,
 !.. rain, snow, and graupel.
-      do n = 1, 15
-         cce(1,n) = n + 1.
-         cce(2,n) = bm_r + n + 1.
-         cce(3,n) = bm_r + n + 4.
-         cce(4,n) = n + bv_c + 1.
-         cce(5,n) = bm_r + n + bv_c + 1.
-         ccg(1,n) = WGAMMA(cce(1,n))
-         ccg(2,n) = WGAMMA(cce(2,n))
-         ccg(3,n) = WGAMMA(cce(3,n))
-         ccg(4,n) = WGAMMA(cce(4,n))
-         ccg(5,n) = WGAMMA(cce(5,n))
-         ocg1(n) = 1./ccg(1,n)
-         ocg2(n) = 1./ccg(2,n)
-      enddo
+    do n = 1, 15
+       cce(1,n) = n + 1.
+       cce(2,n) = bm_r + n + 1.
+       cce(3,n) = bm_r + n + 4.
+       cce(4,n) = n + bv_c + 1.
+       cce(5,n) = bm_r + n + bv_c + 1.
+       ccg(1,n) = wgamma(cce(1,n))
+       ccg(2,n) = wgamma(cce(2,n))
+       ccg(3,n) = wgamma(cce(3,n))
+       ccg(4,n) = wgamma(cce(4,n))
+       ccg(5,n) = wgamma(cce(5,n))
+       ocg1(n) = 1./ccg(1,n)
+       ocg2(n) = 1./ccg(2,n)
+    enddo
 
-      cie(1) = mu_i + 1.
-      cie(2) = bm_i + mu_i + 1.
-      cie(3) = bm_i + mu_i + bv_i + 1.
-      cie(4) = mu_i + bv_i + 1.
-      cie(5) = mu_i + 2.
-      cie(6) = bm_i*0.5 + mu_i + bv_i + 1.
-      cie(7) = bm_i*0.5 + mu_i + 1.
-      cig(1) = WGAMMA(cie(1))
-      cig(2) = WGAMMA(cie(2))
-      cig(3) = WGAMMA(cie(3))
-      cig(4) = WGAMMA(cie(4))
-      cig(5) = WGAMMA(cie(5))
-      cig(6) = WGAMMA(cie(6))
-      cig(7) = WGAMMA(cie(7))
-      oig1 = 1./cig(1)
-      oig2 = 1./cig(2)
-      obmi = 1./bm_i
+    cie(1) = mu_i + 1.
+    cie(2) = bm_i + mu_i + 1.
+    cie(3) = bm_i + mu_i + bv_i + 1.
+    cie(4) = mu_i + bv_i + 1.
+    cie(5) = mu_i + 2.
+    cie(6) = bm_i*0.5 + mu_i + bv_i + 1.
+    cie(7) = bm_i*0.5 + mu_i + 1.
+    cig(1) = wgamma(cie(1))
+    cig(2) = wgamma(cie(2))
+    cig(3) = wgamma(cie(3))
+    cig(4) = wgamma(cie(4))
+    cig(5) = wgamma(cie(5))
+    cig(6) = wgamma(cie(6))
+    cig(7) = wgamma(cie(7))
+    oig1 = 1./cig(1)
+    oig2 = 1./cig(2)
+    obmi = 1./bm_i
 
-      cre(1) = bm_r + 1.
-      cre(2) = mu_r + 1.
-      cre(3) = bm_r + mu_r + 1.
-      cre(4) = bm_r*2. + mu_r + 1.
-      cre(5) = mu_r + bv_r + 1.
-      cre(6) = bm_r + mu_r + bv_r + 1.
-      cre(7) = bm_r*0.5 + mu_r + bv_r + 1.
-      cre(8) = bm_r + mu_r + bv_r + 3.
-      cre(9) = mu_r + bv_r + 3.
-      cre(10) = mu_r + 2.
-      cre(11) = 0.5*(bv_r + 5. + 2.*mu_r)
-      cre(12) = bm_r*0.5 + mu_r + 1.
-      cre(13) = bm_r*2. + mu_r + bv_r + 1.
-      do n = 1, 13
-         crg(n) = WGAMMA(cre(n))
-      enddo
-      obmr = 1./bm_r
-      ore1 = 1./cre(1)
-      org1 = 1./crg(1)
-      org2 = 1./crg(2)
-      org3 = 1./crg(3)
+    cre(1) = bm_r + 1.
+    cre(2) = mu_r + 1.
+    cre(3) = bm_r + mu_r + 1.
+    cre(4) = bm_r*2. + mu_r + 1.
+    cre(5) = mu_r + bv_r + 1.
+    cre(6) = bm_r + mu_r + bv_r + 1.
+    cre(7) = bm_r*0.5 + mu_r + bv_r + 1.
+    cre(8) = bm_r + mu_r + bv_r + 3.
+    cre(9) = mu_r + bv_r + 3.
+    cre(10) = mu_r + 2.
+    cre(11) = 0.5*(bv_r + 5. + 2.*mu_r)
+    cre(12) = bm_r*0.5 + mu_r + 1.
+    cre(13) = bm_r*2. + mu_r + bv_r + 1.
+    do n = 1, 13
+       crg(n) = wgamma(cre(n))
+    enddo
+    obmr = 1./bm_r
+    ore1 = 1./cre(1)
+    org1 = 1./crg(1)
+    org2 = 1./crg(2)
+    org3 = 1./crg(3)
 
-      cse(1) = bm_s + 1.
-      cse(2) = bm_s + 2.
-      cse(3) = bm_s*2.
-      cse(4) = bm_s + bv_s + 1.
-      cse(5) = bm_s*2. + bv_s + 1.
-      cse(6) = bm_s*2. + 1.
-      cse(7) = bm_s + mu_s + 1.
-      cse(8) = bm_s + mu_s + 2.
-      cse(9) = bm_s + mu_s + 3.
-      cse(10) = bm_s + mu_s + bv_s + 1.
-      cse(11) = bm_s*2. + mu_s + bv_s + 1.
-      cse(12) = bm_s*2. + mu_s + 1.
-      cse(13) = bv_s + 2.
-      cse(14) = bm_s + bv_s
-      cse(15) = mu_s + 1.
-      cse(16) = 1.0 + (1.0 + bv_s)/2.
-      cse(17) = cse(16) + mu_s + 1.
-      cse(18) = bv_s + mu_s + 3.
-      do n = 1, 18
-         csg(n) = WGAMMA(cse(n))
-      enddo
-      oams = 1./am_s
-      obms = 1./bm_s
-      ocms = oams**obms
+    cse(1) = bm_s + 1.
+    cse(2) = bm_s + 2.
+    cse(3) = bm_s*2.
+    cse(4) = bm_s + bv_s + 1.
+    cse(5) = bm_s*2. + bv_s + 1.
+    cse(6) = bm_s*2. + 1.
+    cse(7) = bm_s + mu_s + 1.
+    cse(8) = bm_s + mu_s + 2.
+    cse(9) = bm_s + mu_s + 3.
+    cse(10) = bm_s + mu_s + bv_s + 1.
+    cse(11) = bm_s*2. + mu_s + bv_s + 1.
+    cse(12) = bm_s*2. + mu_s + 1.
+    cse(13) = bv_s + 2.
+    cse(14) = bm_s + bv_s
+    cse(15) = mu_s + 1.
+    cse(16) = 1.0 + (1.0 + bv_s)/2.
+    cse(17) = cse(16) + mu_s + 1.
+    cse(18) = bv_s + mu_s + 3.
+    do n = 1, 18
+       csg(n) = wgamma(cse(n))
+    enddo
+    oams = 1./am_s
+    obms = 1./bm_s
+    ocms = oams**obms
 
-      cge(1) = bm_g + 1.
-      cge(2) = mu_g + 1.
-      cge(3) = bm_g + mu_g + 1.
-      cge(4) = bm_g*2. + mu_g + 1.
-      cge(5) = bm_g*2. + mu_g + bv_g + 1.
-      cge(6) = bm_g + mu_g + bv_g + 1.
-      cge(7) = bm_g + mu_g + bv_g + 2.
-      cge(8) = bm_g + mu_g + bv_g + 3.
-      cge(9) = mu_g + bv_g + 3.
-      cge(10) = mu_g + 2.
-      cge(11) = 0.5*(bv_g + 5. + 2.*mu_g)
-      cge(12) = 0.5*(bv_g + 5.) + mu_g
-      do n = 1, 12
-         cgg(n) = WGAMMA(cge(n))
-      enddo
-      oamg = 1./am_g
-      obmg = 1./bm_g
-      ocmg = oamg**obmg
-      oge1 = 1./cge(1)
-      ogg1 = 1./cgg(1)
-      ogg2 = 1./cgg(2)
-      ogg3 = 1./cgg(3)
+    cge(1) = bm_g + 1.
+    cge(2) = mu_g + 1.
+    cge(3) = bm_g + mu_g + 1.
+    cge(4) = bm_g*2. + mu_g + 1.
+    cge(5) = bm_g*2. + mu_g + bv_g + 1.
+    cge(6) = bm_g + mu_g + bv_g + 1.
+    cge(7) = bm_g + mu_g + bv_g + 2.
+    cge(8) = bm_g + mu_g + bv_g + 3.
+    cge(9) = mu_g + bv_g + 3.
+    cge(10) = mu_g + 2.
+    cge(11) = 0.5*(bv_g + 5. + 2.*mu_g)
+    cge(12) = 0.5*(bv_g + 5.) + mu_g
+    do n = 1, 12
+       cgg(n) = wgamma(cge(n))
+    enddo
+    oamg = 1./am_g
+    obmg = 1./bm_g
+    ocmg = oamg**obmg
+    oge1 = 1./cge(1)
+    ogg1 = 1./cgg(1)
+    ogg2 = 1./cgg(2)
+    ogg3 = 1./cgg(3)
 
 !+---+-----------------------------------------------------------------+
 !..Simplify various rate eqns the best we can now.
 !+---+-----------------------------------------------------------------+
 
 !..Rain collecting cloud water and cloud ice
-      t1_qr_qc = PI*.25*av_r * crg(9)
-      t1_qr_qi = PI*.25*av_r * crg(9)
-      t2_qr_qi = PI*.25*am_r*av_r * crg(8)
+    t1_qr_qc = PI*.25*av_r * crg(9)
+    t1_qr_qi = PI*.25*av_r * crg(9)
+    t2_qr_qi = PI*.25*am_r*av_r * crg(8)
 
 !..Graupel collecting cloud water
-      t1_qg_qc = PI*.25*av_g * cgg(9)
+    t1_qg_qc = PI*.25*av_g * cgg(9)
 
 !..Snow collecting cloud water
-      t1_qs_qc = PI*.25*av_s
+    t1_qs_qc = PI*.25*av_s
 
 !..Snow collecting cloud ice
-      t1_qs_qi = PI*.25*av_s
+    t1_qs_qi = PI*.25*av_s
 
 !..Evaporation of rain; ignore depositional growth of rain.
-      t1_qr_ev = 0.78 * crg(10)
-      t2_qr_ev = 0.308*Sc3*SQRT(av_r) * crg(11)
+    t1_qr_ev = 0.78 * crg(10)
+    t2_qr_ev = 0.308*Sc3*SQRT(av_r) * crg(11)
 
 !..Sublimation/depositional growth of snow
-      t1_qs_sd = 0.86
-      t2_qs_sd = 0.28*Sc3*SQRT(av_s)
+    t1_qs_sd = 0.86
+    t2_qs_sd = 0.28*Sc3*SQRT(av_s)
 
 !..Melting of snow
-      t1_qs_me = PI*4.*C_sqrd*olfus * 0.86
-      t2_qs_me = PI*4.*C_sqrd*olfus * 0.28*Sc3*SQRT(av_s)
+    t1_qs_me = PI*4.*C_sqrd*olfus * 0.86
+    t2_qs_me = PI*4.*C_sqrd*olfus * 0.28*Sc3*SQRT(av_s)
 
 !..Sublimation/depositional growth of graupel
-      t1_qg_sd = 0.86 * cgg(10)
-      t2_qg_sd = 0.28*Sc3*SQRT(av_g) * cgg(11)
+    t1_qg_sd = 0.86 * cgg(10)
+    t2_qg_sd = 0.28*Sc3*SQRT(av_g) * cgg(11)
 
 !..Melting of graupel
-      t1_qg_me = PI*4.*C_cube*olfus * 0.86 * cgg(10)
-      t2_qg_me = PI*4.*C_cube*olfus * 0.28*Sc3*SQRT(av_g) * cgg(11)
+    t1_qg_me = PI*4.*C_cube*olfus * 0.86 * cgg(10)
+    t2_qg_me = PI*4.*C_cube*olfus * 0.28*Sc3*SQRT(av_g) * cgg(11)
 
 !..Constants for helping find lookup table indexes.
-      nic2 = NINT(ALOG10(r_c(1)))
-      nii2 = NINT(ALOG10(r_i(1)))
-      nii3 = NINT(ALOG10(Nt_i(1)))
-      nir2 = NINT(ALOG10(r_r(1)))
-      nir3 = NINT(ALOG10(N0r_exp(1)))
-      nis2 = NINT(ALOG10(r_s(1)))
-      nig2 = NINT(ALOG10(r_g(1)))
-      nig3 = NINT(ALOG10(N0g_exp(1)))
-      niIN2 = NINT(ALOG10(Nt_IN(1)))
+    nic2 = nint(alog10(r_c(1)))
+    nii2 = nint(alog10(r_i(1)))
+    nii3 = nint(alog10(Nt_i(1)))
+    nir2 = nint(alog10(r_r(1)))
+    nir3 = nint(alog10(N0r_exp(1)))
+    nis2 = nint(alog10(r_s(1)))
+    nig2 = nint(alog10(r_g(1)))
+    nig3 = nint(alog10(N0g_exp(1)))
+    niIN2 = nint(alog10(Nt_IN(1)))
 
 !..Create bins of cloud water (from min diameter up to 100 microns).
       Dc(1) = D0c*1.0d0
@@ -906,9 +905,9 @@
       xmu_g = mu_g
       call radar_init
 
-      endif
+ endif ! end "if(micro_init)"
 
-      END SUBROUTINE thompson_init
+ end subroutine thompson_init
 !
 !+---+-----------------------------------------------------------------+
 !+---+-----------------------------------------------------------------+
