@@ -592,72 +592,72 @@
     niIN2 = nint(alog10(Nt_IN(1)))
 
 !..Create bins of cloud water (from min diameter up to 100 microns).
-      Dc(1) = D0c*1.0d0
-      dtc(1) = D0c*1.0d0
-      do n = 2, nbc
-         Dc(n) = Dc(n-1) + 1.0D-6
-         dtc(n) = (Dc(n) - Dc(n-1))
-      enddo
+    Dc(1) = D0c*1.0d0
+    dtc(1) = D0c*1.0d0
+    do n = 2, nbc
+       Dc(n) = Dc(n-1) + 1.0D-6
+       dtc(n) = (Dc(n) - Dc(n-1))
+    enddo
 
 !..Create bins of cloud ice (from min diameter up to 5x min snow size).
-      xDx(1) = D0i*1.0d0
-      xDx(nbi+1) = 5.0d0*D0s
-      do n = 2, nbi
-         xDx(n) = DEXP(REAL(n-1,KIND=R8SIZE)/REAL(nbi,KIND=R8SIZE) &
-                  *DLOG(xDx(nbi+1)/xDx(1)) +DLOG(xDx(1)))
-      enddo
-      do n = 1, nbi
-         Di(n) = DSQRT(xDx(n)*xDx(n+1))
-         dti(n) = xDx(n+1) - xDx(n)
-      enddo
+    xDx(1) = D0i*1.0d0
+    xDx(nbi+1) = 5.0d0*D0s
+    do n = 2, nbi
+       xDx(n) = dexp(real(n-1,kind=R8KIND)/real(nbi,kind=R8KIND) &
+              * dlog(xDx(nbi+1)/xDx(1)) + dlog(xDx(1)))
+    enddo
+    do n = 1, nbi
+       Di(n) = dsqrt(xDx(n)*xDx(n+1))
+       dti(n) = xDx(n+1) - xDx(n)
+    enddo
 
 !..Create bins of rain (from min diameter up to 5 mm).
-      xDx(1) = D0r*1.0d0
-      xDx(nbr+1) = 0.005d0
-      do n = 2, nbr
-         xDx(n) = DEXP(REAL(n-1,KIND=R8SIZE)/REAL(nbr,KIND=R8SIZE) &
-                  *DLOG(xDx(nbr+1)/xDx(1)) +DLOG(xDx(1)))
-      enddo
-      do n = 1, nbr
-         Dr(n) = DSQRT(xDx(n)*xDx(n+1))
-         dtr(n) = xDx(n+1) - xDx(n)
-      enddo
+    xDx(1) = D0r*1.0d0
+    xDx(nbr+1) = 0.005d0
+    do n = 2, nbr
+       xDx(n) = dexp(real(n-1,kind=R8KIND)/real(nbr,kind=R8KIND) &
+              * dlog(xDx(nbr+1)/xDx(1)) + dlog(xDx(1)))
+    enddo
+    do n = 1, nbr
+       Dr(n) = dsqrt(xDx(n)*xDx(n+1))
+       dtr(n) = xDx(n+1) - xDx(n)
+    enddo
 
 !..Create bins of snow (from min diameter up to 2 cm).
-      xDx(1) = D0s*1.0d0
-      xDx(nbs+1) = 0.02d0
-      do n = 2, nbs
-         xDx(n) = DEXP(REAL(n-1,KIND=R8SIZE)/REAL(nbs,KIND=R8SIZE) &
-                  *DLOG(xDx(nbs+1)/xDx(1)) +DLOG(xDx(1)))
-      enddo
-      do n = 1, nbs
-         Ds(n) = DSQRT(xDx(n)*xDx(n+1))
-         dts(n) = xDx(n+1) - xDx(n)
-      enddo
+    xDx(1) = D0s*1.0d0
+    xDx(nbs+1) = 0.02d0
+    do n = 2, nbs
+       xDx(n) = dexp(real(n-1,kind=R8KIND)/real(nbs,kind=R8KIND) &
+              * dlog(xDx(nbs+1)/xDx(1)) + dlog(xDx(1)))
+    enddo
+    do n = 1, nbs
+       Ds(n) = dsqrt(xDx(n)*xDx(n+1))
+       dts(n) = xDx(n+1) - xDx(n)
+    enddo
 
 !..Create bins of graupel (from min diameter up to 5 cm).
-      xDx(1) = D0g*1.0d0
-      xDx(nbg+1) = 0.05d0
-      do n = 2, nbg
-         xDx(n) = DEXP(REAL(n-1,KIND=R8SIZE)/REAL(nbg,KIND=R8SIZE) &
-                  *DLOG(xDx(nbg+1)/xDx(1)) +DLOG(xDx(1)))
-      enddo
-      do n = 1, nbg
-         Dg(n) = DSQRT(xDx(n)*xDx(n+1))
-         dtg(n) = xDx(n+1) - xDx(n)
-      enddo
+    xDx(1) = D0g*1.0d0
+    xDx(nbg+1) = 0.05d0
+    do n = 2, nbg
+       xDx(n) = dexp(real(n-1,kind=R8KIND)/real(nbg,kind=R8KIND) &
+              * dlog(xDx(nbg+1)/xDx(1)) + dlog(xDx(1)))
+    enddo
+    do n = 1, nbg
+       Dg(n) = dsqrt(xDx(n)*xDx(n+1))
+       dtg(n) = xDx(n+1) - xDx(n)
+    enddo
 
 !..Create bins of cloud droplet number concentration (1 to 3000 per cc).
-      xDx(1) = 1.0d0
-      xDx(nbc+1) = 3000.0d0
-      do n = 2, nbc
-         xDx(n) = DEXP(REAL(n-1,KIND=R8SIZE)/REAL(nbc,KIND=R8SIZE)                          &
-                  *DLOG(xDx(nbc+1)/xDx(1)) +DLOG(xDx(1)))
-      enddo
-      do n = 1, nbc
-         t_Nc(n) = DSQRT(xDx(n)*xDx(n+1)) * 1.D6
-      enddo
-      nic1 = DLOG(t_Nc(nbc)/t_Nc(1))
+    xDx(1) = 1.0d0
+    xDx(nbc+1) = 3000.0d0
+    do n = 2, nbc
+       xDx(n) = dexp(real(n-1,kind=R8KIND)/real(nbc,KIND=R8KIND) &
+              * dlog(xDx(nbc+1)/xDx(1)) + dlog(xDx(1)))
+    enddo
+    do n = 1, nbc
+       t_Nc(n) = dsqrt(xDx(n)*xDx(n+1)) * 1.D6
+    enddo
+    nic1 = dlog(t_Nc(nbc)/t_Nc(1))
 
 !+---+-----------------------------------------------------------------+
 !..Create lookup tables for most costly calculations.
