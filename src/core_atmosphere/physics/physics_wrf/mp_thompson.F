@@ -3726,60 +3726,58 @@
  end subroutine freezeH2O
 
 !==================================================================================================================
-!..Cloud ice converting to snow since portion greater than min snow
-!.. size.  Given cloud ice content (kg/m**3), number concentration
-!.. (#/m**3) and gamma shape parameter, mu_i, break the distrib into
-!.. bins and figure out the mass/number of ice with sizes larger than
-!.. D0s.  Also, compute incomplete gamma function for the integration
-!.. of ice depositional growth from diameter=0 to D0s.  Amount of
-!.. ice depositional growth is this portion of distrib while larger
-!.. diameters contribute to snow growth (as in Harrington et al. 1995).
-!+---+-----------------------------------------------------------------+
+!..Cloud ice converting to snow since portion greater than min snow size.  Given cloud ice content (kg/m**3),
+!..number concentration (#/m**3) and gamma shape parameter, mu_i, break the distrib into bins and figure out 
+!..the mass/number of ice with sizes larger than D0s.
 
-      subroutine qi_aut_qs
+!..Also, compute incomplete gamma function for the integration of ice depositional growth from diameter=0 to D0s.
+!..Amount of ice depositional growth is this portion of distrib while larger diameters contribute to snow growth
+!..(as in Harrington et al. 1995).
 
-      implicit none
+ subroutine qi_aut_qs
+ implicit none
+!==================================================================================================================
 
-!..Local variables
-      INTEGER:: i, j, n2
-      DOUBLE PRECISION, DIMENSION(nbi):: N_i
-      DOUBLE PRECISION:: N0_i, lami, Di_mean, t1, t2
-      REAL:: xlimit_intg
+!... local variables:
+ integer:: i,j,n2
+ real(kind=R8KIND),dimension(nbi):: N_i
+ real(kind=R8KIND):: N0_i,lami,Di_mean,t1,t2
+ real(kind=RKIND):: xlimit_intg
 
-!+---+
+!------------------------------------------------------------------------------------------------------------------
 
-      do j = 1, ntb_i1
-         do i = 1, ntb_i
-            lami = (am_i*cig(2)*oig1*Nt_i(j)/r_i(i))**obmi
-            Di_mean = (bm_i + mu_i + 1.) / lami
-            N0_i = Nt_i(j)*oig1 * lami**cie(1)
-            t1 = 0.0d0
-            t2 = 0.0d0
-            if (SNGL(Di_mean) .gt. 5.*D0s) then
-             t1 = r_i(i)
-             t2 = Nt_i(j)
-             tpi_ide(i,j) = 0.0D0
-            elseif (SNGL(Di_mean) .lt. D0i) then
-             t1 = 0.0D0
-             t2 = 0.0D0
-             tpi_ide(i,j) = 1.0D0
-            else
-             xlimit_intg = lami*D0s
-             tpi_ide(i,j) = GAMMP(mu_i+2.0, xlimit_intg) * 1.0D0
-             do n2 = 1, nbi
-               N_i(n2) = N0_i*Di(n2)**mu_i * DEXP(-lami*Di(n2))*dti(n2)
-               if (Di(n2).ge.D0s) then
-                  t1 = t1 + N_i(n2) * am_i*Di(n2)**bm_i
-                  t2 = t2 + N_i(n2)
-               endif
-             enddo
-            endif
-            tps_iaus(i,j) = t1
-            tni_iaus(i,j) = t2
-         enddo
-      enddo
+ do j = 1,ntb_i1
+    do i = 1,ntb_i
+       lami = (am_i*cig(2)*oig1*Nt_i(j)/r_i(i))**obmi
+       Di_mean = (bm_i + mu_i + 1.) / lami
+       N0_i = Nt_i(j)*oig1 * lami**cie(1)
+       t1 = 0._R8KIND
+       t2 = 0._R8KIND
+       if(sngl(Di_mean) .gt. 5.*D0s) then
+          t1 = r_i(i)
+          t2 = Nt_i(j)
+          tpi_ide(i,j) = 0._R8KIND
+       elseif (SNGL(Di_mean) .lt. D0i) then
+          t1 = 0._R8KIND
+          t2 = 0._R8KIND
+          tpi_ide(i,j) = 1._R8KIND
+       else
+          xlimit_intg = lami*D0s
+          tpi_ide(i,j) = gammp(mu_i+2.0,xlimit_intg) * 1._R8KIND
+          do n2 = 1,nbi
+             N_i(n2) = N0_i*Di(n2)**mu_i * dexp(-lami*Di(n2))*dti(n2)
+             if(Di(n2).ge.D0s) then
+                t1 = t1 + N_i(n2) * am_i*Di(n2)**bm_i
+                t2 = t2 + N_i(n2)
+             endif
+          enddo
+       endif
+       tps_iaus(i,j) = t1
+       tni_iaus(i,j) = t2
+    enddo
+ enddo
 
-      end subroutine qi_aut_qs
+ end subroutine qi_aut_qs
 
 !==================================================================================================================
 !..Variable collision efficiency for rain collecting cloud water using method of Beard and Grover, 1974 if
