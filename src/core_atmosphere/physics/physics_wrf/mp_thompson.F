@@ -3793,484 +3793,443 @@
       enddo
 
       end subroutine qi_aut_qs
-!ctrlL
-!+---+-----------------------------------------------------------------+
-!..Variable collision efficiency for rain collecting cloud water using
-!.. method of Beard and Grover, 1974 if a/A less than 0.25; otherwise
-!.. uses polynomials to get close match of Pruppacher & Klett Fig 14-9.
-!+---+-----------------------------------------------------------------+
 
-      subroutine table_Efrw
+!==================================================================================================================
+!..Variable collision efficiency for rain collecting cloud water using method of Beard and Grover, 1974 if
+!  a/A less than 0.25; otherwise uses polynomials to get close match of Pruppacher & Klett Fig 14-9.
 
-      implicit none
+ subroutine table_Efrw
+ implicit none
+!==================================================================================================================
 
-!..Local variables
-      DOUBLE PRECISION:: vtr, stokes, reynolds, Ef_rw
-      DOUBLE PRECISION:: p, yc0, F, G, H, z, K0, X
-      INTEGER:: i, j
+!... local variables:
+ integer:: i,j
+ real(kind=R8KIND):: vtr,stokes,reynolds,Ef_rw
+ real(kind=R8KIND):: p,yc0,F,G,H,z,K0,X
 
-      do j = 1, nbc
-      do i = 1, nbr
-         Ef_rw = 0.0
-         p = Dc(j)/Dr(i)
-         if (Dr(i).lt.50.E-6 .or. Dc(j).lt.3.E-6) then
+!------------------------------------------------------------------------------------------------------------------
+
+ do j = 1,nbc
+    do i = 1,nbr
+       Ef_rw = 0.0
+       p = Dc(j)/Dr(i)
+       if(Dr(i).lt.50.E-6 .or. Dc(j).lt.3.E-6) then
           t_Efrw(i,j) = 0.0
-         elseif (p.gt.0.25) then
+       elseif (p.gt.0.25) then
           X = Dc(j)*1.D6
-          if (Dr(i) .lt. 75.e-6) then
+          if(Dr(i) .lt. 75.e-6) then
              Ef_rw = 0.026794*X - 0.20604
-          elseif (Dr(i) .lt. 125.e-6) then
+          elseif(Dr(i) .lt. 125.e-6) then
              Ef_rw = -0.00066842*X*X + 0.061542*X - 0.37089
-          elseif (Dr(i) .lt. 175.e-6) then
+          elseif(Dr(i) .lt. 175.e-6) then
              Ef_rw = 4.091e-06*X*X*X*X - 0.00030908*X*X*X               &
                    + 0.0066237*X*X - 0.0013687*X - 0.073022
-          elseif (Dr(i) .lt. 250.e-6) then
+          elseif(Dr(i) .lt. 250.e-6) then
              Ef_rw = 9.6719e-5*X*X*X - 0.0068901*X*X + 0.17305*X        &
                    - 0.65988
-          elseif (Dr(i) .lt. 350.e-6) then
+          elseif(Dr(i) .lt. 350.e-6) then
              Ef_rw = 9.0488e-5*X*X*X - 0.006585*X*X + 0.16606*X         &
                    - 0.56125
           else
              Ef_rw = 0.00010721*X*X*X - 0.0072962*X*X + 0.1704*X        &
                    - 0.46929
           endif
-         else
+       else
           vtr = -0.1021 + 4.932E3*Dr(i) - 0.9551E6*Dr(i)*Dr(i) &
               + 0.07934E9*Dr(i)*Dr(i)*Dr(i) &
               - 0.002362E12*Dr(i)*Dr(i)*Dr(i)*Dr(i)
           stokes = Dc(j)*Dc(j)*vtr*rho_w/(9.*1.718E-5*Dr(i))
           reynolds = 9.*stokes/(p*p*rho_w)
 
-          F = DLOG(reynolds)
+          F = dlog(reynolds)
           G = -0.1007D0 - 0.358D0*F + 0.0261D0*F*F
-          K0 = DEXP(G)
-          z = DLOG(stokes/(K0+1.D-15))
+          K0 = dexp(G)
+          z = dlog(stokes/(K0+1.D-15))
           H = 0.1465D0 + 1.302D0*z - 0.607D0*z*z + 0.293D0*z*z*z
-          yc0 = 2.0D0/PI * ATAN(H)
+          yc0 = 2.0D0/PI * atan(H)
           Ef_rw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
+       endif
 
-         endif
+       t_Efrw(i,j) = max(0._RKIND,min(sngl(Ef_rw),0.95))
+    enddo
+ enddo
 
-         t_Efrw(i,j) = MAX(0.0, MIN(SNGL(Ef_rw), 0.95))
+ end subroutine table_Efrw
 
-      enddo
-      enddo
+!==================================================================================================================
+!..Variable collision efficiency for snow collecting cloud water using method of Wang and Ji, 2000 except
+!  equate melted snow diameter to their "effective collision cross-section."
 
-      end subroutine table_Efrw
-!ctrlL
-!+---+-----------------------------------------------------------------+
-!..Variable collision efficiency for snow collecting cloud water using
-!.. method of Wang and Ji, 2000 except equate melted snow diameter to
-!.. their "effective collision cross-section."
-!+---+-----------------------------------------------------------------+
+ subroutine table_Efsw
+ implicit none
+!==================================================================================================================
 
-      subroutine table_Efsw
+!... local variables:
+ integer:: i,j
+ real(kind=R8KIND):: Ds_m,vts,vtc,stokes,reynolds,Ef_sw
+ real(kind=R8KIND):: p,yc0,F,G,H,z,K0
 
-      implicit none
+!------------------------------------------------------------------------------------------------------------------
 
-!..Local variables
-      DOUBLE PRECISION:: Ds_m, vts, vtc, stokes, reynolds, Ef_sw
-      DOUBLE PRECISION:: p, yc0, F, G, H, z, K0
-      INTEGER:: i, j
-
-      do j = 1, nbc
-      vtc = 1.19D4 * (1.0D4*Dc(j)*Dc(j)*0.25D0)
-      do i = 1, nbs
-         vts = av_s*Ds(i)**bv_s * DEXP(-fv_s*Ds(i)) - vtc
-         Ds_m = (am_s*Ds(i)**bm_s / am_r)**obmr
-         p = Dc(j)/Ds_m
-         if (p.gt.0.25 .or. Ds(i).lt.D0s .or. Dc(j).lt.6.E-6 &
-               .or. vts.lt.1.E-3) then
+ do j = 1,nbc
+    vtc = 1.19D4 * (1.0D4*Dc(j)*Dc(j)*0.25D0)
+    do i = 1,nbs
+       vts = av_s*Ds(i)**bv_s * dexp(-fv_s*Ds(i)) - vtc
+       Ds_m = (am_s*Ds(i)**bm_s / am_r)**obmr
+       p = Dc(j)/Ds_m
+       if(p.gt.0.25 .or. Ds(i).lt.D0s .or. Dc(j).lt.6.E-6 .or. vts.lt.1.E-3) then
           t_Efsw(i,j) = 0.0
-         else
+       else
           stokes = Dc(j)*Dc(j)*vts*rho_w/(9.*1.718E-5*Ds_m)
           reynolds = 9.*stokes/(p*p*rho_w)
 
-          F = DLOG(reynolds)
+          F = dlog(reynolds)
           G = -0.1007D0 - 0.358D0*F + 0.0261D0*F*F
-          K0 = DEXP(G)
-          z = DLOG(stokes/(K0+1.D-15))
+          K0 = dexp(G)
+          z = dlog(stokes/(K0+1.D-15))
           H = 0.1465D0 + 1.302D0*z - 0.607D0*z*z + 0.293D0*z*z*z
-          yc0 = 2.0D0/PI * ATAN(H)
+          yc0 = 2.0D0/PI * atan(H)
           Ef_sw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
 
-          t_Efsw(i,j) = MAX(0.0, MIN(SNGL(Ef_sw), 0.95))
-         endif
+          t_Efsw(i,j) = max(0._RKIND,min(sngl(Ef_sw),0.95))
+       endif
+    enddo
+ enddo
 
-      enddo
-      enddo
+ end subroutine table_Efsw
 
-      end subroutine table_Efsw
-!ctrlL
-!+---+-----------------------------------------------------------------+
-!..Function to compute collision efficiency of collector species (rain,
-!.. snow, graupel) of aerosols.  Follows Wang et al, 2010, ACP, which
-!.. follows Slinn (1983).
-!+---+-----------------------------------------------------------------+
+!==================================================================================================================
+!..Function to compute collision efficiency of collector species (rain,snow, graupel) of aerosols.  Follows Wang
+!  et al, 2010, ACP, which follows Slinn (1983).
 
-      real function Eff_aero(D, Da, visc,rhoa,Temp,species)
+ real function Eff_aero(D, Da, visc,rhoa,Temp,species)
+ implicit none
+!==================================================================================================================
 
-      implicit none
-      real:: D, Da, visc, rhoa, Temp
-      character(LEN=1):: species
-      real:: aval, Cc, diff, Re, Sc, St, St2, vt, Eff
-      real, parameter:: boltzman = 1.3806503E-23
-      real, parameter:: meanPath = 0.0256E-6
+!... local variables:
+ character(LEN=1):: species
+ real:: D, Da, visc, rhoa, Temp
+ real:: aval, Cc, diff, Re, Sc, St, St2, vt, Eff
+ real, parameter:: boltzman = 1.3806503E-23
+ real, parameter:: meanPath = 0.0256E-6
 
-      vt = 1.
-      if (species .eq. 'r') then
-         vt = -0.1021 + 4.932E3*D - 0.9551E6*D*D                        &
-              + 0.07934E9*D*D*D - 0.002362E12*D*D*D*D
-      elseif (species .eq. 's') then
-         vt = av_s*D**bv_s
-      elseif (species .eq. 'g') then
-         vt = av_g*D**bv_g
-      endif
+!------------------------------------------------------------------------------------------------------------------
 
-      Cc    = 1. + 2.*meanPath/Da *(1.257+0.4*exp(-0.55*Da/meanPath))
-      diff  = boltzman*Temp*Cc/(3.*PI*visc*Da)
+ vt = 1.
+ if(species .eq. 'r') then
+    vt = -0.1021 + 4.932E3*D - 0.9551E6*D*D      &
+       + 0.07934E9*D*D*D - 0.002362E12*D*D*D*D
+ elseif(species .eq. 's') then
+    vt = av_s*D**bv_s
+ elseif(species .eq. 'g') then
+    vt = av_g*D**bv_g
+ endif
 
-      Re    = 0.5*rhoa*D*vt/visc
-      Sc    = visc/(rhoa*diff)
+ Cc   = 1. + 2.*meanPath/Da *(1.257+0.4*exp(-0.55*Da/meanPath))
+ diff = boltzman*Temp*Cc/(3.*PI*visc*Da)
 
-      St    = Da*Da*vt*1000./(9.*visc*D)
-      aval  = 1.+LOG(1.+Re)
-      St2   = (1.2 + 1./12.*aval)/(1.+aval)
+ Re   = 0.5*rhoa*D*vt/visc
+ Sc   = visc/(rhoa*diff)
 
-      Eff = 4./(Re*Sc) * (1. + 0.4*SQRT(Re)*Sc**0.3333                  &
-                             + 0.16*SQRT(Re)*SQRT(Sc))                  &
-               + 4.*Da/D * (0.02 + Da/D*(1.+2.*SQRT(Re)))
+ St   = Da*Da*vt*1000./(9.*visc*D)
+ aval = 1.+log(1.+Re)
+ St2  = (1.2 + 1./12.*aval)/(1.+aval)
 
-      if (St.gt.St2) Eff = Eff  + ( (St-St2)/(St-St2+0.666667))**1.5
-      Eff_aero = MAX(1.E-5, MIN(Eff, 1.0))
+ Eff = 4./(Re*Sc) * (1. + 0.4*sqrt(Re)*Sc**0.3333  &
+     + 0.16*sqrt(Re)*sqrt(Sc))                     &
+     + 4.*Da/D * (0.02 + Da/D*(1.+2.*sqrt(Re)))
 
-      end function Eff_aero
+ if(St.gt.St2) Eff = Eff  + ( (St-St2)/(St-St2+0.666667))**1.5
+ Eff_aero = max(1.E-5,min(Eff,1.0))
 
-!ctrlL
-!+---+-----------------------------------------------------------------+
-!..Integrate rain size distribution from zero to D-star to compute the
-!.. number of drops smaller than D-star that evaporate in a single
-!.. timestep.  Drops larger than D-star dont evaporate entirely so do
-!.. not affect number concentration.
-!+---+-----------------------------------------------------------------+
+ end function Eff_aero
 
-      subroutine table_dropEvap
+!==================================================================================================================
+!..Integrate rain size distribution from zero to D-star to compute the number of drops smaller than D-star
+!  that evaporate in a single timestep.  Drops larger than D-star dont evaporate entirely so do not affect
+!  number concentration.
 
-      implicit none
+ subroutine table_dropEvap
+ implicit none
+!==================================================================================================================
 
-!..Local variables
-      INTEGER:: i, j, k, n
-      DOUBLE PRECISION, DIMENSION(nbc):: N_c, massc
-      DOUBLE PRECISION:: summ, summ2, lamc, N0_c
-      INTEGER:: nu_c
-!      DOUBLE PRECISION:: Nt_r, N0, lam_exp, lam
-!      REAL:: xlimit_intg
+!... local variables:
+ integer:: i,j,k,n
+ integer:: nu_c
 
-      do n = 1, nbc
-         massc(n) = am_r*Dc(n)**bm_r
-      enddo
+ real(kind=R8KIND):: summ,summ2,lamc,N0_c
+ real(kind=R8KIND),dimension(nbc):: N_c,massc
+!real(kind=R8KIND:: Nt_r, N0, lam_exp, lam
+!real(kind=RKIND):: xlimit_intg
 
-      do k = 1, nbc
-         nu_c = MIN(15, NINT(1000.E6/t_Nc(k)) + 2)
-         do j = 1, ntb_c
-            lamc = (t_Nc(k)*am_r* ccg(2,nu_c)*ocg1(nu_c) / r_c(j))**obmr
-            N0_c = t_Nc(k)*ocg1(nu_c) * lamc**cce(1,nu_c)
-            do i = 1, nbc
-!-GT           tnc_wev(i,j,k) = GAMMP(nu_c+1., SNGL(Dc(i)*lamc))*t_Nc(k)
-               N_c(i) = N0_c* Dc(i)**nu_c*EXP(-lamc*Dc(i))*dtc(i)
-!     if(j.eq.18 .and. k.eq.50) print*, ' N_c = ', N_c(i)
-               summ = 0.
-               summ2 = 0.
-               do n = 1, i
-                  summ = summ + massc(n)*N_c(n)
-                  summ2 = summ2 + N_c(n)
-               enddo
-!      if(j.eq.18 .and. k.eq.50) print*, '  DEBUG-TABLE: ', r_c(j), t_Nc(k), summ2, summ
-               tpc_wev(i,j,k) = summ
-               tnc_wev(i,j,k) = summ2
-            enddo
-         enddo
-      enddo
+!------------------------------------------------------------------------------------------------------------------
 
-!
-!..To do the same thing for rain.
-!
-!     do k = 1, ntb_r
-!     do j = 1, ntb_r1
-!        lam_exp = (N0r_exp(j)*am_r*crg(1)/r_r(k))**ore1
-!        lam = lam_exp * (crg(3)*org2*org1)**obmr
-!        N0 = N0r_exp(j)/(crg(2)*lam_exp) * lam**cre(2)
-!        Nt_r = N0 * crg(2) / lam**cre(2)
-!        do i = 1, nbr
-!           xlimit_intg = lam*Dr(i)
-!           tnr_rev(i,j,k) = GAMMP(mu_r+1.0, xlimit_intg) * Nt_r
-!        enddo
-!     enddo
-!     enddo
+ do n = 1,nbc
+    massc(n) = am_r*Dc(n)**bm_r
+ enddo
 
-! TO APPLY TABLE ABOVE
-!..Rain lookup table indexes.
-!         Dr_star = DSQRT(-2.D0*DT * t1_evap/(2.*PI) &
-!                 * 0.78*4.*diffu(k)*xsat*rvs/rho_w)
-!         idx_d = NINT(1.0 + FLOAT(nbr) * DLOG(Dr_star/D0r)             &
-!               / DLOG(Dr(nbr)/D0r))
-!         idx_d = MAX(1, MIN(idx_d, nbr))
-!
-!         nir = NINT(ALOG10(rr(k)))
-!         do nn = nir-1, nir+1
-!            n = nn
-!            if ( (rr(k)/10.**nn).ge.1.0 .and. &
-!                 (rr(k)/10.**nn).lt.10.0) goto 154
-!         enddo
-!154      continue
-!         idx_r = INT(rr(k)/10.**n) + 10*(n-nir2) - (n-nir2)
-!         idx_r = MAX(1, MIN(idx_r, ntb_r))
-!
-!         lamr = (am_r*crg(3)*org2*nr(k)/rr(k))**obmr
-!         lam_exp = lamr * (crg(3)*org2*org1)**bm_r
-!         N0_exp = org1*rr(k)/am_r * lam_exp**cre(1)
-!         nir = NINT(DLOG10(N0_exp))
-!         do nn = nir-1, nir+1
-!            n = nn
-!            if ( (N0_exp/10.**nn).ge.1.0 .and. &
-!                 (N0_exp/10.**nn).lt.10.0) goto 155
-!         enddo
-!155      continue
-!         idx_r1 = INT(N0_exp/10.**n) + 10*(n-nir3) - (n-nir3)
-!         idx_r1 = MAX(1, MIN(idx_r1, ntb_r1))
-!
-!         pnr_rev(k) = MIN(nr(k)*odts, SNGL(tnr_rev(idx_d,idx_r1,idx_r) &   ! RAIN2M
-!                    * odts))
+ do k = 1,nbc
+    nu_c = min(15,nint(1000.E6/t_Nc(k)) + 2)
+    do j = 1,ntb_c
+       lamc = (t_Nc(k)*am_r* ccg(2,nu_c)*ocg1(nu_c) / r_c(j))**obmr
+       N0_c = t_Nc(k)*ocg1(nu_c) * lamc**cce(1,nu_c)
+       do i = 1,nbc
+!-GT      tnc_wev(i,j,k) = gammp(nu_c+1.,sngl(Dc(i)*lamc))*t_Nc(k)
+          N_c(i) = N0_c* Dc(i)**nu_c*exp(-lamc*Dc(i))*dtc(i)
+          summ = 0._R8KIND
+          summ2 = 0._R8KIND
+          do n = 1,i
+             summ = summ + massc(n)*N_c(n)
+             summ2 = summ2 + N_c(n)
+          enddo
+          tpc_wev(i,j,k) = summ
+          tnc_wev(i,j,k) = summ2
+       enddo
+    enddo
+ enddo
 
-      end subroutine table_dropEvap
-!
-!+---+-----------------------------------------------------------------+
-!..Retrieve fraction of CCN that gets activated given the model temp,
-!.. vertical velocity, and available CCN concentration.  The lookup
-!.. table (read from external file) has CCN concentration varying the
-!.. quickest, then updraft, then temperature, then mean aerosol radius,
-!.. and finally hygroscopicity, kappa.
-!.. TO_DO ITEM:  For radiation cooling producing fog, in which case the
-!.. updraft velocity could easily be negative, we could use the temp
-!.. and its tendency to diagnose a pretend postive updraft velocity.
-!+---+-----------------------------------------------------------------+
-      real function activ_ncloud(Tt, Ww, NCCN)
+ end subroutine table_dropEvap
 
-      implicit none
-      REAL, INTENT(IN):: Tt, Ww, NCCN
-      REAL:: n_local, w_local
-      INTEGER:: i, j, k, l, m, n
-      REAL:: A, B, C, D, t, u, x1, x2, y1, y2, nx, wy, fraction
+!==================================================================================================================
+!..Retrieve fraction of CCN that gets activated given the model temp, vertical velocity, and available CCN
+!  concentration.  The lookup table (read from external file) has CCN concentration varying the quickest, 
+!  then updraft, then temperature, then mean aerosol radius, and finally hygroscopicity, kappa.
+!..TO_DO ITEM:  For radiation cooling producing fog, in which case the updraft velocity could easily be negative,
+!  we could use the temp and its tendency to diagnose a pretend postive updraft velocity.
+
+ real function activ_ncloud(Tt,Ww,NCCN)
+ implicit none
+!==================================================================================================================
+
+!... input arguments:
+ real(kind=RKIND),intent(in):: Tt,Ww,NCCN
+
+!... local variables:
+ integer:: i,j,k,l,m,n
+ real(kind=RKIND):: n_local,w_local
+ real(kind=RKIND):: A,B,C,D,t,u,x1,x2,y1,y2,nx,wy,fraction
+
+!------------------------------------------------------------------------------------------------------------------
+
+!ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)  ntb_arc
+!ta_Ww = (/0.01, 0.0316, 0.1, 0.316, 1.0, 3.16, 10.0, 31.6, 100.0/)  ntb_arw
+!ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)  ntb_art
+!ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)  ntb_arr
+!ta_Ka = (/0.2, 0.4, 0.6, 0.8/)  ntb_ark
 
 
-!     ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)  ntb_arc
-!     ta_Ww = (/0.01, 0.0316, 0.1, 0.316, 1.0, 3.16, 10.0, 31.6, 100.0/)  ntb_arw
-!     ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)  ntb_art
-!     ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)  ntb_arr
-!     ta_Ka = (/0.2, 0.4, 0.6, 0.8/)  ntb_ark
+ n_local = NCCN * 1.E-6
+ w_local = Ww
 
-      n_local = NCCN * 1.E-6
-      w_local = Ww
-
-      if (n_local .ge. ta_Na(ntb_arc)) then
-         n_local = ta_Na(ntb_arc) - 1.0
-      elseif (n_local .le. ta_Na(1)) then
-         n_local = ta_Na(1) + 1.0
-      endif
-      do n = 2, ntb_arc
-         if (n_local.ge.ta_Na(n-1) .and. n_local.lt.ta_Na(n)) goto 8003
-      enddo
+ if(n_local .ge. ta_Na(ntb_arc)) then
+    n_local = ta_Na(ntb_arc) - 1.0
+ elseif(n_local .le. ta_Na(1)) then
+    n_local = ta_Na(1) + 1.0
+ endif
+ do n = 2,ntb_arc
+    if(n_local.ge.ta_Na(n-1) .and. n_local.lt.ta_Na(n)) goto 8003
+ enddo
  8003 continue
-      i = n
-      x1 = LOG(ta_Na(i-1))
-      x2 = LOG(ta_Na(i))
+ i = n
+ x1 = log(ta_Na(i-1))
+ x2 = log(ta_Na(i))
 
-      if (w_local .ge. ta_Ww(ntb_arw)) then
-         w_local = ta_Ww(ntb_arw) - 1.0
-      elseif (w_local .le. ta_Ww(1)) then
-         w_local = ta_Ww(1) + 0.001
-      endif
-      do n = 2, ntb_arw
-         if (w_local.ge.ta_Ww(n-1) .and. w_local.lt.ta_Ww(n)) goto 8005
-      enddo
+
+ if(w_local .ge. ta_Ww(ntb_arw)) then
+    w_local = ta_Ww(ntb_arw) - 1.0
+ elseif(w_local .le. ta_Ww(1)) then
+    w_local = ta_Ww(1) + 0.001
+ endif
+ do n = 2,ntb_arw
+    if(w_local.ge.ta_Ww(n-1) .and. w_local.lt.ta_Ww(n)) goto 8005
+ enddo
  8005 continue
-      j = n
-      y1 = LOG(ta_Ww(j-1))
-      y2 = LOG(ta_Ww(j))
+ j = n
+ y1 = log(ta_Ww(j-1))
+ y2 = log(ta_Ww(j))
 
-      k = MAX(1, MIN( NINT( (Tt - ta_Tk(1))*0.1) + 1, ntb_art))
+ k = max(1,min(nint( (Tt - ta_Tk(1))*0.1) + 1, ntb_art))
 
-!..The next two values are indexes of mean aerosol radius and
-!.. hygroscopicity.  Currently these are constant but a future version
-!.. should implement other variables to allow more freedom such as
-!.. at least simple separation of tiny size sulfates from larger
-!.. sea salts.
-      l = 3
-      m = 2
 
-      A = tnccn_act(i-1,j-1,k,l,m)
-      B = tnccn_act(i,j-1,k,l,m)
-      C = tnccn_act(i,j,k,l,m)
-      D = tnccn_act(i-1,j,k,l,m)
-      nx = LOG(n_local)
-      wy = LOG(w_local)
+!..The next two values are indexes of mean aerosol radius and hygroscopicity.  Currently these are constant
+!  but a future version should implement other variables to allow more freedom such as at least simple separation
+!  of tiny size sulfates from larger sea salts:
+ l = 3
+ m = 2
 
-      t = (nx-x1)/(x2-x1)
-      u = (wy-y1)/(y2-y1)
+ A = tnccn_act(i-1,j-1,k,l,m)
+ B = tnccn_act(i,j-1,k,l,m)
+ C = tnccn_act(i,j,k,l,m)
+ D = tnccn_act(i-1,j,k,l,m)
+ nx = log(n_local)
+ wy = log(w_local)
 
-!     t = (n_local-ta(Na(i-1))/(ta_Na(i)-ta_Na(i-1))
-!     u = (w_local-ta_Ww(j-1))/(ta_Ww(j)-ta_Ww(j-1))
+ t = (nx-x1)/(x2-x1)
+ u = (wy-y1)/(y2-y1)
+!t = (n_local-ta(Na(i-1))/(ta_Na(i)-ta_Na(i-1))
+!u = (w_local-ta_Ww(j-1))/(ta_Ww(j)-ta_Ww(j-1))
 
-      fraction = (1.0-t)*(1.0-u)*A + t*(1.0-u)*B + t*u*C + (1.0-t)*u*D
+ fraction = (1.0-t)*(1.0-u)*A + t*(1.0-u)*B + t*u*C + (1.0-t)*u*D
 
-!     if (NCCN*fraction .gt. 0.75*Nt_c_max) then
-!        write(*,*) ' DEBUG-GT ', n_local, w_local, Tt, i, j, k
-!     endif
+!if(NCCN*fraction .gt. 0.75*Nt_c_max) then
+!   write(*,*) ' DEBUG-GT ', n_local, w_local, Tt, i, j, k
+!endif
 
-      activ_ncloud = NCCN*fraction
+ activ_ncloud = NCCN*fraction
 
-      end function activ_ncloud
+ end function activ_ncloud
 
-!+---+-----------------------------------------------------------------+
-      real function iceDeMott(tempc, qv, qvs, qvsi, rho, nifa)
-      implicit none
+!==================================================================================================================
+ real function iceDeMott(tempc,qv,qvs,qvsi,rho,nifa)
+ implicit none
+!==================================================================================================================
 
-      REAL, INTENT(IN):: tempc, qv, qvs, qvsi, rho, nifa
+!... input arguments:
+ real(kind=RKIND),intent(in):: tempc,qv,qvs,qvsi,rho,nifa
 
-!..Local vars
-      REAL:: satw, sati, siw, p_x, si0x, dtt, dsi, dsw, dab, fc, hx
-      REAL:: ntilde, n_in, nmax, nhat, mux, xni, nifa_cc
-      REAL, PARAMETER:: p_c1    = 1000.
-      REAL, PARAMETER:: p_rho_c = 0.76
-      REAL, PARAMETER:: p_alpha = 1.0
-      REAL, PARAMETER:: p_gam   = 2.
-      REAL, PARAMETER:: delT    = 5.
-      REAL, PARAMETER:: T0x     = -40.
-      REAL, PARAMETER:: Sw0x    = 0.97
-      REAL, PARAMETER:: delSi   = 0.1
-      REAL, PARAMETER:: hdm     = 0.15
-      REAL, PARAMETER:: p_psi   = 0.058707*p_gam/p_rho_c
-      REAL, PARAMETER:: aap     = 1.
-      REAL, PARAMETER:: bbp     = 0.
-      REAL, PARAMETER:: y1p     = -35.
-      REAL, PARAMETER:: y2p     = -25.
-      REAL, PARAMETER:: rho_not0 = 101325./(287.05*273.15)
+!... local variables:
+ real(kind=RKIND):: satw, sati, siw, p_x, si0x, dtt, dsi, dsw, dab, fc, hx
+ real(kind=RKIND):: ntilde, n_in, nmax, nhat, mux, xni, nifa_cc
+ real(kind=RKIND),parameter:: p_c1    = 1000.
+ real(kind=RKIND),parameter:: p_rho_c = 0.76
+ real(kind=RKIND),parameter:: p_alpha = 1.0
+ real(kind=RKIND),parameter:: p_gam   = 2.
+ real(kind=RKIND),parameter:: delT    = 5.
+ real(kind=RKIND),parameter:: T0x     = -40.
+ real(kind=RKIND),parameter:: Sw0x    = 0.97
+ real(kind=RKIND),parameter:: delSi   = 0.1
+ real(kind=RKIND),parameter:: hdm     = 0.15
+ real(kind=RKIND),parameter:: p_psi   = 0.058707*p_gam/p_rho_c
+ real(kind=RKIND),parameter:: aap     = 1.
+ real(kind=RKIND),parameter:: bbp     = 0.
+ real(kind=RKIND),parameter:: y1p     = -35.
+ real(kind=RKIND),parameter:: y2p     = -25.
+ real(kind=RKIND),parameter:: rho_not0 = 101325./(287.05*273.15)
 
-!+---+
+!------------------------------------------------------------------------------------------------------------------
 
-      xni = 0.0
-!     satw = qv/qvs
-!     sati = qv/qvsi
-!     siw = qvs/qvsi
-!     p_x = -1.0261+(3.1656e-3*tempc)+(5.3938e-4*(tempc*tempc))         &
-!                +  (8.2584e-6*(tempc*tempc*tempc))
-!     si0x = 1.+(10.**p_x)
-!     if (sati.ge.si0x .and. satw.lt.0.985) then
-!        dtt = delta_p (tempc, T0x, T0x+delT, 1., hdm)
-!        dsi = delta_p (sati, Si0x, Si0x+delSi, 0., 1.)
-!        dsw = delta_p (satw, Sw0x, 1., 0., 1.)
-!        fc = dtt*dsi*0.5
-!        hx = min(fc+((1.-fc)*dsw), 1.)
-!        ntilde = p_c1*p_gam*((exp(12.96*(sati-1.1)))**0.3) / p_rho_c
-!        if (tempc .le. y1p) then
-!           n_in = ntilde
-!        elseif (tempc .ge. y2p) then
-!           n_in = p_psi*p_c1*exp(12.96*(sati-1.)-0.639)
-!        else
-!           if (tempc .le. -30.) then
-!              nmax = p_c1*p_gam*(exp(12.96*(siw-1.1)))**0.3/p_rho_c
-!           else
-!              nmax = p_psi*p_c1*exp(12.96*(siw-1.)-0.639)
-!           endif
-!           ntilde = MIN(ntilde, nmax)
-!           nhat = MIN(p_psi*p_c1*exp(12.96*(sati-1.)-0.639), nmax)
-!           dab = delta_p (tempc, y1p, y2p, aap, bbp)
-!           n_in = MIN(nhat*(ntilde/nhat)**dab, nmax)
-!        endif
-!        mux = hx*p_alpha*n_in*rho
-!        xni = mux*((6700.*nifa)-200.)/((6700.*5.E5)-200.)
-!     elseif (satw.ge.0.985 .and. tempc.gt.HGFR-273.15) then
-         nifa_cc = MAX(0.5, nifa*RHO_NOT0*1.E-6/rho)
-!        xni  = 3.*nifa_cc**(1.25)*exp((0.46*(-tempc))-11.6)              !  [DeMott, 2015]
-         xni = (5.94e-5*(-tempc)**3.33)                                 & !  [DeMott, 2010]
-                    * (nifa_cc**((-0.0264*(tempc))+0.0033))
-         xni = xni*rho/RHO_NOT0 * 1000.
-!     endif
+ xni = 0._RKIND
 
-      iceDeMott = MAX(0., xni)
+!satw = qv/qvs
+!sati = qv/qvsi
+!siw = qvs/qvsi
+!p_x = -1.0261+(3.1656e-3*tempc)+(5.3938e-4*(tempc*tempc)) &
+!    +  (8.2584e-6*(tempc*tempc*tempc))
+!si0x = 1.+(10.**p_x)
+!if(sati.ge.si0x .and. satw.lt.0.985) then
+!   dtt = delta_p (tempc, T0x, T0x+delT, 1., hdm)
+!   dsi = delta_p (sati, Si0x, Si0x+delSi, 0., 1.)
+!   dsw = delta_p (satw, Sw0x, 1., 0., 1.)
+!   fc = dtt*dsi*0.5
+!   hx = min(fc+((1.-fc)*dsw), 1.)
+!   ntilde = p_c1*p_gam*((exp(12.96*(sati-1.1)))**0.3) / p_rho_c
+!   if(tempc .le. y1p) then
+!      n_in = ntilde
+!   elseif(tempc .ge. y2p) then
+!      n_in = p_psi*p_c1*exp(12.96*(sati-1.)-0.639)
+!   else
+!      if(tempc .le. -30.) then
+!         nmax = p_c1*p_gam*(exp(12.96*(siw-1.1)))**0.3/p_rho_c
+!      else
+!         nmax = p_psi*p_c1*exp(12.96*(siw-1.)-0.639)
+!      endif
+!      ntilde = min(ntilde, nmax)
+!      nhat = min(p_psi*p_c1*exp(12.96*(sati-1.)-0.639), nmax)
+!      dab = delta_p(tempc,y1p,y2p,aap,bbp)
+!      n_in = MIN(nhat*(ntilde/nhat)**dab, nmax)
+!   endif
+!   mux = hx*p_alpha*n_in*rho
+!   xni = mux*((6700.*nifa)-200.)/((6700.*5.E5)-200.)
+!elseif (satw.ge.0.985 .and. tempc.gt.HGFR-273.15) then
+    nifa_cc = max(0.5, nifa*RHO_NOT0*1.E-6/rho)
+!   xni = 3.*nifa_cc**(1.25)*exp((0.46*(-tempc))-11.6)              !  [DeMott, 2015]
+    xni = (5.94e-5*(-tempc)**3.33)                                & !  [DeMott, 2010]
+        * (nifa_cc**((-0.0264*(tempc))+0.0033))
+    xni = xni*rho/RHO_NOT0 * 1000.
+!endif
 
-      end FUNCTION iceDeMott
+ iceDeMott = max(0._RKIND,xni)
 
-!+---+-----------------------------------------------------------------+
-!..Newer research since Koop et al (2001) suggests that the freezing
-!.. rate should be lower than original paper, so J_rate is reduced
-!.. by two orders of magnitude.
+ end function iceDeMott
 
-      real function iceKoop(temp, qv, qvs, naero, dt)
-      implicit none
+!==================================================================================================================
+!..Newer research since Koop et al (2001) suggests that the freezing rate should be lower than original paper,
+!  so J_rate is reduced by two orders of magnitude.
 
-      REAL, INTENT(IN):: temp, qv, qvs, naero, DT
-      REAL:: mu_diff, a_w_i, delta_aw, log_J_rate, J_rate, prob_h, satw
-      REAL:: xni
+ real function iceKoop(temp,qv,qvs,naero,dt)
+ implicit none
+!==================================================================================================================
 
-      xni = 0.0
-      satw = qv/qvs
-      mu_diff    = 210368.0 + (131.438*temp) - (3.32373E6/temp)         &
-     &           - (41729.1*alog(temp))
-      a_w_i      = exp(mu_diff/(R_uni*temp))
-      delta_aw   = satw - a_w_i
-      log_J_rate = -906.7 + (8502.0*delta_aw)                           &
-     &           - (26924.0*delta_aw*delta_aw)                          &
-     &           + (29180.0*delta_aw*delta_aw*delta_aw)
-      log_J_rate = MIN(20.0, log_J_rate)
-      J_rate     = 10.**log_J_rate                                       ! cm-3 s-1
-      prob_h     = MIN(1.-exp(-J_rate*ar_volume*DT), 1.)
-      if (prob_h .gt. 0.) then
-         xni     = MIN(prob_h*naero, 1000.E3)
-      endif
+!... input arguments:
+ real(kind=RKIND),intent(in):: temp,qv,qvs,naero,dt
 
-      iceKoop = MAX(0.0, xni)
+!... local variables:
+ real(kind=RKIND):: mu_diff,a_w_i,delta_aw,log_J_rate,J_rate,prob_h,satw
+ real(kind=RKIND):: xni
 
-      end FUNCTION iceKoop
+!------------------------------------------------------------------------------------------------------------------
 
-!+---+-----------------------------------------------------------------+
+ xni = 0._RKIND
+ satw = qv/qvs
+ mu_diff = 210368.0 + (131.438*temp) - (3.32373E6/temp) - (41729.1*alog(temp))
+ a_w_i   = exp(mu_diff/(R_uni*temp))
+ delta_aw   = satw - a_w_i
+ log_J_rate = -906.7 + (8502.0*delta_aw)           &
+            - (26924.0*delta_aw*delta_aw)          &
+            + (29180.0*delta_aw*delta_aw*delta_aw)
+ log_J_rate = min(20.0, log_J_rate)
+ J_rate     = 10.**log_J_rate                            ! cm-3 s-1
+ prob_h     = min(1.-exp(-J_rate*ar_volume*dt),1._RKIND)
+ if(prob_h .gt. 0._RKIND) then
+    xni = min(prob_h*naero,1000.E3)
+ endif
+
+ iceKoop = max(0._RKIND,xni)
+
+ end function iceKoop
+
+!==================================================================================================================
 !.. Helper routine for Phillips et al (2008) ice nucleation.  Trude
 
-      REAL FUNCTION delta_p (yy, y1, y2, aa, bb)
-      IMPLICIT NONE
+ real function delta_p(yy,y1,y2,aa,bb)
+ implicit none
+!==================================================================================================================
 
-      REAL, INTENT(IN):: yy, y1, y2, aa, bb
-      REAL:: dab, A, B, a0, a1, a2, a3
+!... input arguments:
+ real(kind=RKIND),intent(in):: yy,y1,y2,aa,bb
 
-      A   = 6.*(aa-bb)/((y2-y1)*(y2-y1)*(y2-y1))
-      B   = aa+(A*y1*y1*y1/6.)-(A*y1*y1*y2*0.5)
-      a0  = B
-      a1  = A*y1*y2
-      a2  = -A*(y1+y2)*0.5
-      a3  = A/3.
+!... local variables:
+ real(kind=RKIND):: dab,A,B,a0,a1,a2,a3
 
-      if (yy.le.y1) then 
-         dab = aa
-      else if (yy.ge.y2) then
-         dab = bb
-      else
-         dab = a0+(a1*yy)+(a2*yy*yy)+(a3*yy*yy*yy)
-      endif
+!------------------------------------------------------------------------------------------------------------------
 
-      if (dab.lt.aa) then 
-         dab = aa
-      endif
-      if (dab.gt.bb) then 
-         dab = bb
-      endif
-      delta_p = dab
+ A  = 6.*(aa-bb)/((y2-y1)*(y2-y1)*(y2-y1))
+ B  = aa+(A*y1*y1*y1/6.)-(A*y1*y1*y2*0.5)
+ a0 = B
+ a1 = A*y1*y2
+ a2 = -A*(y1+y2)*0.5
+ a3 = A/3.
 
-      END FUNCTION delta_p 
+ if(yy.le.y1) then 
+    dab = aa
+ elseif(yy.ge.y2) then
+    dab = bb
+ else
+    dab = a0+(a1*yy)+(a2*yy*yy)+(a3*yy*yy*yy)
+ endif
 
-!+---+-----------------------------------------------------------------+
-!ctrlL
+ if(dab.lt.aa) then 
+    dab = aa
+ endif
+ if(dab.gt.bb) then 
+    dab = bb
+ endif
 
-!+---+-----------------------------------------------------------------+
+ delta_p = dab
+
+ end function delta_p 
+
+!==================================================================================================================
 !..Compute _radiation_ effective radii of cloud water, ice, and snow.
 !.. These are entirely consistent with microphysics assumptions, not
 !.. constant or otherwise ad hoc as is internal to most radiation
