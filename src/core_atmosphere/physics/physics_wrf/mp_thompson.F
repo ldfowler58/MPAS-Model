@@ -3392,7 +3392,7 @@
  real(kind=R8KIND):: N0_r,N0_g,lam_exp,lamg,lamr
  real(kind=R8KIND):: massg,massr,dvg,dvr,t1,t2,z1,z2,y1,y2
 
-!-----------------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------------------
 
  do n2 = 1,nbr
 !   vr(n2) = av_r*Dr(n2)**bv_r * dexp(-fv_r*Dr(n2))
@@ -3488,7 +3488,7 @@
  real(kind=R8KIND):: t1,t2,t3,t4,z1,z2,z3,z4
  real(kind=R8KIND):: y1,y2,y3,y4
 
-!-----------------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------------------
 
  do n2 = 1,nbr
 !   vr(n2) = av_r*Dr(n2)**bv_r * dexp(-fv_r*Dr(n2))
@@ -3636,103 +3636,96 @@
  end subroutine qr_acr_qs
 
 !==================================================================================================================
-!..This is a literal adaptation of Bigg (1954) probability of drops of
-!..a particular volume freezing.  Given this probability, simply freeze
-!..the proportion of drops summing their masses.
-!+---+-----------------------------------------------------------------+
+!..This is a literal adaptation of Bigg (1954) probability of drops of a particular volume freezing.
+!..Given this probability, simply freeze the proportion of drops summing their masses.
 
-      subroutine freezeH2O
+ subroutine freezeH2O
+ implicit none
+!==================================================================================================================
 
-      implicit none
+!... local variables
+ integer:: i,j,k,m,n,n2
+ integer:: km,km_s,km_e
+ integer:: nu_c
+ real(kind=R8KIND):: N_r, N_c
+ real(kind=R8KIND),dimension(nbr):: massr
+ real(kind=R8KIND),dimension(nbc):: massc
+ real(kind=R8KIND):: sum1,sum2,sumn1,sumn2,prob,vol,Texp,orho_w,lam_exp,lamr,N0_r,lamc,N0_c,y
+ real(kind=RKIND):: T_adjust
 
-!..Local variables
-      INTEGER:: i, j, k, m, n, n2
-      INTEGER:: km, km_s, km_e
-      DOUBLE PRECISION:: N_r, N_c
-      DOUBLE PRECISION, DIMENSION(nbr):: massr
-      DOUBLE PRECISION, DIMENSION(nbc):: massc
-      DOUBLE PRECISION:: sum1, sum2, sumn1, sumn2, &
-                         prob, vol, Texp, orho_w, &
-                         lam_exp, lamr, N0_r, lamc, N0_c, y
-      INTEGER:: nu_c
-      REAL:: T_adjust
+!------------------------------------------------------------------------------------------------------------------
 
-!+---+
+ orho_w = 1./rho_w
 
-        orho_w = 1./rho_w
+ do n2 = 1,nbr
+    massr(n2) = am_r*Dr(n2)**bm_r
+ enddo
+ do n = 1,nbc
+    massc(n) = am_r*Dc(n)**bm_r
+ enddo
 
-        do n2 = 1, nbr
-         massr(n2) = am_r*Dr(n2)**bm_r
-        enddo
-        do n = 1, nbc
-         massc(n) = am_r*Dc(n)**bm_r
-        enddo
-
-        km_s = 0
-        km_e = ntb_IN*45 - 1
+ km_s = 0
+ km_e = ntb_IN*45 - 1
 
 !..Freeze water (smallest drops become cloud ice, otherwise graupel).
-        do km = km_s, km_e
-         m = km / 45 + 1
-         k = mod( km , 45 ) + 1
-         T_adjust = MAX(-3.0, MIN(3.0 - ALOG10(Nt_IN(m)), 3.0))
-!         print*, ' Freezing water for temp = ', -k
-         Texp = DEXP( REAL(k,KIND=R8SIZE) - T_adjust*1.0D0 ) - 1.0D0
-         do j = 1, ntb_r1
-            do i = 1, ntb_r
-               lam_exp = (N0r_exp(j)*am_r*crg(1)/r_r(i))**ore1
-               lamr = lam_exp * (crg(3)*org2*org1)**obmr
-               N0_r = N0r_exp(j)/(crg(2)*lam_exp) * lamr**cre(2)
-               sum1 = 0.0d0
-               sum2 = 0.0d0
-               sumn1 = 0.0d0
-               sumn2 = 0.0d0
-               do n2 = nbr, 1, -1
-                  N_r = N0_r*Dr(n2)**mu_r*DEXP(-lamr*Dr(n2))*dtr(n2)
-                  vol = massr(n2)*orho_w
-                  prob = MAX(0.0D0, 1.0D0 - DEXP(-120.0D0*vol*5.2D-4 * Texp))
-                  if (massr(n2) .lt. xm0g) then
-                     sumn1 = sumn1 + prob*N_r
-                     sum1 = sum1 + prob*N_r*massr(n2)
-                  else
-                     sumn2 = sumn2 + prob*N_r
-                     sum2 = sum2 + prob*N_r*massr(n2)
-                  endif
-                  if ((sum1+sum2).ge.r_r(i)) EXIT
-               enddo
-               tpi_qrfz(i,j,k,m) = sum1
-               tni_qrfz(i,j,k,m) = sumn1
-               tpg_qrfz(i,j,k,m) = sum2
-               tnr_qrfz(i,j,k,m) = sumn2
-            enddo
-         enddo
+ do km = km_s,km_e
+    m = km / 45 + 1
+    k = mod(km ,45) + 1
+    T_adjust = max(-3.0,min(3.0 - alog10(Nt_IN(m)),3.0))
+    Texp = dexp(real(k,kind=R8SIZE) - T_adjust*1.0D0 ) - 1._R8KIND
+    do j = 1,ntb_r1
+       do i = 1,ntb_r
+          lam_exp = (N0r_exp(j)*am_r*crg(1)/r_r(i))**ore1
+          lamr = lam_exp * (crg(3)*org2*org1)**obmr
+          N0_r = N0r_exp(j)/(crg(2)*lam_exp) * lamr**cre(2)
+          sum1 = 0._R8KIND
+          sum2 = 0._R8KIND
+          sumn1 = 0._R8KIND
+          sumn2 = 0._R8KIND
+          do n2 = nbr,1,-1
+             N_r = N0_r*Dr(n2)**mu_r*dexp(-lamr*Dr(n2))*dtr(n2)
+             vol = massr(n2)*orho_w
+             prob = max(0._R8KIND, 1._R8KIND - dexp(-120._R8KIND*vol*5.2D-4 * Texp))
+             if(massr(n2) .lt. xm0g) then
+                sumn1 = sumn1 + prob*N_r
+                sum1 = sum1 + prob*N_r*massr(n2)
+             else
+                sumn2 = sumn2 + prob*N_r
+                sum2 = sum2 + prob*N_r*massr(n2)
+             endif
+             if((sum1+sum2).ge.r_r(i)) exit
+          enddo
+          tpi_qrfz(i,j,k,m) = sum1
+          tni_qrfz(i,j,k,m) = sumn1
+          tpg_qrfz(i,j,k,m) = sum2
+          tnr_qrfz(i,j,k,m) = sumn2
+       enddo
+    enddo
 
-         do j = 1, nbc
-            nu_c = MIN(15, NINT(1000.E6/t_Nc(j)) + 2)
-            do i = 1, ntb_c
-               lamc = (t_Nc(j)*am_r* ccg(2,nu_c) * ocg1(nu_c) / r_c(i))**obmr
-               N0_c = t_Nc(j)*ocg1(nu_c) * lamc**cce(1,nu_c)
-               sum1 = 0.0d0
-               sumn2 = 0.0d0
-               do n = nbc, 1, -1
-                  vol = massc(n)*orho_w
-                  prob = MAX(0.0D0, 1.0D0 - DEXP(-120.0D0*vol*5.2D-4 * Texp))
-                  N_c = N0_c*Dc(n)**nu_c*EXP(-lamc*Dc(n))*dtc(n)
-                  sumn2 = MIN(t_Nc(j), sumn2 + prob*N_c)
-                  sum1 = sum1 + prob*N_c*massc(n)
-                  if (sum1 .ge. r_c(i)) EXIT
-               enddo
-               tpi_qcfz(i,j,k,m) = sum1
-               tni_qcfz(i,j,k,m) = sumn2
-            enddo
-         enddo
-        enddo
+    do j = 1,nbc
+       nu_c = min(15,nint(1000.E6/t_Nc(j)) + 2)
+       do i = 1,ntb_c
+          lamc = (t_Nc(j)*am_r* ccg(2,nu_c) * ocg1(nu_c) / r_c(i))**obmr
+          N0_c = t_Nc(j)*ocg1(nu_c) * lamc**cce(1,nu_c)
+          sum1 = 0._R8KIND
+          sumn2 = 0._R8KIND
+          do n = nbc,1,-1
+             vol = massc(n)*orho_w
+             prob = max(0._R8KIND, 1._R8KIND - dexp(-120._R8KIND*vol*5.2D-4 * Texp))
+             N_c = N0_c*Dc(n)**nu_c*exp(-lamc*Dc(n))*dtc(n)
+             sumn2 = min(t_Nc(j), sumn2 + prob*N_c)
+             sum1 = sum1 + prob*N_c*massc(n)
+             if(sum1 .ge. r_c(i)) exit
+          enddo
+          tpi_qcfz(i,j,k,m) = sum1
+          tni_qcfz(i,j,k,m) = sumn2
+       enddo
+    enddo
+ enddo
 
-      end subroutine freezeH2O
+ end subroutine freezeH2O
 
-!+---+-----------------------------------------------------------------+
-!ctrlL
-!+---+-----------------------------------------------------------------+
+!==================================================================================================================
 !..Cloud ice converting to snow since portion greater than min snow
 !.. size.  Given cloud ice content (kg/m**3), number concentration
 !.. (#/m**3) and gamma shape parameter, mu_i, break the distrib into
