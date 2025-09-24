@@ -3378,7 +3378,7 @@
 
 !==================================================================================================================
 !..Creation of the lookup tables and support functions found below here.
-!..Rain collecting graupel (and inverse).  Explicit CE integration.
+!..Rain collecting graupel (and inverse). Explicit CE integration.
 
  subroutine qr_acr_qg
  implicit none
@@ -3470,173 +3470,172 @@
  end subroutine qr_acr_qg
 
 !==================================================================================================================
-!..Rain collecting snow (and inverse).  Explicit CE integration.
-!+---+-----------------------------------------------------------------+
+!..Creation of the lookup tables and support functions found below here.
+!..Rain collecting snow (and inverse). Explicit CE integration.
 
-      subroutine qr_acr_qs
+ subroutine qr_acr_qs
+ implicit none
+!==================================================================================================================
 
-      implicit none
+!... local variables:
+ integer:: i,j,k,m,n,n2
+ integer:: km,km_s,km_e
+ real(kind=R8KIND),dimension(nbr):: vr,D1,N_r
+ real(kind=R8KIND),dimension(nbs):: vs,N_s
+ real(kind=R8KIND):: loga_,a_,b_,second,M0,M2,M3,Mrat,oM3
+ real(kind=R8KIND):: N0_r,lam_exp,lamr,slam1,slam2
+ real(kind=R8KIND):: dvs,dvr,masss,massr
+ real(kind=R8KIND):: t1,t2,t3,t4,z1,z2,z3,z4
+ real(kind=R8KIND):: y1,y2,y3,y4
 
-!..Local variables
-      INTEGER:: i, j, k, m, n, n2
-      INTEGER:: km, km_s, km_e
-      DOUBLE PRECISION, DIMENSION(nbr):: vr, D1, N_r
-      DOUBLE PRECISION, DIMENSION(nbs):: vs, N_s
-      DOUBLE PRECISION:: loga_, a_, b_, second, M0, M2, M3, Mrat, oM3
-      DOUBLE PRECISION:: N0_r, lam_exp, lamr, slam1, slam2
-      DOUBLE PRECISION:: dvs, dvr, masss, massr
-      DOUBLE PRECISION:: t1, t2, t3, t4, z1, z2, z3, z4
-      DOUBLE PRECISION:: y1, y2, y3, y4
+!-----------------------------------------------------------------------------------------------------------------
 
-!+---+
+ do n2 = 1,nbr
+!   vr(n2) = av_r*Dr(n2)**bv_r * dexp(-fv_r*Dr(n2))
+    vr(n2) = -0.1021 + 4.932E3*Dr(n2) - 0.9551E6*Dr(n2)*Dr(n2) &
+           + 0.07934E9*Dr(n2)*Dr(n2)*Dr(n2)                    &
+           - 0.002362E12*Dr(n2)*Dr(n2)*Dr(n2)*Dr(n2)
+    D1(n2) = (vr(n2)/av_s)**(1./bv_s)
+ enddo
+ do n = 1,nbs
+    vs(n) = 1.5*av_s*Ds(n)**bv_s * dexp(-fv_s*Ds(n))
+ enddo
 
-        do n2 = 1, nbr
-!        vr(n2) = av_r*Dr(n2)**bv_r * DEXP(-fv_r*Dr(n2))
-         vr(n2) = -0.1021 + 4.932E3*Dr(n2) - 0.9551E6*Dr(n2)*Dr(n2)     &
-              + 0.07934E9*Dr(n2)*Dr(n2)*Dr(n2)                          &
-              - 0.002362E12*Dr(n2)*Dr(n2)*Dr(n2)*Dr(n2)
-         D1(n2) = (vr(n2)/av_s)**(1./bv_s)
-        enddo
-        do n = 1, nbs
-         vs(n) = 1.5*av_s*Ds(n)**bv_s * DEXP(-fv_s*Ds(n))
-        enddo
+ km_s = 0
+ km_e = ntb_r*ntb_r1 - 1
 
-        km_s = 0
-        km_e = ntb_r*ntb_r1 - 1
+ do km = km_s,km_e
+    m = km / ntb_r1 + 1
+    k = mod( km , ntb_r1 ) + 1
 
-        do km = km_s, km_e
-         m = km / ntb_r1 + 1
-         k = mod( km , ntb_r1 ) + 1
+    lam_exp = (N0r_exp(k)*am_r*crg(1)/r_r(m))**ore1
+    lamr = lam_exp * (crg(3)*org2*org1)**obmr
+    N0_r = N0r_exp(k)/(crg(2)*lam_exp) * lamr**cre(2)
+    do n2 = 1, nbr
+       N_r(n2) = N0_r*Dr(n2)**mu_r * dexp(-lamr*Dr(n2))*dtr(n2)
+    enddo
 
-         lam_exp = (N0r_exp(k)*am_r*crg(1)/r_r(m))**ore1
-         lamr = lam_exp * (crg(3)*org2*org1)**obmr
-         N0_r = N0r_exp(k)/(crg(2)*lam_exp) * lamr**cre(2)
-         do n2 = 1, nbr
-            N_r(n2) = N0_r*Dr(n2)**mu_r * DEXP(-lamr*Dr(n2))*dtr(n2)
-         enddo
-
-         do j = 1, ntb_t
-            do i = 1, ntb_s
+    do j = 1,ntb_t
+       do i = 1,ntb_s
 
 !..From the bm_s moment, compute plus one moment.  If we are not
-!.. using bm_s=2, then we must transform to the pure 2nd moment
-!.. (variable called "second") and then to the bm_s+1 moment.
+!..using bm_s=2, then we must transform to the pure 2nd moment
+!..(variable called "second") and then to the bm_s+1 moment.
 
-               M2 = r_s(i)*oams *1.0d0
-               if (bm_s.gt.2.0-1.E-3 .and. bm_s.lt.2.0+1.E-3) then
-                  loga_ = sa(1) + sa(2)*Tc(j) + sa(3)*bm_s &
-                     + sa(4)*Tc(j)*bm_s + sa(5)*Tc(j)*Tc(j) &
-                     + sa(6)*bm_s*bm_s + sa(7)*Tc(j)*Tc(j)*bm_s &
-                     + sa(8)*Tc(j)*bm_s*bm_s + sa(9)*Tc(j)*Tc(j)*Tc(j) &
-                     + sa(10)*bm_s*bm_s*bm_s
-                  a_ = 10.0**loga_
-                  b_ = sb(1) + sb(2)*Tc(j) + sb(3)*bm_s &
-                     + sb(4)*Tc(j)*bm_s + sb(5)*Tc(j)*Tc(j) &
-                     + sb(6)*bm_s*bm_s + sb(7)*Tc(j)*Tc(j)*bm_s &
-                     + sb(8)*Tc(j)*bm_s*bm_s + sb(9)*Tc(j)*Tc(j)*Tc(j) &
-                     + sb(10)*bm_s*bm_s*bm_s
-                  second = (M2/a_)**(1./b_)
-               else
-                  second = M2
-               endif
+          M2 = r_s(i)*oams *1.0d0
+          if(bm_s.gt.2.0-1.E-3 .and. bm_s.lt.2.0+1.E-3) then
+             loga_ = sa(1) + sa(2)*Tc(j) + sa(3)*bm_s &
+                   + sa(4)*Tc(j)*bm_s + sa(5)*Tc(j)*Tc(j) &
+                   + sa(6)*bm_s*bm_s + sa(7)*Tc(j)*Tc(j)*bm_s &
+                   + sa(8)*Tc(j)*bm_s*bm_s + sa(9)*Tc(j)*Tc(j)*Tc(j) &
+                   + sa(10)*bm_s*bm_s*bm_s
+             a_ = 10.0**loga_
+             b_ = sb(1) + sb(2)*Tc(j) + sb(3)*bm_s &
+                + sb(4)*Tc(j)*bm_s + sb(5)*Tc(j)*Tc(j) &
+                + sb(6)*bm_s*bm_s + sb(7)*Tc(j)*Tc(j)*bm_s &
+                + sb(8)*Tc(j)*bm_s*bm_s + sb(9)*Tc(j)*Tc(j)*Tc(j) &
+                + sb(10)*bm_s*bm_s*bm_s
+             second = (M2/a_)**(1./b_)
+          else
+             second = M2
+          endif
 
-               loga_ = sa(1) + sa(2)*Tc(j) + sa(3)*cse(1) &
-                  + sa(4)*Tc(j)*cse(1) + sa(5)*Tc(j)*Tc(j) &
-                  + sa(6)*cse(1)*cse(1) + sa(7)*Tc(j)*Tc(j)*cse(1) &
-                  + sa(8)*Tc(j)*cse(1)*cse(1) + sa(9)*Tc(j)*Tc(j)*Tc(j) &
-                  + sa(10)*cse(1)*cse(1)*cse(1)
-               a_ = 10.0**loga_
-               b_ = sb(1)+sb(2)*Tc(j)+sb(3)*cse(1) + sb(4)*Tc(j)*cse(1) &
-                  + sb(5)*Tc(j)*Tc(j) + sb(6)*cse(1)*cse(1) &
-                  + sb(7)*Tc(j)*Tc(j)*cse(1) + sb(8)*Tc(j)*cse(1)*cse(1) &
-                  + sb(9)*Tc(j)*Tc(j)*Tc(j)+sb(10)*cse(1)*cse(1)*cse(1)
-               M3 = a_ * second**b_
+          loga_ = sa(1) + sa(2)*Tc(j) + sa(3)*cse(1) &
+                + sa(4)*Tc(j)*cse(1) + sa(5)*Tc(j)*Tc(j) &
+                + sa(6)*cse(1)*cse(1) + sa(7)*Tc(j)*Tc(j)*cse(1) &
+                + sa(8)*Tc(j)*cse(1)*cse(1) + sa(9)*Tc(j)*Tc(j)*Tc(j) &
+                + sa(10)*cse(1)*cse(1)*cse(1)
+          a_ = 10.0**loga_
+          b_ = sb(1)+sb(2)*Tc(j)+sb(3)*cse(1) + sb(4)*Tc(j)*cse(1) &
+                + sb(5)*Tc(j)*Tc(j) + sb(6)*cse(1)*cse(1) &
+                + sb(7)*Tc(j)*Tc(j)*cse(1) + sb(8)*Tc(j)*cse(1)*cse(1) &
+                + sb(9)*Tc(j)*Tc(j)*Tc(j)+sb(10)*cse(1)*cse(1)*cse(1)
+          M3 = a_ * second**b_
 
-               oM3 = 1./M3
-               Mrat = M2*(M2*oM3)*(M2*oM3)*(M2*oM3)
-               M0   = (M2*oM3)**mu_s
-               slam1 = M2 * oM3 * Lam0
-               slam2 = M2 * oM3 * Lam1
+          oM3 = 1./M3
+          Mrat = M2*(M2*oM3)*(M2*oM3)*(M2*oM3)
+          M0   = (M2*oM3)**mu_s
+          slam1 = M2 * oM3 * Lam0
+          slam2 = M2 * oM3 * Lam1
 
-               do n = 1, nbs
-                  N_s(n) = Mrat*(Kap0*DEXP(-slam1*Ds(n)) &
-                      + Kap1*M0*Ds(n)**mu_s * DEXP(-slam2*Ds(n)))*dts(n)
-               enddo
+          do n = 1,nbs
+             N_s(n) = Mrat*(Kap0*dexp(-slam1*Ds(n)) &
+                    + Kap1*M0*Ds(n)**mu_s * DEXP(-slam2*Ds(n)))*dts(n)
+          enddo
 
-               t1 = 0.0d0
-               t2 = 0.0d0
-               t3 = 0.0d0
-               t4 = 0.0d0
-               z1 = 0.0d0
-               z2 = 0.0d0
-               z3 = 0.0d0
-               z4 = 0.0d0
-               y1 = 0.0d0
-               y2 = 0.0d0
-               y3 = 0.0d0
-               y4 = 0.0d0
-               do n2 = 1, nbr
-                  massr = am_r * Dr(n2)**bm_r
-                  do n = 1, nbs
-                     masss = am_s * Ds(n)**bm_s
+          t1 = 0._R8KIND
+          t2 = 0._R8KIND
+          t3 = 0._R8KIND
+          t4 = 0._R8KIND
+          z1 = 0._R8KIND
+          z2 = 0._R8KIND
+          z3 = 0._R8KIND
+          z4 = 0._R8KIND
+          y1 = 0._R8KIND
+          y2 = 0._R8KIND
+          y3 = 0._R8KIND
+          y4 = 0._R8KIND
+          do n2 = 1,nbr
+             massr = am_r * Dr(n2)**bm_r
+             do n = 1,nbs
+                masss = am_s * Ds(n)**bm_s
       
-                     dvs = 0.5d0*((vr(n2) - vs(n)) + DABS(vr(n2)-vs(n)))
-                     dvr = 0.5d0*((vs(n) - vr(n2)) + DABS(vs(n)-vr(n2)))
+                dvs = 0.5d0*((vr(n2) - vs(n)) + dabs(vr(n2)-vs(n)))
+                dvr = 0.5d0*((vs(n) - vr(n2)) + dabs(vs(n)-vr(n2)))
 
-                     if (massr .gt. 1.5*masss) then
-                     t1 = t1+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvs*masss * N_s(n)* N_r(n2)
-                     z1 = z1+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvs*massr * N_s(n)* N_r(n2)
-                     y1 = y1+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvs       * N_s(n)* N_r(n2)
-                     else
-                     t3 = t3+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvs*masss * N_s(n)* N_r(n2)
-                     z3 = z3+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvs*massr * N_s(n)* N_r(n2)
-                     y3 = y3+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvs       * N_s(n)* N_r(n2)
-                     endif
+                if(massr .gt. 1.5*masss) then
+                   t1 = t1+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvs*masss * N_s(n)* N_r(n2)
+                   z1 = z1+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvs*massr * N_s(n)* N_r(n2)
+                   y1 = y1+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvs * N_s(n)* N_r(n2)
+                else
+                   t3 = t3+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvs*masss * N_s(n)* N_r(n2)
+                   z3 = z3+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvs*massr * N_s(n)* N_r(n2)
+                   y3 = y3+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvs * N_s(n)* N_r(n2)
+                endif
 
-                     if (massr .gt. 1.5*masss) then
-                     t2 = t2+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvr*massr * N_s(n)* N_r(n2)
-                     y2 = y2+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvr       * N_s(n)* N_r(n2)
-                     z2 = z2+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvr*masss * N_s(n)* N_r(n2)
-                     else
-                     t4 = t4+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvr*massr * N_s(n)* N_r(n2)
-                     y4 = y4+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvr       * N_s(n)* N_r(n2)
-                     z4 = z4+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
-                         *dvr*masss * N_s(n)* N_r(n2)
-                     endif
+                if(massr .gt. 1.5*masss) then
+                   t2 = t2+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvr*massr * N_s(n)* N_r(n2)
+                   y2 = y2+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvr * N_s(n)* N_r(n2)
+                   z2 = z2+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvr*masss * N_s(n)* N_r(n2)
+                else
+                   t4 = t4+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvr*massr * N_s(n)* N_r(n2)
+                   y4 = y4+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvr * N_s(n)* N_r(n2)
+                   z4 = z4+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
+                      * dvr*masss * N_s(n)* N_r(n2)
+                endif
 
-                  enddo
-               enddo
-               tcs_racs1(i,j,k,m) = t1
-               tmr_racs1(i,j,k,m) = DMIN1(z1, r_r(m)*1.0d0)
-               tcs_racs2(i,j,k,m) = t3
-               tmr_racs2(i,j,k,m) = z3
-               tcr_sacr1(i,j,k,m) = t2
-               tms_sacr1(i,j,k,m) = z2
-               tcr_sacr2(i,j,k,m) = t4
-               tms_sacr2(i,j,k,m) = z4
-               tnr_racs1(i,j,k,m) = y1
-               tnr_racs2(i,j,k,m) = y3
-               tnr_sacr1(i,j,k,m) = y2
-               tnr_sacr2(i,j,k,m) = y4
-            enddo
-         enddo
-        enddo
+             enddo
+          enddo
+          tcs_racs1(i,j,k,m) = t1
+          tmr_racs1(i,j,k,m) = dmin1(z1,r_r(m)*1.0d0)
+          tcs_racs2(i,j,k,m) = t3
+          tmr_racs2(i,j,k,m) = z3
+          tcr_sacr1(i,j,k,m) = t2
+          tms_sacr1(i,j,k,m) = z2
+          tcr_sacr2(i,j,k,m) = t4
+          tms_sacr2(i,j,k,m) = z4
+          tnr_racs1(i,j,k,m) = y1
+          tnr_racs2(i,j,k,m) = y3
+          tnr_sacr1(i,j,k,m) = y2
+          tnr_sacr2(i,j,k,m) = y4
+       enddo
+    enddo
+ enddo
 
-      end subroutine qr_acr_qs
-!+---+-----------------------------------------------------------------+
-!ctrlL
-!+---+-----------------------------------------------------------------+
+ end subroutine qr_acr_qs
+
+!==================================================================================================================
 !..This is a literal adaptation of Bigg (1954) probability of drops of
 !..a particular volume freezing.  Given this probability, simply freeze
 !..the proportion of drops summing their masses.
