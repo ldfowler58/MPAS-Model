@@ -3375,106 +3375,101 @@
       enddo
 
       end subroutine thompson_1d
-!+---+-----------------------------------------------------------------+
-!ctrlL
-!+---+-----------------------------------------------------------------+
+
+!==================================================================================================================
 !..Creation of the lookup tables and support functions found below here.
-!+---+-----------------------------------------------------------------+
 !..Rain collecting graupel (and inverse).  Explicit CE integration.
-!+---+-----------------------------------------------------------------+
 
-      subroutine qr_acr_qg
+ subroutine qr_acr_qg
+ implicit none
+!==================================================================================================================
 
-      implicit none
+!... local variables:
+ integer:: i,j,k,m,n,n2
+ integer:: km,km_s,km_e
+ real(kind=R8KIND),dimension(nbg):: vg, N_g
+ real(kind=R8KIND),dimension(nbr):: vr, N_r
+ real(kind=R8KIND):: N0_r,N0_g,lam_exp,lamg,lamr
+ real(kind=R8KIND):: massg,massr,dvg,dvr,t1,t2,z1,z2,y1,y2
 
-!..Local variables
-      INTEGER:: i, j, k, m, n, n2
-      INTEGER:: km, km_s, km_e
-      DOUBLE PRECISION, DIMENSION(nbg):: vg, N_g
-      DOUBLE PRECISION, DIMENSION(nbr):: vr, N_r
-      DOUBLE PRECISION:: N0_r, N0_g, lam_exp, lamg, lamr
-      DOUBLE PRECISION:: massg, massr, dvg, dvr, t1, t2, z1, z2, y1, y2
+!-----------------------------------------------------------------------------------------------------------------
 
-!+---+
+ do n2 = 1,nbr
+!   vr(n2) = av_r*Dr(n2)**bv_r * dexp(-fv_r*Dr(n2))
+    vr(n2) = -0.1021 + 4.932E3*Dr(n2) - 0.9551E6*Dr(n2)*Dr(n2) &
+           + 0.07934E9*Dr(n2)*Dr(n2)*Dr(n2)                    &
+           - 0.002362E12*Dr(n2)*Dr(n2)*Dr(n2)*Dr(n2)
+ enddo
+ do n = 1,nbg
+    vg(n) = av_g*Dg(n)**bv_g
+ enddo
 
-        do n2 = 1, nbr
-!        vr(n2) = av_r*Dr(n2)**bv_r * DEXP(-fv_r*Dr(n2))
-         vr(n2) = -0.1021 + 4.932E3*Dr(n2) - 0.9551E6*Dr(n2)*Dr(n2)     &
-              + 0.07934E9*Dr(n2)*Dr(n2)*Dr(n2)                          &
-              - 0.002362E12*Dr(n2)*Dr(n2)*Dr(n2)*Dr(n2)
-        enddo
-        do n = 1, nbg
-         vg(n) = av_g*Dg(n)**bv_g
-        enddo
+ km_s = 0
+ km_e = ntb_r*ntb_r1 - 1
 
-        km_s = 0
-        km_e = ntb_r*ntb_r1 - 1
+ do km = km_s,km_e
+    m = km / ntb_r1 + 1
+    k = mod( km , ntb_r1 ) + 1
 
-        do km = km_s, km_e
-         m = km / ntb_r1 + 1
-         k = mod( km , ntb_r1 ) + 1
+    lam_exp = (N0r_exp(k)*am_r*crg(1)/r_r(m))**ore1
+    lamr = lam_exp * (crg(3)*org2*org1)**obmr
+    N0_r = N0r_exp(k)/(crg(2)*lam_exp) * lamr**cre(2)
+    do n2 = 1,nbr
+       N_r(n2) = N0_r*Dr(n2)**mu_r *dexp(-lamr*Dr(n2))*dtr(n2)
+    enddo
 
-         lam_exp = (N0r_exp(k)*am_r*crg(1)/r_r(m))**ore1
-         lamr = lam_exp * (crg(3)*org2*org1)**obmr
-         N0_r = N0r_exp(k)/(crg(2)*lam_exp) * lamr**cre(2)
-         do n2 = 1, nbr
-            N_r(n2) = N0_r*Dr(n2)**mu_r *DEXP(-lamr*Dr(n2))*dtr(n2)
-         enddo
+    do j = 1,ntb_g
+       do i = 1,ntb_g1
+          lam_exp = (N0g_exp(i)*am_g*cgg(1)/r_g(j))**oge1
+          lamg = lam_exp * (cgg(3)*ogg2*ogg1)**obmg
+          N0_g = N0g_exp(i)/(cgg(2)*lam_exp) * lamg**cge(2)
+          do n = 1,nbg
+             N_g(n) = N0_g*Dg(n)**mu_g * dexp(-lamg*Dg(n))*dtg(n)
+          enddo
 
-         do j = 1, ntb_g
-         do i = 1, ntb_g1
-            lam_exp = (N0g_exp(i)*am_g*cgg(1)/r_g(j))**oge1
-            lamg = lam_exp * (cgg(3)*ogg2*ogg1)**obmg
-            N0_g = N0g_exp(i)/(cgg(2)*lam_exp) * lamg**cge(2)
-            do n = 1, nbg
-               N_g(n) = N0_g*Dg(n)**mu_g * DEXP(-lamg*Dg(n))*dtg(n)
-            enddo
+          t1 = 0._R8KIND
+          t2 = 0._R8KIND
+          z1 = 0._R8KIND
+          z2 = 0._R8KIND
+          y1 = 0._R8KIND
+          y2 = 0._R8KIND
+          do n2 = 1,nbr
+             massr = am_r * Dr(n2)**bm_r
+             do n = 1,nbg
+                massg = am_g * Dg(n)**bm_g
 
-            t1 = 0.0d0
-            t2 = 0.0d0
-            z1 = 0.0d0
-            z2 = 0.0d0
-            y1 = 0.0d0
-            y2 = 0.0d0
-            do n2 = 1, nbr
-               massr = am_r * Dr(n2)**bm_r
-               do n = 1, nbg
-                  massg = am_g * Dg(n)**bm_g
+                dvg = 0.5d0*((vr(n2) - vg(n)) + dabs(vr(n2)-vg(n)))
+                dvr = 0.5d0*((vg(n) - vr(n2)) + dabs(vg(n)-vr(n2)))
 
-                  dvg = 0.5d0*((vr(n2) - vg(n)) + DABS(vr(n2)-vg(n)))
-                  dvr = 0.5d0*((vg(n) - vr(n2)) + DABS(vg(n)-vr(n2)))
+                t1 = t1+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
+                   * dvg*massg * N_g(n)* N_r(n2)
+                z1 = z1+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
+                   * dvg*massr * N_g(n)* N_r(n2)
+                y1 = y1+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
+                   * dvg * N_g(n)* N_r(n2)
 
-                  t1 = t1+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
-                      *dvg*massg * N_g(n)* N_r(n2)
-                  z1 = z1+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
-                      *dvg*massr * N_g(n)* N_r(n2)
-                  y1 = y1+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
-                      *dvg       * N_g(n)* N_r(n2)
+                t2 = t2+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
+                   * dvr*massr * N_g(n)* N_r(n2)
+                y2 = y2+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
+                   * dvr * N_g(n)* N_r(n2)
+                z2 = z2+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
+                   * dvr*massg * N_g(n)* N_r(n2)
+             enddo
+ 97          continue
+          enddo
+          tcg_racg(i,j,k,m) = t1
+          tmr_racg(i,j,k,m) = dmin1(z1,r_r(m)*1.0d0)
+          tcr_gacr(i,j,k,m) = t2
+          tmg_gacr(i,j,k,m) = dmin1(z2,r_g(j)*1.0d0)
+          tnr_racg(i,j,k,m) = y1
+          tnr_gacr(i,j,k,m) = y2
+       enddo
+    enddo
+ enddo
 
-                  t2 = t2+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
-                      *dvr*massr * N_g(n)* N_r(n2)
-                  y2 = y2+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
-                      *dvr       * N_g(n)* N_r(n2)
-                  z2 = z2+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
-                      *dvr*massg * N_g(n)* N_r(n2)
-               enddo
- 97            continue
-            enddo
-            tcg_racg(i,j,k,m) = t1
-            tmr_racg(i,j,k,m) = DMIN1(z1, r_r(m)*1.0d0)
-            tcr_gacr(i,j,k,m) = t2
-            tmg_gacr(i,j,k,m) = DMIN1(z2, r_g(j)*1.0d0)
-            !DAVE tmg_gacr(i,j,k,m) = DMIN1(z2, DBLE(r_g(j)))
-            tnr_racg(i,j,k,m) = y1
-            tnr_gacr(i,j,k,m) = y2
-         enddo
-         enddo
-        enddo
+ end subroutine qr_acr_qg
 
-      end subroutine qr_acr_qg
-!+---+-----------------------------------------------------------------+
-!ctrlL
-!+---+-----------------------------------------------------------------+
+!==================================================================================================================
 !..Rain collecting snow (and inverse).  Explicit CE integration.
 !+---+-----------------------------------------------------------------+
 
