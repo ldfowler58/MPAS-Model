@@ -27,7 +27,7 @@
                             fnum,rhFlag,pressure_lid_in_hPa,sigma,hydrophobic_fraction,pom_ca_ratio, &
                             monoterpenes_emission_fraction,isoprene_emission_fraction,               &
                             aircraft_fuel_emission_factor,aviation_vertical_layers,                  &
-                            point_emissions_srcfilen
+                            particle_radius_number,point_emissions_srcfilen
  use CA2G_oc_StateSpecs,only: CA2G_oc_State
 
 
@@ -62,6 +62,7 @@
     real(kind=RKIND):: fIsoprene = 0.0                ! fraction of isoprene emissions -> aerosol
     real(kind=RKIND):: fHydrophobic                   ! initially hydrophobic portion
     real(kind=RKIND):: ratPOM = 1.0                   ! ratio of POM to OC mass
+    real(kind=RKIND),dimension(:),allocatable:: rmed  ! number median radius [um]
     real(kind=RKIND),dimension(:),allocatable:: sigma ! sigma of lognormal number distribution
 
     !workspace for point emissions:
@@ -112,13 +113,6 @@
  call self%load_from_config(nbins,particle_radius_microns,particle_density,fscav,molecular_weight,fnum, &
                             rhFlag,pressure_lid_in_hPa)
 
-!call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
-!call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
-!do n = 1,self%nbins
-!   call mpas_log_write('$i $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
-!                       self%fscav(n),self%molwght(n),self%fnum(n)/))
-!enddo
-
 
 !--- initialization of all other variables in CA2G_oc_GridComp:
  self%fMonoterpenes = monoterpenes_emission_fraction
@@ -127,8 +121,10 @@
  self%ratPOM        = pom_ca_ratio
  self%point_emissions_srcfilen = trim(point_emissions_srcfilen)
 
+ if(.not.allocated(self%rmed) ) allocate(self%rmed(self%nbins) )
  if(.not.allocated(self%sigma)) allocate(self%sigma(self%nbins))
  do n = 1,self%nbins
+    self%rmed(n)  = particle_radius_number(n)
     self%sigma(n) = sigma(n)
  enddo
 
@@ -137,6 +133,13 @@
     self%aviation_layers(n) = aviation_vertical_layers(n)
  enddo
 
+
+!call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
+!call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
+!do n = 1,self%nbins
+!   call mpas_log_write('$i $r $r $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
+!                       self%fscav(n),self%molwght(n),self%fnum(n),self%rmed(n),self%sigma(n)/))
+!enddo
 
 !call mpas_log_write('--- end subroutine load_CA2G_oc_GridCOMP:')
 

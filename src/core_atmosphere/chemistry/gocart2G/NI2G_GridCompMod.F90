@@ -19,8 +19,8 @@
  use DU2G_GridCompMod
  use SS2G_GridCompMod
 
- use NI2G_instance,only: nbins,particle_radius_microns,particle_density,fscav,molecular_weight, &
-                         fnum,rhFlag,pressure_lid_in_hPa
+ use NI2G_instance,only: nbins,particle_radius_microns,particle_radius_number,particle_density,fscav, &
+                         molecular_weight,fnum,rhFlag,pressure_lid_in_hPa,particle_radius_number,sigma
  use NI2G_StateSpecs,only: NI2G_State
 
 
@@ -68,6 +68,8 @@
     logical:: recycle_HNO3 = .false.
     real(kind=RKIND),dimension(:),allocatable:: rmedDU,rmedSS ! DU and SS radius
     real(kind=RKIND),dimension(:),allocatable:: fnumDU,fnumSS ! DU and SS particles per kg mass
+    real(kind=RKIND),dimension(:),allocatable:: rmed          ! number median radius [um]
+    real(kind=RKIND),dimension(:),allocatable:: sigma         ! sigma of lognormal number distribution
 
     type(ThreadWorkspace),dimension(:),allocatable:: workspaces
 
@@ -127,6 +129,20 @@
 !--- initialization of variables in GA_Environment:
  call self%load_from_config(nbins,particle_radius_microns,particle_density,fscav,molecular_weight,fnum, &
                             rhFlag,pressure_lid_in_hPa)
+
+ if(.not.allocated(self%rmed) ) allocate(self%rmed(self%nbins))
+ if(.not.allocated(self%sigma)) allocate(self%sigma(self%nbins))
+ do n = 1,self%nbins
+    self%rmed(n)  = particle_radius_number(n)
+    self%sigma(n) = sigma(n)
+ enddo
+
+!call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
+!call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
+!do n = 1,self%nbins
+!   call mpas_log_write('$i $r $r $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
+!                       self%fscav(n),self%molwght(n),self%fnum(n),self%rmed(n),self%sigma(n)/))
+!enddo
 
 
 !--- initialization of all other variables in NI2_GridComp:

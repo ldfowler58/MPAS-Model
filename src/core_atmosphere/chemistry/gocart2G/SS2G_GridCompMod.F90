@@ -24,7 +24,7 @@
                             Aero_Compute_Diags
 
  use SS2G_instance,only: nbins,particle_radius_microns,particle_density,fscav,molecular_weight,           &
-                         fnum,rhFlag,pressure_lid_in_hPa,emission_scheme,sstEmisFlag,hoppelFlag,          &
+                         fnum,rhFlag,pressure_lid_in_hPa,sigma,emission_scheme,sstEmisFlag,hoppelFlag,    &
                          weibullFlag,radius_lower,radius_upper,particle_radius_number,emission_scale_res
  use SS2G_StateSpecs,only: SS2G_State
 
@@ -65,6 +65,7 @@
     real(kind=RKIND),dimension(:),allocatable:: rlow              ! particle effective radius lower bound [um]
     real(kind=RKIND),dimension(:),allocatable:: rup               ! particle effective radius upper bound [um]
     real(kind=RKIND),dimension(:),allocatable:: rmed              ! number median radius [um]
+    real(kind=RKIND),dimension(:),allocatable:: sigma             ! sigma of lognormal number distribution
 !   real(kind=RKIND),dimension(:,:),allocatable:: deep_lakes_mask ! mask for deep lakes
 
     contains
@@ -108,13 +109,6 @@
  call self%load_from_config(nbins,particle_radius_microns,particle_density,fscav,molecular_weight,fnum, &
                             rhFlag,pressure_lid_in_hPa)
 
-!call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
-!call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
-!do n = 1,self%nbins
-!   call mpas_log_write('$i $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
-!                       self%fscav(n),self%molwght(n),self%fnum(n)/))
-!enddo
-
 
 !--- initialization of all other variables in SS2_GridComp:
  self%emission_scheme = emission_scheme
@@ -122,15 +116,24 @@
  self%hoppelFlag      = hoppelFlag
  self%weibullFlag     = weibullFlag
 
- if(.not.allocated(self%rlow) ) allocate(self%rlow(self%nbins))
- if(.not.allocated(self%rup)  ) allocate(self%rup(self%nbins) )
- if(.not.allocated(self%rmed) ) allocate(self%rmed(self%nbins))
+ if(.not.allocated(self%rlow) ) allocate(self%rlow(self%nbins) )
+ if(.not.allocated(self%rup)  ) allocate(self%rup(self%nbins)  )
+ if(.not.allocated(self%rmed) ) allocate(self%rmed(self%nbins) )
+ if(.not.allocated(self%sigma)) allocate(self%sigma(self%nbins))
 
  do n = 1,self%nbins
-    self%rlow(n) = radius_lower(n)
-    self%rup(n)  = radius_upper(n)
-    self%rmed(n) = particle_radius_number(n)
+    self%rlow(n)  = radius_lower(n)
+    self%rup(n)   = radius_upper(n)
+    self%rmed(n)  = particle_radius_number(n)
+    self%sigma(n) = sigma(n)
  enddo
+
+!call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
+!call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
+!do n = 1,self%nbins
+!   call mpas_log_write('$i $r $r $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
+!                       self%fscav(n),self%molwght(n),self%fnum(n),self%rmed(n),self%sigma(n)/))
+!enddo
 
 
 !--- initialization of sea-salt emission tuning coefficient (emission_scale) and resolutions used for

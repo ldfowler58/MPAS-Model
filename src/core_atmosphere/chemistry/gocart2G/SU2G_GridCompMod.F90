@@ -26,8 +26,8 @@
  use MAPL,only: MAPL_PackTime
 
  use SU2G_instance,only: nbins,particle_radius_microns,particle_density,fscav,molecular_weight, &
-                         fnum,rhFlag,pressure_lid_in_hPa,sigma,SO4_anthropogenic_fraction,      &
-                         aircraft_fuel_emission_factor,aviation_vertical_layers
+                         fnum,rhFlag,pressure_lid_in_hPa,sigma,particle_radius_number,          &
+                         SO4_anthropogenic_fraction,aircraft_fuel_emission_factor,aviation_vertical_layers
  use SU2G_StateSpecs,only: SU2G_State
 
 
@@ -90,6 +90,7 @@
     real(kind=RKIND):: eAircraftFuel                  ! aircraft emission factor: go from kg fuel to kg SO2
     real(kind=RKIND):: aviation_layers(4)             ! heights of the LTO, CDS and CRS layers
     real(kind=RKIND):: fSO4anth                       ! fraction of anthropogenic emissions that are SO4
+    real(kind=RKIND),dimension(:),allocatable:: rmed  ! number median radius [um]
     real(kind=RKIND),dimension(:),allocatable:: sigma ! sigma of lognormal number distribution
 
     !special handling for volcanic emissions:
@@ -143,10 +144,12 @@
  call self%load_from_config(nbins,particle_radius_microns,particle_density,fscav,molecular_weight,fnum, &
                             rhFlag,pressure_lid_in_hPa)
 
+ if(.not.allocated(self%rmed) ) allocate(self%rmed(self%nbins) )
  if(.not.allocated(self%sigma)) allocate(self%sigma(self%nbins))
  self%eAirCraftFuel = aircraft_fuel_emission_factor
  self%fSO4anth      = SO4_anthropogenic_fraction
  do n = 1,self%nbins
+    self%rmed(n)  = particle_radius_number(n)
     self%sigma(n) = sigma(n)
  enddo
  do n = 1,4
@@ -156,8 +159,8 @@
 !call mpas_log_write('--- nbins = $i',intArgs=(/self%nbins/))
 !call mpas_log_write('--- radius,rhop,fscav,molwght,fnum:')
 !do n = 1,self%nbins
-!   call mpas_log_write('$i $r $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
-!                       self%fscav(n),self%molwght(n),self%fnum(n),self%sigma(n)/))
+!   call mpas_log_write('$i $r $r $r $r $r $r $r',intArgs=(/n/),realArgs=(/self%radius(n),self%rhop(n), &
+!                       self%fscav(n),self%molwght(n),self%fnum(n),self%rmed(n),self%sigma(n)/))
 !enddo
 
 
