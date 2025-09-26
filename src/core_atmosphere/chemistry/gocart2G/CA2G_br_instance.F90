@@ -33,8 +33,11 @@
 !ratio of POM/BRC -> convert source masses from carbon to POM:
  real(kind=RKIND),parameter:: pom_ca_ratio = 1.8
 
-!particle radius:
+!dry particle radius [um], used for settling:
  real(kind=RKIND),dimension(nbins),parameter:: particle_radius_microns = (/0.35,0.35/)
+
+!number median radius [um], as defined in Table 2 of Chin et al. (2002):
+ real(kind=RKIND),dimension(nbins),parameter:: particle_radius_number = (/-1.0,0.0212/)
 
  integer,parameter:: rhFlag = 0
 

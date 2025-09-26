@@ -45,8 +45,11 @@
 !number of particles per kg mass:
  real(kind=RKIND),dimension(nbins),parameter:: fnum = (/1.50e19,1.50e19/)
 
-!number median radius [um]:
- real(kind=RKIND),dimension(nbins),parameter:: particle_radius_microns =  (/0.35,0.35/)
+!dry particle radius [um], used for settling:
+ real(kind=RKIND),dimension(nbins),parameter:: particle_radius_microns = (/0.35,0.35/)
+
+!number median radius [um], as defined in Table 2 of Chin et al. (2002):
+ real(kind=RKIND),dimension(nbins),parameter:: particle_radius_number = (/-1.0,0.0118/)
 
  integer,parameter:: rhFlag = 0
 

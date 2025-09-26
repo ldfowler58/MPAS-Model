@@ -55,6 +55,9 @@ real(kind=RKIND),dimension(nbins),parameter:: fnum = (/3.017e17,1.085e16,1.207e1
 !number median radius [um]:
 real(kind=RKIND),dimension(nbins),parameter:: particle_radius_number = (/0.066,0.176,0.885,2.061,6.901/)
 
+!sigma of lognormal number distribution:
+ real(kind=RKIND),dimension(nbins),parameter:: sigma = (/2.03,2.03,2.03,2.03,2.03/)
+
 real(kind=RKIND),parameter:: pressure_lid_in_hPa = 0.01
 
 !==================================================================================================================
