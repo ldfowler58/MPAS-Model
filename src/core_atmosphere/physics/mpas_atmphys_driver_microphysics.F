@@ -174,7 +174,9 @@
                 if(.not.allocated(nwfa_p)  ) allocate(nwfa_p(ims:ime,kms:kme,jms:jme))
 
               case("mp_thompson_gocart2G")
-                if(.not.allocated(nc_p)) allocate(nc_p(ims:ime,kms:kme,jms:jme))
+                if(.not.allocated(nc_p)  ) allocate(nc_p(ims:ime,kms:kme,jms:jme)  )
+                if(.not.allocated(nifa_p)) allocate(nifa_p(ims:ime,kms:kme,jms:jme))
+                if(.not.allocated(nwfa_p)) allocate(nwfa_p(ims:ime,kms:kme,jms:jme))
 
              case default
           end select microp3_select
@@ -263,7 +265,9 @@
                 if(allocated(nwfa_p)  ) deallocate(nwfa_p  )
 
               case("mp_thompson_gocart2G")
-                if(allocated(nc_p)) deallocate(nc_p)
+                if(allocated(nc_p)  ) deallocate(nc_p  )
+                if(allocated(nifa_p)) deallocate(nifa_p)
+                if(allocated(nwfa_p)) deallocate(nwfa_p)
 
              case default
           end select microp3_select
@@ -362,6 +366,7 @@
 
 !local variables and arrays:
  integer:: istep
+ integer:: i,j,k
 
 !CCPP-compliant flags:
  character(len=StrKIND):: errmsg
@@ -462,9 +467,15 @@
     case ("mp_thompson_gocart2G")
        call mpas_timer_start('mp_thompson_gocart2G')
 #ifdef DO_GOCART2G
-!      call mpas_chem_gocart2G%gocart2G_dims(mesh,state)
-!      call mpas_chem_gocart2G%gocart2G_allocate
        call mpas_chem_gocart2G%gocart2G_forMPASthom(state,time_lev)
+       do j = jts,jte
+          do i = its,ite
+             do k = kts,kte
+                nwfa_p(i,k,j) = mpas_chem_gocart2G%chem_nwfa(i,k)
+                nifa_p(i,k,j) = mpas_chem_gocart2G%chem_nifa(i,k)
+             enddo
+          enddo
+       enddo
        istep = 1
        do while (istep .le. n_microp)
        call mp_gt_driver( &
@@ -480,14 +491,20 @@
                   has_reqc = has_reqc    , has_reqi  = has_reqi    , has_reqs   = has_reqs     , &
                   nc       = nc_p        , ntc       = ntc_p       , muc        = muc_p        , &
                   pflrain  = prcpfluxr_p , pflice    = prcpfluxi_p , pflsnow    = prcpfluxs_p  , &
-                  pflgraul = prcpfluxg_p ,                                                       &
-                  nwfa = mpas_chem_gocart2G%chem_nwfa,                                           &
-                  nifa = mpas_chem_gocart2G%chem_nifa,                                           &
+                  pflgraul = prcpfluxg_p , nwfa      = nwfa_p      , nifa       = nifa_p       , &
                   ids = ids , ide = ide , jds = jds , jde = jde , kds = kds , kde = kde        , &
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
                            )
        istep = istep + 1
+       enddo
+       do j = jts,jte
+          do i = its,ite
+             do k = kts,kte
+                mpas_chem_gocart2G%chem_nwfa(i,k) = nwfa_p(i,k,j)
+                mpas_chem_gocart2G%chem_nifa(i,k) = nifa_p(i,k,j)
+             enddo
+          enddo
        enddo
        call mpas_chem_gocart2G%gocart2G_fromMPASthom(state,time_lev)
 #endif

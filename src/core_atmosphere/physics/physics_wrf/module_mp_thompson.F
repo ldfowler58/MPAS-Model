@@ -1008,7 +1008,7 @@
                               refl_10cm, diagflag, do_radar_ref,      &
                               re_cloud, re_ice, re_snow,              &
                               has_reqc, has_reqi, has_reqs,           &
-#if defined(mpas)
+#if defined(mpas) || defined(DO_GOCART2G)
                               ntc,muc,                                &
                               pflrain,pflice,pflsnow,pflgraul,        &
 #endif
@@ -1024,13 +1024,8 @@
                             its,ite, jts,jte, kts,kte
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
                           qv, qc, qr, qi, qs, qg, ni, nr, th
-#ifdef DO_GOCART2G
-      real,dimension(its:ite,kts:kte),intent(inout),optional:: nwfa,nifa
-      real,dimension(ims:ime,kms:kme,jms:jme),intent(inout),optional:: nc
-#else
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
                           nc, nwfa, nifa
-#endif
       REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(IN):: nwfa2d, nifa2d
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
                           re_cloud, re_ice, re_snow
@@ -1079,10 +1074,6 @@
 !     CHARACTER*256:: mp_debug
 
 !+---+
-
-!     call mpas_log_write(' ')
-!     call mpas_log_write('--- enter subroutine mp_gt_driver - is_aerosol_aware = $l', &
-!                         logicArgs=(/is_aerosol_aware/))
 
       i_start = its
       j_start = jts
@@ -1183,27 +1174,19 @@
             rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
          enddo
          if (is_aerosol_aware) then
-#ifdef DO_GOCART2G
-            do k = kts, kte
-               nc1d(k)   = nc(i,k,j)
-               nwfa1d(k) = nwfa(i,k)
-               nifa1d(k) = nifa(i,k)
-            enddo
-#else
             do k = kts, kte
                nc1d(k) = nc(i,k,j)
                nwfa1d(k) = nwfa(i,k,j)
                nifa1d(k) = nifa(i,k,j)
             enddo
-            nwfa1 = nwfa2d(i,j)
-#endif
+!-GT        nwfa1 = nwfa2d(i,j)
          else
             do k = kts, kte
                nc1d(k) = Nt_c/rho(k)
                nwfa1d(k) = 11.1E6/rho(k)
                nifa1d(k) = naIN1*0.01/rho(k)
             enddo
-            nwfa1 = 11.1E6
+!-GT        nwfa1 = 11.1E6
          endif
 
          call mp_thompson(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, ni1d,     &
@@ -1243,23 +1226,17 @@
 !.. Changed 13 May 2013 to fake emissions in which nwfa2d is aerosol
 !.. number tendency (number per kg per second).
          if (is_aerosol_aware) then
-#ifdef DO_GOCART2G
-            do k = kts, kte
-               nc(i,k,j) = nc1d(k)
-               nwfa(i,k) = nwfa1d(k)
-               nifa(i,k) = nifa1d(k)
-            enddo
-#else
-!-GT        nwfa1d(kts) = nwfa1
-            nwfa1d(kts) = nwfa1d(kts) + nwfa2d(i,j)*dt_in
-            nifa1d(kts) = nifa1d(kts) + nifa2d(i,j)*dt_in
+            if (present(nwfa2d) .and. present(nifa2d)) then
+!-GT           nwfa1d(kts) = nwfa1
+               nwfa1d(kts) = nwfa1d(kts) + nwfa2d(i,j)*dt_in
+               nifa1d(kts) = nifa1d(kts) + nifa2d(i,j)*dt_in
+            endif
 
             do k = kts, kte
                nc(i,k,j) = nc1d(k)
                nwfa(i,k,j) = nwfa1d(k)
                nifa(i,k,j) = nifa1d(k)
             enddo
-#endif
          endif
 
          do k = kts, kte
