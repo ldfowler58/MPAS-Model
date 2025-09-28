@@ -12,6 +12,7 @@
  use mpas_timekeeping
  use mpas_stream_manager
 
+ use mpas_chemistry_gocart2G_emissions_init
  use mpas_chemistry_gocart2G_emissions_update
  use mpas_chemistry_gocart2G_update
 
@@ -147,6 +148,9 @@
        call mpas_log_write('--- time to update gocart2G biogenic surface emissions:')
        call update_biog_emissions(clock,stream_manager,mesh,CAMS_biog_emissions,biog_emissions)
     endif
+
+    !--- updates local arrays:
+    call init_gocart2G_emissions(mesh,anth_emissions,biob_emissions,biog_emissions)
 
     block => block%next
 
