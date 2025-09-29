@@ -72,6 +72,12 @@
 !number of particles per kg mass:
  real(kind=RKIND),dimension(nbins),parameter:: fnum = (/2.45e14,3.28e13,6.52e12,9.89e11,1.76e11/)
 
+!number median radius [um]:
+real(kind=RKIND),dimension(nbins),parameter:: particle_radius_number = (/0.123,0.421,0.722,1.354,1.354/)
+
+!sigma of lognormal number distribution:
+ real(kind=RKIND),dimension(nbins),parameter:: sigma = (/2.0,2.0,2.0,2.0,2.0/)
+
  integer,parameter:: rhFlag = 0
 
 !maring settling velocity correction:
