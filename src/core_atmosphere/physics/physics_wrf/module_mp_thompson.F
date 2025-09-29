@@ -44,7 +44,6 @@
 
 !--- local variables and arrays:
  integer:: i,j,k
- integer:: itimestep
 
  real(kind=RKIND),dimension(its:ite):: muc_hv,ntc_hv
  real(kind=RKIND),dimension(its:ite):: nifa2d_hv,nwfa2d_hv
@@ -58,10 +57,9 @@
  real(kind=RKIND),dimension(its:ite,kts:kte):: recloud_hv,reice_hv,resnow_hv
 
 !------------------------------------------------------------------------------------------------------------------
- call mpas_log_write(' ')
- call mpas_log_write('--- enter subroutine mp_thompson_driver:')
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine mp_thompson_driver:')
 
- itimestep = 0
 
  do j = jts,jte
 
@@ -132,12 +130,6 @@
 
 
     !--- BEGIN CLOUD MICROPHYSICS SCHEME:
-    do i = its,10
-       do k = kts,kte
-          call mpas_log_write('$i $i $r',intArgs=(/i,k/),realArgs=(/p_hv(i,k)/))
-       enddo
-    enddo
-    call mpas_log_write(' ')
     call mp_thompson_run( &
             qv         = qv_hv         , qc       = qc_hv     , qr       = qr_hv       , qi        = qi_hv        , &
             qs         = qs_hv         , qg       = qg_hv     , ni       = ni_hv       , nr        = nr_hv        , &
@@ -149,7 +141,6 @@
             re_cloud   = recloud_hv    , re_ice   = reice_hv  , re_snow  = resnow_hv   , has_reqc  = has_reqc     , &
             has_reqi   = has_reqi      , has_reqs = has_reqs  , ntc      = ntc_hv      , muc       = muc_hv       , &
             pflrain    = pflrain_hv    , pflice   = pflice_hv , pflsnow  = pflsnow_hv  , pflgraul  = pflgraul_hv  , &
-            itimestep  = itimestep     ,                                                                            &
             ims        = ims           , ime      = ime       , jms      = jms         , jme       = jme          , &
             kms        = kms           , kme      = kme       , its      = its         , ite       = ite          , &
             jts        = jts           , jte      = jte       , kts      = kts         , kte       = kte            &
@@ -229,7 +220,7 @@
 
  enddo
 
- call mpas_log_write('--- end subroutine mp_thompson_driver.')
+!call mpas_log_write('--- end subroutine mp_thompson_driver.')
 
  end subroutine mp_thompson_driver
 

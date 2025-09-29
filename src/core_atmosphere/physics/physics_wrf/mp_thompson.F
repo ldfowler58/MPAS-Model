@@ -911,10 +911,10 @@
 
 !==================================================================================================================
  subroutine mp_thompson_run(qv,qc,qr,qi,qs,qg,ni,nr,nc,nwfa,nifa,nwfa2d,nifa2d, &
-                            th,pi,p,w,dz,dt_in,itimestep,rainnc,rainncv,snownc, &
-                            snowncv,graupelnc,graupelncv,sr,rainprod,evapprod,  &
-                            re_cloud,re_ice,re_snow,has_reqc,has_reqi,has_reqs, &
-                            ntc,muc,pflrain,pflice,pflsnow,pflgraul,            &
+                            th,pi,p,w,dz,dt_in,rainnc,rainncv,snownc,snowncv,   &
+                            graupelnc,graupelncv,sr,rainprod,evapprod,re_cloud, &
+                            re_ice,re_snow,has_reqc,has_reqi,has_reqs,ntc,muc,  &
+                            pflrain,pflice,pflsnow,pflgraul,                    &
                             ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte)
  implicit none
 !==================================================================================================================
@@ -922,7 +922,6 @@
 !--- input arguments:
  integer,intent(in):: ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte
  integer,intent(in):: has_reqc,has_reqi,has_reqs
- integer,intent(in):: itimestep
 
  real(kind=RKIND),intent(in):: dt_in
  real(kind=RKIND),intent(in),dimension(its:ite):: ntc,muc
@@ -952,6 +951,9 @@
  real(kind=RKIND),dimension(kts:kte):: ppfr1d,ppfi1d,ppfs1d,ppfg1d
 
 !------------------------------------------------------------------------------------------------------------------
+!call mpas_log_write(' ')
+!call mpas_log_write('--- enter subroutine mp_thompson_run - is_aerosol_aware = $l', &
+!                    logicArgs=(/is_aerosol_aware/))
 
  dt = dt_in
    
@@ -1018,7 +1020,6 @@
             ppfr1d , ppfi1d  , ppfs1d  , ppfg1d   , kts    , kte        , dt           &
                     )
 
-
     rainncv(i)    = pptrain + pptsnow + pptgraul + pptice
     rainnc(i)     = rainnc(i) + pptrain + pptsnow + pptgraul + pptice
     snowncv(i)    = pptsnow + pptice
@@ -1062,6 +1063,7 @@
        enddo
     endif
 
+
     !--- calculate effective radius of cloud water, cloud ice, and snow:
     if(has_reqc.ne.0 .and. has_reqi.ne.0 .and. has_reqs.ne.0) then
        do k = kts,kte
@@ -1079,6 +1081,9 @@
     endif
 
  enddo
+
+
+!call mpas_log_write('--- end subroutine mp_thompson_run.')
 
  end subroutine mp_thompson_run
 

@@ -76,6 +76,9 @@ module_cu_ntiedtke.o: \
 	cu_ntiedtke_post.o \
 	cu_ntiedtke_pre.o
 
+module_mp_thompson.o: \
+	mp_thompson.o
+
 module_ra_cam.o: \
 	module_cam_support.o \
 	module_ra_cam_support.o
