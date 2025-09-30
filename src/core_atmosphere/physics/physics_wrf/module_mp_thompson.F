@@ -14,9 +14,9 @@
 
 !==================================================================================================================
  subroutine mp_thompson_driver(qv,qc,qr,qi,qs,qg,ni,nr,nc,nwfa,nifa,nwfa2d,nifa2d,th,pii,p,w,dz,dt, &
-                         ntc,muc,has_reqc,has_reqi,has_reqs,re_cloud,re_ice,re_snow,rainnc,rainncv, &
-                         snownc,snowncv,graupelnc,graupelncv,sr,rainprod,evapprod,pflrain,pflice,   &
-                         pflsnow,pflgraul,ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte)
+                         ntc,muc,ka,ra,has_reqc,has_reqi,has_reqs,re_cloud,re_ice,re_snow,rainnc,   &
+                         rainncv,snownc,snowncv,graupelnc,graupelncv,sr,rainprod,evapprod,pflrain,  &
+                         pflice,pflsnow,pflgraul,ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte)
 !==================================================================================================================
 
 !--- input arguments:
@@ -27,6 +27,7 @@
  real(kind=RKIND),intent(in),dimension(ims:ime,jms:jme):: ntc,muc
  real(kind=RKIND),intent(inout),dimension(ims:ime,jms:jme),optional:: nifa2d,nwfa2d
  real(kind=RKIND),intent(in),dimension(ims:ime,kms:kme,jms:jme):: pii,p,w,dz
+ real(kind=RKIND),intent(in),dimension(ims:ime,kms:kme,jms:jme),optional:: ka,ra
 
 !--- inout arguments:
  real(kind=RKIND),intent(inout),dimension(ims:ime,jms:jme):: rainnc
@@ -52,6 +53,7 @@
  real(kind=RKIND),dimension(its:ite,kts:kte):: th_hv,dz_hv,pi_hv,p_hv,w_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: qv_hv,qc_hv,qr_hv,qi_hv,qs_hv,qg_hv,ni_hv,nr_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: nc_hv,nwfa_hv,nifa_hv
+ real(kind=RKIND),dimension(its:ite,kts:kte):: ka_hv,ra_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: rainprod_hv,evapprod_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: pflrain_hv,pflice_hv,pflsnow_hv,pflgraul_hv
  real(kind=RKIND),dimension(its:ite,kts:kte):: recloud_hv,reice_hv,resnow_hv
@@ -105,6 +107,25 @@
        enddo
     endif
 
+    if(present(ka) .and. present(ra)) then
+       do i = its,ite
+          do k = kts,kte
+             ka_hv(i,k) = ka(i,k,j)
+             ra_hv(i,k) = ra(i,k,j)
+          enddo
+       enddo
+    else
+       !--- hygroscopicity and number mean radius are initialized to the same values as
+       !    the ones used with the option mp_thompson_aerosols, following Thompson and
+       !    Eidhammer (2014):
+       do i = its,ite
+          do k = kts,kte
+             ka_hv(i,k) = 0.4
+             ra_hv(i,k) = 0.04
+          enddo
+       enddo
+    endif
+
     if(present(nwfa2d) .and. present(nifa2d)) then
        do i = its,ite
           nifa2d_hv(i) = nifa2d(i,j)
@@ -131,19 +152,24 @@
 
     !--- BEGIN CLOUD MICROPHYSICS SCHEME:
     call mp_thompson_run( &
-            qv         = qv_hv         , qc       = qc_hv     , qr       = qr_hv       , qi        = qi_hv        , &
-            qs         = qs_hv         , qg       = qg_hv     , ni       = ni_hv       , nr        = nr_hv        , &
-            nc         = nc_hv         , nwfa     = nwfa_hv   , nifa     = nifa_hv     , nwfa2d    = nwfa2d_hv    , &
-            nifa2d     = nifa2d_hv     , th       = th_hv     , pi       = pi_hv       , p         = p_hv         , &
-            w          = w_hv          , dz       = dz_hv     , dt_in    = dt          , rainnc    = rainnc_hv    , &
-            rainncv    = rainncv_hv    , snownc   = snownc_hv , snowncv  = snowncv_hv  , graupelnc = graupelnc_hv , &
-            graupelncv = graupelncv_hv , sr       = sr_hv     , rainprod = rainprod_hv , evapprod  = evapprod_hv  , &
-            re_cloud   = recloud_hv    , re_ice   = reice_hv  , re_snow  = resnow_hv   , has_reqc  = has_reqc     , &
-            has_reqi   = has_reqi      , has_reqs = has_reqs  , ntc      = ntc_hv      , muc       = muc_hv       , &
-            pflrain    = pflrain_hv    , pflice   = pflice_hv , pflsnow  = pflsnow_hv  , pflgraul  = pflgraul_hv  , &
-            ims        = ims           , ime      = ime       , jms      = jms         , jme       = jme          , &
-            kms        = kms           , kme      = kme       , its      = its         , ite       = ite          , &
-            jts        = jts           , jte      = jte       , kts      = kts         , kte       = kte            &
+            qv       = qv_hv      , qc        = qc_hv        , qr         = qr_hv         , &
+            qi       = qi_hv      , qs        = qs_hv        , qg         = qg_hv         , &
+            ni       = ni_hv      , nr        = nr_hv        , nc         = nc_hv         , &
+            nwfa     = nwfa_hv    , nifa      = nifa_hv      , ka         = ka_hv         , &
+            ra       = ra_hv      , nwfa2d    = nwfa2d_hv    , nifa2d     = nifa2d_hv     , &
+            th       = th_hv      , pi        = pi_hv        , p          = p_hv          , &
+            w        = w_hv       , dz        = dz_hv        , dt_in      = dt            , &
+            rainnc   = rainnc_hv  , rainncv   = rainncv_hv   , snownc     = snownc_hv     , &
+            snowncv  = snowncv_hv , graupelnc = graupelnc_hv , graupelncv = graupelncv_hv , &
+            sr       = sr_hv      , rainprod  = rainprod_hv  , evapprod   = evapprod_hv   , &
+            re_cloud = recloud_hv , re_ice    = reice_hv     , re_snow    = resnow_hv     , &
+            has_reqc = has_reqc   , has_reqi  = has_reqi     , has_reqs   = has_reqs      , &
+            ntc      = ntc_hv     , muc       = muc_hv       , pflrain    = pflrain_hv    , &
+            pflice   = pflice_hv  , pflsnow   = pflsnow_hv   , pflgraul   = pflgraul_hv   , &
+            ims      = ims        , ime       = ime          , jms        = jms           , &
+            jme      = jme        , kms       = kms          , kme        = kme           , &
+            its      = its        , ite       = ite          , jts        = jts           , &
+            jte      = jte        , kts       = kts          , kte        = kte             &
                         )
     !--- END CLOUD MICROPHYSICS SCHEME:
 

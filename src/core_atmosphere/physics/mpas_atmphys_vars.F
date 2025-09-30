@@ -298,7 +298,9 @@
 
  real(kind=RKIND),dimension(:,:,:),allocatable:: &
     nifa_p,           &!"ice-friendly" number concentration                                                 [#/kg]
-    nwfa_p             !"water-friendly" number concentration                                               [#/kg]
+    nwfa_p,           &!"water-friendly" number concentration                                               [#/kg]
+    ra_p,             &!mean radius for computation of CCN activation                                          [-]
+    ka_p               !hygroscopicity for computation of CCN activation                                       [-]
 
 !=================================================================================================================
 !... variables and arrays related to parameterization of convection:

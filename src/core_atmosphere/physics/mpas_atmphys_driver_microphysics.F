@@ -180,6 +180,8 @@
                 if(.not.allocated(nc_p)  ) allocate(nc_p(ims:ime,kms:kme,jms:jme)  )
                 if(.not.allocated(nifa_p)) allocate(nifa_p(ims:ime,kms:kme,jms:jme))
                 if(.not.allocated(nwfa_p)) allocate(nwfa_p(ims:ime,kms:kme,jms:jme))
+                if(.not.allocated(ra_p)  ) allocate(ra_p(ims:ime,kms:kme,jms:jme)  )
+                if(.not.allocated(ka_p)  ) allocate(ka_p(ims:ime,kms:kme,jms:jme)  )
 
              case default
           end select microp3_select
@@ -271,6 +273,8 @@
                 if(allocated(nc_p)  ) deallocate(nc_p  )
                 if(allocated(nifa_p)) deallocate(nifa_p)
                 if(allocated(nwfa_p)) deallocate(nwfa_p)
+                if(allocated(ra_p)  ) deallocate(ra_p  )
+                if(allocated(ka_p)  ) deallocate(ka_p  )
 
              case default
           end select microp3_select
@@ -474,6 +478,8 @@
              do k = kts,kte
                 nwfa_p(i,k,j) = mpas_chem_gocart2G%chem_nwfa(i,k)
                 nifa_p(i,k,j) = mpas_chem_gocart2G%chem_nifa(i,k)
+                ka_p(i,k,j)   = mpas_chem_gocart2G%chem_ka(i,k)
+                ra_p(i,k,j)   = mpas_chem_gocart2G%chem_ra(i,k)
              enddo
           enddo
        enddo
@@ -492,7 +498,8 @@
                   re_ice    = reice_p     , re_snow    = resnow_p     , has_reqc = has_reqc    , &
                   has_reqi  = has_reqi    , has_reqs   = has_reqs     , pflrain  = prcpfluxr_p , &
                   pflice    = prcpfluxi_p , pflsnow    = prcpfluxs_p  , pflgraul = prcpfluxg_p , &
-                  nwfa      = nwfa_p      , nifa       = nifa_p       ,                          &
+                  nwfa      = nwfa_p      , nifa       = nifa_p       , ka       = ka_p        , &
+                  ra        = ra_p        ,                                                      &
                   ims = ims , ime = ime , jms = jms , jme = jme , kms = kms , kme = kme        , &
                   its = its , ite = ite , jts = jts , jte = jte , kts = kts , kte = kte          &
                               )

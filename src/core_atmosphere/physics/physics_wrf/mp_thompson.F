@@ -910,12 +910,11 @@
  end subroutine thompson_init
 
 !==================================================================================================================
- subroutine mp_thompson_run(qv,qc,qr,qi,qs,qg,ni,nr,nc,nwfa,nifa,nwfa2d,nifa2d, &
-                            th,pi,p,w,dz,dt_in,rainnc,rainncv,snownc,snowncv,   &
-                            graupelnc,graupelncv,sr,rainprod,evapprod,re_cloud, &
-                            re_ice,re_snow,has_reqc,has_reqi,has_reqs,ntc,muc,  &
-                            pflrain,pflice,pflsnow,pflgraul,                    &
-                            ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte)
+ subroutine mp_thompson_run(qv,qc,qr,qi,qs,qg,ni,nr,nc,nwfa,nifa,ka,ra,nwfa2d,nifa2d,   &
+                            th,pi,p,w,dz,dt_in,rainnc,rainncv,snownc,snowncv,graupelnc, &
+                            graupelncv,sr,rainprod,evapprod,re_cloud,re_ice,re_snow,    &
+                            has_reqc,has_reqi,has_reqs,ntc,muc,pflrain,pflice,pflsnow,  &
+                            pflgraul,ims,ime,jms,jme,kms,kme,its,ite,jts,jte,kts,kte)
  implicit none
 !==================================================================================================================
 
@@ -937,6 +936,7 @@
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte),optional:: rainprod,evapprod
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte),optional:: pflrain,pflice,pflsnow,pflgraul
  real(kind=RKIND),intent(inout),dimension(its:ite,kts:kte),optional:: nc,nwfa,nifa
+ real(kind=RKIND),intent(in),dimension(its:ite,kts:kte),optional:: ka,ra
 
 !--- local variables and arrays:
  integer:: i,j,k
@@ -944,16 +944,16 @@
  real(kind=RKIND):: dt
  real(kind=RKIND):: pptrain,pptsnow,pptgraul,pptice
  real(kind=RKIND),dimension(kts:kte):: qv1d,qc1d,qi1d,qr1d,qs1d,qg1d
- real(kind=RKIND),dimension(kts:kte):: ni1d,nr1d,nc1d,nwfa1d,nifa1d
+ real(kind=RKIND),dimension(kts:kte):: ni1d,nr1d,nc1d,nwfa1d,nifa1d,ka1d,ra1d
  real(kind=RKIND),dimension(kts:kte):: t1d,p1d,w1d,dz1d,rho
  real(kind=RKIND),dimension(kts:kte):: re_qc1d,re_qi1d,re_qs1d
  real(kind=RKIND),dimension(kts:kte):: rainprod1d, evapprod1d
  real(kind=RKIND),dimension(kts:kte):: ppfr1d,ppfi1d,ppfs1d,ppfg1d
 
 !------------------------------------------------------------------------------------------------------------------
-!call mpas_log_write(' ')
-!call mpas_log_write('--- enter subroutine mp_thompson_run - is_aerosol_aware = $l', &
-!                    logicArgs=(/is_aerosol_aware/))
+ call mpas_log_write(' ')
+ call mpas_log_write('--- enter subroutine mp_thompson_run - is_aerosol_aware = $l', &
+                     logicArgs=(/is_aerosol_aware/))
 
  dt = dt_in
    
@@ -1003,6 +1003,13 @@
           nwfa1d(k) = nwfa(i,k)
           nifa1d(k) = nifa(i,k)
        enddo
+
+       if(present(ka) .and. present(ra)) then
+          do k = kts,kte
+             ka1d(k) = ka(i,k)
+             ra1d(k) = ra(i,k)
+          enddo
+       endif
     else
        do k = kts, kte
           nc1d(k)   = Nt_c/rho(k)
@@ -1013,11 +1020,16 @@
 
 
     !--- call to 1D Thompson cloud microphysics scheme:
+    do k = kts,kte
+       call mpas_log_write('$i $i $r $r',intArgs=(/i,k/),realArgs=(/ka1d(k),ra1d(k)/))
+    enddo
+    call mpas_log_write(' ')
     call thompson_1d( &
-            qv1d   , qc1d    , qi1d    , qr1d     , qs1d   , qg1d       , ni1d       , &
-            nr1d   , nc1d    , nwfa1d  , nifa1d   , t1d    , p1d        , w1d        , &
-            dz1d   , pptrain , pptsnow , pptgraul , pptice , rainprod1d , evapprod1d , &
-            ppfr1d , ppfi1d  , ppfs1d  , ppfg1d   , kts    , kte        , dt           &
+            qv1d       , qc1d       , qi1d    , qr1d    , qs1d    , qg1d     , ni1d   , &
+            nr1d       , nc1d       , nwfa1d  , nifa1d  , ka1d    , ra1d     , t1d    , &
+            p1d        , w1d        , dz1d    , pptrain , pptsnow , pptgraul , pptice , &
+            rainprod1d , evapprod1d , ppfr1d  , ppfi1d  , ppfs1d  , ppfg1d   , dt     , &
+            kts        , kte        , i                                                 &
                     )
 
     rainncv(i)    = pptrain + pptsnow + pptgraul + pptice
@@ -1098,21 +1110,23 @@
 !.. Thompson et al. (2004, 2008).
 !+---+-----------------------------------------------------------------+
 !
-      subroutine thompson_1d(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, ni1d,   &
-                         nr1d, nc1d, nwfa1d, nifa1d, t1d, p1d, w1d, dzq, &
-                         pptrain, pptsnow, pptgraul, pptice,             &
-                         rainprod, evapprod,                             &
-                         ppfr,ppfi,ppfs,ppfg,                            &
-                         kts, kte, dt)
+      subroutine thompson_1d(qv1d,qc1d,qi1d,qr1d,qs1d,qg1d,ni1d, &
+                         nr1d,nc1d,nwfa1d,nifa1d,ka1d,ra1d, t1d, &
+                         p1d,w1d,dzq,pptrain,pptsnow,pptgraul,   &
+                         pptice,rainprod, evapprod,              &
+                         ppfr,ppfi,ppfs,ppfg,dt,                 &
+                         kts,kte,ii)
 
       implicit none
 
 !..Sub arguments
+      INTEGER, INTENT(IN):: ii
       INTEGER, INTENT(IN):: kts, kte
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, ni1d, &
                           nr1d, nc1d, nwfa1d, nifa1d, t1d
       REAL, DIMENSION(kts:kte), INTENT(IN):: p1d, w1d, dzq
+      REAL, DIMENSION(kts:kte), INTENT(IN):: ka1d, ra1d
       REAL, INTENT(INOUT):: pptrain, pptsnow, pptgraul, pptice
       REAL, INTENT(IN):: dt
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
@@ -2757,7 +2771,7 @@
 !+---+-----------------------------------------------------------------+ !  DROPLET NUCLEATION
            if (clap .gt. eps) then
             if (is_aerosol_aware) then
-               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k)))
+               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k), ka1d(k), ra1d(k), ii, k))
             else
                xnc = Nt_c
             endif
@@ -3987,17 +4001,20 @@
 !..TO_DO ITEM:  For radiation cooling producing fog, in which case the updraft velocity could easily be negative,
 !  we could use the temp and its tendency to diagnose a pretend postive updraft velocity.
 
- real function activ_ncloud(Tt,Ww,NCCN)
+ real function activ_ncloud(Tt,Ww,NCCN,ka,ra,ii,kk)
  implicit none
 !==================================================================================================================
 
 !... input arguments:
- real(kind=RKIND),intent(in):: Tt,Ww,NCCN
+ integer,intent(in):: ii,kk
+ real(kind=RKIND),intent(in):: Tt,Ww,NCCN,ka,ra
 
 !... local variables:
  integer:: i,j,k,l,m,n
  real(kind=RKIND):: n_local,w_local
+ real(kind=RKIND):: k_local,r_local
  real(kind=RKIND):: A,B,C,D,t,u,x1,x2,y1,y2,nx,wy,fraction
+ real(kind=RKIND):: diff1,diff2
 
 !------------------------------------------------------------------------------------------------------------------
 
@@ -4041,6 +4058,55 @@
  k = max(1,min(nint( (Tt - ta_Tk(1))*0.1) + 1, ntb_art))
 
 
+!--- compute the index for hygroscopicity:
+ k_local = ka
+ diff1 = abs(k_local - ta_Ka(1))
+ if((k_local-ta_Ka(1)).le.0._RKIND .or. diff1.le.1.e-06) then
+    n = 1
+    goto 8006
+ endif
+ diff2 = abs(k_local - ta_Ka(ntb_ark))
+ if((k_local-ta_Ka(ntb_ark)).ge.0._RKIND .or. diff2.le.1.e-06) then
+    n = ntb_ark
+    goto 8006
+ endif
+
+ do n = 2, ntb_ark
+    diff1 = abs(k_local-ta_Ka(n-1))
+    diff2 = abs(k_local-ta_Ka(n))
+    if((diff1.le.1.e-06 .or. diff2.le.1.e-06) .or. &
+       (k_local.gt.ta_Ka(n-1) .and. k_local.le.ta_Ka(n))) goto 8006
+ enddo
+ 8006 continue
+ m = n
+ call mpas_log_write('--- end function activ_ncloud k_local: $i $i $i  k_local = $r', &
+                     intArgs=(/ii,kk,m/),realArgs=(/k_local/))
+
+!--- compute the index for mean radius:
+ r_local = ra
+ diff1 = abs(r_local - ta_Ra(1))
+ if((r_local-ta_Ra(1)).le.0._RKIND .or. diff1.le.1.e-06) then
+    n = 1
+    goto 8007
+ endif
+ diff2 = abs(r_local - ta_Ra(ntb_arr))
+ if((r_local-ta_Ra(ntb_arr)).ge.0._RKIND .or. diff2.le.1.e-06) then
+    n = ntb_arr
+    goto 8007
+ endif
+
+ do n = 2, ntb_arr
+    diff1 = abs(r_local-ta_Ra(n-1))
+    diff2 = abs(r_local-ta_Ra(n))
+    if((diff1 .le.1.e-06 .or. diff2.le.1.e-06) .or. &
+       (r_local.ge.ta_Ra(n-1) .and. r_local.lt.ta_Ra(n))) goto 8007
+ enddo
+ 8007 continue
+ l = n
+ call mpas_log_write('--- end function activ_ncloud r_local: $i $i $i  r_local = $r', &
+                     intArgs=(/ii,kk,l/),realArgs=(/r_local/))
+
+
 !..The next two values are indexes of mean aerosol radius and hygroscopicity.  Currently these are constant
 !  but a future version should implement other variables to allow more freedom such as at least simple separation
 !  of tiny size sulfates from larger sea salts:
@@ -4061,11 +4127,9 @@
 
  fraction = (1.0-t)*(1.0-u)*A + t*(1.0-u)*B + t*u*C + (1.0-t)*u*D
 
-!if(NCCN*fraction .gt. 0.75*Nt_c_max) then
-!   write(*,*) ' DEBUG-GT ', n_local, w_local, Tt, i, j, k
-!endif
-
  activ_ncloud = NCCN*fraction
+ call mpas_log_write('--- end function activ_ncloud activ_ncloud = $r $r',realArgs=(/activ_ncloud,fraction/))
+
 
  end function activ_ncloud
 
