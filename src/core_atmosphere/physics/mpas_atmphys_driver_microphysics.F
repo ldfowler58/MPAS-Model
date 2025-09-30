@@ -468,7 +468,7 @@
     case ("mp_thompson_gocart2G")
        call mpas_timer_start('mp_thompson_gocart2G')
 #ifdef DO_GOCART2G
-       call mpas_chem_gocart2G%gocart2G_forMPASthom(state,time_lev)
+       call mpas_chem_gocart2G%gocart2G_forMPASthom(diag,state,time_lev)
        do j = jts,jte
           do i = its,ite
              do k = kts,kte
