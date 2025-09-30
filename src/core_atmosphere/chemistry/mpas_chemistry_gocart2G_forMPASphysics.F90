@@ -10,7 +10,7 @@
  use mpas_log
  use mpas_kind_types
  use mpas_derived_types,only: mpas_pool_type,MPAS_LOG_CRIT
- use mpas_pool_routines,only: mpas_pool_get_array,mpas_pool_get_dimension
+ use mpas_pool_routines,only: mpas_pool_get_array,mpas_pool_get_config,mpas_pool_get_dimension
 
  use CA2G_bc_GridCompMod
  use CA2G_br_GridCompMod
@@ -241,11 +241,13 @@
  end subroutine gocart2G_forMPASphys_deallocate
 
 !==================================================================================================================
- subroutine gocart2G_forMPASphys_init(self,CA2G_bc_params,CA2G_br_params,CA2G_oc_params,DU2G_params,NI2G_params, &
-                         SS2G_params,SU2G_params)
+ subroutine gocart2G_forMPASphys_init(self,configs,CA2G_bc_params,CA2G_br_params,CA2G_oc_params,DU2G_params, &
+                                      NI2G_params,SS2G_params,SU2G_params)
 !==================================================================================================================
 
 !--- input arguments:
+ type(mpas_pool_type),intent(in):: configs
+
  type(CA2G_bc_GridComp),intent(in):: CA2G_bc_params
  type(CA2G_br_GridComp),intent(in):: CA2G_br_params
  type(CA2G_oc_GridComp),intent(in):: CA2G_oc_params
@@ -259,10 +261,35 @@
 
 !--- local variables and pointers:
  integer:: n,nn
+ real(kind=RKIND),pointer:: hygrosBC,hygrosBR,hygrosOC
+ real(kind=RKIND),pointer:: hygrosDU1,hygrosDU2,hygrosDU3,hygrosDU4,hygrosDU5
+ real(kind=RKIND),pointer:: hygrosNI1,hygrosNI2,hygrosNI3
+ real(kind=RKIND),pointer:: hygrosSU
+ real(kind=RKIND),pointer:: hygrosSS1,hygrosSS2,hygrosSS3,hygrosSS4,hygrosSS5
 
 !------------------------------------------------------------------------------------------------------------------
  call mpas_log_write(' ')
  call mpas_log_write('--- enter subroutine gocart2G_forMPASphys_init:')
+
+
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosBC' ,hygrosBC )
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosBR' ,hygrosBR )
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosOC' ,hygrosOC )
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosDU1',hygrosDU1)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosDU2',hygrosDU2)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosDU3',hygrosDU3)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosDU4',hygrosDU4)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosDU5',hygrosDU5)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosNI1',hygrosNI1)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosNI2',hygrosNI2)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosNI3',hygrosNI3)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosSU' ,hygrosSU )
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosSS1',hygrosSS1)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosSS2',hygrosSS2)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosSS3',hygrosSS3)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosSS4',hygrosSS4)
+ call mpas_pool_get_config(configs,'config_gocart2g_hygrosSS5',hygrosSS5)
+
 
  if(associated(self%fdens)  ) self%fdens(:)   = 0._RKIND
  if(associated(self%fhygros)) self%fhygros(:) = 0._RKIND
@@ -284,7 +311,7 @@
  self%fthom_w(n) = .false.                 ! hydrophobic
  n = n+ 1
  self%fdens(n)   = CA2G_bc_params%rhop(2)  ! hydrophilic
- self%fhygros(n) = 0.10                    ! hydrophilic (as hygro_ca_aer in WRF/chem)
+ self%fhygros(n) = hygrosBC                ! hydrophilic (as hygro_ca_aer in WRF/chem)
  self%fmeanr(n)  = CA2G_bc_params%rmed(2)  ! hydrophilic
  self%fnum(n)    = CA2G_bc_params%fnum(2)  ! hydrophilic
  self%fscav(n)   = CA2G_bc_params%fscav(2) ! hydrophilic
@@ -300,7 +327,7 @@
  self%fthom_w(n) = .false.                 ! hydrophobic
  n = n+1
  self%fdens(n)   = CA2G_br_params%rhop(2)  ! hydrophilic
- self%fhygros(n) = 0.10                    ! hydrophilic (as hygro_ca_aer in WRF/chem)
+ self%fhygros(n) = hygrosBR                ! hydrophilic (as hygro_ca_aer in WRF/chem)
  self%fmeanr(n)  = CA2G_br_params%rmed(2)  ! hydrophilic
  self%fnum(n)    = CA2G_br_params%fnum(2)  ! hydrophilic
  self%fscav(n)   = CA2G_br_params%fscav(2) ! hydrophilic
@@ -316,7 +343,7 @@
  self%fthom_w(n) = .false.                 ! hydrophobic
  n = n+1
  self%fdens(n)   = CA2G_oc_params%rhop(2)  ! hydrophilic
- self%fhygros(n) = 0.10                    ! hydrophilic (as hygro_ca_aer in WRF/chem)
+ self%fhygros(n) = hygrosOC                ! hydrophilic (as hygro_ca_aer in WRF/chem)
  self%fmeanr(n)  = CA2G_oc_params%rmed(2)  ! hydrophilic
  self%fnum(n)    = CA2G_oc_params%fnum(2)  ! hydrophilic
  self%fscav(n)   = CA2G_oc_params%fscav(2) ! hydrophilic
@@ -325,35 +352,35 @@
 !--- mineral dust:
  n = n+1
  self%fdens(n)   = DU2G_params%rhop(1)     ! dust bin 1
- self%fhygros(n) = 0.1                     ! dust bin 1 (as hygro_dust_aer in WRF/chem)
+ self%fhygros(n) = hygrosDU1               ! dust bin 1 (as hygro_dust_aer in WRF/chem)
  self%fmeanr(n)  = DU2G_params%rmed(1)     ! dust bin 1
  self%fnum(n)    = DU2G_params%fnum(1)     ! dust bin 1
  self%fscav(n)   = DU2G_params%fscav(1)    ! dust bin 1
  self%fthom_w(n) = .true.                  ! dust bin 1
  n = n+1
  self%fdens(n)   = DU2G_params%rhop(2)     ! dust bin 2
- self%fhygros(n) = 0.1                     ! dust bin 2 (as hygro_dust_aer in WRF/chem)
+ self%fhygros(n) = hygrosDU2               ! dust bin 2 (as hygro_dust_aer in WRF/chem)
  self%fmeanr(n)  = DU2G_params%rmed(2)     ! dust bin 2
  self%fnum(n)    = DU2G_params%fnum(2)     ! dust bin 2
  self%fscav(n)   = DU2G_params%fscav(2)    ! dust bin 2
  self%fthom_w(n) = .true.                  ! dust bin 2
  n = n+1
  self%fdens(n)   = DU2G_params%rhop(3)     ! dust bin 3
- self%fhygros(n) = 0.1                     ! dust bin 3 (as hygro_dust_aer in WRF/chem)
+ self%fhygros(n) = hygrosDU3               ! dust bin 3 (as hygro_dust_aer in WRF/chem)
  self%fmeanr(n)  = DU2G_params%rmed(3)     ! dust bin 3
  self%fnum(n)    = DU2G_params%fnum(3)     ! dust bin 3
  self%fscav(n)   = DU2G_params%fscav(3)    ! dust bin 3
  self%fthom_w(n) = .true.                  ! dust bin 3
  n = n+1
  self%fdens(n)   = DU2G_params%rhop(4)     ! dust bin 4
- self%fhygros(n) = 0.1                     ! dust bin 4 (as hygro_dust_aer in WRF/chem)
+ self%fhygros(n) = hygrosDU4               ! dust bin 4 (as hygro_dust_aer in WRF/chem)
  self%fmeanr(n)  = DU2G_params%rmed(4)     ! dust bin 4
  self%fnum(n)    = DU2G_params%fnum(4)     ! dust bin 4
  self%fscav(n)   = DU2G_params%fscav(4)    ! dust bin 4
  self%fthom_w(n) = .true.                  ! dust bin 4
  n = n+1
  self%fdens(n)   = DU2G_params%rhop(5)     ! dust bin 5
- self%fhygros(n) = 0.1                     ! dust bin 5
+ self%fhygros(n) =  0._RKIND               ! dust bin 5
  self%fmeanr(n)  = -1._RKIND               ! dust bin 5
  self%fnum(n)    = DU2G_params%fnum(5)     ! dust bin 5
  self%fscav(n)   = DU2G_params%fscav(5)    ! dust bin 5
@@ -362,21 +389,21 @@
 !--- nitrate:
  n = n+1
  self%fdens(n)   = NI2G_params%rhop(3)     ! no3an1
- self%fhygros(n) = 0.5                     ! no3an1 (as hygro_no3_aer in WRF/chem)
+ self%fhygros(n) = hygrosNI1               ! no3an1 (as hygro_no3_aer in WRF/chem)
  self%fmeanr(n)  = NI2G_params%rmed(3)     ! no3an1
  self%fnum(n)    = NI2G_params%fnum(3)     ! no3an1
  self%fscav(n)   = NI2G_params%fscav(3)    ! no3an1
  self%fthom_w(n) = .true.                  ! no3an1
  n = n+1
  self%fdens(n)   = NI2G_params%rhop(4)     ! no3an2
- self%fhygros(n) = 0.5                     ! no3an2 (as hygro_no3_aer in WRF/chem)
+ self%fhygros(n) = hygrosNI2               ! no3an2 (as hygro_no3_aer in WRF/chem)
  self%fmeanr(n)  = NI2G_params%rmed(4)     ! no3an2
  self%fnum(n)    = NI2G_params%fnum(4)     ! no3an2
  self%fscav(n)   = NI2G_params%fscav(4)    ! no3an2
  self%fthom_w(n) = .true.                  ! no3an2
  n = n+1
  self%fdens(n)   = NI2G_params%rhop(5)     ! no3an3
- self%fhygros(n) = 0.5                     ! no3an3 (as hygro_no3_aer in WRF/chem)
+ self%fhygros(n) = hygrosNI3               ! no3an3 (as hygro_no3_aer in WRF/chem)
  self%fmeanr(n)  = NI2G_params%rmed(5)     ! no3an3
  self%fnum(n)    = NI2G_params%fnum(5)     ! no3an3
  self%fscav(n)   = NI2G_params%fscav(5)    ! no3an3
@@ -399,14 +426,14 @@
  self%fthom_w(n) = .false.                 ! volcanic so2
  n = n+1
  self%fdens(n)   = SU2G_params%rhop(3)     ! so4
- self%fhygros(n) = 0.5                     ! so4 (as hygro_so4_aer in WRF/chem)
+ self%fhygros(n) = hygrosSU                ! so4 (as hygro_so4_aer in WRF/chem)
  self%fmeanr(n)  = SU2G_params%rmed(3)     ! so4
  self%fnum(n)    = SU2G_params%fnum(3)     ! so4
  self%fscav(n)   = SU2G_params%fscav(3)    ! so4
  self%fthom_w(n) = .true.                  ! so4
  n = n+1
  self%fdens(n)   = SU2G_params%rhop(3)     ! volcanic so4
- self%fhygros(n) = 0.5                     ! volcanic so4 (as hygro_so4_aer in WRF/chem)
+ self%fhygros(n) = hygrosSU                ! volcanic so4 (as hygro_so4_aer in WRF/chem)
  self%fmeanr(n)  = SU2G_params%rmed(3)     ! volcanic so4
  self%fnum(n)    = SU2G_params%fnum(3)     ! volcanic so4
  self%fscav(n)   = SU2G_params%fscav(3)    ! volcanic so4
@@ -415,35 +442,35 @@
 !--- sea salt:
  n = n+1
  self%fdens(n)   = SS2G_params%rhop(1)     ! sea salt bin 1
- self%fhygros(n) = 1.16                    ! sea salt bin 1 (as hygro_seas_aer in WRF/chem)
+ self%fhygros(n) = hygrosSS1               ! sea salt bin 1 (as hygro_seas_aer in WRF/chem)
  self%fmeanr(n)  = SS2G_params%rmed(1)     ! sea salt bin 1
  self%fnum(n)    = SS2G_params%fnum(1)     ! sea salt bin 1
  self%fscav(n)   = SS2G_params%fscav(1)    ! sea salt bin 1
  self%fthom_w(n) = .true.                  ! sea salt bin 1
  n = n+1
  self%fdens(n)   = SS2G_params%rhop(2)     ! sea salt bin 2
- self%fhygros(n) = 1.16                    ! sea salt bin 2 (as hygro_seas_aer in WRF/chem)
+ self%fhygros(n) = hygrosSS2               ! sea salt bin 2 (as hygro_seas_aer in WRF/chem)
  self%fmeanr(n)  = SS2G_params%rmed(2)     ! sea salt bin 2
  self%fnum(n)    = SS2G_params%fnum(2)     ! sea salt bin 2
  self%fscav(n)   = SS2G_params%fscav(2)    ! sea salt bin 2
  self%fthom_w(n) = .true.                  ! sea salt bin 2
  n = n+1
  self%fdens(n)   = SS2G_params%rhop(3)     ! sea salt bin 3
- self%fhygros(n) = 1.16                    ! sea salt bin 3 (as hygro_seas_aer in WRF/chem)
+ self%fhygros(n) = hygrosSS3               ! sea salt bin 3 (as hygro_seas_aer in WRF/chem)
  self%fmeanr(n)  = SS2G_params%rmed(3)     ! sea salt bin 3
  self%fnum(n)    = SS2G_params%fnum(3)     ! sea salt bin 3
  self%fscav(n)   = SS2G_params%fscav(3)    ! sea salt bin 3
  self%fthom_w(n) = .true.                  ! sea salt bin 3
  n = n+1
  self%fdens(n)   = SS2G_params%rhop(4)     ! sea salt bin 4
- self%fhygros(n) = 1.16                    ! sea salt bin 4 (as hygro_seas_aer in WRF/chem)
+ self%fhygros(n) = hygrosSS4               ! sea salt bin 4 (as hygro_seas_aer in WRF/chem)
  self%fmeanr(n)  = SS2G_params%rmed(4)     ! sea salt bin 4
  self%fnum(n)    = SS2G_params%fnum(4)     ! sea salt bin 4
  self%fscav(n)   = SS2G_params%fscav(4)    ! sea salt bin 4
  self%fthom_w(n) = .true.                  ! sea salt bin 4
  n = n+1
  self%fdens(n)   = SS2G_params%rhop(5)     ! sea salt bin 5
- self%fhygros(n) = 1.16                    ! sea salt bin 5 (as hygro_seas_aer in WRF/chem)
+ self%fhygros(n) = hygrosSS5               ! sea salt bin 5 (as hygro_seas_aer in WRF/chem)
  self%fmeanr(n)  = SS2G_params%rmed(5)     ! sea salt bin 5
  self%fnum(n)    = SS2G_params%fnum(5)     ! sea salt bin 5
  self%fscav(n)   = SS2G_params%fscav(5)    ! sea salt bin 5

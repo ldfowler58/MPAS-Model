@@ -228,6 +228,91 @@
            description="parameterized convection wet scavenging coefficient for sulfate"
            possible_values="0. to 1."/>
 
+      <nlm_option name="config_gocart2g_hygrosBC" type="real" default_value="0.10"
+           units="-"
+           description="hygroscopicity of hydrophilic black carbon"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosBR" type="real" default_value="0.10"
+           units="-"
+           description="hygroscopicity of hydrophilic brown carbon"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosOC" type="real" default_value="0.10"
+           units="-"
+           description="hygroscopicity of hydrophilic organic carbon"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosDU1" type="real" default_value="0.10"
+           units="-"
+           description="hygroscopicity of mineral dust - BIN 1"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosDU2" type="real" default_value="0.10"
+           units="-"
+           description="hygroscopicity of mineral dust - BIN 2"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosDU3" type="real" default_value="0.10"
+           units="-"
+           description="hygroscopicity of mineral dust - BIN 3"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosDU4" type="real" default_value="0.10"
+           units="-"
+           description="hygroscopicity of mineral dust - BIN 4"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosDU5" type="real" default_value="0.10"
+           units="-"
+           description="hygroscopicity of mineral dust - BIN 5"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosNI1" type="real" default_value="0.5"
+           units="-"
+           description="hygroscopicity of nitrate - BIN 1"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosNI2" type="real" default_value="0.5"
+           units="-"
+           description="hygroscopicity of nitrate - BIN 2"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosNI3" type="real" default_value="0.5"
+           units="-"
+           description="hygroscopicity of nitrate - BIN 3"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosSU" type="real" default_value="0.5"
+           units="-"
+           description="hygroscopicity of sulfate"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosSS1" type="real" default_value="1.16"
+           units="-"
+           description="hygroscopicity of sea salt - BIN 1"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosSS2" type="real" default_value="1.16"
+           units="-"
+           description="hygroscopicity of sea salt - BIN 2"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosSS3" type="real" default_value="1.16"
+           units="-"
+           description="hygroscopicity of sea salt - BIN 3"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosSS4" type="real" default_value="1.16"
+           units="-"
+           description="hygroscopicity of sea salt - BIN 4"
+           possible_values="greater than 0."/>
+
+      <nlm_option name="config_gocart2g_hygrosSS5" type="real" default_value="1.16"
+           units="-"
+           description="hygroscopicity of sea salt - BIN 5"
+           possible_values="greater than 0."/>
+
  </nml_record>
 
 
